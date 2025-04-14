@@ -1,0 +1,114 @@
+.
+├── .cursor
+│   ├── rules
+│   │   ├── add-comments.mdc
+│   │   └── cursor-rules.mdc
+│   └── mcp.json
+├── .obsidian
+│   ├── app.json
+│   ├── appearance.json
+│   ├── core-plugins.json
+│   └── workspace.json
+├── .vscode
+│   ├── extensions.json
+│   └── settings.json
+├── src
+│   ├── components
+│   ├── i18n
+│   │   ├── en.json
+│   │   ├── es.json
+│   │   ├── he.json
+│   │   └── index.ts
+│   ├── lib
+│   │   ├── components
+│   │   │   ├── auth
+│   │   │   │   ├── claim-session.svelte
+│   │   │   │   └── clerk-wrapper.svelte
+│   │   │   ├── about-drawer.svelte
+│   │   │   ├── activity-monitor.svelte
+│   │   │   ├── anonymous-avatar-dropdown.svelte
+│   │   │   ├── app-footer.svelte
+│   │   │   ├── app-header.svelte
+│   │   │   ├── avatar-dropdown.svelte
+│   │   │   ├── language-switcher.svelte
+│   │   │   ├── motion-wrapper.svelte
+│   │   │   ├── network-status.svelte
+│   │   │   ├── session-info.svelte
+│   │   │   └── theme-toggle.svelte
+│   │   ├── hooks
+│   │   │   └── is-mobile.svelte.ts
+│   │   ├── stores
+│   │   │   └── settings.ts
+│   │   ├── utils
+│   │   │   └── tracking.ts
+│   │   └── utils.ts
+│   ├── params
+│   │   └── lang.ts
+│   ├── routes
+│   │   ├── dashboard
+│   │   │   └── +page.svelte
+│   │   ├── settings
+│   │   │   └── +page.svelte
+│   │   ├── sign-in
+│   │   │   └── +page.svelte
+│   │   ├── sign-up
+│   │   │   └── +page.svelte
+│   │   ├── +layout.server.ts
+│   │   ├── +layout.svelte
+│   │   ├── +layout.ts
+│   │   ├── +page.server.ts
+│   │   └── +page.svelte
+│   ├── app.css
+│   ├── app.d.ts
+│   ├── app.html
+│   ├── env.d.ts
+│   ├── esm-env.js
+│   ├── hooks.client.ts
+│   └── hooks.server.ts
+├── src-tauri
+│   ├── capabilities
+│   │   └── default.json
+│   ├── src
+│   │   ├── lib.rs
+│   │   └── main.rs
+│   ├── .gitignore
+│   ├── Cargo.lock
+│   ├── Cargo.toml
+│   ├── build.rs
+│   └── tauri.conf.json
+├── static
+│   ├── favicon.png
+│   ├── flag-es.png
+│   ├── flag-il.png
+│   ├── flag-us.png
+│   ├── logo.png
+│   └── logo.svg
+├── .env
+├── .env.d.ts
+├── .env.example
+├── .gitignore
+├── .mcp.json
+├── .prettierignore
+├── .prettierrc
+├── .windsurfrules
+├── LICENSE
+├── README.md
+├── app-icon.png
+├── components.json
+├── file-structure.txt
+├── guidelines.md
+├── implementation-plan.md
+├── index.ts
+├── llms-convex.txt
+├── llms-drizzle.txt
+├── llms-mcp-full.txt
+├── llms-small-svelte.txt
+├── package.json
+├── pnpm-lock.yaml
+├── postcss.config.cjs
+├── streak-calendar-digest.txt
+├── svelte.config.js
+├── tailwind.config.js
+├── tech-stack.md
+├── tsconfig.json
+└── vite.config.mjs

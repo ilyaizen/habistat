@@ -1,0 +1,35 @@
+{
+  "app": {
+    "title": "הביסטט",
+    "description": "מעקב הרגלים"
+  },
+  "common": {
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "create": "צור",
+    "settings": "הגדרות",
+    "error": "שגיאה"
+  },
+  "dashboard": {
+    "title": "לוח מחוונים",
+    "activity_title": "הפעילות שלך (60 הימים האחרונים)",
+    "no_activity": "עדיין לא נרשמה פעילות.",
+    "session_info": "פרטי ההפעלה"
+  },
+  "errors": {
+    "activity_load": "לא ניתן לטעון את נתוני הפעילות."
+  },
+  "footer": {
+    "madeWith": "נוצר עם",
+    "love": "אהבה",
+    "by": "על ידי",
+    "changeLanguage": "שנה שפה"
+  },
+  "home": {
+    "welcome": "ברוכים הבאים להאביסטט",
+    "description": "מעקב אחרי ההרגלים שלך",
+    "get_started": "התחל"
+  }
+}

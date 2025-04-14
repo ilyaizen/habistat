@@ -1,0 +1,35 @@
+{
+  "app": {
+    "title": "Habistat",
+    "description": "Rastrea tus hábitos y mejora tu vida"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "settings": "Configuración",
+    "error": "Error"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "activity_title": "Tu actividad (últimos 60 días)",
+    "no_activity": "No hay actividad registrada todavía.",
+    "session_info": "Información de sesión"
+  },
+  "errors": {
+    "activity_load": "No se pudo cargar la actividad."
+  },
+  "footer": {
+    "madeWith": "Hecho con",
+    "love": "amor",
+    "by": "por",
+    "changeLanguage": "Cambiar idioma"
+  },
+  "home": {
+    "welcome": "Bienvenido a Habistat",
+    "description": "Rastrea tus hábitos y mejora tu vida",
+    "get_started": "Comenzar"
+  }
+}
