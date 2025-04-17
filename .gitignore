@@ -12,6 +12,4 @@ vite.config.ts.timestamp-*
 pnpm-lock.yaml
 bun.lockb
 
-/.cursor
 /.obsidian
-.mcp.json

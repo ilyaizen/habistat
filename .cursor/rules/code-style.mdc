@@ -1,0 +1,66 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Habistat Code Style Guide
+
+## Component Rules
+
+- Use Svelte 5 syntax and conventions
+- Prefer functional patterns over classes
+- Keep components focused and single-purpose
+- Extract reusable logic into hooks
+- Use TypeScript for all components
+
+## Naming Conventions
+
+- Components: `kebab-case` (e.g., `user-profile.svelte`)
+- Files: `kebab-case` (e.g., `user-profile.ts`)
+- Variables/Functions: `camelCase` (e.g., `getUserData`)
+- Constants: `UPPER_SNAKE_CASE` (e.g., `MAX_RETRIES`)
+- Types/Interfaces: `PascalCase` (e.g., `UserData`)
+
+## Code Organization
+
+- Group related imports together
+- Export types and interfaces separately
+- Keep functions pure when possible
+- Use early returns to reduce nesting
+- Break complex functions into smaller ones
+
+## Error Handling
+
+```typescript
+// Always use try/catch for async operations
+try {
+  const data = await fetchData();
+  return processData(data);
+} catch (error) {
+  console.error("Failed to fetch data:", error);
+  throw new Error("Data fetch failed");
+}
+```
+
+## Comments & Documentation
+
+- Document complex logic and business rules
+- Explain "why" not "what" the code does
+- Use JSDoc for public APIs and interfaces
+- Keep comments current with code changes
+
+## TypeScript Usage
+
+- Enable strict mode
+- No `any` without justification
+- Use proper type annotations
+- Leverage type inference when clear
+- Define explicit return types for functions
+
+## Testing Guidelines
+
+- Write tests for business logic
+- Use descriptive test names
+- Follow Arrange-Act-Assert pattern
+- Mock external dependencies
+- Test edge cases and error scenarios

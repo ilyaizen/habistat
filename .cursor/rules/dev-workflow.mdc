@@ -1,0 +1,20 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Habistat Development Workflow
+
+## Development Commands
+
+```bash
+# Development
+pnpm dev               # SvelteKit dev mode
+pnpm tauri:dev        # Tauri development
+pnpm build            # Production build
+pnpm preview          # Preview build
+
+# Quality
+pnpm lint             # Run ESLint
+pnpm format           # Run Prettier
+```
