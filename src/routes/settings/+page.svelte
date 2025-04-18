@@ -16,13 +16,19 @@
 
   // Theme
   let theme = "";
-  function selectTheme(mode: "light" | "dark" | "system" | "ghibli") {
-    if (mode === "system") resetMode();
-    else if (mode === "ghibli") {
+  function selectTheme(mode: "light" | "dark" | "system" | "ghibli" | "ghibli-dark") {
+    // First, remove all theme classes
+    document.documentElement.classList.remove("ghibli", "dark");
+
+    if (mode === "system") {
+      resetMode();
+    } else if (mode === "ghibli") {
       document.documentElement.classList.add("ghibli");
       setMode("light");
+    } else if (mode === "ghibli-dark") {
+      document.documentElement.classList.add("ghibli", "dark");
+      setMode("dark");
     } else {
-      document.documentElement.classList.remove("ghibli");
       setMode(mode);
     }
     theme = mode;
@@ -70,7 +76,7 @@
       <Label class="flex items-center gap-2"><Sun class="h-4 w-4" /> Theme</Label>
     </CardHeader>
     <CardContent>
-      <div class="mt-2 flex gap-4">
+      <div class="mt-2 flex flex-wrap gap-4">
         <Button
           size="sm"
           variant={theme === "light" ? "default" : "outline"}
@@ -89,7 +95,12 @@
         <Button
           size="sm"
           variant={theme === "ghibli" ? "default" : "outline"}
-          onclick={() => selectTheme("ghibli")}>Ghibli</Button
+          onclick={() => selectTheme("ghibli")}>Ghibli Light</Button
+        >
+        <Button
+          size="sm"
+          variant={theme === "ghibli-dark" ? "default" : "outline"}
+          onclick={() => selectTheme("ghibli-dark")}>Ghibli Dark</Button
         >
       </div>
     </CardContent>
