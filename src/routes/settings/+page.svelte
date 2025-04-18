@@ -16,9 +16,15 @@
 
   // Theme
   let theme = "";
-  function selectTheme(mode: "light" | "dark" | "system") {
+  function selectTheme(mode: "light" | "dark" | "system" | "ghibli") {
     if (mode === "system") resetMode();
-    else setMode(mode);
+    else if (mode === "ghibli") {
+      document.documentElement.classList.add("ghibli");
+      setMode("light");
+    } else {
+      document.documentElement.classList.remove("ghibli");
+      setMode(mode);
+    }
     theme = mode;
   }
 
@@ -79,6 +85,11 @@
           size="sm"
           variant={theme === "system" ? "default" : "outline"}
           onclick={() => selectTheme("system")}>System</Button
+        >
+        <Button
+          size="sm"
+          variant={theme === "ghibli" ? "default" : "outline"}
+          onclick={() => selectTheme("ghibli")}>Ghibli</Button
         >
       </div>
     </CardContent>

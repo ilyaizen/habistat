@@ -2,8 +2,11 @@
   "mcpServers": {
     "browser-tools": {
       "type": "stdio",
-      "command": "bash",
-      "args": ["-c", "npx @agentdeskai/browser-tools-mcp"],
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx @agentdeskai/browser-tools-mcp"
+      ],
       "env": {}
     }
   }
