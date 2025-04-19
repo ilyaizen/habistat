@@ -19,7 +19,6 @@
 │   ├── generate-pwa-icons.mjs
 │   └── verify-icons.mjs
 ├── src
-│   ├── components
 │   ├── i18n
 │   │   ├── en.json
 │   │   ├── es.json
