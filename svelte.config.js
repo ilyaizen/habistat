@@ -25,7 +25,6 @@ const config = {
       lib: "src/lib",
       params: "src/params",
       routes: "src/routes",
-      serviceWorker: "src/service-worker",
       appTemplate: "src/app.html",
       errorTemplate: "src/error.html"
     },

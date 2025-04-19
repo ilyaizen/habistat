@@ -1,9 +1,11 @@
 .
 ├── .cursor
-│   ├── rules
-│   │   ├── add-comments.mdc
-│   │   └── cursor-rules.mdc
-│   └── mcp.json
+│   └── rules
+│       ├── add-comments.mdc
+│       ├── code-style.mdc
+│       ├── cursor-rules.mdc
+│       ├── dev-workflow.mdc
+│       └── project-core.mdc
 ├── .obsidian
 │   ├── app.json
 │   ├── appearance.json
@@ -12,6 +14,10 @@
 ├── .vscode
 │   ├── extensions.json
 │   └── settings.json
+├── scripts
+│   ├── generate-144-icon.mjs
+│   ├── generate-pwa-icons.mjs
+│   └── verify-icons.mjs
 ├── src
 │   ├── components
 │   ├── i18n
@@ -33,6 +39,8 @@
 │   │   │   ├── language-switcher.svelte
 │   │   │   ├── motion-wrapper.svelte
 │   │   │   ├── network-status.svelte
+│   │   │   ├── pwa-install-prompt.svelte
+│   │   │   ├── pwa-register.svelte
 │   │   │   ├── session-info.svelte
 │   │   │   └── theme-toggle.svelte
 │   │   ├── hooks
@@ -64,7 +72,8 @@
 │   ├── env.d.ts
 │   ├── esm-env.js
 │   ├── hooks.client.ts
-│   └── hooks.server.ts
+│   ├── hooks.server.ts
+│   └── service-worker.js
 ├── src-tauri
 │   ├── capabilities
 │   │   └── default.json
@@ -77,12 +86,17 @@
 │   ├── build.rs
 │   └── tauri.conf.json
 ├── static
-│   ├── favicon.png
+│   ├── screenshots
+│   │   ├── screenshot-desktop.png
+│   │   └── screenshot-mobile.png
+│   ├── app-192x192.png
+│   ├── app-512x512.png
 │   ├── flag-es.png
 │   ├── flag-il.png
 │   ├── flag-us.png
 │   ├── logo.png
-│   └── logo.svg
+│   ├── logo.svg
+│   └── maskable-icon-512x512.png
 ├── .env
 ├── .env.d.ts
 ├── .env.example
@@ -99,14 +113,9 @@
 ├── guidelines.md
 ├── implementation-plan.md
 ├── index.ts
-├── llms-convex.txt
-├── llms-drizzle.txt
-├── llms-mcp-full.txt
-├── llms-small-svelte.txt
 ├── package.json
 ├── pnpm-lock.yaml
 ├── postcss.config.cjs
-├── streak-calendar-digest.txt
 ├── svelte.config.js
 ├── tailwind.config.js
 ├── tech-stack.md

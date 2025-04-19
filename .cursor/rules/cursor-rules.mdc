@@ -34,10 +34,9 @@ Process & Interaction:
 
 Project Context:
 
-- Consult `[CLAUDE.md](mdc:CLAUDE.md)`, `[file-structure.txt](mdc:file-structure.txt)`.
+- Consult `[guidelines.md](mdc:guidelines.md)` and `[file-structure.txt](mdc:file-structure.txt)`.
 - Read `[README.md](mdc:README.md)` and understand the project.
-- Read [tech-stack.md](mdc:tech-stack.md)` and understand the tools we'll be using. 
+- Read `[tech-stack.md](mdc:tech-stack.md)` and understand the tools we'll be using. 
 - Read `[implementation-plan.md](mdc:implementation-plan.md)` and understand the required tasks. 
-- Use `[llms-convex.txt](mdc:llms-convex.txt)`, `[llms-drizzle.txt](mdc:llms-drizzle.txt)`, `[llms-mcp-full.txt](mdc:llms-mcp-full.txt)`, `[llms-small-svelte.txt](mdc:llms-small-svelte.txt)` to clarify latest tool best-practices.
 - Apply `[add-comments.mdc](mdc:.cursor/rules/add-comments.mdc)` to code when possible.
 - Use the available MCP functionality (such as: `browser-tools`) freely.

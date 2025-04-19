@@ -1,21 +1,23 @@
 <script lang="ts">
-  import { ModeWatcher } from "mode-watcher";
-  import MotionWrapper from "$lib/components/motion-wrapper.svelte";
-  import { page } from "$app/stores";
-  import AppHeader from "$lib/components/app-header.svelte";
-  import AppFooter from "$lib/components/app-footer.svelte";
-  import { writable } from "svelte/store";
-  import { browser } from "$app/environment";
-  import { setContext } from "svelte";
-  import { ClerkProvider } from "svelte-clerk";
-  import { PUBLIC_CLERK_PUBLISHABLE_KEY } from "$env/static/public";
   import "../app.css";
-  import { isAnonymous } from "$lib/utils/tracking";
+  import AppFooter from "$lib/components/app-footer.svelte";
+  import AppHeader from "$lib/components/app-header.svelte";
   import ClerkWrapper from "$lib/components/auth/clerk-wrapper.svelte";
-  import { onMount } from "svelte";
-  import { waitLocale } from "svelte-i18n";
-  import { initializeTracking, createUserSession, anonymousUserId } from "$lib/utils/tracking";
+  import MotionWrapper from "$lib/components/motion-wrapper.svelte";
+  import { ClerkProvider } from "svelte-clerk";
+  import { ModeWatcher } from "mode-watcher";
+  import { PUBLIC_CLERK_PUBLISHABLE_KEY } from "$env/static/public";
+  import { browser } from "$app/environment";
   import { get } from "svelte/store";
+  import { initializeTracking, createUserSession, anonymousUserId } from "$lib/utils/tracking";
+  import { isAnonymous } from "$lib/utils/tracking";
+  import { onMount } from "svelte";
+  import { page } from "$app/stores";
+  import { setContext } from "svelte";
+  import { waitLocale } from "svelte-i18n";
+  import { writable } from "svelte/store";
+  import PWARegister from "$lib/components/pwa-register.svelte";
+  import PWAInstallPrompt from "$lib/components/pwa-install-prompt.svelte";
 
   // Define a placeholder initiateAuth function for ClerkWrapper
   const initiateAuth = () => {
@@ -86,6 +88,8 @@ provides the base structure that will be present across all routes. -->
       {#if showHeaderFooter}
         <AppFooter />
       {/if}
+      <PWARegister />
+      <PWAInstallPrompt />
     </div>
   {/snippet}
 
@@ -105,6 +109,8 @@ provides the base structure that will be present across all routes. -->
       {#if showHeaderFooter}
         <AppFooter />
       {/if}
+      <PWARegister />
+      <PWAInstallPrompt />
     </div>
   {/snippet}
 
@@ -134,5 +140,7 @@ provides the base structure that will be present across all routes. -->
     {#if showHeaderFooter}
       <AppFooter />
     {/if}
+    <PWARegister />
+    <PWAInstallPrompt />
   </div>
 {/if}
