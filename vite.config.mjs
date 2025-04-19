@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { resolve } from "path";
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -10,11 +11,47 @@ export default defineConfig(async () => ({
   plugins: [
     sveltekit(),
     VitePWA({
+      strategies: "generateSW",
       registerType: "prompt",
       injectRegister: "auto",
-      strategies: "injectManifest",
-      srcDir: "src",
-      filename: "service-worker.js",
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2}"],
+        cleanupOutdatedCaches: true,
+        sourcemap: true,
+        navigateFallback: "/index.html",
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\./i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-cache",
+              networkTimeoutSeconds: 10,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 // 1 hour
+              }
+            }
+          },
+          {
+            urlPattern: /\.(png|jpg|jpeg|svg|gif|webp)$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "images",
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 Days
+              }
+            }
+          },
+          {
+            urlPattern: /\.(js|css|woff2?)$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "static-resources"
+            }
+          }
+        ]
+      },
       manifest: {
         name: "Habistat",
         short_name: "Habistat",
@@ -60,26 +97,6 @@ export default defineConfig(async () => ({
             type: "image/png",
             form_factor: "wide",
             label: "Desktop Dashboard"
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2}"],
-        cleanupOutdatedCaches: true,
-        sourcemap: true,
-        navigateFallback: "/index.html",
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\./i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-              networkTimeoutSeconds: 10,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 // 1 hour
-              }
-            }
           }
         ]
       },

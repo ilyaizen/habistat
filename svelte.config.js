@@ -30,6 +30,9 @@ const config = {
       errorTemplate: "src/error.html",
       serviceWorker: "src/service-worker"
     },
+    serviceWorker: {
+      register: true
+    },
     prerender: {
       entries: ["*", "/dashboard"],
       handleMissingId: "ignore",

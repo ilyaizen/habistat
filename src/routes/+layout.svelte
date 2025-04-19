@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { page } from "$app/state";
+  import { page } from "$app/stores";
   import { setContext } from "svelte";
   import { waitLocale } from "svelte-i18n";
   import { writable, derived } from "svelte/store";
@@ -26,9 +26,7 @@
   };
 
   // Create a derived store for header/footer visibility
-  const showHeaderFooter = derived(page, ($page) => {
-    return $page.url.pathname !== "/";
-  });
+  const showHeaderFooter = derived(page, ($page) => $page.url.pathname !== "/");
 
   // Create an auth store that works offline-first
   const authMode = writable<"offline" | "online">("offline");
