@@ -1,20 +1,16 @@
 <script lang="ts">
   import { Menu, X } from "lucide-svelte";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { getContext, onMount } from "svelte";
   import { Button } from "$lib/components/ui/button";
   import { type Writable } from "svelte/store";
   // import { SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "svelte-clerk";
   import { goto } from "$app/navigation";
   import { _ } from "svelte-i18n";
-  import { writable } from "svelte/store";
-  import { browser } from "$app/environment";
-  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-  import { locale } from "svelte-i18n";
+
   import AvatarDropdown from "./avatar-dropdown.svelte";
 
   let isMobileMenuOpen = false;
-  let anonymousUserId: string | null = null;
 
   // Get auth mode from context
   const authMode = getContext<Writable<"offline" | "online">>("authMode");
@@ -60,14 +56,14 @@
         <a
           href="/dashboard"
           class="text-muted-foreground hover:text-foreground transition-colors"
-          class:font-medium={$page.url.pathname.includes("/dashboard")}
+          class:font-medium={page.url.pathname.includes("/dashboard")}
         >
           Dashboard
         </a>
         <a
           href="/settings"
           class="text-muted-foreground hover:text-foreground transition-colors"
-          class:font-medium={$page.url.pathname.includes("/settings")}
+          class:font-medium={page.url.pathname.includes("/settings")}
         >
           Settings
         </a>
@@ -76,22 +72,6 @@
 
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
       <AvatarDropdown />
-
-      <!-- <div class="flex items-center gap-4">
-        {#if $authMode === "online"}
-          <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
-          <SignedOut>
-            <SignInButton mode="modal">
-              <Button variant="ghost">Sign in</Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button variant="default">Sign up</Button>
-            </SignUpButton>
-          </SignedOut>
-        {/if}
-      </div> -->
     </div>
   </div>
 

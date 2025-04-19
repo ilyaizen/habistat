@@ -1,5 +1,7 @@
 import { writable } from "svelte/store";
 
+export type ThemeMode = "system" | "light" | "dark";
+
 interface Settings {
   developerMode: boolean;
   showUsageHistory: boolean;
@@ -36,3 +38,20 @@ function createSettingsStore() {
 }
 
 export const settings = createSettingsStore();
+
+// Theme store: 'system' (default), 'light', 'dark'
+function getInitialTheme(): ThemeMode {
+  if (typeof localStorage !== 'undefined') {
+    const t = localStorage.getItem('habistat_theme');
+    if (t === 'light' || t === 'dark' || t === 'system') return t;
+  }
+  return 'system';
+}
+
+export const theme = writable<ThemeMode>(getInitialTheme());
+
+theme.subscribe((val) => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('habistat_theme', val);
+  }
+});

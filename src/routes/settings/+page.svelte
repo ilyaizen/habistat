@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { settings } from "$lib/stores/settings";
+  import { settings, theme } from "$lib/stores/settings";
   import { Card, CardHeader, CardContent } from "$lib/components/ui/card";
   import { Button } from "$lib/components/ui/button";
   import { Label } from "$lib/components/ui/label";
@@ -7,7 +7,7 @@
   import Switch from "$lib/components/ui/switch/switch.svelte";
   import SessionInfo from "$lib/components/session-info.svelte";
   import { anonymousUserId, initializeTracking } from "$lib/utils/tracking";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
 
   import { locale } from "svelte-i18n";
   import { browser } from "$app/environment";
@@ -15,24 +15,70 @@
   import { resetMode, setMode } from "mode-watcher";
 
   // Theme
-  let theme = "";
-  function selectTheme(mode: "light" | "dark" | "system" | "ghibli" | "ghibli-dark") {
-    // First, remove all theme classes
-    document.documentElement.classList.remove("ghibli", "dark");
+  import type { ThemeMode } from "$lib/stores/settings";
+  import { get } from "svelte/store";
 
+  let currentTheme: ThemeMode = get(theme);
+
+  theme.subscribe((val) => {
+    currentTheme = val;
+  });
+
+  let media: MediaQueryList | null = null;
+  let systemListener: (() => void) | null = null;
+
+  function applySystemTheme() {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }
+
+  function setupSystemListener() {
+    cleanupSystemListener();
+    media = window.matchMedia('(prefers-color-scheme: dark)');
+    systemListener = () => applySystemTheme();
+    media.addEventListener('change', systemListener);
+  }
+
+  function cleanupSystemListener() {
+    if (media && systemListener) {
+      media.removeEventListener('change', systemListener);
+    }
+    media = null;
+    systemListener = null;
+  }
+
+  function selectTheme(mode: ThemeMode) {
     if (mode === "system") {
       resetMode();
-    } else if (mode === "ghibli") {
-      document.documentElement.classList.add("ghibli");
-      setMode("light");
-    } else if (mode === "ghibli-dark") {
-      document.documentElement.classList.add("ghibli", "dark");
-      setMode("dark");
+      applySystemTheme();
+      setupSystemListener();
     } else {
+      cleanupSystemListener();
+      if (mode === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
       setMode(mode);
     }
-    theme = mode;
+    theme.set(mode);
   }
+
+  onMount(() => {
+    if (get(theme) === "system") {
+      applySystemTheme();
+      setupSystemListener();
+    } else {
+      selectTheme(get(theme));
+    }
+    initializeTracking();
+  });
+  onDestroy(() => {
+    cleanupSystemListener();
+  });
 
   // Language
   const locales = ["en", "he", "es"] as const;
@@ -79,28 +125,18 @@
       <div class="mt-2 flex flex-wrap gap-4">
         <Button
           size="sm"
-          variant={theme === "light" ? "default" : "outline"}
+          variant={currentTheme === "light" ? "default" : "outline"}
           onclick={() => selectTheme("light")}>Light</Button
         >
         <Button
           size="sm"
-          variant={theme === "dark" ? "default" : "outline"}
+          variant={currentTheme === "dark" ? "default" : "outline"}
           onclick={() => selectTheme("dark")}>Dark</Button
         >
         <Button
           size="sm"
-          variant={theme === "system" ? "default" : "outline"}
+          variant={currentTheme === "system" ? "default" : "outline"}
           onclick={() => selectTheme("system")}>System</Button
-        >
-        <Button
-          size="sm"
-          variant={theme === "ghibli" ? "default" : "outline"}
-          onclick={() => selectTheme("ghibli")}>Ghibli Light</Button
-        >
-        <Button
-          size="sm"
-          variant={theme === "ghibli-dark" ? "default" : "outline"}
-          onclick={() => selectTheme("ghibli-dark")}>Ghibli Dark</Button
         >
       </div>
     </CardContent>
