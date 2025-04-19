@@ -3,7 +3,7 @@
   import { page } from "$app/state";
   import { setContext } from "svelte";
   import { waitLocale } from "svelte-i18n";
-  import { writable } from "svelte/store";
+  import { writable, derived } from "svelte/store";
 
   import "../app.css";
 
@@ -25,8 +25,10 @@
     console.log("initiateAuth called - placeholder");
   };
 
-  // Determine if header/footer should be shown
-  $: showHeaderFooter = page.route.id !== "/";
+  // Create a derived store for header/footer visibility
+  const showHeaderFooter = derived(page, ($page) => {
+    return $page.url.pathname !== "/";
+  });
 
   // Create an auth store that works offline-first
   const authMode = writable<"offline" | "online">("offline");
@@ -76,17 +78,13 @@ provides the base structure that will be present across all routes. -->
   {#snippet anonymous({ initiateAuth }: { initiateAuth: () => void })}
     <div class="flex min-h-screen flex-col">
       <ModeWatcher />
-      {#if showHeaderFooter}
+      {#if $showHeaderFooter}
         <AppHeader />
       {/if}
       <main class="flex-1">
-        {#key page.url.pathname}
-          <MotionWrapper>
-            <slot />
-          </MotionWrapper>
-        {/key}
+        <slot />
       </main>
-      {#if showHeaderFooter}
+      {#if $showHeaderFooter}
         <AppFooter />
       {/if}
     </div>
@@ -95,17 +93,13 @@ provides the base structure that will be present across all routes. -->
   {#snippet children()}
     <div class="flex min-h-screen flex-col">
       <ModeWatcher />
-      {#if showHeaderFooter}
+      {#if $showHeaderFooter}
         <AppHeader />
       {/if}
       <main class="flex-1">
-        {#key page.url.pathname}
-          <MotionWrapper>
-            <slot />
-          </MotionWrapper>
-        {/key}
+        <slot />
       </main>
-      {#if showHeaderFooter}
+      {#if $showHeaderFooter}
         <AppFooter />
       {/if}
     </div>
@@ -118,7 +112,7 @@ provides the base structure that will be present across all routes. -->
   <!-- Offline mode -->
   <div class="flex min-h-screen flex-col">
     <ModeWatcher />
-    {#if showHeaderFooter}
+    {#if $showHeaderFooter}
       <AppHeader />
     {/if}
     <main class="flex-1">
@@ -127,14 +121,10 @@ provides the base structure that will be present across all routes. -->
           <p class="text-destructive">Authentication error: {clerkError.message}</p>
         </div>
       {:else}
-        {#key page.url.pathname}
-          <MotionWrapper>
-            <slot />
-          </MotionWrapper>
-        {/key}
+        <slot />
       {/if}
     </main>
-    {#if showHeaderFooter}
+    {#if $showHeaderFooter}
       <AppFooter />
     {/if}
   </div>

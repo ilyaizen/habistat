@@ -91,9 +91,7 @@
   });
 </script>
 
-<div
-  class="flex min-h-[calc(100vh-theme(spacing.16))] flex-1 flex-col items-center justify-center text-center"
->
+<div class="flex min-h-screen flex-col items-center justify-center text-center">
   <img src="/logo.svg" alt="Habistat Logo" class="mb-6 h-30 w-30" />
   <h1 class="mb-4 text-4xl font-bold">Habistat</h1>
   <p class="text-muted-foreground mb-8 text-lg">Track your habits, build your future.</p>

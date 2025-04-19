@@ -10,9 +10,10 @@ export default defineConfig(async () => ({
   plugins: [
     sveltekit(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       injectRegister: "auto",
-      strategies: "generateSW",
+      strategies: "injectManifest",
+      srcDir: "src",
       filename: "service-worker.js",
       manifest: {
         name: "Habistat",
@@ -66,7 +67,21 @@ export default defineConfig(async () => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2}"],
         cleanupOutdatedCaches: true,
         sourcemap: true,
-        navigateFallback: null
+        navigateFallback: "/index.html",
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\./i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-cache",
+              networkTimeoutSeconds: 10,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 // 1 hour
+              }
+            }
+          }
+        ]
       },
       devOptions: {
         enabled: true,
