@@ -9,7 +9,8 @@ const config = {
 
   kit: {
     adapter: adapter({
-      fallback: "index.html" // This enables SPA mode
+      fallback: "index.html", // This enables SPA mode
+      strict: false // Allow service worker to handle routes
     }),
     alias: {
       $lib: "src/lib",
@@ -26,7 +27,8 @@ const config = {
       params: "src/params",
       routes: "src/routes",
       appTemplate: "src/app.html",
-      errorTemplate: "src/error.html"
+      errorTemplate: "src/error.html",
+      serviceWorker: "src/service-worker"
     },
     prerender: {
       entries: ["*", "/dashboard"],

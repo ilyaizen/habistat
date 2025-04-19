@@ -39,8 +39,6 @@
 │   │   │   ├── language-switcher.svelte
 │   │   │   ├── motion-wrapper.svelte
 │   │   │   ├── network-status.svelte
-│   │   │   ├── pwa-install-prompt.svelte
-│   │   │   ├── pwa-register.svelte
 │   │   │   ├── session-info.svelte
 │   │   │   └── theme-toggle.svelte
 │   │   ├── hooks
