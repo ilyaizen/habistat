@@ -4,11 +4,23 @@
   import { goto } from "$app/navigation";
   import { anonymousUserId, hasExistingSession, createUserSession } from "$lib/utils/tracking";
   import { browser } from "$app/environment";
+  import { onMount } from "svelte";
 
   // State for drawer and scroll/touch detection using Svelte 5 runes
   let showMoreInfoButton = $state(false);
   let drawerOpen = $state(false);
   let initialCheckDone = $state(false);
+
+  // Use onMount to prevent scrolling only on this page
+  onMount(() => {
+    // Disable scrolling for this page only
+    document.body.style.overflow = "hidden";
+
+    // Cleanup when component is destroyed
+    return () => {
+      document.body.style.overflow = "";
+    };
+  });
 
   // Use $effect for initial drawer state
   $effect(() => {

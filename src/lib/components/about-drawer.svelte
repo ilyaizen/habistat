@@ -27,7 +27,7 @@
     {/if}
   </Drawer.Trigger>
 
-  <Drawer.Content class="mx-auto max-w-[90vw]">
+  <Drawer.Content class="mx-auto max-h-[90vh] max-w-[90vw]">
     <div class="absolute top-4 right-4">
       <Drawer.Close class={buttonVariants({ variant: "outline", size: "icon" })} aria-label="Close">
         <X class="h-4 w-4" />
@@ -36,7 +36,7 @@
     <Drawer.Header class="pt-6">
       <Drawer.Title>About Habistat</Drawer.Title>
       <Drawer.Description>
-        <div class="flex h-[75vh] flex-col gap-2 overflow-y-auto">
+        <div class="flex flex-col gap-2">
           Habistat helps you track your daily habits and build better routines.<br />
           <span class="mt-2 block font-semibold">What can you do with Habistat?</span>
           <ul class="mt-2 list-inside list-disc text-left text-sm">

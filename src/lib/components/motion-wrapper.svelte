@@ -1,6 +1,13 @@
 <script lang="ts">
   import { fly } from "svelte/transition";
   import { settings } from "$lib/stores/settings";
+  import { afterNavigate } from "$app/navigation";
+
+  // Force transitions to run on every navigation
+  let key = 0;
+  afterNavigate(() => {
+    key++;
+  });
 
   // Custom easing function to match example [0, 0.7, 0.1, 1]
   const customEase = (t: number) => {
@@ -38,9 +45,8 @@
   }
 </script>
 
-<div
-  class="flex-1"
-  in:fly|local={{ y: 30, duration: $settings.enableMotion ? 350 : 0, easing: customEase }}
->
-  <slot />
-</div>
+{#key key}
+  <div in:fly={{ y: 30, duration: $settings.enableMotion ? 350 : 0, easing: customEase }}>
+    <slot />
+  </div>
+{/key}

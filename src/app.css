@@ -66,6 +66,7 @@
     --accent-foreground: oklch(0.26 0.016 0);
     --destructive: oklch(0.63 0.24 29.2);
     --border: oklch(0.74 0.063 80.8);
+    --border-width: 4px;
     --input: oklch(0.74 0.063 80.8);
     --ring: oklch(0.51 0.077 74.3);
     --sidebar: oklch(0.87 0.059 83.7);
@@ -79,7 +80,12 @@
     --primary-border: oklch(0.59 0.096 111.8);
     --destructive-foreground: oklch(0.97 0.018 0);
     --destructive-border: oklch(0.43 0.24 29.2);
-    font-family: var(--font-serif);
+    --font-serif: var(--font-noto-serif);
+    --radius: 0.5rem;
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
   }
 
   .dark {
@@ -99,6 +105,7 @@
     --accent-foreground: oklch(0.985 0.001 106.423);
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 15%);
+    --border-width: 4px;
     --input: oklch(1 0 0 / 20%);
     --ring: oklch(0.553 0.013 58.071);
     --sidebar: oklch(0.28 0.006 56.043);
@@ -109,10 +116,12 @@
     --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
     --sidebar-border: oklch(1 0 0 / 15%);
     --sidebar-ring: oklch(0.653 0.013 58.071);
+    --radius: 0.5rem;
   }
 
   * {
     @apply border-border outline-ring/50;
+    /* border-width: var(--border-width, 4px); */
   }
   body {
     @apply bg-background text-foreground;
@@ -220,88 +229,4 @@
     --hue1: 360deg;
     --hue2: 660deg;
   }
-}
-
-/* Animations */
-@keyframes completion {
-  0% {
-    width: 0;
-    opacity: 0.2;
-  }
-  100% {
-    width: 100%;
-    opacity: 1;
-  }
-}
-
-.animate-completion {
-  animation: completion 1s ease-out forwards;
-}
-
-/* Apply smooth scrolling to scrollable containers */
-.scrollable,
-[data-scrollable],
-*[style*="overflow: auto"],
-*[style*="overflow: scroll"],
-*[style*="overflow-y: auto"],
-*[style*="overflow-y: scroll"],
-*[style*="overflow-x: auto"],
-*[style*="overflow-x: scroll"] {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Add Ghibli-specific styles */
-.ghibli * {
-  @apply border-border outline-ring/50;
-  border-width: 2px !important;
-}
-
-.ghibli .border {
-  border-width: 2px !important;
-}
-
-.ghibli .border-l {
-  border-left-width: 2px !important;
-}
-
-.ghibli .border-r {
-  border-right-width: 2px !important;
-}
-
-.ghibli .border-t {
-  border-top-width: 2px !important;
-}
-
-.ghibli .border-b {
-  border-bottom-width: 2px !important;
-}
-
-.ghibli .shadow-primary {
-  box-shadow: 0 2px 0 0 var(--primary-border);
-}
-
-.ghibli .shadow-destructive {
-  box-shadow: 0 2px 0 0 var(--destructive);
-}
-
-.ghibli .shadow-destructive-border {
-  box-shadow: 0 2px 0 0 var(--destructive-border);
-}
-
-/* Add texture overlay for Ghibli theme */
-.ghibli::after {
-  content: "";
-  background-image: url(https://matsu-theme.vercel.app/texture.jpg);
-  background-size: 100% 100%;
-  background-repeat: repeat;
-  opacity: 0.12;
-  mix-blend-mode: multiply;
-  z-index: 100;
-  isolation: isolate;
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100dvh;
-  pointer-events: none;
 }

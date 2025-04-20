@@ -3,6 +3,7 @@
   import { resetMode, setMode } from "mode-watcher";
   import { Button } from "./ui/button";
   import * as DropdownMenu from "./ui/dropdown-menu";
+  import { theme } from "$lib/stores/settings";
 </script>
 
 <DropdownMenu.Root>
@@ -16,8 +17,23 @@
     </Button>
   </DropdownMenu.Trigger>
   <DropdownMenu.Content align="end">
-    <DropdownMenu.Item onclick={() => setMode("light")}>Light</DropdownMenu.Item>
-    <DropdownMenu.Item onclick={() => setMode("dark")}>Dark</DropdownMenu.Item>
-    <DropdownMenu.Item onclick={() => resetMode()}>System</DropdownMenu.Item>
+    <DropdownMenu.Item
+      onclick={() => {
+        theme.set("light");
+        setMode("light");
+      }}>Light</DropdownMenu.Item
+    >
+    <DropdownMenu.Item
+      onclick={() => {
+        theme.set("dark");
+        setMode("dark");
+      }}>Dark</DropdownMenu.Item
+    >
+    <DropdownMenu.Item
+      onclick={() => {
+        theme.set("system");
+        resetMode();
+      }}>System</DropdownMenu.Item
+    >
   </DropdownMenu.Content>
 </DropdownMenu.Root>

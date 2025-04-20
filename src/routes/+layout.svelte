@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { page } from "$app/stores";
   import { setContext } from "svelte";
   import { waitLocale } from "svelte-i18n";
-  import { writable, derived } from "svelte/store";
+  import { writable, derived, get } from "svelte/store";
+  import { theme } from "$lib/stores/settings";
+  import { resetMode, setMode } from "mode-watcher";
 
   import "../app.css";
 
@@ -13,7 +15,6 @@
   import { browser } from "$app/environment";
 
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
-  import { ModeWatcher } from "mode-watcher";
   import { initializeTracking } from "$lib/utils/tracking";
 
   import ClerkWrapper from "$lib/components/auth/clerk-wrapper.svelte";
@@ -37,6 +38,49 @@
   let clerkError: Error | null = null;
   let i18nReady = false;
 
+  // Theme handling
+  let media: MediaQueryList | null = null;
+  let systemListener: (() => void) | null = null;
+
+  function applySystemTheme() {
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }
+
+  function setupSystemListener() {
+    cleanupSystemListener();
+    media = window.matchMedia("(prefers-color-scheme: dark)");
+    systemListener = () => applySystemTheme();
+    media.addEventListener("change", systemListener);
+  }
+
+  function cleanupSystemListener() {
+    if (media && systemListener) {
+      media.removeEventListener("change", systemListener);
+    }
+    media = null;
+    systemListener = null;
+  }
+
+  function selectTheme(mode: "system" | "light" | "dark") {
+    if (mode === "system") {
+      resetMode();
+      applySystemTheme();
+      setupSystemListener();
+    } else {
+      cleanupSystemListener();
+      if (mode === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      setMode(mode);
+    }
+  }
+
   // Try to set up Clerk if we're in the browser
   if (browser) {
     try {
@@ -51,9 +95,13 @@
     }
   }
 
-  // Initialize i18n and Tracking
+  // Initialize theme, i18n, and Tracking
   onMount(async () => {
     if (typeof window !== "undefined") {
+      // Initialize theme using the working logic from settings page
+      const currentTheme = get(theme);
+      selectTheme(currentTheme);
+
       initializeTracking();
       try {
         await waitLocale();
@@ -63,10 +111,13 @@
       }
     }
   });
+
+  onDestroy(() => {
+    cleanupSystemListener();
+  });
 </script>
 
-<!-- Root layout component that wraps all pages in the SvelteKit application. * This component
-provides the base structure that will be present across all routes. -->
+<!-- Root layout component that wraps all pages in the SvelteKit application. -->
 {#if !i18nReady}
   <div class="flex min-h-screen flex-col items-center justify-center p-4">
     <p class="text-muted-foreground text-lg">Loading...</p>
@@ -75,12 +126,13 @@ provides the base structure that will be present across all routes. -->
   <!-- Define snippets *before* ClerkWrapper -->
   {#snippet anonymous({ initiateAuth }: { initiateAuth: () => void })}
     <div class="flex min-h-screen flex-col">
-      <ModeWatcher />
       {#if $showHeaderFooter}
         <AppHeader />
       {/if}
       <main class="flex-1">
-        <slot />
+        <MotionWrapper>
+          <slot />
+        </MotionWrapper>
       </main>
       {#if $showHeaderFooter}
         <AppFooter />
@@ -90,12 +142,13 @@ provides the base structure that will be present across all routes. -->
 
   {#snippet children()}
     <div class="flex min-h-screen flex-col">
-      <ModeWatcher />
       {#if $showHeaderFooter}
         <AppHeader />
       {/if}
       <main class="flex-1">
-        <slot />
+        <MotionWrapper>
+          <slot />
+        </MotionWrapper>
       </main>
       {#if $showHeaderFooter}
         <AppFooter />
@@ -109,7 +162,6 @@ provides the base structure that will be present across all routes. -->
 {:else}
   <!-- Offline mode -->
   <div class="flex min-h-screen flex-col">
-    <ModeWatcher />
     {#if $showHeaderFooter}
       <AppHeader />
     {/if}
@@ -119,7 +171,9 @@ provides the base structure that will be present across all routes. -->
           <p class="text-destructive">Authentication error: {clerkError.message}</p>
         </div>
       {:else}
-        <slot />
+        <MotionWrapper>
+          <slot />
+        </MotionWrapper>
       {/if}
     </main>
     {#if $showHeaderFooter}
