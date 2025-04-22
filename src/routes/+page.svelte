@@ -1,6 +1,6 @@
 <!-- /**
  * Landing Page Component
- * 
+ *
  * This is the main landing page for Habistat, featuring:
  * - A welcome screen with logo and start/dashboard button
  * - An information drawer that can be revealed via scroll/touch
@@ -15,18 +15,23 @@
   import { anonymousUserId, hasExistingSession, createUserSession } from "$lib/utils/tracking";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
+  import { getContext } from "svelte";
+  import type { Writable } from "svelte/store";
+
+  // Get online status from context
+  const isOnline = getContext<Writable<boolean>>("isOnline");
+  const authMode = getContext<Writable<"offline" | "online">>("authMode");
 
   // State management using Svelte 5 runes ($state)
-  // Controls visibility of the "More Info" button and drawer state
-  let showMoreInfoButton = $state(false); // Controls the visibility of the more info button
-  let drawerOpen = $state(false); // Controls the state of the information drawer
-  let initialCheckDone = $state(false); // Prevents multiple initial drawer checks
+  let showMoreInfoButton = $state(false);
+  let drawerOpen = $state(false);
+  let initialCheckDone = $state(false);
+  let sessionStarting = $state(false);
 
   // Disable page scrolling while on landing page
   onMount(() => {
     document.body.style.overflow = "hidden";
     return () => {
-      // Cleanup: Re-enable scrolling when component is destroyed
       document.body.style.overflow = "";
     };
   });
@@ -34,7 +39,6 @@
   // Initialize drawer state based on user session
   $effect(() => {
     if (!initialCheckDone && browser) {
-      // Automatically open drawer for first-time visitors
       drawerOpen = !hasExistingSession();
       initialCheckDone = true;
     }
@@ -45,14 +49,26 @@
    * Creates a new user session and redirects to dashboard
    * Includes error handling for session creation failures
    */
-  function handleStart() {
-    console.log("+page.svelte: handleStart called");
-    const userId = createUserSession();
-    if (userId) {
-      console.log("+page.svelte: Session started, navigating to dashboard.");
-      goto("/dashboard");
-    } else {
-      console.error("+page.svelte: Failed to start session.");
+  async function handleStart() {
+    if (sessionStarting) return;
+
+    try {
+      sessionStarting = true;
+      console.log("+page.svelte: handleStart called");
+      const userId = createUserSession();
+
+      if (userId) {
+        console.log("+page.svelte: Session started, navigating to dashboard.");
+        await goto("/dashboard");
+      } else {
+        console.error("+page.svelte: Failed to start session.");
+        throw new Error("Failed to create session");
+      }
+    } catch (error) {
+      console.error("+page.svelte: Error during session creation:", error);
+      // Show error state (you might want to add a UI element for this)
+    } finally {
+      sessionStarting = false;
     }
   }
 
@@ -135,12 +151,23 @@
   <img src="/logo.svg" alt="Habistat Logo" class="mb-6 h-30 w-30" />
   <h1 class="mb-4 text-4xl font-bold">Habistat</h1>
   <p class="text-muted-foreground mb-8 text-lg">Track your habits, build your future.</p>
+
+  {#if !$isOnline && $authMode === "online"}
+    <p class="text-muted-foreground mb-4">
+      You are currently offline. Your data will be stored locally.
+    </p>
+  {/if}
+
   {#if $anonymousUserId}
     <!-- Show Dashboard button for returning users -->
-    <Button onclick={() => goto("/dashboard")} size="lg">Dashboard</Button>
+    <Button onclick={() => goto("/dashboard")} size="lg" disabled={sessionStarting}>
+      {sessionStarting ? "Loading..." : "Dashboard"}
+    </Button>
   {:else}
     <!-- Show Start button for new users -->
-    <Button onclick={handleStart} size="lg">Start</Button>
+    <Button onclick={handleStart} size="lg" disabled={sessionStarting}>
+      {sessionStarting ? "Starting..." : "Start"}
+    </Button>
   {/if}
 </div>
 

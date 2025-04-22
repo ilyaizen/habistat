@@ -31,12 +31,16 @@
 
   // Create an auth store that works offline-first
   const authMode = writable<"offline" | "online">("offline");
+  const isOnline = writable(true);
 
-  // Provide auth mode to child components
+  // Provide auth mode and online status to child components
   setContext("authMode", authMode);
+  setContext("isOnline", isOnline);
 
   let clerkError: Error | null = null;
-  let i18nReady = false;
+  let i18nReady = $state(false);
+  let shouldLoadClerk = $state(false);
+  let isInitialized = $state(false);
 
   // Theme handling
   let media: MediaQueryList | null = null;
@@ -81,49 +85,87 @@
     }
   }
 
-  // Try to set up Clerk if we're in the browser
-  if (browser) {
-    try {
-      if (!PUBLIC_CLERK_PUBLISHABLE_KEY) {
-        console.warn("No Clerk publishable key found, falling back to offline mode");
-      } else {
-        authMode.set("online");
-      }
-    } catch (error) {
-      console.error("Error setting up Clerk:", error);
-      clerkError = error as Error;
+  // Update online status and determine if Clerk should load
+  function updateOnlineStatus() {
+    const online = navigator.onLine;
+    isOnline.set(online);
+    if (!online) {
+      shouldLoadClerk = false;
+      authMode.set("offline");
+    } else if (PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      shouldLoadClerk = true;
+      authMode.set("online");
     }
   }
 
-  // Initialize theme, i18n, and Tracking
-  onMount(async () => {
-    if (typeof window !== "undefined") {
-      // Initialize theme using the working logic from settings page
+  // Initialize app state
+  async function initializeApp() {
+    if (!browser || isInitialized) return;
+
+    try {
+      // Initialize theme
       const currentTheme = get(theme);
       selectTheme(currentTheme);
 
+      // Initialize tracking
       initializeTracking();
+
+      // Set up online/offline handlers
+      window.addEventListener("online", updateOnlineStatus);
+      window.addEventListener("offline", updateOnlineStatus);
+
+      // Initial online status check
+      updateOnlineStatus();
+
+      // Initialize i18n
       try {
         await waitLocale();
-        i18nReady = true;
       } catch (error) {
         console.error("Error initializing i18n:", error);
       }
-    }
-  });
 
-  onDestroy(() => {
-    cleanupSystemListener();
+      // Mark as initialized and ready
+      isInitialized = true;
+      i18nReady = true;
+    } catch (error) {
+      console.error("Error during initialization:", error);
+      // Still mark as initialized to prevent getting stuck
+      isInitialized = true;
+      i18nReady = true;
+    }
+  }
+
+  // Initialize on mount
+  onMount(() => {
+    initializeApp();
+
+    // Fallback timeout for initialization
+    const timeout = setTimeout(() => {
+      if (!isInitialized || !i18nReady) {
+        console.warn("Initialization timed out, continuing anyway");
+        isInitialized = true;
+        i18nReady = true;
+      }
+    }, 2000);
+
+    return () => {
+      clearTimeout(timeout);
+      if (browser) {
+        window.removeEventListener("online", updateOnlineStatus);
+        window.removeEventListener("offline", updateOnlineStatus);
+      }
+      cleanupSystemListener();
+    };
   });
 </script>
 
-<!-- Root layout component that wraps all pages in the SvelteKit application. -->
-{#if !i18nReady}
+<!-- Root layout component -->
+{#if !isInitialized || !i18nReady}
   <div class="flex min-h-screen flex-col items-center justify-center p-4">
     <p class="text-muted-foreground text-lg">Loading...</p>
   </div>
-{:else if $authMode === "online" && PUBLIC_CLERK_PUBLISHABLE_KEY}
-  <!-- Define snippets *before* ClerkWrapper -->
+{:else if shouldLoadClerk && $isOnline}
+  <!-- Online mode with Clerk -->
   {#snippet anonymous({ initiateAuth }: { initiateAuth: () => void })}
     <div class="flex min-h-screen flex-col">
       {#if $showHeaderFooter}
@@ -166,15 +208,16 @@
       <AppHeader />
     {/if}
     <main class="flex-1">
-      {#if clerkError}
-        <div class="flex min-h-[60vh] items-center justify-center">
-          <p class="text-destructive">Authentication error: {clerkError.message}</p>
+      {#if !$isOnline}
+        <div class="container mx-auto flex items-center justify-center p-4">
+          <p class="text-muted-foreground text-sm">
+            You are offline. Your data will be stored locally.
+          </p>
         </div>
-      {:else}
-        <MotionWrapper>
-          <slot />
-        </MotionWrapper>
       {/if}
+      <MotionWrapper>
+        <slot />
+      </MotionWrapper>
     </main>
     {#if $showHeaderFooter}
       <AppFooter />

@@ -10,7 +10,7 @@
   import ActivityMonitor from "$lib/components/activity-monitor.svelte";
   import * as Alert from "$lib/components/ui/alert";
   import * as Card from "$lib/components/ui/card";
-  import { _, isLoading } from "svelte-i18n";
+  import { _ } from "svelte-i18n";
   import { getContext } from "svelte";
   import type { Writable } from "svelte/store";
   import { browser } from "$app/environment";
@@ -20,9 +20,11 @@
   let activeDates = $state<Set<string>>(new Set());
   let fetchError = $state<string | null>(null);
   let earliestActivityDate = $state<string | null>(null);
+  let loadingState = $state(true);
 
-  // Get auth mode from context
+  // Get auth mode and online status from context
   const authMode = getContext<Writable<"offline" | "online">>("authMode");
+  const isOnline = getContext<Writable<boolean>>("isOnline");
 
   function formatDate(date: Date): string {
     const year = date.getFullYear();
@@ -34,19 +36,20 @@
   // Check session and redirect if needed
   $effect(() => {
     if (browser) {
-      const userId = $anonymousUserId;
-      currentUserId = userId;
-
-      // Redirect to home if no session exists
-      if (!userId || !hasExistingSession()) {
-        const lang = $page.params.lang;
-        goto(lang ? `/${lang}` : `/`);
-        return;
-      }
-
-      // Only proceed with activity tracking if we have a valid session
-      logAppOpenIfNeeded();
+      loadingState = true;
       try {
+        const userId = $anonymousUserId;
+        currentUserId = userId;
+
+        // Redirect to home if no session exists
+        if (!userId || !hasExistingSession()) {
+          const lang = $page.params.lang;
+          goto(lang ? `/${lang}` : `/`);
+          return;
+        }
+
+        // Only proceed with activity tracking if we have a valid session
+        logAppOpenIfNeeded();
         const historyTimestamps = getAppOpenHistory();
         const dates = new Set<string>();
         let minTimestamp = Infinity;
@@ -69,6 +72,8 @@
         console.error("Failed to fetch or process activity history:", error);
         fetchError = $_("errors.activity_load");
         activeDates = new Set();
+      } finally {
+        loadingState = false;
       }
     }
   });
@@ -78,11 +83,21 @@
   <main class="flex-1 p-4 md:p-6 lg:p-8">
     <div class="container mx-auto max-w-6xl">
       {#if browser}
-        {#if $isLoading}
-          <p class="text-muted-foreground text-lg">Loading...</p>
+        {#if loadingState}
+          <div class="flex min-h-[60vh] items-center justify-center">
+            <p class="text-muted-foreground text-lg">Loading...</p>
+          </div>
         {:else}
           <div class="mb-6 flex items-center justify-between">
             <h1 class="text-3xl font-bold">{$_("dashboard.title")}</h1>
+            {#if !$isOnline && $authMode === "online"}
+              <Alert.Root variant="destructive" class="max-w-md">
+                <Alert.Description>
+                  You are currently offline. Your data will be stored locally and synced when you're
+                  back online.
+                </Alert.Description>
+              </Alert.Root>
+            {/if}
           </div>
 
           {#if fetchError}
@@ -110,7 +125,9 @@
           {/if}
         {/if}
       {:else}
-        <p class="text-muted-foreground text-lg">Loading dashboard...</p>
+        <div class="flex min-h-[60vh] items-center justify-center">
+          <p class="text-muted-foreground text-lg">Loading dashboard...</p>
+        </div>
       {/if}
     </div>
   </main>
