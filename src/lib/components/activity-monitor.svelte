@@ -71,7 +71,7 @@
       class="activity-bar h-8 w-2 flex-shrink-0 rounded-sm"
       class:bg-green-500={day.status === "active"}
       class:bg-red-500={day.status === "inactive"}
-      class:bg-gray-300={day.status === "pre-registration"}
+      class:bg-secondary={day.status === "pre-registration"}
       title={`${day.date}${day.isToday ? " (Today)" : ""} - ${day.status}`}
     >
       <!-- Bar content can be empty -->
