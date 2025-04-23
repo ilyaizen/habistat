@@ -39,7 +39,7 @@ Please help fix the remaining offline mode issues, focusing on preventing Clerk 
 
 Latest error:
 
-```
+```txt
 Failed to load resource: net::ERR_NAME_NOT_RESOLVED
 clerk.browser.js:1
 ```
