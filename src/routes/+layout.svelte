@@ -1,3 +1,13 @@
+<!-- /**
+ * Root layout component for the Habistat application.
+ * Handles core application setup including:
+ * - Theme management (system/light/dark)
+ * - Online/offline state
+ * - Internationalization (i18n)
+ * - Application initialization
+ * - Header/footer visibility
+ */ -->
+
 <script lang="ts">
   import { onMount } from "svelte";
   import { page } from "$app/state";
@@ -14,27 +24,33 @@
   import { browser } from "$app/environment";
   import { initializeTracking } from "$lib/utils/tracking";
 
-  // Get children prop from $props()
+  // Props from parent component using Svelte 5 syntax
   let { children } = $props();
 
-  // Create a state variable for header/footer visibility
+  // Hide header/footer on the landing page (/)
   let showHeaderFooter = $state(() => page.url.pathname !== "/");
 
-  // Create an auth store that works offline-first
+  // Stores for managing authentication and connectivity state
+  // Uses offline-first approach for better user experience
   const authMode = writable<"offline" | "online">("offline");
   const isOnline = writable(true);
 
-  // Provide auth mode and online status to child components
+  // Make auth and connectivity state available to child components
   setContext("authMode", authMode);
   setContext("isOnline", isOnline);
 
+  // State for tracking initialization progress
   let i18nReady = $state(false);
   let isInitialized = $state(false);
 
-  // Theme handling
+  // Theme management variables
   let media: MediaQueryList | null = null;
   let systemListener: (() => void) | null = null;
 
+  /**
+   * Applies the system theme based on user's OS preference
+   * Adds/removes 'dark' class to document root
+   */
   function applySystemTheme() {
     if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
       document.documentElement.classList.add("dark");
@@ -43,6 +59,10 @@
     }
   }
 
+  /**
+   * Sets up listener for system theme changes
+   * Cleans up existing listener before setting new one
+   */
   function setupSystemListener() {
     cleanupSystemListener();
     media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -50,6 +70,9 @@
     media.addEventListener("change", systemListener);
   }
 
+  /**
+   * Removes system theme change listener and resets related variables
+   */
   function cleanupSystemListener() {
     if (media && systemListener) {
       media.removeEventListener("change", systemListener);
@@ -58,6 +81,10 @@
     systemListener = null;
   }
 
+  /**
+   * Handles theme selection between system, light, and dark modes
+   * Sets up appropriate listeners and applies theme classes
+   */
   function selectTheme(mode: "system" | "light" | "dark") {
     if (mode === "system") {
       resetMode();
@@ -74,14 +101,25 @@
     }
   }
 
-  // Update online status
+  /**
+   * Updates online/offline status and auth mode based on network connectivity
+   * Called when network status changes
+   */
   function updateOnlineStatus() {
     const online = navigator.onLine;
     isOnline.set(online);
     authMode.set(online ? "online" : "offline");
   }
 
-  // Initialize app state
+  /**
+   * Initializes the application with required setup:
+   * - Theme configuration
+   * - Analytics tracking
+   * - Online/offline detection
+   * - Internationalization
+   *
+   * Includes error handling and initialization state management
+   */
   async function initializeApp() {
     if (!browser || isInitialized) return;
 
@@ -118,11 +156,11 @@
     }
   }
 
-  // Initialize on mount
+  // Initialize app on component mount
   onMount(() => {
     initializeApp();
 
-    // Fallback timeout for initialization
+    // Safety timeout to prevent infinite loading state
     const timeout = setTimeout(() => {
       if (!isInitialized || !i18nReady) {
         console.warn("Initialization timed out, continuing anyway");
@@ -131,6 +169,7 @@
       }
     }, 2000);
 
+    // Cleanup function to remove event listeners and theme watchers
     return () => {
       clearTimeout(timeout);
       if (browser) {
@@ -142,16 +181,20 @@
   });
 </script>
 
+<!-- Loading state while i18n initializes -->
 {#if !i18nReady}
   <div class="flex min-h-screen items-center justify-center">
     <p>Loading...</p>
   </div>
 {:else}
+  <!-- Main application layout -->
   <div class="flex min-h-screen flex-col">
+    <!-- Conditional header rendering -->
     {#if showHeaderFooter()}
       <AppHeader />
     {/if}
     <main class="flex-1">
+      <!-- Offline status notification -->
       {#if !$isOnline}
         <div class="container mx-auto flex items-center justify-center p-4">
           <p class="text-muted-foreground text-sm">
@@ -159,8 +202,10 @@
           </p>
         </div>
       {/if}
+      <!-- Render child components -->
       {@render children()}
     </main>
+    <!-- Conditional footer rendering -->
     {#if showHeaderFooter()}
       <AppFooter />
     {/if}
