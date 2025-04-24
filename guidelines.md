@@ -1,11 +1,11 @@
 # Habistat Guidelines
 
 **Version:** 0.0.0
-**Last Updated:** 2025-04-20
+**Last Updated:** 2025-04-24
 
 ---
 
-## 🚀 Commands
+## Commands
 
 ```bash
 # Development
@@ -21,19 +21,19 @@ pnpm lint              # ESLint
 pnpm format            # Prettier
 ```
 
-## 🎨 Code Style
+## Code Style
 
 - **Formatting**: 2 spaces, max 100 chars per line, semicolons, double quotes.
 - **TypeScript**: Strict mode; no unused vars/params.
 - **Naming**:
   - Components: `PascalCase`
-  - Vars/Funcs: `camelCase`
+  - Variables/Functions: `camelCase`
   - Files: `kebab-case`
 - **Components**: Favor functional patterns and hooks.
 - **Error Handling**: Wrap async calls in `try/catch`, bubble meaningful messages.
 - **Comments**: Explain **why**, not **what**; document non‑obvious logic.
 
-## 🛠️ Project Structure
+## Project Structure
 
 ```txt
 /src-tauri      # Rust + Tauri setup
@@ -44,13 +44,13 @@ pnpm format            # Prettier
   /i18n         # Localization config
 ```
 
-## 🧱 Architecture Overview
+## Architecture Overview
 
 - **Frontend**: SvelteKit 5 with `adapter-static`. All routes prerendered; no Node server.
 - **Backend**: Rust-native Tauri commands exposed via secure IPC.
 - **UI Shell**: Delivered through OS WebView (WebKit/WebView2).
 
-## 🌐 Connectivity & Sync
+## Connectivity & Sync
 
 - **Offline-First**:
   - SQLite (Drizzle ORM) is the local source of truth.
@@ -60,13 +60,13 @@ pnpm format            # Prettier
   - Timestamp-based merge: "last-write-wins".
   - Sync queue drained on reconnect.
 
-## 🔐 Authentication & Security
+## Authentication & Security
 
 - **OAuth**: Clerk via popup/deep-link; cached tokens for offline access.
 - **IPC Whitelisting**: All Tauri commands explicitly defined in `src-tauri/tauri.conf.json`.
 - **Token Handling**: Tokens never passed to backend unless required.
 
-## 🧰 Tech Stack
+## Tech Stack
 
 - **Core**:
   - Rust · Tauri v2 · SvelteKit 5 · TypeScript · Tailwind CSS v4 · shadcn-svelte
@@ -85,20 +85,25 @@ pnpm format            # Prettier
 4. **Review**: Peer review; lint & format before PR.
 5. **Release**: Bump version; update `CHANGELOG.md`; build & distribute.
 
-## 🤝 Contribution & Review
+## Contribution & Review
 
 - Fork & branch from `main`.
 - Write clear commit messages: `feat|fix(scope): description`.
 - Include tests for new logic.
 - Address review comments promptly.
 
-## 📌 Notes
+## Notes
 
 - PWA features enabled only for asset caching; not a browser PWA.
 - Cloud dependencies optional; app must run fully air‑gapped.
+- Remember to use latest Svelte 5 best practices:
+    - `The svelte:component` directive is deprecated. ...
+    - The `beforeUpdate` and `afterUpdate` lifecycle hooks are deprecated.
+    - The export let syntax is deprecated in favor of the new `$props` syntax.
+    - The `$:` syntax is deprecated in favor of the new `$effect` syntax.
 - Always use `pnpm`.
 
-## 👤 Process & Interaction
+## Process & Interaction
 
 - Plan First: Describe your plan (detailed pseudo-code), confirm it, _then_ write code.
 - Directness: Give answers/code _immediately_. Explain afterward if necessary. Be terse and casual. Treat me as an expert.
@@ -112,7 +117,7 @@ pnpm format            # Prettier
 - Long Responses: Split into multiple messages if needed.
 - Suggest alternatives when solution propositions don't make reasonable sense or are incompatible.
 
-## 🗃️ Project Context
+## Project Context
 
 - Consult `@file-structure.txt` for current file structure.
 - Read `@README.md` and understand the project better.

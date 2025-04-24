@@ -2,20 +2,9 @@
 
 ## Phase 0: Implement Now
 
-- [x] 0.0. Temporary settings pages with dummy detered features.
-  - [x] 0.0.1. Right now we will focus on a developer mode ability to toggle the session-info at the dashboard (src/routes/dashboard/+page.svelte) on and off.
-- [x] 0.1. Let's rework the header.
-  - [x] 0.1.1. stuff...
+---
 
-### Steps
-
-1. **Identify Current Functionality**: Review the existing avatar-dropdown menu to understand its current functionality and the settings options it includes.
-2. **Design New Menu Structure**: Plan a new structure for the avatar-dropdown menu that excludes settings options, focusing on user profile and logout functionalities.
-3. **Update Header Component**: Modify the header component code to implement the new avatar-dropdown menu design.
-4. **Relocate Settings**: Move the settings options from the avatar-dropdown menu to the settings page. Ensure that the settings page is accessible and user-friendly.
-5. **Test Functionality**: Test the updated header component and settings page to ensure all functionalities work as expected and that the user experience is seamless.
-
-## Phase 1: Homepage & UI Foundation
+## ~~DONE: Phase 1: Homepage & UI Foundation~~
 
 **Goal:**
 
@@ -34,7 +23,7 @@ Establish a clean, multilingual, and minimalistic user interface foundation. Sim
   - [x] `es.json`
   - [x] `he.json`
 - [x] Implement language switching logic and UI (e.g., flag icons or dropdown)
-- [ ] Ensure language preference persists across sessions (localStorage or cookies)
+- [x] Ensure language preference persists across sessions (localStorage or cookies)
 
 ### 1.2. Simplify Homepage
 
@@ -59,9 +48,9 @@ Establish a clean, multilingual, and minimalistic user interface foundation. Sim
 
 ### 1.5. Offline-First & Static
 
-- [ ] Ensure all UI changes work offline without backend dependencies
-- [ ] Avoid SSR or dynamic data fetching in this phase
-- [ ] Keep everything static and client-rendered
+- [x] Ensure all UI changes work offline without backend dependencies
+- [x] Avoid SSR or dynamic data fetching in this phase
+- [x] Keep everything static and client-rendered
 
 ---
 
