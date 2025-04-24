@@ -14,6 +14,9 @@
   import { browser } from "$app/environment";
   import { initializeTracking } from "$lib/utils/tracking";
 
+  // Get children prop from $props()
+  let { children } = $props();
+
   // Create a state variable for header/footer visibility
   let showHeaderFooter = $state(() => page.url.pathname !== "/");
 
@@ -156,7 +159,7 @@
           </p>
         </div>
       {/if}
-      <slot />
+      {@render children()}
     </main>
     {#if showHeaderFooter()}
       <AppFooter />
