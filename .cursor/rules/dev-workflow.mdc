@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 # Habistat Development Workflow
@@ -9,12 +9,13 @@ alwaysApply: true
 
 ```bash
 # Development
-pnpm dev               # SvelteKit dev mode
-pnpm tauri:dev        # Tauri development
-pnpm build            # Production build
-pnpm preview          # Preview build
+pnpm dev                # SvelteKit dev mode
+pnpm tauri dev          # Tauri development
+pnpm tauri android dev  # Tauri Android development build
+pnpm build              # Production build
+pnpm preview            # Preview build
 
 # Quality
-pnpm lint             # Run ESLint
-pnpm format           # Run Prettier
+pnpm lint               # Run ESLint
+pnpm format             # Run Prettier
 ```

@@ -3,23 +3,6 @@
 **Version:** 0.0.0
 **Last Updated:** 2025-04-20
 
---
-
-I'm working on fixing an unwanted scroll/overflow issue in my Habistat landing page (+page.svelte). Current status:
-
-1. Changed main container from `min-h-screen` to `h-screen` but issue persists
-2. Issue seems to be in about-drawer.svelte which has:
-   - A fixed "More Info" button at bottom
-   - Drawer content with `h-[75vh]`
-   - Scroll/touch handlers for showing/hiding the button
-
-Need to fix the drawer's height/overflow without breaking its functionality. Previous attempt to add `max-h-[90vh]` and adjust content height wasn't applied.
-
-Relevant files:
-
-- src/routes/+page.svelte: Main landing page with h-screen container
-- src/lib/components/about-drawer.svelte: Drawer component causing overflow
-
 ---
 
 ## 🚀 Commands
@@ -29,8 +12,9 @@ Relevant files:
 pnpm dev               # Run SvelteKit in dev mode
 pnpm build             # Build static frontend
 pnpm preview           # Preview production build
-pnpm tauri:dev         # Tauri development build
-pnpm tauri:build       # Build Tauri production app
+pnpm tauri dev         # Tauri development build
+pnpm tauri build       # Build Tauri production app
+pnpm tauri android dev  # Tauri Android development build
 
 # Quality Checks
 pnpm lint              # ESLint

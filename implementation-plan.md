@@ -7,43 +7,6 @@
 - [x] 0.1. Let's rework the header.
   - [x] 0.1.1. stuff...
 
-I'm working on implementing offline-first functionality in a Habistat app (Tauri + SvelteKit + Clerk auth). Current issues:
-
-1. When offline:
-
-   - Clerk scripts fail to load with ERR_NAME_NOT_RESOLVED errors
-   - App gets stuck on loading screen
-   - Need to prevent Clerk from loading entirely when offline
-
-2. Current implementation attempts:
-
-   - Added online/offline detection in layout
-   - Added shouldLoadClerk state
-   - Added initialization handling
-   - Added i18n timeout fallback
-
-3. Key files involved:
-
-   - src/routes/+layout.svelte
-   - src/lib/components/auth/clerk-wrapper.svelte
-   - src/routes/+page.svelte
-   - src/routes/dashboard/+page.svelte
-
-4. Project context:
-   - Using Svelte 5 runes ($state)
-   - Clerk for auth
-   - Need offline-first functionality
-   - Local storage for offline data
-
-Please help fix the remaining offline mode issues, focusing on preventing Clerk script loading when offline and ensuring proper app initialization.
-
-Latest error:
-
-```txt
-Failed to load resource: net::ERR_NAME_NOT_RESOLVED
-clerk.browser.js:1
-```
-
 ### Steps
 
 1. **Identify Current Functionality**: Review the existing avatar-dropdown menu to understand its current functionality and the settings options it includes.

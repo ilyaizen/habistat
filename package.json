@@ -10,8 +10,6 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
     "lint": "prettier --write ."
   },
   "license": "MIT",
@@ -22,6 +20,7 @@
     "@tanstack/table-core": "^8.21.2",
     "@tauri-apps/api": "^2.4.1",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-os": "^2.2.1",
     "clerk-sveltekit": "^0.4.2",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

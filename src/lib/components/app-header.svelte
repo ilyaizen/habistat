@@ -29,7 +29,7 @@
   }
 </script>
 
-<header class="border-border/40 border-b relative">
+<header class="border-border/40 relative border-b">
   <div class="container mx-auto flex h-10 justify-between px-4 rtl:flex-row-reverse">
     <div class="flex items-center md:hidden">
       <Button variant="ghost" size="sm" class="h-9 w-9 px-0" onclick={toggleMobileMenu}>
@@ -51,7 +51,9 @@
     </div>
 
     <!-- Navigation in the center, absolutely centered -->
-    <nav class="hidden md:flex absolute left-1/2 top-0 h-full items-center justify-center -translate-x-1/2">
+    <nav
+      class="absolute top-0 left-1/2 hidden h-full -translate-x-1/2 items-center justify-center md:flex"
+    >
       <div class="flex items-center gap-6 text-sm">
         <a
           href="/dashboard"
