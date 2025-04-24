@@ -1,7 +1,7 @@
 <!--
   Environment Badge Component
   Displays the current environment (Browser/Windows/Android/etc) as a small badge
-  Used in the app header to indicate where the app is running
+  Used on the front page as a floating badge to indicate where the app is running
 -->
 <script lang="ts">
   import { getPlatformName } from "$lib/utils/environment";
@@ -42,6 +42,8 @@
 </script>
 
 <Badge variant="outline" class="flex h-5 items-center gap-1 py-0 text-xs font-normal">
+  <!-- TODO: 2025-04-24 - Remove this once SvelteKit (5?) is understood -->
+  <!-- svelte-ignore svelte_component_deprecated -->
   <svelte:component this={icon} class="h-3 w-3" />
   {platformName}
 </Badge>
