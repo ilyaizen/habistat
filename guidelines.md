@@ -97,10 +97,10 @@ pnpm format            # Prettier
 - PWA features enabled only for asset caching; not a browser PWA.
 - Cloud dependencies optional; app must run fully air‑gapped.
 - Remember to use latest Svelte 5 best practices:
-    - `The svelte:component` directive is deprecated. ...
-    - The `beforeUpdate` and `afterUpdate` lifecycle hooks are deprecated.
-    - The export let syntax is deprecated in favor of the new `$props` syntax.
-    - The `$:` syntax is deprecated in favor of the new `$effect` syntax.
+  - `The svelte:component` directive is deprecated. ...
+  - The `beforeUpdate` and `afterUpdate` lifecycle hooks are deprecated.
+  - The export let syntax is deprecated in favor of the new `$props` syntax.
+  - The `$:` syntax is deprecated in favor of the new `$effect` syntax.
 - Always use `pnpm`.
 
 ## Process & Interaction
