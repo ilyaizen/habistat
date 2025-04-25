@@ -1,10 +1,7 @@
 <script lang="ts">
-  import { SignIn } from "svelte-clerk";
-  import { page } from "$app/stores";
-
-  const lang = $page.params.lang;
+  import SignIn from "clerk-sveltekit/client/SignIn.svelte";
 </script>
 
-<div class="container mx-auto flex min-h-screen items-center justify-center">
-  <SignIn routing="path" path="/{lang}/sign-in" />
+<div class="container mx-auto flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
+  <SignIn redirectUrl="/admin" />
 </div>

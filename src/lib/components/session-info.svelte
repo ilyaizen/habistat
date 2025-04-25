@@ -12,13 +12,14 @@
   import { goto } from "$app/navigation";
   import { settings } from "$lib/stores/settings";
   import { derived } from "svelte/store";
-  import { onMount, onDestroy } from "svelte";
+  import { onMount } from "svelte";
+  import SignedIn from "clerk-sveltekit/client/SignedIn.svelte";
+  import SignedOut from "clerk-sveltekit/client/SignedOut.svelte";
+  import type { User } from "@clerk/backend";
 
   const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
 
   let { userId = "N/A" }: { userId?: string } = $props();
-  let userEmail = $state<string | null>(null);
-  let claimedUserId = $state<string | null>(null);
   let deleting = $state(false);
   let usageHistoryTimestamps = $state<number[]>([]);
   let sessionState = $state<"anonymous" | "pending" | "claimed">("anonymous");
@@ -27,38 +28,11 @@
   function refreshUserInfo() {
     // Get session state
     sessionState = getSessionState();
-
-    // Check if session has been migrated
-    const migrationDetails = getMigrationDetails();
-    if (migrationDetails?.userEmail) {
-      userEmail = migrationDetails.userEmail;
-      claimedUserId = migrationDetails.claimedUserId;
-      return;
-    }
-
-    // If not in migration details, try to get from Clerk if claimed
-    if (sessionState === "claimed" && window.Clerk?.user) {
-      userEmail = window.Clerk.user.primaryEmailAddress?.emailAddress || null;
-      claimedUserId = window.Clerk.user.id;
-    }
   }
 
   // Attempt to get user info on mount
   onMount(() => {
     refreshUserInfo();
-
-    // Set up a check interval to periodically refresh info
-    // This handles cases where Clerk loads after the component
-    const refreshInterval = setInterval(() => {
-      refreshUserInfo();
-
-      // If we have all the info we need, clear the interval
-      if ((userEmail && claimedUserId) || sessionState === "anonymous") {
-        clearInterval(refreshInterval);
-      }
-    }, 1000);
-
-    return () => clearInterval(refreshInterval);
   });
 
   $effect(() => {
@@ -114,20 +88,40 @@
     {/if}
   </div>
 
-  {#if sessionState === "claimed" && userEmail}
+  <SignedIn let:user>
     <div class="space-y-2">
       <Label for="userEmailInput" class="text-sm font-medium">Account Email</Label>
-      <Input id="userEmailInput" type="text" value={userEmail} readonly class="flex-1" />
+      <Input
+        id="userEmailInput"
+        type="text"
+        value={user?.primaryEmailAddress?.emailAddress ?? "No email"}
+        readonly
+        class="flex-1"
+      />
       <p class="text-muted-foreground text-sm">Your account is linked and ready to sync.</p>
     </div>
-  {/if}
 
-  {#if sessionState === "claimed" && claimedUserId}
     <div class="space-y-2">
       <Label for="claimedUserIdInput" class="text-sm font-medium">Account ID</Label>
-      <Input id="claimedUserIdInput" type="text" value={claimedUserId} readonly class="flex-1" />
+      <Input
+        id="claimedUserIdInput"
+        type="text"
+        value={user?.id ?? "No ID"}
+        readonly
+        class="flex-1"
+      />
     </div>
-  {/if}
+  </SignedIn>
+
+  <SignedOut>
+    <div class="space-y-2">
+      <p class="text-muted-foreground text-sm">Sign in to view your account details.</p>
+      <div class="flex gap-2">
+        <Button variant="outline" onclick={() => goto("/sign-in")}>Sign In</Button>
+        <Button variant="outline" onclick={() => goto("/sign-up")}>Sign Up</Button>
+      </div>
+    </div>
+  </SignedOut>
 
   {#if $showUsageHistory}
     <div class="space-y-2">

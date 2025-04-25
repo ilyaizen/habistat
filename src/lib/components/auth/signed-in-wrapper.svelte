@@ -2,7 +2,6 @@
   // A simpler wrapper around the SignedIn component
   import { SignedIn } from "svelte-clerk";
   import { claimSession } from "$lib/stores/session";
-  import { onMount } from "svelte";
 
   // Define children prop using Svelte 5 syntax
   const { children } = $props<{

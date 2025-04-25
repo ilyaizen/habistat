@@ -2,6 +2,8 @@ import type { HandleClientError } from "@sveltejs/kit";
 import { browser } from "$app/environment";
 import "./i18n"; // Import to ensure i18n is initialized
 import { type } from "@tauri-apps/plugin-os";
+import { initializeClerkClient } from "clerk-sveltekit/client";
+import { PUBLIC_CLERK_PUBLISHABLE_KEY } from "$env/static/public";
 
 // Initialize Tauri plugins
 if (browser && (window as any).__TAURI__) {
@@ -13,10 +15,14 @@ if (browser && (window as any).__TAURI__) {
   }
 }
 
+initializeClerkClient(PUBLIC_CLERK_PUBLISHABLE_KEY, {
+  afterSignInUrl: "/admin/",
+  afterSignUpUrl: "/admin/",
+  signInUrl: "/sign-in",
+  signUpUrl: "/sign-up"
+});
+
 // Add error handling function
-export const handleError: HandleClientError = ({ error, event }) => {
-  console.error("An error occurred:", error);
-  return {
-    message: "An unexpected error occurred."
-  };
+export const handleError: HandleClientError = async ({ error, event }) => {
+  console.error(error, event);
 };
