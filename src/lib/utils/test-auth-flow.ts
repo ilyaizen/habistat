@@ -43,11 +43,11 @@ export async function simulateAuthFlow(clerkUserId: string = "clerk_test_user"):
 
   // Step 4: Migrate session
   console.log("Migrating session data...");
-  const migrationResult = await migrateSession(clerkUserId, async () => {
-    // Simulate data migration processing
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log("Performed data migration tasks");
-  });
+  // Simulate data migration processing
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  console.log("Performed data migration tasks");
+
+  const migrationResult = await migrateSession(clerkUserId);
 
   console.log("Migration successful:", migrationResult);
   console.log("Session migrated?", isSessionMigrated());
