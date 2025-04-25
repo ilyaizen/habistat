@@ -1,7 +1,7 @@
 <script lang="ts">
   import { simulateAuthFlow, resetAuthState, logAuthState } from "$lib/utils/test-auth-flow";
   import { Button } from "$lib/components/ui/button";
-  import { Card } from "$lib/components/ui/card";
+  import * as Card from "$lib/components/ui/card";
   import {
     getSessionState,
     markSessionAuthInitiated,

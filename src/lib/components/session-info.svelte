@@ -143,6 +143,16 @@
       {/if}
     </div>
   {/if}
+  <div class="space-y-2">
+    <Label for="sessionStateInput" class="text-sm font-medium">Session State</Label>
+    <Input id="sessionStateInput" type="text" value={sessionState} readonly class="flex-1" />
+  </div>
+  <div class="space-y-2">
+    <Label for="authTestPage" class="text-sm font-medium">Auth Test Page</Label>
+    <Button variant="outline" onclick={() => goto("/dev/auth-test")} class="w-full">
+      Go to Auth Test Page
+    </Button>
+  </div>
 </div>
 
 <style>
