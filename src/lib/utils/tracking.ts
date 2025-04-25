@@ -168,6 +168,7 @@ export function markSessionClaimed() {
   if (browser) {
     localStorage.setItem(AUTH_INITIATED_KEY, "true");
     localStorage.setItem(AUTH_CLAIMED_KEY, "true");
+    console.log("Session marked as claimed at", new Date().toISOString());
   }
 }
 
@@ -464,3 +465,12 @@ export function hasExistingSession(): boolean {
 
 // Export session storage keys for external use
 export const SESSION_USER_EMAIL_KEY = "habistat_session_user_email";
+
+/**
+ * Checks if the current session has been claimed (fully authenticated)
+ * @returns true if session is claimed, false otherwise
+ */
+export function isSessionClaimed(): boolean {
+  if (!browser) return false;
+  return localStorage.getItem(AUTH_CLAIMED_KEY) === "true";
+}

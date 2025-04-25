@@ -154,7 +154,3 @@
     </Button>
   </div>
 </div>
-
-<style>
-  /* Add any specific styles if needed */
-</style>

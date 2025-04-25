@@ -10,7 +10,8 @@
   import {
     getSessionState,
     markSessionAuthInitiated,
-    isSessionMigrated
+    isSessionMigrated,
+    isSessionClaimed
   } from "$lib/utils/tracking";
   import SignedInWrapper from "./signed-in-wrapper.svelte";
   import * as Card from "$lib/components/ui/card";
@@ -30,11 +31,13 @@
   let isAuthInProgress = $state(false);
   let signInError = $state<string | null>(null);
   let isMigrated = $state(isSessionMigrated());
+  let sessionClaimed = $state(isSessionClaimed());
 
-  // Check migration status on mount
+  // Check status on mount
   onMount(() => {
     if (browser) {
       isMigrated = isSessionMigrated();
+      sessionClaimed = isSessionClaimed();
 
       // Simple error handler for Clerk
       window.addEventListener("error", (e) => {
@@ -57,8 +60,8 @@
     }
   });
 
-  // Only show claim session UI on dashboard page
-  const showClaimSession = $derived(page.url.pathname.includes("/dashboard"));
+  // Only show claim session UI on dashboard page and if not already claimed
+  const showClaimSession = $derived(page.url.pathname.includes("/dashboard") && !sessionClaimed);
 
   // Only show sign in on sign-in page
   const showSignIn = $derived(page.url.pathname === "/sign-in");
@@ -116,7 +119,8 @@
   }
 
   /**
-   * Handles auth initiation when user requests sign in
+   * Handles direct auth initiation when user requests sign in
+   * Streamlined to avoid multiple confirmation steps
    */
   function handleSignIn() {
     if (!$isOnline || isAuthInProgress) return;
@@ -131,26 +135,24 @@
       // Call the parent's initiateAuth function
       initiateAuth();
 
-      // Try to open Clerk sign-in if available
-      setTimeout(() => {
-        if (typeof window.Clerk?.openSignIn === "function") {
-          window.Clerk.openSignIn({
-            redirectUrl: window.location.href,
-            afterSignInUrl: window.location.href
-          });
-        } else {
-          // Fallback to hosted sign-in page
-          const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "";
-          if (publishableKey) {
-            const keyParts = publishableKey.split("_");
-            if (keyParts.length > 1) {
-              const clerkDomain = `https://${keyParts[1]}.clerk.accounts.dev`;
-              const returnUrl = encodeURIComponent(window.location.href);
-              window.location.href = `${clerkDomain}/sign-in?redirect_url=${returnUrl}`;
-            }
+      // Directly open Clerk sign-in if available
+      if (typeof window.Clerk?.openSignIn === "function") {
+        window.Clerk.openSignIn({
+          redirectUrl: window.location.href,
+          afterSignInUrl: window.location.href
+        });
+      } else {
+        // Fallback to hosted sign-in page
+        const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "";
+        if (publishableKey) {
+          const keyParts = publishableKey.split("_");
+          if (keyParts.length > 1) {
+            const clerkDomain = `https://${keyParts[1]}.clerk.accounts.dev`;
+            const returnUrl = encodeURIComponent(window.location.href);
+            window.location.href = `${clerkDomain}/sign-in?redirect_url=${returnUrl}`;
           }
         }
-      }, 100);
+      }
     } catch (error) {
       console.error("Sign-in error:", error);
       signInError = "Error during sign-in: " + String(error);

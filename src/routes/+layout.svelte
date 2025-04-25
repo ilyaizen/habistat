@@ -14,12 +14,13 @@
   import { page } from "$app/state";
   import { setContext } from "svelte";
   import { waitLocale } from "svelte-i18n";
-  import { writable, derived, get } from "svelte/store";
+  import { writable, get } from "svelte/store";
   import { theme } from "$lib/stores/settings";
   import { resetMode, setMode } from "mode-watcher";
   import { ClerkProvider } from "svelte-clerk";
   import { getSessionState, markSessionAuthInitiated } from "$lib/utils/tracking";
   import ClerkWrapper from "$lib/components/auth/clerk-wrapper.svelte";
+  import MotionWrapper from "$lib/components/motion-wrapper.svelte";
 
   import "../app.css";
 
@@ -246,10 +247,13 @@
             </p>
           </div>
         {/if}
-        <!-- Render child components wrapped with ClerkWrapper -->
-        <ClerkWrapper initiateAuth={handleInitiateAuth}>
-          {@render children()}
-        </ClerkWrapper>
+        <!-- Apply motion wrapper around the content but not the header/footer -->
+        <MotionWrapper>
+          <!-- Render child components wrapped with ClerkWrapper -->
+          <ClerkWrapper initiateAuth={handleInitiateAuth}>
+            {@render children()}
+          </ClerkWrapper>
+        </MotionWrapper>
       </main>
       <!-- Conditional footer rendering -->
       {#if showHeaderFooter()}
@@ -258,6 +262,3 @@
     </div>
   </ClerkProvider>
 {/if}
-
-<style>
-</style>
