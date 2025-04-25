@@ -46,7 +46,7 @@ pnpm format            # Prettier
 
 ## Architecture Overview
 
-- **Frontend**: SvelteKit 5 with `adapter-static`. All routes prerendered; no Node server.
+- **Frontend**: SvelteKit 2 (Svelte 5) with `adapter-static`. All routes prerendered; no Node server.
 - **Backend**: Rust-native Tauri commands exposed via secure IPC.
 - **UI Shell**: Delivered through OS WebView (WebKit/WebView2).
 
@@ -65,11 +65,17 @@ pnpm format            # Prettier
 - **OAuth**: Clerk via popup/deep-link; cached tokens for offline access.
 - **IPC Whitelisting**: All Tauri commands explicitly defined in `src-tauri/tauri.conf.json`.
 - **Token Handling**: Tokens never passed to backend unless required.
+- **Offline-First Auth**:
+  - Anonymous session by default with unique ID.
+  - Authentication explicitly initiated by user.
+  - Clerk SDK only loaded when auth initiated or on sign-in pages.
+  - Session states tracked: `anonymous`, `pending`, `claimed`.
+  - Session migration strategy for associating anonymous data with authenticated user.
 
 ## Tech Stack
 
 - **Core**:
-  - Rust · Tauri v2 · SvelteKit 5 · TypeScript · Tailwind CSS v4 · shadcn-svelte
+  - Rust · Tauri v2 · SvelteKit v2 (Svelte v5) · TypeScript · Tailwind CSS v4 · shadcn-svelte
 - **Data Layer**:
   - SQLite · Drizzle ORM · Convex (opt-in)
 - **Auth**:
@@ -97,7 +103,7 @@ pnpm format            # Prettier
 - PWA features enabled only for asset caching; not a browser PWA.
 - Cloud dependencies optional; app must run fully air‑gapped.
 - Remember to use latest Svelte 5 best practices:
-  - `The svelte:component` directive is deprecated. ...
+  - The `svelte:component` directive is deprecated.
   - The `beforeUpdate` and `afterUpdate` lifecycle hooks are deprecated.
   - The export let syntax is deprecated in favor of the new `$props` syntax.
   - The `$:` syntax is deprecated in favor of the new `$effect` syntax.

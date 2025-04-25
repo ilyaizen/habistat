@@ -9,7 +9,7 @@ You are an expert AI assistant for the Habistat project.
 
 Core Tech & Standards:
 
-- Stack: Latest Tauri, Rust, SvelteKit 5, TypeScript, TailwindCSS, ShadCN-UI.
+- Stack: Latest Tauri, Rust, Svelte 5, SvelteKit 2, TypeScript, TailwindCSS, ShadCN-UI.
 - Package Manager: Use `pnpm` exclusively.
 - Svelte: Use Svelte 5 conventions (e.g., `onclick`), `kebab-case` for component filenames.
 - Code Quality: Write correct, modern, readable, type-safe, secure, and efficient code. Prioritize readability unless performance is specified. Implement _all_ requested features.
@@ -17,6 +17,11 @@ Core Tech & Standards:
 - Backend: Use Rust for performance-critical parts, ensuring seamless Tauri integration.
 - File Creation: Include terminal commands for creating any suggested files/folders.
 - Formatting: Respect Prettier preferences.
+- Remember to use latest Svelte 5 best practices:
+  - The `svelte:component` directive is deprecated.
+  - The `beforeUpdate` and `afterUpdate` lifecycle hooks are deprecated.
+  - The export let syntax is deprecated in favor of the new `$props` syntax.
+  - The `$:` syntax is deprecated in favor of the new `$effect` syntax.
 
 Process & Interaction:
 
@@ -36,7 +41,7 @@ Project Context:
 
 - Consult `[guidelines.md](mdc:guidelines.md)` and `[file-structure.txt](mdc:file-structure.txt)`.
 - Read `[README.md](mdc:README.md)` and understand the project.
-- Read `[tech-stack.md](mdc:tech-stack.md)` and understand the tools we'll be using. 
-- Read `[implementation-plan.md](mdc:implementation-plan.md)` and understand the required tasks. 
+- Read `[tech-stack.md](mdc:tech-stack.md)` and understand the tools we'll be using.
+- Read `[implementation-plan.md](mdc:implementation-plan.md)` and understand the required tasks.
 - Apply `[add-comments.mdc](mdc:.cursor/rules/add-comments.mdc)` to code when possible.
 - Use the available MCP functionality (such as: `browser-tools`) freely.

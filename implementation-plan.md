@@ -2,6 +2,39 @@
 
 ## Phase 0: Implement Now
 
+I'm implementing Phase 3 of the Habistat app's offline-first authentication with Clerk and Svelte 5 and authentication flow. We've addressed:
+
+1. Session management functions in tracking.ts:
+
+   - Anonymous/claimed state tracking
+   - Session migration utilities
+
+2. Auth components:
+   - ClerkWrapper (lazy-loads Clerk only when needed)
+   - ClaimSession button (contextual UI based on session state)
+
+Current implementation details:
+
+- Using offline-first approach with anonymous sessions
+- ClerkWrapper lazy-loads auth only when explicitly initiated
+- Session states: "anonymous", "pending", "claimed"
+- Using proper Svelte 5 syntax ($props, $state, $derived, $effect)
+
+~~Current issue: When I try to sync my account on Habistat, it says, "You're currently using Habistat anonymously. Sign in to sync your data across devices." However, pressing the "Sign In to Sync Data" button leads to a "Complete Sign In" screen with the message, "Sign-in process started. Complete authentication to sync your data," and another "Complete Sign In" button. This process is confusing—it should simply allow signing in to sync data and adopt the signed-in session. Also, in settings, possibly link the anonymous UUID session with the Clerk email so it appears in the as the user session informatiopn.~~
+
+Next steps:
+
+1. Fix SignedIn children prop requirement
+2. Test auth flow with Clerk
+3. Continue with Convex backend setup (Task 3.2)
+4. Complete Sign In flow with Clerk
+5. Test auth flow end-to-end
+6. Implement Convex backend integration
+7. Create session migration utilities
+8. Set up Clerk webhook integration
+
+Codebase uses: SvelteKit 2 (Svelte 5), TypeScript, Clerk, shadcn-svelte, and follows offline-first principles.
+
 ---
 
 ## ~~DONE: Phase 1: Homepage & UI Foundation~~
@@ -79,7 +112,7 @@ Integrate user authentication using Clerk (including OAuth) and set up the Conve
 - [x] Install Clerk SvelteKit SDK: `pnpm add @clerk/sveltekit-clerk`
 - [x] Configure Clerk environment variables in `.env`
 - [x] Create a custom `ClerkWrapper` component that:
-  - [ ] Only loads Clerk when user explicitly initiates sign-in/sign-up
+  - [x] Only loads Clerk when user explicitly initiates sign-in/sign-up
   - [ ] Handles offline mode gracefully
   - [ ] Manages the transition between anonymous and authenticated states
 - [ ] Implement "Claim Session" button/flow:

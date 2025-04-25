@@ -6,6 +6,7 @@
  * - Internationalization (i18n)
  * - Application initialization
  * - Header/footer visibility
+ * - Authentication state with Clerk
  */ -->
 
 <script lang="ts">
@@ -16,6 +17,9 @@
   import { writable, derived, get } from "svelte/store";
   import { theme } from "$lib/stores/settings";
   import { resetMode, setMode } from "mode-watcher";
+  import { ClerkProvider } from "svelte-clerk";
+  import { getSessionState, markSessionAuthInitiated } from "$lib/utils/tracking";
+  import ClerkWrapper from "$lib/components/auth/clerk-wrapper.svelte";
 
   import "../app.css";
 
@@ -23,6 +27,7 @@
   import AppFooter from "$lib/components/app-footer.svelte";
   import { browser } from "$app/environment";
   import { initializeTracking } from "$lib/utils/tracking";
+  import { goto } from "$app/navigation";
 
   // Props from parent component using Svelte 5 syntax
   let { children } = $props();
@@ -42,6 +47,9 @@
   // State for tracking initialization progress
   let i18nReady = $state(false);
   let isInitialized = $state(false);
+
+  // State for auth initialization
+  let loadClerk = $state(false);
 
   // Theme management variables
   let media: MediaQueryList | null = null;
@@ -112,11 +120,25 @@
   }
 
   /**
+   * Initiates the auth process when user explicitly decides to sign in
+   * Loads Clerk SDK and marks session as initiated
+   */
+  function handleInitiateAuth() {
+    if (browser) {
+      // Mark the session as having initiated auth
+      markSessionAuthInitiated();
+      // Set flag to load Clerk
+      loadClerk = true;
+    }
+  }
+
+  /**
    * Initializes the application with required setup:
    * - Theme configuration
    * - Analytics tracking
    * - Online/offline detection
    * - Internationalization
+   * - Auth session check
    *
    * Includes error handling and initialization state management
    */
@@ -137,6 +159,10 @@
 
       // Initial online status check
       updateOnlineStatus();
+
+      // Check auth state to see if we need to load Clerk
+      const sessionState = getSessionState();
+      loadClerk = sessionState === "pending" || sessionState === "claimed";
 
       // Initialize i18n
       try {
@@ -179,6 +205,11 @@
       cleanupSystemListener();
     };
   });
+
+  // Custom navigation handler for Clerk
+  function handleClerkNavigation(to: string) {
+    goto(to);
+  }
 </script>
 
 <!-- Loading state while i18n initializes -->
@@ -187,29 +218,45 @@
     <p>Loading...</p>
   </div>
 {:else}
-  <!-- Main application layout -->
-  <div class="flex min-h-screen flex-col">
-    <!-- Conditional header rendering -->
-    {#if showHeaderFooter()}
-      <AppHeader />
-    {/if}
-    <main class="flex-1">
-      <!-- Offline status notification -->
-      {#if !$isOnline}
-        <div class="container mx-auto flex items-center justify-center p-4">
-          <p class="text-muted-foreground text-sm">
-            You are offline. Your data will be stored locally.
-          </p>
-        </div>
+  <!-- Always use ClerkProvider to prevent context errors -->
+  <ClerkProvider
+    publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}
+    appearance={{
+      layout: {
+        logoPlacement: "inside",
+        showOptionalFields: true,
+        socialButtonsVariant: "iconButton"
+      },
+      variables: {
+        colorPrimary: "rgb(59, 130, 246)"
+      }
+    }}
+  >
+    <div class="flex min-h-screen flex-col">
+      <!-- Conditional header rendering -->
+      {#if showHeaderFooter()}
+        <AppHeader />
       {/if}
-      <!-- Render child components -->
-      {@render children()}
-    </main>
-    <!-- Conditional footer rendering -->
-    {#if showHeaderFooter()}
-      <AppFooter />
-    {/if}
-  </div>
+      <main class="flex-1">
+        <!-- Offline status notification -->
+        {#if !$isOnline}
+          <div class="container mx-auto flex items-center justify-center p-4">
+            <p class="text-muted-foreground text-sm">
+              You are offline. Your data will be stored locally.
+            </p>
+          </div>
+        {/if}
+        <!-- Render child components wrapped with ClerkWrapper -->
+        <ClerkWrapper initiateAuth={handleInitiateAuth}>
+          {@render children()}
+        </ClerkWrapper>
+      </main>
+      <!-- Conditional footer rendering -->
+      {#if showHeaderFooter()}
+        <AppFooter />
+      {/if}
+    </div>
+  </ClerkProvider>
 {/if}
 
 <style>

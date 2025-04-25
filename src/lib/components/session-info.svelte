@@ -3,16 +3,63 @@
   import { Input } from "./ui/input";
   import { Label } from "./ui/label";
   import { Trash2 } from "lucide-svelte";
-  import { deleteUserSession, getAppOpenHistory } from "$lib/utils/tracking";
+  import {
+    deleteUserSession,
+    getAppOpenHistory,
+    getSessionState,
+    getMigrationDetails
+  } from "$lib/utils/tracking";
   import { goto } from "$app/navigation";
   import { settings } from "$lib/stores/settings";
   import { derived } from "svelte/store";
+  import { onMount, onDestroy } from "svelte";
 
   const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
 
   let { userId = "N/A" }: { userId?: string } = $props();
+  let userEmail = $state<string | null>(null);
+  let claimedUserId = $state<string | null>(null);
   let deleting = $state(false);
   let usageHistoryTimestamps = $state<number[]>([]);
+  let sessionState = $state<"anonymous" | "pending" | "claimed">("anonymous");
+
+  // Function to refresh user info
+  function refreshUserInfo() {
+    // Get session state
+    sessionState = getSessionState();
+
+    // Check if session has been migrated
+    const migrationDetails = getMigrationDetails();
+    if (migrationDetails?.userEmail) {
+      userEmail = migrationDetails.userEmail;
+      claimedUserId = migrationDetails.claimedUserId;
+      return;
+    }
+
+    // If not in migration details, try to get from Clerk if claimed
+    if (sessionState === "claimed" && window.Clerk?.user) {
+      userEmail = window.Clerk.user.primaryEmailAddress?.emailAddress || null;
+      claimedUserId = window.Clerk.user.id;
+    }
+  }
+
+  // Attempt to get user info on mount
+  onMount(() => {
+    refreshUserInfo();
+
+    // Set up a check interval to periodically refresh info
+    // This handles cases where Clerk loads after the component
+    const refreshInterval = setInterval(() => {
+      refreshUserInfo();
+
+      // If we have all the info we need, clear the interval
+      if ((userEmail && claimedUserId) || sessionState === "anonymous") {
+        clearInterval(refreshInterval);
+      }
+    }, 1000);
+
+    return () => clearInterval(refreshInterval);
+  });
 
   $effect(() => {
     if (userId && userId !== "N/A") {
@@ -60,7 +107,27 @@
         <span class="sr-only">Delete Session</span>
       </Button>
     </div>
+    {#if sessionState === "claimed"}
+      <p class="text-muted-foreground text-xs">
+        This is your anonymous session ID. Data linked to your account.
+      </p>
+    {/if}
   </div>
+
+  {#if sessionState === "claimed" && userEmail}
+    <div class="space-y-2">
+      <Label for="userEmailInput" class="text-sm font-medium">Account Email</Label>
+      <Input id="userEmailInput" type="text" value={userEmail} readonly class="flex-1" />
+      <p class="text-muted-foreground text-sm">Your account is linked and ready to sync.</p>
+    </div>
+  {/if}
+
+  {#if sessionState === "claimed" && claimedUserId}
+    <div class="space-y-2">
+      <Label for="claimedUserIdInput" class="text-sm font-medium">Account ID</Label>
+      <Input id="claimedUserIdInput" type="text" value={claimedUserId} readonly class="flex-1" />
+    </div>
+  {/if}
 
   {#if $showUsageHistory}
     <div class="space-y-2">
