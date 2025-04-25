@@ -11,15 +11,14 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
-  import { page } from "$app/state";
+  import { page } from "$app/stores";
   import { setContext } from "svelte";
   import { waitLocale } from "svelte-i18n";
   import { writable, get } from "svelte/store";
   import { theme } from "$lib/stores/settings";
   import { resetMode, setMode } from "mode-watcher";
   import { ClerkProvider } from "svelte-clerk";
-  import { getSessionState, markSessionAuthInitiated } from "$lib/utils/tracking";
-  import ClerkWrapper from "$lib/components/auth/clerk-wrapper.svelte";
+  import { getSessionState, initializeTracking } from "$lib/utils/tracking";
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
 
   import "../app.css";
@@ -27,30 +26,24 @@
   import AppHeader from "$lib/components/app-header.svelte";
   import AppFooter from "$lib/components/app-footer.svelte";
   import { browser } from "$app/environment";
-  import { initializeTracking } from "$lib/utils/tracking";
-  import { goto } from "$app/navigation";
 
   // Props from parent component using Svelte 5 syntax
   let { children } = $props();
 
   // Hide header/footer on the landing page (/)
-  let showHeaderFooter = $state(() => page.url.pathname !== "/");
+  // Using $derived to reactively compute based on $page.url.pathname
+  const showHeaderFooter = $derived($page.url.pathname !== "/");
 
   // Stores for managing authentication and connectivity state
-  // Uses offline-first approach for better user experience
   const authMode = writable<"offline" | "online">("offline");
   const isOnline = writable(true);
 
-  // Make auth and connectivity state available to child components
   setContext("authMode", authMode);
   setContext("isOnline", isOnline);
 
   // State for tracking initialization progress
   let i18nReady = $state(false);
-  let isInitialized = $state(false);
-
-  // State for auth initialization
-  let loadClerk = $state(false);
+  let trackingInitialized = $state(false);
 
   // Theme management variables
   let media: MediaQueryList | null = null;
@@ -58,7 +51,6 @@
 
   /**
    * Applies the system theme based on user's OS preference
-   * Adds/removes 'dark' class to document root
    */
   function applySystemTheme() {
     if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
@@ -70,7 +62,6 @@
 
   /**
    * Sets up listener for system theme changes
-   * Cleans up existing listener before setting new one
    */
   function setupSystemListener() {
     cleanupSystemListener();
@@ -80,7 +71,7 @@
   }
 
   /**
-   * Removes system theme change listener and resets related variables
+   * Removes system theme change listener
    */
   function cleanupSystemListener() {
     if (media && systemListener) {
@@ -91,8 +82,7 @@
   }
 
   /**
-   * Handles theme selection between system, light, and dark modes
-   * Sets up appropriate listeners and applies theme classes
+   * Handles theme selection
    */
   function selectTheme(mode: "system" | "light" | "dark") {
     if (mode === "system") {
@@ -111,8 +101,7 @@
   }
 
   /**
-   * Updates online/offline status and auth mode based on network connectivity
-   * Called when network status changes
+   * Updates online/offline status
    */
   function updateOnlineStatus() {
     const online = navigator.onLine;
@@ -121,30 +110,10 @@
   }
 
   /**
-   * Initiates the auth process when user explicitly decides to sign in
-   * Loads Clerk SDK and marks session as initiated
+   * Initializes the application core setup
    */
-  function handleInitiateAuth() {
-    if (browser) {
-      // Mark the session as having initiated auth
-      markSessionAuthInitiated();
-      // Set flag to load Clerk
-      loadClerk = true;
-    }
-  }
-
-  /**
-   * Initializes the application with required setup:
-   * - Theme configuration
-   * - Analytics tracking
-   * - Online/offline detection
-   * - Internationalization
-   * - Auth session check
-   *
-   * Includes error handling and initialization state management
-   */
-  async function initializeApp() {
-    if (!browser || isInitialized) return;
+  async function initializeAppCore() {
+    if (!browser) return;
 
     try {
       // Initialize theme
@@ -153,6 +122,7 @@
 
       // Initialize tracking
       initializeTracking();
+      trackingInitialized = true;
 
       // Set up online/offline handlers
       window.addEventListener("online", updateOnlineStatus);
@@ -161,44 +131,28 @@
       // Initial online status check
       updateOnlineStatus();
 
-      // Check auth state to see if we need to load Clerk
-      const sessionState = getSessionState();
-      loadClerk = sessionState === "pending" || sessionState === "claimed";
-
       // Initialize i18n
       try {
         await waitLocale();
       } catch (error) {
         console.error("Error initializing i18n:", error);
       }
-
-      // Mark as initialized and ready
-      isInitialized = true;
       i18nReady = true;
+
+      console.log("+layout.svelte: App core initialized");
     } catch (error) {
-      console.error("Error during initialization:", error);
+      console.error("Error during core initialization:", error);
       // Still mark as initialized to prevent getting stuck
-      isInitialized = true;
+      trackingInitialized = true;
       i18nReady = true;
     }
   }
 
-  // Initialize app on component mount
   onMount(() => {
-    initializeApp();
+    initializeAppCore();
 
-    // Safety timeout to prevent infinite loading state
-    const timeout = setTimeout(() => {
-      if (!isInitialized || !i18nReady) {
-        console.warn("Initialization timed out, continuing anyway");
-        isInitialized = true;
-        i18nReady = true;
-      }
-    }, 2000);
-
-    // Cleanup function to remove event listeners and theme watchers
+    // Cleanup function
     return () => {
-      clearTimeout(timeout);
       if (browser) {
         window.removeEventListener("online", updateOnlineStatus);
         window.removeEventListener("offline", updateOnlineStatus);
@@ -206,59 +160,64 @@
       cleanupSystemListener();
     };
   });
-
-  // Custom navigation handler for Clerk
-  function handleClerkNavigation(to: string) {
-    goto(to);
-  }
 </script>
 
 <!-- Loading state while i18n initializes -->
-{#if !i18nReady}
+{#if !i18nReady || !trackingInitialized}
   <div class="flex min-h-screen items-center justify-center">
     <p>Loading...</p>
   </div>
 {:else}
-  <!-- Always use ClerkProvider to prevent context errors -->
-  <ClerkProvider
-    publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? ""}
-    appearance={{
-      layout: {
-        logoPlacement: "inside",
-        showOptionalFields: true,
-        socialButtonsVariant: "iconButton"
-      },
-      variables: {
-        colorPrimary: "rgb(59, 130, 246)"
-      }
-    }}
-  >
+  <!-- Wrap main content with ClerkProvider -->
+  {#if browser}
+    <ClerkProvider
+      publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY ?? ""}
+      appearance={{
+        layout: {
+          logoPlacement: "inside",
+          showOptionalFields: true,
+          socialButtonsVariant: "iconButton"
+        },
+        variables: {
+          colorPrimary: "rgb(59, 130, 246)"
+        }
+      }}
+    >
+      <div class="flex min-h-screen flex-col">
+        {#if showHeaderFooter}
+          <AppHeader />
+        {/if}
+        <main class="flex-1">
+          {#if !$isOnline && $authMode === "online"}
+            <div class="container mx-auto flex items-center justify-center p-4">
+              <p class="text-muted-foreground text-sm">
+                You are offline. Your data will be stored locally.
+              </p>
+            </div>
+          {/if}
+          <MotionWrapper>
+            {@render children()}
+          </MotionWrapper>
+        </main>
+        {#if showHeaderFooter}
+          <AppFooter />
+        {/if}
+      </div>
+    </ClerkProvider>
+  {:else}
+    <!-- Server-side rendering fallback -->
     <div class="flex min-h-screen flex-col">
-      <!-- Conditional header rendering -->
-      {#if showHeaderFooter()}
+      {#if showHeaderFooter}
         <AppHeader />
       {/if}
       <main class="flex-1">
-        <!-- Offline status notification -->
-        {#if !$isOnline}
-          <div class="container mx-auto flex items-center justify-center p-4">
-            <p class="text-muted-foreground text-sm">
-              You are offline. Your data will be stored locally.
-            </p>
-          </div>
-        {/if}
-        <!-- Apply motion wrapper around the content but not the header/footer -->
         <MotionWrapper>
-          <!-- Render child components wrapped with ClerkWrapper -->
-          <ClerkWrapper initiateAuth={handleInitiateAuth}>
-            {@render children()}
-          </ClerkWrapper>
+          {@render children()}
         </MotionWrapper>
       </main>
-      <!-- Conditional footer rendering -->
-      {#if showHeaderFooter()}
+      {#if showHeaderFooter}
         <AppFooter />
       {/if}
     </div>
-  </ClerkProvider>
+  {/if}
 {/if}

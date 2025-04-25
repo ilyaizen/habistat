@@ -6,16 +6,8 @@ import { CLERK_SECRET_KEY } from "$env/static/private";
 
 // Create a base handle that always works
 const baseHandle: Handle = async ({ event, resolve }) => {
-  // Check if we need to protect this path
-  // const isProtectedPath = event.url.pathname.startsWith("/dashboard");
-  // const isAuthPath = ["/sign-in", "/sign-up"].some((path) => event.url.pathname.startsWith(path));
-
-  // if (isProtectedPath && !event.locals.auth?.userId && !event.locals.isOffline) {
-  //   return new Response(null, {
-  //     status: 302,
-  //     headers: { Location: "/sign-in" }
-  //   });
-  // }
+  // Add any custom server-side logic here BEFORE Clerk handles it
+  // e.g., checking for offline status based on headers if applicable
 
   return await resolve(event);
 };
@@ -23,8 +15,10 @@ const baseHandle: Handle = async ({ event, resolve }) => {
 // Configure Clerk handle
 const clerkHandle = handleClerk(CLERK_SECRET_KEY, {
   debug: dev,
-  protectedPaths: [],
-  signInUrl: "/sign-in"
+  // Define paths Clerk should *not* protect or process auth for
+  // Leave empty if Clerk should manage auth on all non-auth paths by default
+  protectedPaths: [], // You can add paths like ['/dashboard'] later if needed
+  signInUrl: "/sign-in" // Ensure this matches your sign-in route
 });
 
 // Add type declarations for locals
@@ -36,11 +30,12 @@ declare global {
         sessionId: string | null;
         getToken: () => Promise<string | null>;
       };
-      isAuthenticated?: boolean;
-      isOffline?: boolean;
+      isAuthenticated?: boolean; // Your custom flag
+      isOffline?: boolean; // Your custom flag
     }
   }
 }
 
-// Sequence the handles
-export const handle: Handle = baseHandle; // Temporarily disable Clerk handle
+// Sequence the handles: baseHandle runs first, then clerkHandle
+// Clerk needs to run AFTER any base logic but BEFORE SvelteKit resolves the page
+export const handle: Handle = sequence(baseHandle, clerkHandle); // Enable Clerk handle

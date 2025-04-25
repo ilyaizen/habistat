@@ -22,67 +22,6 @@
       rel="stylesheet"
     />
 
-    <!-- Critical fix for Clerk/SvelteKit integration issues -->
-    <script>
-      (function () {
-        // Ensure this runs as early as possible
-        if (typeof window !== "undefined") {
-          console.log("Applying Clerk compatibility patches");
-
-          // Store original methods
-          const originalPushState = history.pushState;
-          const originalReplaceState = history.replaceState;
-
-          // Override history.pushState to block Clerk calls
-          history.pushState = function (...args) {
-            try {
-              const stack = new Error().stack || "";
-              const isClerkCall =
-                stack.includes("clerk") ||
-                (args[2] &&
-                  typeof args[2] === "string" &&
-                  (args[2].includes("__clerk") || args[2].includes("clerk")));
-
-              if (isClerkCall) {
-                console.log("Blocked Clerk pushState call:", args[2]);
-                return;
-              }
-            } catch (e) {
-              console.error("Error in pushState override:", e);
-            }
-
-            // For non-Clerk calls, use the original method
-            return originalPushState.apply(history, args);
-          };
-
-          // Override history.replaceState to block Clerk calls
-          history.replaceState = function (...args) {
-            try {
-              const stack = new Error().stack || "";
-              const isClerkCall =
-                stack.includes("clerk") ||
-                (args[2] &&
-                  typeof args[2] === "string" &&
-                  (args[2].includes("__clerk") || args[2].includes("clerk")));
-
-              if (isClerkCall) {
-                console.log("Blocked Clerk replaceState call:", args[2]);
-                return;
-              }
-            } catch (e) {
-              console.error("Error in replaceState override:", e);
-            }
-
-            // For non-Clerk calls, use the original method
-            return originalReplaceState.apply(history, args);
-          };
-
-          // Store a flag in window to indicate we've applied the patch
-          window.__clerkPatchApplied = true;
-        }
-      })();
-    </script>
-
     %sveltekit.head%
   </head>
   <body data-sveltekit-preload-data="hover">
