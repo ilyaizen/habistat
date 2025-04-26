@@ -76,8 +76,10 @@ Integrate user authentication using Clerk (including OAuth) and set up the Conve
 - [x] Configure Clerk environment variables in `.env`
 - [x] Create a custom `ClerkWrapper` component that:
   - [x] Only loads Clerk when user explicitly initiates sign-in/sign-up
-  - [ ] Handles offline mode gracefully
-  - [ ] Manages the transition between anonymous and authenticated states
+  - [ ] ~~Deferred: Handles offline mode gracefully~~ (TODO)
+  - [ ] 👉 Manages the transition between anonymous and authenticated states:
+	  - [ ] Simplify the whole "claim session" / sign-in/up process, the app flow should just get back authenticated and claimed to the dashboard, there is not supposed to be "pending" state. After authentication, make sure we are associated / migrated from the anonymous local-only session, we will later implement sync with Convex.
+	  - [ ] App flow testing does not make sense, perhaps delete it.
 - [x] Implement "Claim Session" button/flow:
   - [ ] Replace standard sign-up with "Claim Session" UI when in anonymous mode
   - [x] Hide claim button when already authenticated
@@ -94,8 +96,8 @@ Integrate user authentication using Clerk (including OAuth) and set up the Conve
 
 ### 3.2. Convex Backend Setup
 
-- [ ] Install Convex CLI: `pnpm add convex`.
-- [ ] Initialize a Convex project within your monorepo or as a separate linked project: Run `npx convex dev` in the desired directory (e.g., a new `convex/` folder at the root) and follow the setup prompts. Link it to your Convex cloud account.
+- [x] Install Convex CLI: `pnpm add convex`.
+- [x] Initialize a Convex project within your monorepo or as a separate linked project: Run `npx convex dev` in the desired directory (e.g., a new `convex/` folder at the root) and follow the setup prompts. Link it to your Convex cloud account.
 - [ ] Define the initial `users` table schema in `convex/schema.ts`. Include fields like `clerkId` (string, unique index), `email` (string), `name` (optional string), `avatarUrl` (optional string).
 - [ ] Create a Convex mutation function (e.g., `convex/users.ts` -> `createOrUpdate`) that accepts user data (Clerk ID, email, name, avatar) and either creates a new user record or updates an existing one based on the `clerkId`.
 

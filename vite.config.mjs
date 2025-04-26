@@ -125,8 +125,9 @@ export default defineConfig(async () => ({
         }
       : undefined,
     watch: {
-      // 3. tell vite to ignore watching `src-tauri`
-      ignored: ["**/src-tauri/**"]
+      // 3. tell vite to ignore watching `src-tauri` and `implementation-plan.md`
+      // TODO: 2025-04-26 - why is this still reloading everything ever update to implementation-plan.md?
+      ignored: ["**/src-tauri/**", "implementation-plan.md"]
     },
     // 4. Allow serving files from the workspace root
     fs: {
