@@ -16,8 +16,8 @@ if (browser && (window as any).__TAURI__) {
 }
 
 initializeClerkClient(PUBLIC_CLERK_PUBLISHABLE_KEY, {
-  afterSignInUrl: "/admin/",
-  afterSignUpUrl: "/admin/",
+  afterSignInUrl: "/dashboard/",
+  afterSignUpUrl: "/dashboard/",
   signInUrl: "/sign-in",
   signUpUrl: "/sign-up"
 });

@@ -13,6 +13,7 @@
   import { browser } from "$app/environment";
   import { Sun, Languages } from "lucide-svelte";
   import { resetMode, setMode } from "mode-watcher";
+  import AuthTest from "$lib/components/dev/auth-test.svelte";
 
   // Theme
   import type { ThemeMode } from "$lib/stores/settings";
@@ -28,23 +29,23 @@
   let systemListener: (() => void) | null = null;
 
   function applySystemTheme() {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.classList.add('dark');
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }
 
   function setupSystemListener() {
     cleanupSystemListener();
-    media = window.matchMedia('(prefers-color-scheme: dark)');
+    media = window.matchMedia("(prefers-color-scheme: dark)");
     systemListener = () => applySystemTheme();
-    media.addEventListener('change', systemListener);
+    media.addEventListener("change", systemListener);
   }
 
   function cleanupSystemListener() {
     if (media && systemListener) {
-      media.removeEventListener('change', systemListener);
+      media.removeEventListener("change", systemListener);
     }
     media = null;
     systemListener = null;
@@ -188,6 +189,7 @@
         <Label for="motion">Enable Animations</Label>
         <Switch id="motion" bind:checked={$settings.enableMotion} />
       </div>
+      <AuthTest />
     </CardContent>
   </Card>
 </div>

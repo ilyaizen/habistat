@@ -10,6 +10,7 @@
     "frontendDist": "../build"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "Habistat",
@@ -20,6 +21,33 @@
     ],
     "security": {
       "csp": null
+    }
+  },
+  "plugins": {
+    "os": {},
+    "opener": {}
+  },
+  "allowlist": {
+    "all": false,
+    "http": {
+      "all": false,
+      "scope": [
+        "https://clerk.*.clerk.accounts.dev/*",
+        "http://localhost:3001/*",
+        "https://frugal-flamingo-585.convex.cloud/*"
+      ],
+      "unsafeFetch": {
+        "all": false,
+        "scope": []
+      }
+    },
+    "os": {
+      "all": false,
+      "type": true
+    },
+    "shell": {
+      "all": false,
+      "open": true
     }
   },
   "bundle": {

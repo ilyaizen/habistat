@@ -17,7 +17,7 @@ const clerkHandle = handleClerk(CLERK_SECRET_KEY, {
   debug: dev,
   // Define paths Clerk should *not* protect or process auth for
   // Leave empty if Clerk should manage auth on all non-auth paths by default
-  protectedPaths: ["/admin"], // You can add paths like ['/dashboard'] later if needed
+  protectedPaths: ["/dashboard"], // Updated protected path
   signInUrl: "/sign-in" // Ensure this matches your sign-in route
 });
 

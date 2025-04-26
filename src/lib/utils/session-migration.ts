@@ -30,6 +30,103 @@ export const migrationStatus = writable<MigrationStatus>({
 const migrationBackup = writable<Record<string, string>>({});
 
 /**
+ * Represents the data associated with an anonymous user session.
+ * TODO: Define the actual structure based on what needs to be migrated (e.g., local habits, settings).
+ */
+interface AnonymousSessionData {
+  // Example: habits: LocalHabit[];
+  // Example: settings: LocalSettings;
+  [key: string]: any; // Placeholder
+}
+
+/**
+ * Placeholder function to retrieve anonymous session data from local storage.
+ * Needs implementation based on how anonymous data is stored.
+ */
+function getAnonymousData(): AnonymousSessionData | null {
+  console.warn("getAnonymousData() not implemented.");
+  // TODO: Implement logic to load data potentially associated with the anonymousId
+  // from localStorage or other local stores.
+  return null;
+}
+
+/**
+ * Placeholder function to clear anonymous session data after successful migration.
+ */
+function clearAnonymousData(): void {
+  console.warn("clearAnonymousData() not implemented.");
+  // TODO: Implement logic to remove migrated data from localStorage.
+}
+
+/**
+ * Associates anonymously stored session data with the newly authenticated user.
+ * This function would typically be called after a user signs in or signs up
+ * for the first time on a device that had an existing anonymous session.
+ *
+ * @param clerkUserId The Clerk User ID of the authenticated user.
+ * @param authToken A valid Clerk authentication token for making authenticated requests (e.g., to Convex).
+ */
+export async function associateAnonymousDataWithUser(
+  clerkUserId: string,
+  authToken: string
+): Promise<void> {
+  console.log(`Attempting to associate anonymous data with user: ${clerkUserId}`);
+
+  const anonymousData = getAnonymousData();
+
+  if (!anonymousData) {
+    console.log("No anonymous data found to associate.");
+    return;
+  }
+
+  console.log("Found anonymous data:", anonymousData);
+
+  try {
+    // TODO: Implement the actual data migration logic.
+    // This will likely involve:
+    // 1. Calling a Convex mutation (or multiple mutations) via an authenticated client.
+    // 2. Passing the clerkUserId and the anonymousData to the mutation.
+    // 3. The mutation should handle merging/associating the data on the backend.
+    //    - This might involve checking for existing data for the user and applying
+    //      conflict resolution rules (e.g., server wins, client wins, merge strategies).
+    console.warn("Data migration logic to Convex not implemented.");
+    // Example (requires Convex client setup):
+    // const convex = createConvexClient(import.meta.env.VITE_CONVEX_URL);
+    // convex.setAuth(authToken);
+    // await convex.mutation('users:migrateAnonymousData', { anonymousData });
+
+    // If migration is successful, clear the local anonymous data.
+    clearAnonymousData();
+    console.log("Successfully associated anonymous data (simulation). Local data cleared.");
+  } catch (error) {
+    console.error("Failed to associate anonymous data:", error);
+    // TODO: Implement error handling and potentially a retry mechanism or user notification.
+    // Consider *not* clearing local data if the backend association fails.
+    throw new Error("Failed to associate anonymous data with user.");
+  }
+}
+
+/**
+ * Placeholder for conflict resolution strategy.
+ * This might involve comparing timestamps, prioritizing server data, or using specific merge logic.
+ */
+function resolveConflicts(localData: AnonymousSessionData, serverData: any): any {
+  console.warn("resolveConflicts() not implemented.");
+  // For now, just return local data as a placeholder
+  return localData;
+}
+
+/**
+ * Placeholder for potential rollback capability if claiming/migration fails.
+ * This would involve restoring the local state if the backend operation fails critically.
+ */
+function rollbackMigration(): void {
+  console.warn("rollbackMigration() not implemented.");
+  // TODO: Implement logic to restore any local state changes made optimistically
+  // before the migration attempt.
+}
+
+/**
  * Associates anonymous data with an authenticated user
  *
  * @param userId The authenticated user's ID
@@ -177,26 +274,6 @@ function createBackup(): void {
 
   const backup = collectLocalData();
   migrationBackup.set(backup);
-}
-
-/**
- * Rolls back a failed migration by restoring data from backup
- */
-async function rollbackMigration(): Promise<void> {
-  if (!browser) return;
-
-  const backup = get(migrationBackup);
-
-  try {
-    // Restore each item from backup
-    Object.entries(backup).forEach(([key, value]) => {
-      localStorage.setItem(key, value);
-    });
-
-    console.log("Migration rolled back successfully");
-  } catch (error) {
-    console.error("Error rolling back migration:", error);
-  }
 }
 
 /**

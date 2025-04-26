@@ -3,5 +3,5 @@
 </script>
 
 <div class="container mx-auto flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-  <SignUp redirectUrl="/admin" />
+  <SignUp redirectUrl="/dashboard" />
 </div>
