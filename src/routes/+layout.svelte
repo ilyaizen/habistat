@@ -18,7 +18,12 @@
   import { theme } from "$lib/stores/settings";
   import { resetMode, setMode } from "mode-watcher";
   import { ClerkProvider } from "svelte-clerk";
-  import { getSessionState, initializeTracking } from "$lib/utils/tracking";
+  import {
+    getSessionState,
+    initializeTracking,
+    markSessionClaimed,
+    markSessionMigrated
+  } from "$lib/utils/tracking";
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
 
   import "../app.css";
@@ -159,6 +164,36 @@
       }
       cleanupSystemListener();
     };
+  });
+
+  // Effect to handle session migration after Clerk sign-in
+  $effect(() => {
+    const unsubscribe = page.subscribe(async ($page) => {
+      const user = $page.data.session?.user;
+      if (user?.id) {
+        const currentState = getSessionState();
+        // Only act if the user is signed in but the local state is still anonymous
+        if (currentState === "anonymous") {
+          console.log(
+            "Layout effect: Detected signed-in user while session state is anonymous. Marking claimed..."
+          );
+          // Mark the session as claimed with user details
+          markSessionClaimed(user.id, user.primaryEmailAddress?.emailAddress);
+
+          // Mark the session as migrated (assuming any necessary data association
+          // should happen now or has been handled by backend webhooks)
+          // If actual data migration logic is needed later, this might move.
+          markSessionMigrated();
+
+          console.log("Layout effect: Session marked as claimed and migrated.");
+          // Refresh might be needed if components don't react to localStorage changes
+          // window.location.reload(); // Uncomment if necessary
+        }
+      }
+    });
+
+    // Cleanup subscription
+    return unsubscribe;
   });
 </script>
 

@@ -74,23 +74,23 @@ Integrate user authentication using Clerk (including OAuth) and set up the Conve
 - [x] Configure required OAuth providers (e.g., Google, GitHub) in the Clerk dashboard
 - [x] Install Clerk SvelteKit SDK: `pnpm add @clerk/sveltekit-clerk`
 - [x] Configure Clerk environment variables in `.env`
+- [ ] ~~Deferred: Handles offline mode gracefully~~ (TODO)
 - [x] Create a custom `ClerkWrapper` component that:
   - [x] Only loads Clerk when user explicitly initiates sign-in/sign-up
-  - [ ] ~~Deferred: Handles offline mode gracefully~~ (TODO)
-  - [ ] 👉 Manages the transition between anonymous and authenticated states:
-	  - [ ] Simplify the whole "claim session" / sign-in/up process, the app flow should just get back authenticated and claimed to the dashboard, there is not supposed to be "pending" state. After authentication, make sure we are associated / migrated from the anonymous local-only session, we will later implement sync with Convex.
-	  - [ ] App flow testing does not make sense, perhaps delete it.
-- [x] Implement "Claim Session" button/flow:
-  - [ ] Replace standard sign-up with "Claim Session" UI when in anonymous mode
-  - [x] Hide claim button when already authenticated
-  - [ ] Show regular profile menu when authenticated
-- [x] Create session migration utilities:
-  - [x] Functions to associate anonymous data with authenticated user
-  - [ ] Conflict resolution strategy for merging data
-  - [ ] Rollback capability if claiming fails
-- [x] Wrap the SvelteKit root layout (`src/routes/+layout.svelte`) with the Clerk provider (`<ClerkProvider>`). You might need to adjust your root layout to handle potential SSR limitations if any arise, but Clerk's SDK is generally client-side friendly.
-- [x] Implement basic sign-in and sign-up routes/components using Clerk's managed components (e.g., `<SignIn>`, `<SignUp>`) or build custom flows using Clerk hooks. Place these within your SvelteKit routing structure (e.g., `src/routes/sign-in/+page.svelte`).
-- [ ] Add user profile button/menu (`<UserButton>`) to the main app layout (e.g., in a header component), conditionally rendered based on authentication state.
+  - [x] Manages the transition between anonymous and authenticated states:
+    - [x] Simplify the whole "claim session" / sign-in/up process: Remove pending state, ensure direct migration from anonymous to claimed upon authentication.
+    - [x] Removed authentication flow testing utilities.
+    - [x] Reduced verbose console logging during dashboard load and Clerk user detection.
+- [x] Implement Auth Button/Flow (Replaces previous "Claim Session" concept):
+  - [x] Ensure the UI correctly triggers Clerk sign-in/sign-up.
+  - [x] Hide auth options/show profile when authenticated.
+- [x] Session Migration Utilities:
+  - [x] Functions to associate anonymous data with authenticated user (`migrateSession` in `tracking.ts`).
+  - [ ] Deferred: Conflict resolution strategy for merging data (Phase 4/Convex sync).
+  - [ ] Deferred: Rollback capability if migration fails (Consider during sync implementation).
+- [x] Wrap the SvelteKit root layout (`src/routes/+layout.svelte`) with the Clerk provider (`<ClerkProvider>`).
+- [x] Implement basic sign-in and sign-up routes/components using Clerk's managed components.
+- [ ] Add user profile button/menu (`<UserButton>`) to the main app layout, conditionally rendered.
 - [ ] Protect dashboard or authenticated-only routes using SvelteKit's layout load functions or Clerk's helpers to check authentication status and redirect if necessary.
 - [ ] Utilize Clerk's SvelteKit utilities (e.g., accessing session/user data via `$page.data.session` or Clerk's specific stores/hooks) to manage and display user state (ID, name, email, avatar) within the application UI.
 

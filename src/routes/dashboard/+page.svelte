@@ -4,7 +4,6 @@
     anonymousUserId,
     logAppOpenIfNeeded,
     getAppOpenHistory,
-    hasExistingSession,
     isSessionMigrated,
     SESSION_USER_ID_KEY
   } from "$lib/utils/tracking";
@@ -17,11 +16,12 @@
   import type { Writable } from "svelte/store";
   import { browser } from "$app/environment";
   import { page } from "$app/stores";
+  import { get } from "svelte/store";
 
   let currentUserId = $state<string | null>(null);
   let activeDates = $state<Set<string>>(new Set());
-  let fetchError = $state<string | null>(null);
   let earliestActivityDate = $state<string | null>(null);
+  let fetchError = $state<string | null>(null);
   let loadingState = $state(true);
   let authChecked = $state(false);
   let retryCount = $state(0);
@@ -46,7 +46,6 @@
       // Set up Clerk listener if available
       if (window.Clerk) {
         window.Clerk.addListener(({ user }) => {
-          console.log("Clerk user change detected:", !!user);
           if (!authChecked && user) {
             loadData();
           }
@@ -68,48 +67,33 @@
     authChecked = true;
     retryCount++;
 
-    console.log(`Loading dashboard data (attempt ${retryCount}/${maxRetries})...`);
-
     try {
-      // Check if we have a valid user ID from various sources
-      let userId = $anonymousUserId;
+      let userId = get(anonymousUserId);
 
-      // If no anonymous ID but we have a migrated session, get the user ID from localStorage
       if (!userId && isSessionMigrated()) {
         userId = localStorage.getItem(SESSION_USER_ID_KEY);
         console.log("Using authenticated user ID:", userId);
       }
 
-      // Store current user ID for display purposes
       currentUserId = userId;
 
-      // Redirect to home if no session exists
-      if (!userId && !hasExistingSession()) {
-        console.log("No session found, redirecting to home");
-        goto("/");
+      if (!currentUserId) {
+        console.log("No user ID found after checks, redirecting to home");
+        goto("/", { replaceState: true });
+        loadingState = false;
         return;
       }
 
-      // Only proceed with activity tracking if we have a valid ID
-      if (userId) {
-        logAppOpenIfNeeded();
-        loadActivityData();
-      } else {
-        // If we don't have a user ID yet but have an existing session,
-        // retry after a short delay (could be an auth in progress)
-        setTimeout(() => {
-          if (browser) loadData();
-        }, 800);
-      }
+      logAppOpenIfNeeded();
+      loadActivityData();
     } catch (error) {
       console.error("Error loading dashboard data:", error);
       fetchError = $_("errors.dashboard_load");
 
-      // Retry after a delay if we haven't exceeded max retries
       if (retryCount < maxRetries) {
         setTimeout(() => {
           if (browser) loadData();
-        }, 1000 * retryCount); // Increase delay with each retry
+        }, 1000 * retryCount);
       } else {
         loadingState = false;
       }

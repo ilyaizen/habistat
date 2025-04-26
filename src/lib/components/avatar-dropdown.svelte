@@ -1,14 +1,27 @@
 <script lang="ts">
   import { Avatar, AvatarFallback } from "./ui/avatar";
   import * as DropdownMenu from "./ui/dropdown-menu";
-  import { isSessionMigrated, SESSION_USER_ID_KEY, deleteUserSession } from "$lib/utils/tracking";
+  import { isSessionMigrated, SESSION_USER_ID_KEY } from "$lib/utils/tracking";
+  import { handleLogout } from "$lib/utils/auth";
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { browser } from "$app/environment";
+  import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+  } from "./ui/alert-dialog";
 
   // Track if user is authenticated
   let isAuthenticated = $state(false);
   let userInitial = $state("A");
+  let confirmDialogOpen = $state(false);
+  let loggingOut = $state(false);
 
   // Check auth state on mount
   onMount(() => {
@@ -28,8 +41,8 @@
     }
   });
 
-  // Handle profile navigation
-  function goToProfile() {
+  // Handle settings navigation
+  function goToSettings() {
     goto("/settings");
   }
 
@@ -38,19 +51,20 @@
     goto("/dashboard");
   }
 
-  // Handle logout
-  function handleLogout() {
-    if (browser) {
-      // Clear all user data
-      deleteUserSession();
+  // Handle logout with confirmation via AlertDialog
+  async function logoutWithConfirm() {
+    if (loggingOut) return;
 
-      // Navigate home
-      goto("/");
-
-      // Force reload to ensure clean state
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+    loggingOut = true;
+    try {
+      // Use the centralized handleLogout function
+      await handleLogout();
+      // handleLogout already handles navigation and reload
+    } catch (error) {
+      console.error("Failed to log out:", error);
+    } finally {
+      loggingOut = false;
+      confirmDialogOpen = false;
     }
   }
 </script>
@@ -65,10 +79,39 @@
   </DropdownMenu.Trigger>
   <DropdownMenu.Content class="mx-4 w-40">
     <DropdownMenu.Item onclick={goToDashboard}>Dashboard</DropdownMenu.Item>
-    <DropdownMenu.Item onclick={goToProfile}>Profile</DropdownMenu.Item>
+    <DropdownMenu.Item onclick={goToSettings}>Settings</DropdownMenu.Item>
     <DropdownMenu.Separator />
-    <DropdownMenu.Item onclick={handleLogout}>
+
+    <!-- Use DropdownMenu item to open the confirmation dialog -->
+    <DropdownMenu.Item onclick={() => (confirmDialogOpen = true)}>
       {isAuthenticated ? "Logout" : "Reset Session"}
     </DropdownMenu.Item>
   </DropdownMenu.Content>
 </DropdownMenu.Root>
+
+<!-- Alert Dialog for logout confirmation -->
+<AlertDialog bind:open={confirmDialogOpen}>
+  <AlertDialogContent>
+    <AlertDialogHeader>
+      <AlertDialogTitle>
+        {isAuthenticated ? "Logout?" : "Reset Session?"}
+      </AlertDialogTitle>
+      <AlertDialogDescription>
+        {isAuthenticated
+          ? "Are you sure you want to log out of your account?"
+          : "Are you sure you want to reset your anonymous session? This will clear all local data."}
+      </AlertDialogDescription>
+    </AlertDialogHeader>
+    <AlertDialogFooter>
+      <AlertDialogCancel>Cancel</AlertDialogCancel>
+      <AlertDialogAction
+        onclick={logoutWithConfirm}
+        class={isAuthenticated
+          ? ""
+          : "bg-destructive text-destructive-foreground hover:bg-destructive/90"}
+      >
+        {loggingOut ? "Processing..." : isAuthenticated ? "Logout" : "Reset"}
+      </AlertDialogAction>
+    </AlertDialogFooter>
+  </AlertDialogContent>
+</AlertDialog>

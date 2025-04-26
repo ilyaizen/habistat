@@ -13,11 +13,11 @@
   import AboutDrawer from "$lib/components/about-drawer.svelte";
   import EnvironmentBadge from "$lib/components/environment-badge.svelte";
   import { goto } from "$app/navigation";
-  import { anonymousUserId, hasExistingSession, createUserSession } from "$lib/utils/tracking";
+  import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
   import { browser } from "$app/environment";
   import { onMount } from "svelte";
   import { getContext } from "svelte";
-  import type { Writable } from "svelte/store";
+  import { get, type Writable } from "svelte/store";
 
   // Get online status from context
   const isOnline = getContext<Writable<boolean>>("isOnline");
@@ -40,14 +40,14 @@
   // Initialize drawer state based on user session
   $effect(() => {
     if (!initialCheckDone && browser) {
-      drawerOpen = !hasExistingSession();
+      drawerOpen = !get(anonymousUserId);
       initialCheckDone = true;
     }
   });
 
   /**
    * Handles the START button click action
-   * Creates a new user session and redirects to dashboard
+   * Ensures a session exists and redirects to dashboard
    * Includes error handling for session creation failures
    */
   async function handleStart() {
@@ -56,17 +56,17 @@
     try {
       sessionStarting = true;
       console.log("+page.svelte: handleStart called");
-      const userId = createUserSession();
+      const session = sessionStore.ensure();
 
-      if (userId) {
-        console.log("+page.svelte: Session started, navigating to dashboard.");
+      if (session?.id) {
+        console.log("+page.svelte: Session ensured, navigating to dashboard.");
         await goto("/dashboard");
       } else {
-        console.error("+page.svelte: Failed to start session.");
-        throw new Error("Failed to create session");
+        console.error("+page.svelte: Failed to ensure session.");
+        throw new Error("Failed to ensure session");
       }
     } catch (error) {
-      console.error("+page.svelte: Error during session creation:", error);
+      console.error("+page.svelte: Error during session ensuring:", error);
       // Show error state (you might want to add a UI element for this)
     } finally {
       sessionStarting = false;

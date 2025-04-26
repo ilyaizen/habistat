@@ -69,7 +69,7 @@ pnpm format            # Prettier
   - Anonymous session by default with unique ID.
   - Authentication explicitly initiated by user.
   - Clerk SDK only loaded when auth initiated or on sign-in pages.
-  - Session states tracked: `anonymous`, `pending`, `claimed`.
+  - Session states tracked: `anonymous`, `claimed`.
   - Session migration strategy for associating anonymous data with authenticated user.
 
 ## Tech Stack

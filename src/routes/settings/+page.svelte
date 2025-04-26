@@ -6,14 +6,13 @@
 
   import Switch from "$lib/components/ui/switch/switch.svelte";
   import SessionInfo from "$lib/components/session-info.svelte";
-  import { anonymousUserId, initializeTracking } from "$lib/utils/tracking";
+  import { anonymousUserId } from "$lib/utils/tracking";
   import { onDestroy, onMount } from "svelte";
 
   import { locale } from "svelte-i18n";
   import { browser } from "$app/environment";
   import { Sun, Languages } from "lucide-svelte";
   import { resetMode, setMode } from "mode-watcher";
-  import AuthTest from "$lib/components/dev/auth-test.svelte";
 
   // Theme
   import type { ThemeMode } from "$lib/stores/settings";
@@ -75,7 +74,6 @@
     } else {
       selectTheme(get(theme));
     }
-    initializeTracking();
   });
   onDestroy(() => {
     cleanupSystemListener();
@@ -100,10 +98,6 @@
   $: developerMode = $settings.developerMode;
 
   $: if (!developerMode) $settings.showUsageHistory = false;
-
-  onMount(() => {
-    initializeTracking();
-  });
 </script>
 
 <div class="container mx-auto max-w-xl space-y-8 p-4">
@@ -114,7 +108,7 @@
       <Label class="text-lg">Session</Label>
     </CardHeader>
     <CardContent>
-      <SessionInfo userId={$anonymousUserId || undefined} />
+      <SessionInfo userId={$anonymousUserId ?? undefined} />
     </CardContent>
   </Card>
 
@@ -189,7 +183,6 @@
         <Label for="motion">Enable Animations</Label>
         <Switch id="motion" bind:checked={$settings.enableMotion} />
       </div>
-      <AuthTest />
     </CardContent>
   </Card>
 </div>

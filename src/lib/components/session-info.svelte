@@ -3,64 +3,72 @@
   import { Input } from "./ui/input";
   import { Label } from "./ui/label";
   import { Trash2 } from "lucide-svelte";
-  import {
-    deleteUserSession,
-    getAppOpenHistory,
-    getSessionState,
-    getMigrationDetails
-  } from "$lib/utils/tracking";
+  import { getSessionState, getAppOpenHistory } from "$lib/utils/tracking";
+  import { handleLogout } from "$lib/utils/auth";
   import { goto } from "$app/navigation";
   import { settings } from "$lib/stores/settings";
   import { derived } from "svelte/store";
-  import { onMount } from "svelte";
   import SignedIn from "clerk-sveltekit/client/SignedIn.svelte";
   import SignedOut from "clerk-sveltekit/client/SignedOut.svelte";
-  import type { User } from "@clerk/backend";
+
+  import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger
+  } from "./ui/alert-dialog";
 
   const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
 
   let { userId = "N/A" }: { userId?: string } = $props();
   let deleting = $state(false);
   let usageHistoryTimestamps = $state<number[]>([]);
-  let sessionState = $state<"anonymous" | "pending" | "claimed">("anonymous");
+  let sessionState = $state<"anonymous" | "claimed">("anonymous");
+  let confirmDialogOpen = $state(false);
 
   // Function to refresh user info
   function refreshUserInfo() {
     // Get session state
     sessionState = getSessionState();
+    console.log("SessionInfo: Refreshed user info. State:", sessionState);
   }
 
-  // Attempt to get user info on mount
-  onMount(() => {
+  // Reactively update session state based on page changes
+  $effect(() => {
+    // Use page reactively inside the effect
     refreshUserInfo();
   });
 
+  // Restore effect for usage history
   $effect(() => {
     if (userId && userId !== "N/A") {
-      usageHistoryTimestamps = getAppOpenHistory().reverse();
+      // Ensure getAppOpenHistory returns data before reversing
+      const history = getAppOpenHistory();
+      usageHistoryTimestamps = history ? history.reverse() : [];
     } else {
       usageHistoryTimestamps = [];
     }
   });
 
-  async function handleDeleteSession() {
+  // Handle session deletion with confirmation dialog
+  async function deleteUserSessionWithConfirm() {
     if (deleting) return;
-    if (
-      !window.confirm(
-        "Are you sure you want to delete your anonymous session? This cannot be undone."
-      )
-    ) {
-      return;
-    }
 
     deleting = true;
     try {
-      await deleteUserSession();
-      goto("/");
+      // Use the centralized handleLogout function
+      await handleLogout();
+      // No need to manually navigate or reload as handleLogout does this
     } catch (error) {
       console.error("Failed to delete session:", error);
     } finally {
       deleting = false;
+      confirmDialogOpen = false;
     }
   }
 </script>
@@ -70,16 +78,43 @@
     <Label for="userIdInput" class="text-sm font-medium">User ID</Label>
     <div class="flex items-center space-x-2">
       <Input id="userIdInput" type="text" value={userId ?? "Loading..."} readonly class="flex-1" />
-      <Button
-        variant="destructive"
-        size="icon"
-        onclick={handleDeleteSession}
-        title="Delete Session"
-        disabled={deleting || !userId || userId === "N/A"}
-      >
-        <Trash2 class="h-4 w-4" />
-        <span class="sr-only">Delete Session</span>
-      </Button>
+
+      <AlertDialog bind:open={confirmDialogOpen}>
+        <AlertDialogTrigger>
+          <Button
+            variant="destructive"
+            size="icon"
+            title="Delete Session"
+            disabled={deleting || !userId || userId === "N/A"}
+          >
+            {#if deleting}
+              <span class="animate-spin">...</span>
+            {:else}
+              <Trash2 class="h-4 w-4" />
+            {/if}
+            <span class="sr-only">Delete Session</span>
+          </Button>
+        </AlertDialogTrigger>
+
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Session?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete your session? This action cannot be undone and will
+              clear all local data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onclick={deleteUserSessionWithConfirm}
+              class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
     {#if sessionState === "claimed"}
       <p class="text-muted-foreground text-xs">
@@ -123,6 +158,7 @@
     </div>
   </SignedOut>
 
+  <!-- Restore Usage History section -->
   {#if $showUsageHistory}
     <div class="space-y-2">
       <h3 class="text-sm font-medium">Usage History (App Opens)</h3>
@@ -137,14 +173,9 @@
       {/if}
     </div>
   {/if}
+
   <div class="space-y-2">
     <Label for="sessionStateInput" class="text-sm font-medium">Session State</Label>
     <Input id="sessionStateInput" type="text" value={sessionState} readonly class="flex-1" />
-  </div>
-  <div class="space-y-2">
-    <Label for="authTestPage" class="text-sm font-medium">Auth Test Page</Label>
-    <Button variant="outline" onclick={() => goto("/dev/auth-test")} class="w-full">
-      Go to Auth Test Page
-    </Button>
   </div>
 </div>
