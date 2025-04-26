@@ -1,5 +1,48 @@
 # **Habistat - Implementation Plan**
 
+Okay, here's a concise prompt summarizing the context for a new chat:
+
+---
+
+Project: Habistat (SvelteKit 5, Tauri, Clerk Auth)
+
+Issue: After login with Clerk (using <SignIn> component with redirect to /dashboard), the app shows authentication cookies are set correctly, but UI doesn't update to show the authenticated state:
+
+- Session remains "anonymous" instead of "associated" in session-info.svelte
+- Sign-up/in buttons remain visible despite Clerk knowing user is authenticated
+- Error message: "The <SignUp/> component cannot render when a user is already signed in..."
+
+Current state:
+
+- Clerk auth cookies are being set correctly after login
+- Client-side Clerk instance knows user is authenticated (clerk.user exists)
+- Custom session system in tracking.ts isn't syncing with Clerk's auth state
+- markSessionAssociated() function is not being called or is failing
+
+Solution attempts:
+
+- Added effect in +layout.svelte to detect clerk.user changes and call markSessionAssociated()
+- Added onLoaded handler to ClerkProvider (failed - not supported)
+- Added redirection from sign-in/sign-up pages when already authenticated
+- Added conditional UI updates based on Clerk's user state
+- Added verification to markSessionAssociated to ensure localStorage updates
+
+Next steps:
+
+- Fix auth state synchronization by adding direct clerk.user state detection in app header
+- Update UI components (app-header, avatar-dropdown, session-info) to show auth state based on Clerk's user state
+- Simplify sign-in/up pages to handle already authenticated users properly
+
+Core files:
+
+- src/routes/+layout.svelte (Auth initialization & session sync)
+- src/lib/utils/tracking.ts (Session management)
+- src/lib/components/session-info.svelte (Display auth state)
+- src/lib/components/app-header.svelte (Sign-in/up buttons)
+- src/lib/components/avatar-dropdown.svelte (User menu)
+
+---
+
 ## ~~DONE: Phase 1: Homepage & UI Foundation~~
 
 **Goal:**
@@ -60,39 +103,32 @@ Establish a clean, multilingual, and minimalistic user interface foundation. Sim
 
 **Goal:**
 
-Integrate user authentication using Clerk (including OAuth) and set up the Convex backend to store user profiles, preparing for future data synchronization. Ensure basic auth flow works on Web and Tauri (Win/Android focus first).
+Integrate user authentication using Clerk (**now using `svelte-clerk` community library**) and set up the Convex backend to store user profiles, preparing for future data synchronization. Ensure basic auth flow works on Web and Tauri (Win/Android focus first).
 
 **Tasks:**
 
-### 3.1. Clerk Setup & Integration (SvelteKit Frontend)
+### 3.1. Clerk Setup & Integration (SvelteKit Frontend with `svelte-clerk`)
 
 - [x] Implement anonymous session store in `src/lib/utils/tracking.ts`:
   - [x] Generate and store a unique `anonymousId` in localStorage on first app load
   - [x] Track session creation timestamp and last modified date
-  - [x] Add functions to check if session is anonymous vs. claimed
+- [x] Add functions to check if session is anonymous vs. associated
 - [x] Create a Clerk application in the Clerk dashboard
 - [x] Configure required OAuth providers (e.g., Google, GitHub) in the Clerk dashboard
-- [x] Install Clerk SvelteKit SDK: `pnpm add @clerk/sveltekit-clerk`
-- [x] Configure Clerk environment variables in `.env`
+- [x] Install `svelte-clerk`, `@clerk/clerk-js`, `@clerk/backend`, `@clerk/types`.
+- [x] Configure Clerk environment variables (`VITE_PUBLIC_...` for client, `PUBLIC_...` & `CLERK_SECRET_KEY` for server) in `.env`.
+- [x] Implement server hook (`src/hooks.server.ts`) using `@clerk/backend` `createClerkClient` and `authenticateRequest` to populate `event.locals.session`.
+- [x] Update `src/app.d.ts` to include `session: RequestState` in `App.Locals`.
 - [ ] ~~Deferred: Handles offline mode gracefully~~ (TODO)
-- [x] Create a custom `ClerkWrapper` component that:
-  - [x] Only loads Clerk when user explicitly initiates sign-in/sign-up
-  - [x] Manages the transition between anonymous and authenticated states:
-    - [x] Simplify the whole "claim session" / sign-in/up process: Remove pending state, ensure direct migration from anonymous to claimed upon authentication.
-    - [x] Removed authentication flow testing utilities.
-    - [x] Reduced verbose console logging during dashboard load and Clerk user detection.
-- [x] Implement Auth Button/Flow (Replaces previous "Claim Session" concept):
-  - [x] Ensure the UI correctly triggers Clerk sign-in/sign-up.
-  - [x] Hide auth options/show profile when authenticated.
-- [x] Session Migration Utilities:
-  - [x] Functions to associate anonymous data with authenticated user (`migrateSession` in `tracking.ts`).
-  - [ ] Deferred: Conflict resolution strategy for merging data (Phase 4/Convex sync).
-  - [ ] Deferred: Rollback capability if migration fails (Consider during sync implementation).
-- [x] Wrap the SvelteKit root layout (`src/routes/+layout.svelte`) with the Clerk provider (`<ClerkProvider>`).
-- [x] Implement basic sign-in and sign-up routes/components using Clerk's managed components.
-- [ ] Add user profile button/menu (`<UserButton>`) to the main app layout, conditionally rendered.
-- [ ] Protect dashboard or authenticated-only routes using SvelteKit's layout load functions or Clerk's helpers to check authentication status and redirect if necessary.
-- [ ] Utilize Clerk's SvelteKit utilities (e.g., accessing session/user data via `$page.data.session` or Clerk's specific stores/hooks) to manage and display user state (ID, name, email, avatar) within the application UI.
+- [x] Wrap the SvelteKit root layout (`src/routes/+layout.svelte`) with `<ClerkProvider>` from `svelte-clerk`.
+- [x] Use `getContext` and `clerk.addListener` in layout/components (`+layout.svelte`, `session-info.svelte`) to reactively access user state (`clerk.user`).
+- [x] Implement session association logic (`markSessionAssociated`) in `src/lib/utils/tracking.ts`, triggered by `$effect` in `+layout.svelte` reacting to user state changes.
+- [x] Implement basic sign-in (`/sign-in/+page.svelte`) and sign-up (`/sign-up/+page.svelte`) routes using Clerk components (`<SignIn>`, `<SignUp>`) from `svelte-clerk`.
+- [x] Add server-side load functions (`+page.server.ts`) to `/sign-in` and `/sign-up` routes to redirect authenticated users to `/dashboard`.
+- [x] ~~Add server-side layout load function (`+layout.server.ts`) to `/dashboard` (and potentially other protected routes) to redirect unauthenticated users to `/sign-in`.~~ (Removed: Handled client-side in dashboard page)
+- [ ] Add user profile button/menu (`<UserButton>`) to the main app layout, conditionally rendered (Consider using `{#if $user}` with context-derived store).
+- [x] Update logout utility (`src/lib/utils/auth.ts`) to call `clerk.signOut()`.
+- [x] Utilize Clerk user data (e.g., `clerk.user.id`, `clerk.user.primaryEmailAddress.emailAddress`) derived via context (using `readable` and `clerk.addListener`) to display user state in the UI (e.g., in `session-info.svelte`).
 
 ### 3.2. Convex Backend Setup
 
@@ -129,7 +165,7 @@ Integrate user authentication using Clerk (including OAuth) and set up the Conve
 ### 3.6. Deferred to Later Phases
 
 - [ ] **Data Synchronization:** Implementing the actual sync logic for habits, usage monitor data, etc., between local storage (offline-first) and the Convex backend tables.
-- [ ] **Anonymous Data Migration:** Designing and implementing the flow for an anonymous user (with local data) to sign up/in and associate ("claim") their existing local data with their new cloud account. This involves merging or uploading local data post-authentication.
+- [ ] **Anonymous Data Migration:** Designing and implementing the flow for an anonymous user (with local data) to sign up/in and associate their existing local data with their new cloud account. This involves merging or uploading local data post-authentication.
 - [ ] **Advanced Profile Management:** Features beyond displaying basic info from Clerk (e.g., user settings specific to Habistat stored in Convex).
 - [ ] **Offline Sync Handling:** Robust conflict resolution strategies when synchronizing data that might have changed both locally and on the server while offline.
 - [ ] **Platform-Specific OAuth Nuances:** Deeper investigation into custom URL schemes/deep linking for Tauri if the standard web flow proves insufficient on certain platforms or for specific OAuth providers.

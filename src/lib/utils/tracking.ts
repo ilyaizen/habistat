@@ -3,8 +3,8 @@
  *
  * This module provides functionality for:
  * - Anonymous user session ID generation and persistence
- * - Tracking the session state (anonymous vs. claimed/authenticated)
- * - Marking the transition from anonymous to claimed state
+ * - Tracking the session state (anonymous vs. associated/authenticated)
+ * - Marking the transition from anonymous to associated state
  */
 
 import { browser } from "$app/environment";
@@ -12,24 +12,20 @@ import { writable, get, derived } from "svelte/store";
 import { v4 as uuidv4 } from "uuid";
 
 /**
- * Represents an anonymous user session identifier.
+ * Represents a user session identifier.
+ * Can be anonymous or associated with a Clerk user.
  */
-interface AnonymousSession {
-  id: string; // Unique identifier for the session
+interface UserSession {
+  id: string; // Unique identifier for the session (anonymous ID)
   createdAt: number; // Timestamp when session was created
   lastModified: number; // Timestamp when session was last updated (touch point)
+  state: "anonymous" | "associated"; // Tracks if linked to a Clerk user
+  clerkUserId?: string; // Clerk User ID if associated
+  clerkUserEmail?: string; // Clerk User Email if associated
 }
 
 // Storage keys
-const STORAGE_KEY = "habistat_anonymous_session"; // Stores AnonymousSession object
-const AUTH_CLAIMED_KEY = "habistat_auth_claimed"; // "true" if user is authenticated
-// Key to indicate if the *initial* anonymous session data has been associated/migrated
-// after the first login. We still need this distinction.
-export const SESSION_MIGRATED_KEY = "habistat_session_migrated";
-// Optional: Store the claimed user ID if needed elsewhere
-export const SESSION_USER_ID_KEY = "habistat_session_user_id";
-// Optional: Store the claimed user email if needed elsewhere
-export const SESSION_USER_EMAIL_KEY = "habistat_session_user_email";
+const SESSION_STORAGE_KEY = "habistat_user_session"; // Stores UserSession object
 
 // --- Add back History Constants ---
 const LAST_LOGGED_OPEN_KEY = "habistat_last_logged_open_at";
@@ -39,54 +35,58 @@ const HOUR_MS = 60 * 60 * 1000; // Throttle app open logging
 /**
  * Creates a new anonymous session object.
  */
-function createNewSessionObject(): AnonymousSession {
+function createNewSessionObject(): UserSession {
   return {
     id: uuidv4(),
     createdAt: Date.now(),
-    lastModified: Date.now()
+    lastModified: Date.now(),
+    state: "anonymous"
   };
 }
 
 /**
  * Loads the anonymous session object from localStorage.
  */
-function loadSession(): AnonymousSession | null {
+function loadSession(): UserSession | null {
   if (!browser) return null;
 
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = localStorage.getItem(SESSION_STORAGE_KEY);
   if (!stored) return null;
 
   try {
     // TODO: Add validation if session structure changes significantly over time
-    return JSON.parse(stored) as AnonymousSession;
+    const session = JSON.parse(stored) as UserSession;
+    // Basic validation/migration for older structures if needed
+    if (!session.state) {
+      session.state = "anonymous"; // Assume anonymous if state is missing
+    }
+    return session;
   } catch (error) {
     console.error("Failed to parse stored session, clearing:", error);
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SESSION_STORAGE_KEY);
     return null;
   }
 }
 
 // Initialize session on module load for browser environments
-let initialSession: AnonymousSession | null = null;
+let initialSession: UserSession | null = null;
 if (browser) {
+  // Try to load existing session
   initialSession = loadSession();
-  // Ensure a session exists if running in browser
-  if (!initialSession) {
-    initialSession = createNewSessionObject();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(initialSession));
-  }
+  // DO NOT create a new one automatically here
 }
 
 /**
  * Svelte store for managing the anonymous session object.
  */
 function createSessionStore() {
-  // If initialSession is null (SSR), the store starts null.
-  // If initialSession has a value (Browser), the store starts with it.
-  const { subscribe, set, update } = writable<AnonymousSession | null>(initialSession);
+  // Initialize with loaded session (or null if none/SSR)
+  const { subscribe, set, update } = writable<UserSession | null>(initialSession);
 
   return {
     subscribe,
+    set,
+    update,
     /**
      * Updates the session's lastModified timestamp. Call this on significant user actions.
      */
@@ -98,12 +98,12 @@ function createSessionStore() {
         if (!session) {
           console.warn("Touching session when it's null. Creating new session.");
           const newSession = createNewSessionObject();
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(newSession));
+          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(newSession));
           return newSession; // Update store with new session
         }
         // Update existing session
         const updated = { ...session, lastModified: Date.now() };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updated));
         return updated;
       });
     },
@@ -113,11 +113,7 @@ function createSessionStore() {
      */
     clear: () => {
       if (browser) {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(AUTH_CLAIMED_KEY);
-        localStorage.removeItem(SESSION_MIGRATED_KEY);
-        localStorage.removeItem(SESSION_USER_ID_KEY);
-        localStorage.removeItem(SESSION_USER_EMAIL_KEY);
+        localStorage.removeItem(SESSION_STORAGE_KEY);
         // --- Add clearing history keys --- >
         localStorage.removeItem(LAST_LOGGED_OPEN_KEY);
         localStorage.removeItem(APP_OPEN_HISTORY_KEY);
@@ -130,13 +126,15 @@ function createSessionStore() {
      * Typically called on app initialization.
      * Returns the current or newly created session.
      */
-    ensure: (): AnonymousSession => {
+    ensure: (): UserSession => {
       let currentSession = get(sessionStore); // Use the exported store name
       if (!currentSession) {
         if (browser) {
           currentSession = createNewSessionObject();
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(currentSession));
+          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentSession));
           set(currentSession); // Update the store
+          // Log creation only when ensure is explicitly called and creates it
+          console.log("Tracking: New session ensured and created:", currentSession.id);
         } else {
           // Should not happen if initialSession logic is correct, but handle defensively
           throw new Error("Cannot ensure session on server-side without initial session.");
@@ -156,137 +154,188 @@ export const sessionStore = createSessionStore();
  */
 export const anonymousUserId = derived(
   sessionStore,
-  ($session: AnonymousSession | null) => $session?.id ?? null
+  ($session: UserSession | null) => $session?.id ?? null
 );
 
 /**
  * Initializes tracking. Ensures an anonymous session exists on the client.
  * Should be called once when the app mounts client-side.
+ * RETURNS A PROMISE that resolves when the session is loaded/ensured.
  */
-export function initializeTracking(): void {
-  if (!browser) return;
-  sessionStore.ensure(); // Make sure a session exists and the store is populated
-  console.log("Tracking initialized. Anonymous User ID:", get(anonymousUserId));
+export async function initializeTracking(): Promise<void> {
+  console.log("[Tracking] initializeTracking: Starting...");
+  if (!browser) {
+    console.log("[Tracking] initializeTracking: Not in browser, returning.");
+    return;
+  }
+
+  try {
+    let currentSession = get(sessionStore);
+    console.log("[Tracking] initializeTracking: Initial store value:", currentSession);
+
+    if (!currentSession) {
+      // Attempt to load from localStorage if store is null
+      currentSession = loadSession();
+      console.log("[Tracking] initializeTracking: Loaded from localStorage:", currentSession);
+      if (!currentSession) {
+        // If still null, create a new one
+        currentSession = createNewSessionObject();
+        console.log("[Tracking] initializeTracking: Creating NEW session:", currentSession);
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentSession));
+      }
+      // Update the store with the loaded/created session
+      sessionStore.set(currentSession);
+    } else {
+      console.log(
+        "[Tracking] initializeTracking: Using existing session from store:",
+        currentSession.id
+      );
+    }
+    console.log(
+      "[Tracking] initializeTracking: Finished successfully. Final session:",
+      get(sessionStore)
+    );
+  } catch (error) {
+    console.error("[Tracking] initializeTracking: Error during initialization:", error);
+    // Consider if we need to set store to a default error state or just log
+  }
 }
 
 // --- Session State Management ---
 
 /**
  * Gets the current session state based on localStorage flags.
- * @returns 'anonymous' if no auth claimed flag, 'claimed' otherwise.
+ * @returns 'anonymous' if the session state is anonymous, 'associated' otherwise.
  */
-export function getSessionState(): "anonymous" | "claimed" {
+export function getSessionState(): "anonymous" | "associated" {
   if (!browser) return "anonymous"; // Default to anonymous server-side or if browser check fails
   // Check if the authentication claimed flag is set
-  return localStorage.getItem(AUTH_CLAIMED_KEY) === "true" ? "claimed" : "anonymous";
+  const session = loadSession();
+  return session?.state ?? "anonymous";
 }
 
 /**
- * Marks the session as claimed (authenticated).
+ * Marks the session as associated (authenticated) with a Clerk user.
  * Call this function immediately after successful authentication via Clerk.
  * Also stores user ID and email if provided.
  *
  * @param userId The authenticated user's Clerk ID.
  * @param email Optional user email.
  */
-export function markSessionClaimed(userId: string, email?: string): void {
+export function markSessionAssociated(userId: string, email?: string): void {
   if (!browser) return;
-  localStorage.setItem(AUTH_CLAIMED_KEY, "true");
-  if (userId) {
-    localStorage.setItem(SESSION_USER_ID_KEY, userId);
-  }
-  if (email) {
-    localStorage.setItem(SESSION_USER_EMAIL_KEY, email);
-  }
-  console.log(`Session marked as claimed for user ${userId} at ${new Date().toISOString()}`);
-  // Touch the session to update lastModified timestamp
-  sessionStore.touch();
+
+  console.log(`[Tracking] markSessionAssociated: Called with userId: ${userId}, email: ${email}`);
+
+  sessionStore.update((session) => {
+    console.log("[Tracking] markSessionAssociated: Current session before update:", session);
+    if (!session) {
+      console.error(
+        "[Tracking] markSessionAssociated: Attempted to associate a null session! This should not happen after initialization."
+      );
+      // Optionally create a new session here, but it indicates a flow issue
+      // session = createNewSessionObject();
+      return session; // Return null or the newly created session if handled
+    }
+
+    if (session.state === "associated" && session.clerkUserId === userId) {
+      console.log("[Tracking] markSessionAssociated: Session already associated with this user.");
+      return session; // No change needed
+    }
+
+    const updatedSession: UserSession = {
+      ...session,
+      state: "associated",
+      clerkUserId: userId,
+      clerkUserEmail: email, // Store provided email
+      lastModified: Date.now()
+    };
+
+    console.log("[Tracking] markSessionAssociated: Updating session in store:", updatedSession);
+    try {
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedSession));
+      console.log("[Tracking] markSessionAssociated: Successfully saved to localStorage.");
+    } catch (error) {
+      console.error(
+        "[Tracking] markSessionAssociated: Failed to save updated session to localStorage:",
+        error
+      );
+      // Decide if we should revert the store update or proceed with store updated but not saved
+    }
+    return updatedSession;
+  });
+
+  // Log the state immediately after update call (may not reflect async update immediately)
+  console.log(
+    "[Tracking] markSessionAssociated: Store state immediately after update call:",
+    get(sessionStore)
+  );
 }
 
 /**
- * Marks that the initial anonymous data associated with this session ID
- * has been processed or migrated after the *first* login.
- * This prevents repeated migration attempts on subsequent logins.
- *
- * Call this *after* backend confirmation that any necessary anonymous data
- * associated with get(anonymousUserId) has been linked to the claimedUserId.
- * If no data migration is needed, call this immediately after markSessionClaimed.
- */
-export function markSessionMigrated(): void {
-  if (!browser) return;
-  localStorage.setItem(SESSION_MIGRATED_KEY, "true"); // Use "true" for consistency
-  console.log("Session marked as migrated at", new Date().toISOString());
-}
-
-/**
- * Checks if the initial anonymous session data has been marked as migrated.
- * @returns true if the migration flag is set, false otherwise.
- */
-export function isSessionMigrated(): boolean {
-  if (!browser) return false;
-  return localStorage.getItem(SESSION_MIGRATED_KEY) === "true";
-}
-
-/**
- * Retrieves the stored claimed user ID, if available.
+ * Retrieves the stored associated Clerk user ID, if available.
  * @returns The user ID string or null.
  */
-export function getClaimedUserId(): string | null {
+export function getAssociatedUserId(): string | null {
   if (!browser) return null;
-  return localStorage.getItem(SESSION_USER_ID_KEY);
+  const session = loadSession();
+  return session?.clerkUserId ?? null;
 }
 
 /**
- * Retrieves the stored claimed user email, if available.
+ * Retrieves the stored associated Clerk user email, if available.
  * @returns The user email string or null.
  */
-export function getClaimedUserEmail(): string | null {
+export function getAssociatedUserEmail(): string | null {
   if (!browser) return null;
-  return localStorage.getItem(SESSION_USER_EMAIL_KEY);
+  const session = loadSession();
+  return session?.clerkUserEmail ?? null;
 }
 
 /**
- * Retrieves basic details about the claimed/migrated session.
- * @returns Object with IDs and email, or null if not claimed/details unavailable.
+ * Retrieves details of the current session if available.
+ * Includes anonymous ID and associated Clerk user details if applicable.
+ * @returns Session details object or null if no session exists.
  */
-export function getClaimedSessionDetails(): {
+export function getAssociatedSessionDetails(): {
   anonymousId: string | null;
-  claimedUserId: string | null;
-  claimedUserEmail: string | null;
+  state: "anonymous" | "associated";
+  clerkUserId: string | null;
+  clerkUserEmail: string | null;
 } | null {
-  if (!browser || getSessionState() !== "claimed") {
-    return null;
-  }
-
+  if (!browser) return null;
+  const session = loadSession();
+  if (!session) return null;
   return {
-    anonymousId: get(anonymousUserId), // Get current anonymous ID from store
-    claimedUserId: getClaimedUserId(),
-    claimedUserEmail: getClaimedUserEmail()
+    anonymousId: session.id,
+    state: session.state,
+    clerkUserId: session.clerkUserId ?? null,
+    clerkUserEmail: session.clerkUserEmail ?? null
   };
 }
 
-// --- Utility ---
-
 /**
- * Logs current session status and stored values to the console for debugging.
+ * Logs the current session status to the console for debugging.
  */
 export function debugSessionStatus(): void {
   if (!browser) {
-    console.log("debugSessionStatus: Not in browser environment.");
+    console.log("debugSessionStatus: Cannot check status on server.");
     return;
   }
+  const session = loadSession();
+  const state = getSessionState();
 
-  console.group("Habistat Session Debug Info");
-  console.log("Current Time:", new Date().toISOString());
-  console.log("Anonymous Session Object:", get(sessionStore));
-  console.log("Anonymous User ID (derived):", get(anonymousUserId));
-  console.log("Session State (getSessionState):", getSessionState());
-  console.log("Is Migrated (isSessionMigrated):", isSessionMigrated());
-  console.log("Stored Auth Claimed Flag:", localStorage.getItem(AUTH_CLAIMED_KEY));
-  console.log("Stored Migrated Flag:", localStorage.getItem(SESSION_MIGRATED_KEY));
-  console.log("Stored Claimed User ID:", localStorage.getItem(SESSION_USER_ID_KEY));
-  console.log("Stored Claimed User Email:", localStorage.getItem(SESSION_USER_EMAIL_KEY));
-  console.groupEnd();
+  console.log(`--- Session Debug Status (${new Date().toISOString()}) ---`);
+  if (session) {
+    console.log(`  Session ID (Anonymous): ${session.id}`);
+    console.log(`  Session Created At: ${new Date(session.createdAt).toISOString()}`);
+    console.log(`  Session Last Modified: ${new Date(session.lastModified).toISOString()}`);
+    console.log(`  Current State: ${state}`); // 'anonymous' or 'associated'
+    console.log(`  Associated User ID: ${session.clerkUserId ?? "Not set"}`);
+    console.log(`  Associated User Email: ${session.clerkUserEmail ?? "Not set"}`);
+  } else {
+    console.log("  No active session found in localStorage.");
+  }
 }
 
 // --- Add back App Open Logging Functions ---

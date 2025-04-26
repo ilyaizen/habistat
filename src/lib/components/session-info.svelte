@@ -3,51 +3,34 @@
   import { Input } from "./ui/input";
   import { Label } from "./ui/label";
   import { Trash2 } from "lucide-svelte";
-  import { getSessionState, getAppOpenHistory } from "$lib/utils/tracking";
+  import {
+    getAppOpenHistory,
+    sessionStore,
+    anonymousUserId as trackedAnonymousUserId
+  } from "$lib/utils/tracking";
   import { handleLogout } from "$lib/utils/auth";
   import { goto } from "$app/navigation";
   import { settings } from "$lib/stores/settings";
-  import { derived } from "svelte/store";
-  import SignedIn from "clerk-sveltekit/client/SignedIn.svelte";
-  import SignedOut from "clerk-sveltekit/client/SignedOut.svelte";
-
-  import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger
-  } from "./ui/alert-dialog";
+  import { derived, get, type Readable } from "svelte/store";
+  import { getContext } from "svelte";
+  import type { UserResource } from "@clerk/types";
+  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
 
   const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
+  const anonymousId = derived(trackedAnonymousUserId, ($id) => $id);
+  const user = getContext<Readable<UserResource | null>>("clerk-user");
 
-  let { userId = "N/A" }: { userId?: string } = $props();
   let deleting = $state(false);
   let usageHistoryTimestamps = $state<number[]>([]);
-  let sessionState = $state<"anonymous" | "claimed">("anonymous");
   let confirmDialogOpen = $state(false);
 
-  // Function to refresh user info
-  function refreshUserInfo() {
-    // Get session state
-    sessionState = getSessionState();
-    console.log("SessionInfo: Refreshed user info. State:", sessionState);
-  }
+  const sessionState = derived(sessionStore, ($session) => $session?.state ?? "anonymous");
+  const associatedUserId = derived(sessionStore, ($session) => $session?.clerkUserId ?? null);
+  const associatedUserEmail = derived(sessionStore, ($session) => $session?.clerkUserEmail ?? null);
 
-  // Reactively update session state based on page changes
   $effect(() => {
-    // Use page reactively inside the effect
-    refreshUserInfo();
-  });
-
-  // Restore effect for usage history
-  $effect(() => {
-    if (userId && userId !== "N/A") {
-      // Ensure getAppOpenHistory returns data before reversing
+    const currentAnonymousId = get(anonymousId);
+    if (currentAnonymousId) {
       const history = getAppOpenHistory();
       usageHistoryTimestamps = history ? history.reverse() : [];
     } else {
@@ -55,15 +38,12 @@
     }
   });
 
-  // Handle session deletion with confirmation dialog
   async function deleteUserSessionWithConfirm() {
     if (deleting) return;
 
     deleting = true;
     try {
-      // Use the centralized handleLogout function
       await handleLogout();
-      // No need to manually navigate or reload as handleLogout does this
     } catch (error) {
       console.error("Failed to delete session:", error);
     } finally {
@@ -77,15 +57,21 @@
   <div class="space-y-2">
     <Label for="userIdInput" class="text-sm font-medium">User ID</Label>
     <div class="flex items-center space-x-2">
-      <Input id="userIdInput" type="text" value={userId ?? "Loading..."} readonly class="flex-1" />
+      <Input
+        id="userIdInput"
+        type="text"
+        value={$anonymousId ?? "Loading..."}
+        readonly
+        class="flex-1"
+      />
 
-      <AlertDialog bind:open={confirmDialogOpen}>
-        <AlertDialogTrigger>
+      <AlertDialog.Root bind:open={confirmDialogOpen}>
+        <AlertDialog.Trigger>
           <Button
             variant="destructive"
             size="icon"
             title="Delete Session"
-            disabled={deleting || !userId || userId === "N/A"}
+            disabled={deleting || !$anonymousId}
           >
             {#if deleting}
               <span class="animate-spin">...</span>
@@ -94,46 +80,49 @@
             {/if}
             <span class="sr-only">Delete Session</span>
           </Button>
-        </AlertDialogTrigger>
+        </AlertDialog.Trigger>
 
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Session?</AlertDialogTitle>
-            <AlertDialogDescription>
+        <AlertDialog.Content>
+          <AlertDialog.Header>
+            <AlertDialog.Title>Delete Session?</AlertDialog.Title>
+            <AlertDialog.Description>
               Are you sure you want to delete your session? This action cannot be undone and will
               clear all local data.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            </AlertDialog.Description>
+          </AlertDialog.Header>
+          <AlertDialog.Footer>
+            <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+            <AlertDialog.Action
               onclick={deleteUserSessionWithConfirm}
               class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </AlertDialog.Action>
+          </AlertDialog.Footer>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
     </div>
-    {#if sessionState === "claimed"}
+    {#if $sessionState === "associated"}
       <p class="text-muted-foreground text-xs">
-        This is your anonymous session ID. Data linked to your account.
+        This is your anonymous session ID. Local data is associated with your account.
       </p>
     {/if}
   </div>
 
-  <SignedIn let:user>
+  {#if $user}
+    {@const typedUser = $user as UserResource | null}
     <div class="space-y-2">
       <Label for="userEmailInput" class="text-sm font-medium">Account Email</Label>
       <Input
         id="userEmailInput"
         type="text"
-        value={user?.primaryEmailAddress?.emailAddress ?? "No email"}
+        value={$associatedUserEmail ?? typedUser?.primaryEmailAddress?.emailAddress ?? "No email"}
         readonly
         class="flex-1"
       />
-      <p class="text-muted-foreground text-sm">Your account is linked and ready to sync.</p>
+      {#if $sessionState === "associated"}
+        <p class="text-muted-foreground text-sm">Your account is linked and ready to sync.</p>
+      {/if}
     </div>
 
     <div class="space-y-2">
@@ -141,24 +130,29 @@
       <Input
         id="claimedUserIdInput"
         type="text"
-        value={user?.id ?? "No ID"}
+        value={$associatedUserId ?? typedUser?.id ?? "No ID"}
         readonly
         class="flex-1"
       />
     </div>
-  </SignedIn>
+  {/if}
 
-  <SignedOut>
+  {#if !$user}
     <div class="space-y-2">
       <p class="text-muted-foreground text-sm">Sign in to view your account details.</p>
+      {#if $sessionState === "anonymous"}
+        <p class="text-muted-foreground text-xs">
+          You have local data stored under the anonymous ID shown above. Signing in will associate
+          this data with your account.
+        </p>
+      {/if}
       <div class="flex gap-2">
         <Button variant="outline" onclick={() => goto("/sign-in")}>Sign In</Button>
         <Button variant="outline" onclick={() => goto("/sign-up")}>Sign Up</Button>
       </div>
     </div>
-  </SignedOut>
+  {/if}
 
-  <!-- Restore Usage History section -->
   {#if $showUsageHistory}
     <div class="space-y-2">
       <h3 class="text-sm font-medium">Usage History (App Opens)</h3>
@@ -176,6 +170,6 @@
 
   <div class="space-y-2">
     <Label for="sessionStateInput" class="text-sm font-medium">Session State</Label>
-    <Input id="sessionStateInput" type="text" value={sessionState} readonly class="flex-1" />
+    <Input id="sessionStateInput" type="text" value={$sessionState} readonly class="flex-1" />
   </div>
 </div>

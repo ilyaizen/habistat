@@ -1,6 +1,5 @@
 /// <reference types="@sveltejs/kit" />
 /// <reference types="svelte" />
-/// <reference types="clerk-sveltekit/env" />
 
 // Define $app/environment module
 declare module "$app/environment" {
@@ -43,10 +42,12 @@ interface ImportMeta {
   env?: ImportMetaEnv;
 }
 
+import type { RequestState } from "@clerk/backend";
+
 declare global {
   namespace App {
     interface Locals {
-      auth: import("clerk-sveltekit/server").Auth;
+      session?: RequestState;
     }
   }
 }

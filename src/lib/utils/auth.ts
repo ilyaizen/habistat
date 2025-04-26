@@ -1,32 +1,35 @@
 import { sessionStore } from "$lib/utils/tracking";
 import { goto } from "$app/navigation";
 import { browser } from "$app/environment";
+import { getContext } from "svelte";
+import type { Clerk } from "@clerk/clerk-js";
 
 /**
  * Handles user logout/session reset with proper cleanup.
  * This utility function:
- * 1. Deletes the user's session data (both anonymous and authenticated)
- * 2. Navigates to the home page
- * 3. Forces a page reload to ensure a clean state
+ * 1. Signs the user out of Clerk.
+ * 2. Deletes the user's local session data.
+ * 3. Navigates to the home page.
  *
  * @returns A promise that resolves when the logout process is complete
  */
 export async function handleLogout(): Promise<void> {
   if (!browser) return;
 
+  const clerk = getContext<Clerk | null>("clerk");
+
   try {
-    // Clear session data using the store's clear method
+    if (clerk) {
+      await clerk.signOut();
+    } else {
+      console.warn("Clerk instance not found in context during logout.");
+    }
+
     sessionStore.clear();
 
-    // Navigate to home page
     goto("/");
-
-    // Force reload to ensure clean state
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
   } catch (error) {
     console.error("Logout error:", error);
-    throw error; // Rethrow to allow component-specific error handling
+    throw error;
   }
 }

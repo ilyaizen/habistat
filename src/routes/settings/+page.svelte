@@ -3,6 +3,7 @@
   import { Card, CardHeader, CardContent } from "$lib/components/ui/card";
   import { Button } from "$lib/components/ui/button";
   import { Label } from "$lib/components/ui/label";
+  import { goto } from "$app/navigation";
 
   import Switch from "$lib/components/ui/switch/switch.svelte";
   import SessionInfo from "$lib/components/session-info.svelte";
@@ -68,6 +69,12 @@
   }
 
   onMount(() => {
+    if (!get(anonymousUserId)) {
+      console.log("No user ID found in settings, redirecting to home");
+      goto("/", { replaceState: true });
+      return;
+    }
+
     if (get(theme) === "system") {
       applySystemTheme();
       setupSystemListener();
@@ -108,7 +115,7 @@
       <Label class="text-lg">Session</Label>
     </CardHeader>
     <CardContent>
-      <SessionInfo userId={$anonymousUserId ?? undefined} />
+      <SessionInfo />
     </CardContent>
   </Card>
 

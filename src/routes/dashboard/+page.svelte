@@ -4,8 +4,8 @@
     anonymousUserId,
     logAppOpenIfNeeded,
     getAppOpenHistory,
-    isSessionMigrated,
-    SESSION_USER_ID_KEY
+    getSessionState,
+    getAssociatedUserId
   } from "$lib/utils/tracking";
   import { goto } from "$app/navigation";
   import ActivityMonitor from "$lib/components/activity-monitor.svelte";
@@ -43,14 +43,7 @@
       // Initialize immediately and retry if needed
       loadData();
 
-      // Set up Clerk listener if available
-      if (window.Clerk) {
-        window.Clerk.addListener(({ user }) => {
-          if (!authChecked && user) {
-            loadData();
-          }
-        });
-      }
+      // Clerk listener removed - Layout effect now handles initial association
     }
   });
 
@@ -70,8 +63,8 @@
     try {
       let userId = get(anonymousUserId);
 
-      if (!userId && isSessionMigrated()) {
-        userId = localStorage.getItem(SESSION_USER_ID_KEY);
+      if (!userId && getSessionState() === "associated") {
+        userId = getAssociatedUserId();
         console.log("Using authenticated user ID:", userId);
       }
 

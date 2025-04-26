@@ -1,9 +1,27 @@
 import type { Handle } from "@sveltejs/kit";
-import { sequence } from "@sveltejs/kit/hooks";
-import { dev } from "$app/environment";
-import { handleClerk } from "clerk-sveltekit/server";
+// Import the Clerk client factory
+import { createClerkClient } from "@clerk/backend";
 import { CLERK_SECRET_KEY } from "$env/static/private";
+// Import the public key without VITE prefix for server-side
+import { PUBLIC_CLERK_PUBLISHABLE_KEY } from "$env/static/public";
 
+// Instantiate Clerk client, providing both keys
+const clerkClient = createClerkClient({
+  secretKey: CLERK_SECRET_KEY,
+  publishableKey: PUBLIC_CLERK_PUBLISHABLE_KEY
+});
+
+// Simplified handle function for svelte-clerk
+export const handle: Handle = async ({ event, resolve }) => {
+  // Get session using Clerk client
+  event.locals.session = await clerkClient.authenticateRequest(event.request);
+
+  // Resolve the request
+  return resolve(event);
+};
+
+// Remove the previous baseHandle and clerkHandle logic
+/*
 // Create a base handle that always works
 const baseHandle: Handle = async ({ event, resolve }) => {
   // Add any custom server-side logic here BEFORE Clerk handles it
@@ -12,7 +30,7 @@ const baseHandle: Handle = async ({ event, resolve }) => {
   return await resolve(event);
 };
 
-// Configure Clerk handle
+// Configure Clerk handle using the correct function name
 const clerkHandle = handleClerk(CLERK_SECRET_KEY, {
   debug: dev,
   // Define paths Clerk should *not* protect or process auth for
@@ -39,3 +57,4 @@ declare global {
 // Sequence the handles: baseHandle runs first, then clerkHandle
 // Clerk needs to run AFTER any base logic but BEFORE SvelteKit resolves the page
 export const handle: Handle = sequence(baseHandle, clerkHandle); // Enable Clerk handle
+*/
