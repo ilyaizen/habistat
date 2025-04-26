@@ -173,31 +173,29 @@ export async function initializeTracking(): Promise<void> {
     let currentSession = get(sessionStore);
     console.log("[Tracking] initializeTracking: Initial store value:", currentSession);
 
+    // Only attempt to load/set if the store isn't already populated
     if (!currentSession) {
-      // Attempt to load from localStorage if store is null
       currentSession = loadSession();
       console.log("[Tracking] initializeTracking: Loaded from localStorage:", currentSession);
-      if (!currentSession) {
-        // If still null, create a new one
-        currentSession = createNewSessionObject();
-        console.log("[Tracking] initializeTracking: Creating NEW session:", currentSession);
-        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentSession));
+      // Update the store ONLY if a session was successfully loaded from storage
+      // DO NOT create a new one here if loadSession() returned null.
+      if (currentSession) {
+        sessionStore.set(currentSession);
+        console.log("[Tracking] initializeTracking: Store updated with loaded session.");
+      } else {
+        console.log(
+          "[Tracking] initializeTracking: No session found in localStorage, store remains null."
+        );
       }
-      // Update the store with the loaded/created session
-      sessionStore.set(currentSession);
     } else {
       console.log(
-        "[Tracking] initializeTracking: Using existing session from store:",
+        "[Tracking] initializeTracking: Using existing session already in store:",
         currentSession.id
       );
     }
-    console.log(
-      "[Tracking] initializeTracking: Finished successfully. Final session:",
-      get(sessionStore)
-    );
+    console.log("[Tracking] initializeTracking: Finished. Final session state:", get(sessionStore));
   } catch (error) {
     console.error("[Tracking] initializeTracking: Error during initialization:", error);
-    // Consider if we need to set store to a default error state or just log
   }
 }
 

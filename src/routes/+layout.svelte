@@ -231,12 +231,11 @@
 </script>
 
 <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
-  <MotionWrapper>
-    <div class="flex min-h-screen flex-col">
-      {#if showHeaderFooter}
-        <AppHeader />
-      {/if}
-
+  <div class="flex min-h-screen flex-col">
+    {#if $showHeaderFooter}
+      <AppHeader />
+    {/if}
+    <MotionWrapper>
       <main class="flex-1">
         {#if isReady}
           {@render children()}
@@ -246,10 +245,9 @@
           </div>
         {/if}
       </main>
-
-      {#if showHeaderFooter}
-        <AppFooter />
-      {/if}
-    </div>
-  </MotionWrapper>
+    </MotionWrapper>
+    {#if $showHeaderFooter}
+      <AppFooter />
+    {/if}
+  </div>
 </ClerkProvider>
