@@ -14,12 +14,11 @@
   import { page } from "$app/stores";
   import { setContext, type Snippet } from "svelte";
   import { waitLocale } from "svelte-i18n";
-  import { writable, get, type Readable, derived as derivedStore } from "svelte/store";
+  import { writable, get, type Readable, derived as derivedStore, readable } from "svelte/store";
   import { theme } from "$lib/stores/settings";
   import { resetMode, setMode } from "mode-watcher";
   import { ClerkProvider } from "svelte-clerk";
-  import { getContext } from "svelte";
-  import type { Clerk, UserResource } from "@clerk/types";
+  import type { Clerk, ClerkOptions, LoadedClerk, UserResource } from "@clerk/types";
   import {
     initializeTracking,
     markSessionAssociated,
@@ -30,7 +29,7 @@
   import type { LayoutData } from "./$types"; // Import LayoutData type
   import AppFooter from "$lib/components/app-footer.svelte";
   import { browser } from "$app/environment";
-  import SessionAssociator from "$lib/components/session-associator.svelte";
+  // import SessionAssociator from "$lib/components/session-associator.svelte";
 
   // Add console log here to check the env variable
   console.log(
@@ -41,6 +40,7 @@
   import "../app.css";
 
   import AppHeader from "$lib/components/app-header.svelte";
+  import { goto } from "$app/navigation";
 
   // Props from parent component using Svelte 5 syntax
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -49,11 +49,10 @@
   const showHeaderFooter = derivedStore(page, ($p) => $p.url.pathname !== "/");
 
   // Stores for managing authentication and connectivity state
-  const authMode = writable<"offline" | "online">("offline");
-  const isOnline = writable(true);
-
-  setContext("authMode", authMode);
-  setContext("isOnline", isOnline);
+  const authModeStore = writable<"offline" | "online">("offline");
+  const isOnlineStore = writable(true);
+  setContext("authMode", authModeStore);
+  setContext("isOnline", isOnlineStore);
 
   // State for tracking initialization progress
   let i18nReady = $state(false);
@@ -119,8 +118,8 @@
    */
   function updateOnlineStatus() {
     const online = navigator.onLine;
-    isOnline.set(online);
-    authMode.set(online ? "online" : "offline");
+    isOnlineStore.set(online);
+    authModeStore.set(online ? "online" : "offline");
   }
 
   /**
@@ -161,16 +160,51 @@
     }
   }
 
-  const userStore = getContext<Readable<UserResource | null>>("clerk-user");
-  // --- Logging context value ---
-  console.log("[Layout Script Top Level] Initial userStore value from getContext:", get(userStore));
-  // ---------------------------
+  // --- NEW: Create a readable store for the Clerk user --- >
+  const clerkUser = readable<UserResource | null>(null, (set) => {
+    let unsubscribe: () => void = () => {};
+
+    async function setupClerkListener() {
+      if (!browser) return; // Ensure we are in the browser
+      try {
+        // Wait briefly for ClerkProvider to potentially load ClerkJS onto window
+        // await new Promise(resolve => setTimeout(resolve, 50)); // Keep if needed, remove if causing delay
+
+        const clerkInstance = window.Clerk as LoadedClerk | undefined;
+
+        if (!clerkInstance) {
+          console.error("[Layout Clerk Setup] window.Clerk not found."); // Simplified error
+          set(null);
+          return; // Exit if Clerk isn't available
+        }
+
+        set(clerkInstance.user ?? null); // Set initial value
+
+        // Set up listener for state changes
+        unsubscribe = clerkInstance.addListener(({ user }) => {
+          set(user ?? null);
+        });
+      } catch (error) {
+        console.error("[Layout Clerk Setup] Error setting Clerk listener:", error);
+        set(null); // Set to null on error
+      }
+    }
+
+    setupClerkListener();
+
+    // Cleanup function for the readable store
+    return () => {
+      unsubscribe();
+    };
+  });
+  setContext("clerk-user", clerkUser); // Set the *new* reactive store in context
+  // <---------------------------------------------------------
 
   onMount(() => {
     // --- REMOVED Clerk instance retrieval and listener setup ---
 
     // --- Logging context value in onMount (optional, for debug) ---
-    // console.log("[Layout onMount Start] userStore value:", get(userStore));
+    // console.log("[Layout onMount Start] userStore value:", get(clerkUser));
     // ------------------------------------------------------------
 
     initializeAppCore(); // No .then() needed here anymore
@@ -185,16 +219,6 @@
     };
   });
 
-  // --- Kept: Effect specifically to monitor sessionStore changes ---
-  $effect(() => {
-    const currentSession = $sessionStore; // Subscribe reactively
-    console.log(
-      `[Layout Session Monitor Effect] sessionStore changed: ${currentSession ? `${currentSession.id} (${currentSession.state})` : "null"}`,
-      JSON.stringify(currentSession)
-    );
-  });
-  // ------------------------------------------------------------------
-
   // Determine if the app is fully ready to render content
   // Let's rely on i18n and tracking flags for readiness
   // Use $derived rune for computed reactive state
@@ -202,10 +226,10 @@
 </script>
 
 <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
-  <!-- Include the SessionAssociator component here, ONLY when tracking is initialized -->
+  <!-- Include the SessionAssociator component here, ONLY when tracking is initialized
   {#if trackingInitialized}
     <SessionAssociator />
-  {/if}
+  {/if} -->
 
   <div class="flex min-h-screen flex-col">
     {#if $showHeaderFooter}

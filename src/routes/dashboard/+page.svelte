@@ -14,26 +14,23 @@
   import * as Alert from "$lib/components/ui/alert";
   import * as Card from "$lib/components/ui/card";
   import { _ } from "svelte-i18n";
-  import { getContext } from "svelte";
-  import type { Writable } from "svelte/store";
+  import type { Writable, Readable } from "svelte/store";
   import { browser } from "$app/environment";
   import { get } from "svelte/store";
   import type { UserResource } from "@clerk/types";
+  import { getContext } from "svelte";
 
   let currentUserId = $state<string | null>(null);
   let activeDates = $state<Set<string>>(new Set());
   let earliestActivityDate = $state<string | null>(null);
   let fetchError = $state<string | null>(null);
   let loadingState = $state(true);
-  let authChecked = $state(false);
-  let retryCount = $state(0);
-  let maxRetries = 3;
 
   // Get auth mode and online status from context
   const authMode = getContext<Writable<"offline" | "online">>("authMode");
   const isOnline = getContext<Writable<boolean>>("isOnline");
   // Get user store from context
-  const userStore = getContext<Writable<UserResource | null>>("clerk-user");
+  const userStore = getContext<Readable<UserResource | null> | undefined>("clerk-user");
 
   onMount(() => {
     if (browser) {
@@ -105,7 +102,6 @@
       // The *next* run of the effect will hopefully have session.state === 'associated'.
       // We don't proceed to load data in *this* run to avoid race conditions.
       loadingState = true; // Keep loading while waiting for association to reflect
-      return;
     }
 
     // --- Determine User ID to Use ---

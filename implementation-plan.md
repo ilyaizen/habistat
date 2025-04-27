@@ -1,30 +1,5 @@
 # **Habistat - Implementation Plan**
 
-**Project:** Habistat (SvelteKit 5, Tauri, `svelte-clerk` for Auth)
-
-**Issue:** After successful login via Clerk, the application correctly shows the user as authenticated in the header (`avatar-dropdown.svelte` using `<SignedIn>/<UserButton>`), but a custom session state tracker (`sessionStore` in `tracking.ts`) fails to update from `"anonymous"` to `"associated"`. This incorrect state is visible in a debug field within `session-info.svelte`, which derives its state from `sessionStore`.
-
-**Context & Attempts:**
-
-1. **Auth Setup:** Using `svelte-clerk` with `<ClerkProvider>` in `+layout.svelte`. Clerk context (`clerk-user`) provides reactive user state (`$user`).
-2. **Custom Session:** `src/lib/utils/tracking.ts` manages a `sessionStore` (`writable<UserSession | null>`) stored in `localStorage`, holding `{ id, state: "anonymous" | "associated", clerkUserId?, ... }`.
-3. **Sync Logic:** An `$effect` in `+layout.svelte` watches `$user` and `trackingInitialized`. When `$user` becomes available and the `sessionStore` state is `"anonymous"`, it calls `markSessionAssociated(userId, email)` from `tracking.ts`.
-4. **`markSessionAssociated`:** This function calls `sessionStore.update()` to set the state to `"associated"` and save to `localStorage`.
-5. **UI Components:**
-   - `avatar-dropdown.svelte`: Correctly uses `$user` via context and `<SignedIn>/<SignedOut>` for UI state.
-   - `session-info.svelte`: Displays Clerk user details correctly using `$clerkUser` context. **Problem:** It also shows the state derived from `sessionStore` (`$sessionDetails.state`), which remains `"anonymous"` even when `$clerkUser` is populated.
-6. **Troubleshooting Done:**
-   - Confirmed Clerk authentication works (redirects happen, `$user` is populated).
-   - Refactored `avatar-dropdown.svelte` away from manual state checks to use Clerk components.
-   - Added extensive logging inside the `$effect` in `+layout.svelte` and inside `markSessionAssociated` in `tracking.ts`.
-   - Ensured `initializeTracking` in `tracking.ts` creates an initial anonymous session if none exists.
-
-**Problem:** Despite the `$effect` appearing to have the correct dependencies (`$user`, `trackingInitialized`, `sessionStore`), and logging suggesting `markSessionAssociated` _should_ be called, the `sessionStore` state doesn't update reactively as observed in `session-info.svelte`.
-
-**Next Step:** Re-evaluate the reactivity chain and timing: `$user` update -> `$effect` execution -> `markSessionAssociated` call -> `sessionStore.update` -> derived store (`$sessionDetails`) update in `session-info.svelte`. Pinpoint where the update fails or isn't propagating. Consider if the effect dependencies or the derived store logic are flawed.
-
----
-
 ## ~~DONE: Phase 1: Homepage & UI Foundation~~
 
 **Goal:**

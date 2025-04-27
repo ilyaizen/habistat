@@ -127,20 +127,14 @@ function createSessionStore() {
      * Returns the current or newly created session.
      */
     ensure: (): UserSession => {
-      let currentSession = get(sessionStore); // Use the exported store name
-      if (!currentSession) {
-        if (browser) {
-          currentSession = createNewSessionObject();
-          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentSession));
-          set(currentSession); // Update the store
-          // Log creation only when ensure is explicitly called and creates it
-          console.log("Tracking: New session ensured and created:", currentSession.id);
-        } else {
-          // Should not happen if initialSession logic is correct, but handle defensively
-          throw new Error("Cannot ensure session on server-side without initial session.");
-        }
+      let currentSession = get(sessionStore);
+      if (!currentSession && browser) {
+        currentSession = createNewSessionObject();
+        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentSession));
+        set(currentSession);
+        console.log("[Tracking] Created new session:", currentSession.id);
       }
-      return currentSession;
+      return currentSession!;
     }
   };
 }
@@ -239,56 +233,25 @@ export function getSessionState(): "anonymous" | "associated" {
  * @param email Optional user email.
  */
 export function markSessionAssociated(clerkUserId: string, email?: string): void {
-  console.log(
-    `[Tracking:markSessionAssociated] Attempting to associate session. Clerk User ID: ${clerkUserId}, Email: ${email}`
-  );
+  console.log("[Auth] Starting session association for:", clerkUserId);
   sessionStore.update((currentSession) => {
-    console.log(
-      "[Tracking:markSessionAssociated] Running sessionStore.update. Current session:",
-      currentSession
-    );
+    console.log("[Auth] Current session state:", currentSession);
     if (!currentSession) {
-      console.error(
-        "[Tracking:markSessionAssociated Error] No current session found to associate."
-      );
+      console.error("[Auth] No session to associate");
       return null;
-    }
-    if (currentSession.state === "associated") {
-      console.warn(
-        `[Tracking:markSessionAssociated Warn] Session ${currentSession.id} is already associated. Ignoring call.`
-      );
-      return currentSession;
     }
 
     const updatedSession: UserSession = {
       ...currentSession,
-      state: "associated",
-      clerkUserId: clerkUserId,
-      clerkUserEmail: email ?? currentSession.clerkUserEmail, // Keep existing email if new one isn't provided
+      state: "associated" as const,
+      clerkUserId,
+      clerkUserEmail: email,
       lastModified: Date.now()
     };
 
-    console.log(
-      `[Tracking:markSessionAssociated Success] Preparing update for session ${updatedSession.id} to 'associated'. New state object:`,
-      updatedSession
-    );
-    try {
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedSession));
-      console.log(
-        "[Tracking:markSessionAssociated] Successfully saved updated session to localStorage."
-      );
-      // Return the updated session to update the store's value
-      return updatedSession;
-    } catch (error) {
-      console.error(
-        "[Tracking:markSessionAssociated] Failed to save updated session to localStorage:",
-        error
-      );
-      // Still return the updated session state for the store, even if localStorage failed
-      return updatedSession;
-    }
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedSession));
+    return updatedSession;
   });
-  console.log("[Tracking:markSessionAssociated] Finished sessionStore.update call.");
 }
 
 /**

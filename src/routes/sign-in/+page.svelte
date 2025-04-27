@@ -4,19 +4,18 @@
   import { goto } from "$app/navigation";
   import type { Readable } from "svelte/store";
   import type { UserResource } from "@clerk/types";
+  import { get } from "svelte/store";
 
   // Get the user store from context
-  const user = getContext<Readable<UserResource | null>>("clerk-user");
+  const clerkUser = getContext<Readable<UserResource | null>>("clerk-user");
 
   // Redirect if user is already authenticated
-  $effect(() => {
-    if ($user) {
-      goto("/dashboard", { replaceState: true });
-    }
-  });
+  if (get(clerkUser)) {
+    goto("/dashboard");
+  }
 </script>
 
-{#if !$user}
+{#if !$clerkUser}
   <div class="grid h-screen place-items-center">
     <div class="w-full max-w-md">
       <SignIn />

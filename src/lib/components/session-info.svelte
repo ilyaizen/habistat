@@ -11,23 +11,35 @@
   import { handleLogout } from "$lib/utils/auth";
   import { goto } from "$app/navigation";
   import { settings } from "$lib/stores/settings";
-  import { derived, get, type Readable } from "svelte/store";
+  import { derived, get, type Readable, writable } from "svelte/store";
   import { getContext } from "svelte";
   import type { UserResource } from "@clerk/types";
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
 
   // Clerk user state from context - primary source of truth for authentication
-  const clerkUser = getContext<Readable<UserResource | null>>("clerk-user");
+  const clerkUserStore = getContext<Readable<UserResource | null> | undefined>("clerk-user");
 
   // Derive anonymous ID directly from the tracking store
   const anonymousId = derived(trackedAnonymousUserId, ($id) => $id);
 
   // Derive session details (state, linked IDs) from the tracking store
-  const sessionDetails = derived(sessionStore, ($session) => ({
-    state: $session?.state ?? "anonymous",
-    associatedClerkUserId: $session?.clerkUserId ?? null,
-    associatedClerkEmail: $session?.clerkUserEmail ?? null
-  }));
+  const sessionDetails = derived(
+    [sessionStore, clerkUserStore ?? writable(null)],
+    ([$session, $clerkUser]) => {
+      // $clerkUser is now the *value* from the store, or null if store was undefined/empty
+      const clerkUserId = $clerkUser?.id;
+      const sessionState = $session?.state ?? "unknown";
+
+      return {
+        // Derive state based on presence of clerkUserId
+        state: clerkUserId ? "associated" : ($session?.state ?? "anonymous"),
+        associatedClerkUserId: clerkUserId ?? $session?.clerkUserId ?? null,
+        associatedClerkEmail:
+          $clerkUser?.primaryEmailAddress?.emailAddress ?? $session?.clerkUserEmail ?? null,
+        rawSessionState: $session?.state ?? null // Also include raw state for comparison
+      };
+    }
+  );
 
   const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
 
@@ -127,7 +139,7 @@
           $sessionDetails.associatedClerkUserId ??
           "..."}).
       </p>
-    {:else if !$clerkUser}
+    {:else if !$clerkUserStore}
       <p class="text-muted-foreground text-xs">
         You are currently anonymous. Signing in will link this ID to your account.
       </p>
@@ -135,8 +147,8 @@
   </div>
 
   <!-- Clerk Authenticated User Info -->
-  {#if $clerkUser}
-    {@const user = $clerkUser} // Ensure type safety
+  {#if $clerkUserStore}
+    {@const user = $clerkUserStore} // Ensure type safety
     <div class="space-y-2">
       <Label for="accountEmailInput" class="text-sm font-medium">Account Email</Label>
       <Input
@@ -208,13 +220,13 @@
     <Input
       id="sessionStateDebugInput"
       type="text"
-      value={$sessionDetails.state}
+      value={$sessionDetails.state ?? "unknown"}
       readonly
       class="flex-1"
       aria-label="Local Session State Debug"
     />
     <p class="text-muted-foreground text-xs">
-      Indicates if the anonymous ID is marked as 'associated' in local storage.
+      Indicates if the session is 'anonymous' or 'associated' (based on Clerk state).
     </p>
   </div>
 </div>
