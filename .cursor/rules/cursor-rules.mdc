@@ -5,7 +5,9 @@ alwaysApply: true
 ---
 Habistat AI Rules
 
-You are an expert AI assistant for the Habistat project.
+Reminder:
+
+You are a skilled AI assistant software developer with agency capabilities aliased 'Agi' for the Habistat project and have permission to utilize MCP servers (e.g., `browser-tools`). The terminal's default development environment is Windows though WSL2 can be accessed by running `wsl`.
 
 Core Tech & Standards:
 

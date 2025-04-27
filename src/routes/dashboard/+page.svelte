@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import {
-    anonymousUserId,
     logAppOpenIfNeeded,
     getAppOpenHistory,
-    getSessionState,
-    getAssociatedUserId
+    getAssociatedUserId,
+    anonymousUserId,
+    sessionStore,
+    markSessionAssociated,
+    type UserSession
   } from "$lib/utils/tracking";
   import { goto } from "$app/navigation";
   import ActivityMonitor from "$lib/components/activity-monitor.svelte";
@@ -15,8 +17,8 @@
   import { getContext } from "svelte";
   import type { Writable } from "svelte/store";
   import { browser } from "$app/environment";
-  import { page } from "$app/stores";
   import { get } from "svelte/store";
+  import type { UserResource } from "@clerk/types";
 
   let currentUserId = $state<string | null>(null);
   let activeDates = $state<Set<string>>(new Set());
@@ -30,70 +32,19 @@
   // Get auth mode and online status from context
   const authMode = getContext<Writable<"offline" | "online">>("authMode");
   const isOnline = getContext<Writable<boolean>>("isOnline");
-
-  function formatDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  }
+  // Get user store from context
+  const userStore = getContext<Writable<UserResource | null>>("clerk-user");
 
   onMount(() => {
     if (browser) {
-      // Initialize immediately and retry if needed
-      loadData();
-
-      // Clerk listener removed - Layout effect now handles initial association
+      // onMount is now simpler, effect handles loading
+      console.log("[Dashboard onMount] Component mounted.");
     }
   });
 
-  function loadData() {
-    if (!browser) return;
-    if (retryCount >= maxRetries) {
-      console.error("Max retries reached for loading dashboard data");
-      fetchError = "Failed to load dashboard after multiple attempts. Please reload the page.";
-      loadingState = false;
-      return;
-    }
-
-    loadingState = true;
-    authChecked = true;
-    retryCount++;
-
-    try {
-      let userId = get(anonymousUserId);
-
-      if (!userId && getSessionState() === "associated") {
-        userId = getAssociatedUserId();
-        console.log("Using authenticated user ID:", userId);
-      }
-
-      currentUserId = userId;
-
-      if (!currentUserId) {
-        console.log("No user ID found after checks, redirecting to home");
-        goto("/", { replaceState: true });
-        loadingState = false;
-        return;
-      }
-
-      logAppOpenIfNeeded();
-      loadActivityData();
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
-      fetchError = $_("errors.dashboard_load");
-
-      if (retryCount < maxRetries) {
-        setTimeout(() => {
-          if (browser) loadData();
-        }, 1000 * retryCount);
-      } else {
-        loadingState = false;
-      }
-    }
-  }
-
   function loadActivityData() {
+    // Ensure browser context for localStorage access in getAppOpenHistory
+    if (!browser) return;
     try {
       const historyTimestamps = getAppOpenHistory();
       const dates = new Set<string>();
@@ -120,6 +71,95 @@
       activeDates = new Set();
       loadingState = false;
     }
+  }
+
+  // Reactive effect to load data when user/session state is ready
+  $effect(() => {
+    if (!browser) return; // Don't run on server
+
+    const user = $userStore;
+    const session = $sessionStore;
+
+    console.log(
+      `[Dashboard Effect Run] User: ${user?.id ?? "null"}, Session: ${session?.id ?? "null"} (${session?.state ?? "unknown"})`
+    );
+
+    // Wait until session is loaded/initialized
+    if (!session) {
+      console.log("[Dashboard Effect] Waiting for session store to initialize...");
+      loadingState = true; // Keep showing loading until session is ready
+      return;
+    }
+
+    let userIdToUse: string | null = null;
+    let needsActivityLoad = false;
+
+    // --- Perform Association Check ---
+    if (user?.id && session.state === "anonymous") {
+      console.log(
+        `[Dashboard Effect Action] User found and session anonymous. Calling markSessionAssociated for user ${user.id}`
+      );
+      markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
+
+      // IMPORTANT: After marking, the $sessionStore dependency *should* re-trigger this effect.
+      // The *next* run of the effect will hopefully have session.state === 'associated'.
+      // We don't proceed to load data in *this* run to avoid race conditions.
+      loadingState = true; // Keep loading while waiting for association to reflect
+      return;
+    }
+
+    // --- Determine User ID to Use ---
+    if (user?.id && session.state === "associated") {
+      // User logged in, session associated
+      userIdToUse = user.id;
+      console.log(`[Dashboard Effect] Using Clerk User ID: ${userIdToUse}`);
+      needsActivityLoad = true;
+    } else if (!user?.id && session.state === "anonymous") {
+      // User logged out (or never logged in), session is anonymous
+      userIdToUse = session.id; // Use anonymous ID
+      console.log(`[Dashboard Effect] Using Anonymous Session ID: ${userIdToUse}`);
+      needsActivityLoad = true;
+    } else if (!user?.id && session.state === "associated") {
+      // Edge case: User logged out, but session *was* associated. Treat as anonymous for now.
+      // This might happen if logout clears Clerk user before session state clears.
+      // Consider clearing session fully on logout via handleLogout in auth.ts.
+      userIdToUse = session.id; // Fallback to anonymous ID
+      console.warn(
+        `[Dashboard Effect] User logged out but session still 'associated'. Using anonymous ID: ${userIdToUse}`
+      );
+      needsActivityLoad = true;
+    } else {
+      // Still waiting for user, or other invalid state
+      console.log("[Dashboard Effect] Waiting for valid user/session state combination.");
+      loadingState = true; // Keep loading
+    }
+
+    // --- Set currentUserId and Load Data if Ready ---
+    if (userIdToUse) {
+      currentUserId = userIdToUse;
+      if (needsActivityLoad) {
+        console.log(`[Dashboard Effect] Loading activity data for user: ${currentUserId}`);
+        logAppOpenIfNeeded(); // Log app open for the determined user
+        loadActivityData(); // Load data for the determined user (already sets loadingState = false)
+      } else {
+        loadingState = false; // Ensure loading stops if activity load isn't needed but user is determined
+      }
+    } else {
+      // If no userIdToUse could be determined, potentially redirect or show error
+      console.error(
+        "[Dashboard Effect] Could not determine a valid user ID. Redirecting to sign-in."
+      );
+      loadingState = false; // Stop loading before redirect
+      goto("/sign-in", { replaceState: true });
+    }
+  });
+
+  // Helper function reused by loadActivityData
+  function formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }
 </script>
 

@@ -5,8 +5,6 @@ alwaysApply: true
 ---
 # Habistat Development Workflow
 
-Remember: The default development environment in the terminal is Windows, although WSL2 is (by running `wsl`).
-
 ## Development Commands
 
 ```bash
