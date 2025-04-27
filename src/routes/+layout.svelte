@@ -14,21 +14,23 @@
   import { page } from "$app/stores";
   import { setContext, type Snippet } from "svelte";
   import { waitLocale } from "svelte-i18n";
-  import { writable, get, derived, type Readable } from "svelte/store";
+  import { writable, get, type Readable, derived as derivedStore } from "svelte/store";
   import { theme } from "$lib/stores/settings";
   import { resetMode, setMode } from "mode-watcher";
   import { ClerkProvider } from "svelte-clerk";
   import { getContext } from "svelte";
-  import type { Clerk } from "@clerk/clerk-js";
-  import type { UserResource } from "@clerk/types";
+  import type { Clerk, UserResource } from "@clerk/types";
   import {
-    getSessionState,
     initializeTracking,
     markSessionAssociated,
-    sessionStore
+    sessionStore,
+    type UserSession
   } from "$lib/utils/tracking";
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
   import type { LayoutData } from "./$types"; // Import LayoutData type
+  import AppFooter from "$lib/components/app-footer.svelte";
+  import { browser } from "$app/environment";
+  import SessionAssociator from "$lib/components/session-associator.svelte";
 
   // Add console log here to check the env variable
   console.log(
@@ -39,14 +41,12 @@
   import "../app.css";
 
   import AppHeader from "$lib/components/app-header.svelte";
-  import AppFooter from "$lib/components/app-footer.svelte";
-  import { browser } from "$app/environment";
 
   // Props from parent component using Svelte 5 syntax
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
 
   // Hide header/footer on the landing page (/)
-  const showHeaderFooter = derived(page, ($p) => $p.url.pathname !== "/");
+  const showHeaderFooter = derivedStore(page, ($p) => $p.url.pathname !== "/");
 
   // Stores for managing authentication and connectivity state
   const authMode = writable<"offline" | "online">("offline");
@@ -161,82 +161,58 @@
     }
   }
 
-  onMount(() => {
-    initializeAppCore();
+  const userStore = getContext<Readable<UserResource | null>>("clerk-user");
+  // --- Logging context value ---
+  console.log("[Layout Script Top Level] Initial userStore value from getContext:", get(userStore));
+  // ---------------------------
 
-    // Attempt to get Clerk from context after component is mounted
-    setTimeout(handleClerkLoaded, 100);
+  onMount(() => {
+    // --- REMOVED Clerk instance retrieval and listener setup ---
+
+    // --- Logging context value in onMount (optional, for debug) ---
+    // console.log("[Layout onMount Start] userStore value:", get(userStore));
+    // ------------------------------------------------------------
+
+    initializeAppCore(); // No .then() needed here anymore
 
     return () => {
       if (browser) {
         window.removeEventListener("online", updateOnlineStatus);
         window.removeEventListener("offline", updateOnlineStatus);
         cleanupSystemListener();
+        // --- REMOVED Clerk listener cleanup ---
       }
     };
   });
 
-  // Initialize Clerk store for user data
-  const clerkStore = writable<Clerk | null>(null);
-
-  // Create a derived store for the user state
-  const user = derived(clerkStore, ($clerk, set) => {
-    if (!$clerk) {
-      set(null);
-      return;
-    }
-
-    // Set initial state
-    set($clerk.user || null);
-
-    // Set up listener
-    const unsubscribe = $clerk.addListener(({ user }) => {
-      set(user || null);
-    });
-
-    return unsubscribe;
-  }) as Readable<UserResource | null>;
-
-  // Set the user store in context for child components
-  setContext("clerk-user", user);
-
-  // Effect to handle session association
+  // --- Kept: Effect specifically to monitor sessionStore changes ---
   $effect(() => {
-    const userData = get(user) as UserResource | null;
-    const currentSession = get(sessionStore);
-
-    if (!trackingInitialized || !currentSession) return;
-
-    const currentSessionState = currentSession.state;
-
-    if (userData?.id && currentSessionState === "anonymous") {
-      console.log(`Layout Effect Action: Associating session (User ID: ${userData.id})`);
-      markSessionAssociated(
-        userData.id,
-        userData.primaryEmailAddress?.emailAddress ?? "email_not_found"
-      );
-    }
+    const currentSession = $sessionStore; // Subscribe reactively
+    console.log(
+      `[Layout Session Monitor Effect] sessionStore changed: ${currentSession ? `${currentSession.id} (${currentSession.state})` : "null"}`,
+      JSON.stringify(currentSession)
+    );
   });
-
-  // Handle loaded Clerk
-  function handleClerkLoaded() {
-    const clerkObj = getContext<Clerk | null>("clerk");
-    if (clerkObj) {
-      clerkStore.set(clerkObj);
-    }
-  }
+  // ------------------------------------------------------------------
 
   // Determine if the app is fully ready to render content
-  const isReady = true; // Force to true to avoid loading issues
+  // Let's rely on i18n and tracking flags for readiness
+  // Use $derived rune for computed reactive state
+  const isReady = $derived(i18nReady && trackingInitialized);
 </script>
 
 <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+  <!-- Include the SessionAssociator component here, ONLY when tracking is initialized -->
+  {#if trackingInitialized}
+    <SessionAssociator />
+  {/if}
+
   <div class="flex min-h-screen flex-col">
     {#if $showHeaderFooter}
       <AppHeader />
     {/if}
     <MotionWrapper>
-      <main class="flex-1">
+      <main class="min-h-screen flex-1">
         {#if isReady}
           {@render children()}
         {:else}

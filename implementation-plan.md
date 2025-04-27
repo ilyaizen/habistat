@@ -1,45 +1,27 @@
 # **Habistat - Implementation Plan**
 
-Okay, here's a concise prompt summarizing the context for a new chat:
+**Project:** Habistat (SvelteKit 5, Tauri, `svelte-clerk` for Auth)
 
----
+**Issue:** After successful login via Clerk, the application correctly shows the user as authenticated in the header (`avatar-dropdown.svelte` using `<SignedIn>/<UserButton>`), but a custom session state tracker (`sessionStore` in `tracking.ts`) fails to update from `"anonymous"` to `"associated"`. This incorrect state is visible in a debug field within `session-info.svelte`, which derives its state from `sessionStore`.
 
-Project: Habistat (SvelteKit 5, Tauri, Clerk Auth)
+**Context & Attempts:**
 
-Issue: After login with Clerk (using <SignIn> component with redirect to /dashboard), the app shows authentication cookies are set correctly, but UI doesn't update to show the authenticated state:
+1. **Auth Setup:** Using `svelte-clerk` with `<ClerkProvider>` in `+layout.svelte`. Clerk context (`clerk-user`) provides reactive user state (`$user`).
+2. **Custom Session:** `src/lib/utils/tracking.ts` manages a `sessionStore` (`writable<UserSession | null>`) stored in `localStorage`, holding `{ id, state: "anonymous" | "associated", clerkUserId?, ... }`.
+3. **Sync Logic:** An `$effect` in `+layout.svelte` watches `$user` and `trackingInitialized`. When `$user` becomes available and the `sessionStore` state is `"anonymous"`, it calls `markSessionAssociated(userId, email)` from `tracking.ts`.
+4. **`markSessionAssociated`:** This function calls `sessionStore.update()` to set the state to `"associated"` and save to `localStorage`.
+5. **UI Components:**
+   - `avatar-dropdown.svelte`: Correctly uses `$user` via context and `<SignedIn>/<SignedOut>` for UI state.
+   - `session-info.svelte`: Displays Clerk user details correctly using `$clerkUser` context. **Problem:** It also shows the state derived from `sessionStore` (`$sessionDetails.state`), which remains `"anonymous"` even when `$clerkUser` is populated.
+6. **Troubleshooting Done:**
+   - Confirmed Clerk authentication works (redirects happen, `$user` is populated).
+   - Refactored `avatar-dropdown.svelte` away from manual state checks to use Clerk components.
+   - Added extensive logging inside the `$effect` in `+layout.svelte` and inside `markSessionAssociated` in `tracking.ts`.
+   - Ensured `initializeTracking` in `tracking.ts` creates an initial anonymous session if none exists.
 
-- Session remains "anonymous" instead of "associated" in session-info.svelte
-- Sign-up/in buttons remain visible despite Clerk knowing user is authenticated
-- Error message: "The <SignUp/> component cannot render when a user is already signed in..."
+**Problem:** Despite the `$effect` appearing to have the correct dependencies (`$user`, `trackingInitialized`, `sessionStore`), and logging suggesting `markSessionAssociated` _should_ be called, the `sessionStore` state doesn't update reactively as observed in `session-info.svelte`.
 
-Current state:
-
-- Clerk auth cookies are being set correctly after login
-- Client-side Clerk instance knows user is authenticated (clerk.user exists)
-- Custom session system in tracking.ts isn't syncing with Clerk's auth state
-- markSessionAssociated() function is not being called or is failing
-
-Solution attempts:
-
-- Added effect in +layout.svelte to detect clerk.user changes and call markSessionAssociated()
-- Added onLoaded handler to ClerkProvider (failed - not supported)
-- Added redirection from sign-in/sign-up pages when already authenticated
-- Added conditional UI updates based on Clerk's user state
-- Added verification to markSessionAssociated to ensure localStorage updates
-
-Next steps:
-
-- Fix auth state synchronization by adding direct clerk.user state detection in app header
-- Update UI components (app-header, avatar-dropdown, session-info) to show auth state based on Clerk's user state
-- Simplify sign-in/up pages to handle already authenticated users properly
-
-Core files:
-
-- src/routes/+layout.svelte (Auth initialization & session sync)
-- src/lib/utils/tracking.ts (Session management)
-- src/lib/components/session-info.svelte (Display auth state)
-- src/lib/components/app-header.svelte (Sign-in/up buttons)
-- src/lib/components/avatar-dropdown.svelte (User menu)
+**Next Step:** Re-evaluate the reactivity chain and timing: `$user` update -> `$effect` execution -> `markSessionAssociated` call -> `sessionStore.update` -> derived store (`$sessionDetails`) update in `session-info.svelte`. Pinpoint where the update fails or isn't propagating. Consider if the effect dependencies or the derived store logic are flawed.
 
 ---
 

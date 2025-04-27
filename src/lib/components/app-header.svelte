@@ -1,18 +1,22 @@
 <script lang="ts">
   import { Menu, X } from "lucide-svelte";
-  import { page } from "$app/state";
+  import { page } from "$app/stores";
   import { getContext, onMount } from "svelte";
   import { Button } from "$lib/components/ui/button";
-  import { type Writable } from "svelte/store";
-  // import { SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "svelte-clerk";
+  import { type Writable, type Readable } from "svelte/store";
+  import { SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "svelte-clerk";
   import { goto } from "$app/navigation";
   import { _ } from "svelte-i18n";
+  import type { UserResource } from "@clerk/types";
 
   import AvatarDropdown from "./avatar-dropdown.svelte";
 
   let isMobileMenuOpen = false;
 
-  // Get auth mode from context
+  // Get Clerk user state from context
+  const user = getContext<Readable<UserResource | null>>("clerk-user");
+
+  // Get auth mode from context (still useful for offline indication)
   const authMode = getContext<Writable<"offline" | "online">>("authMode");
 
   function toggleMobileMenu() {
@@ -58,14 +62,14 @@
         <a
           href="/dashboard"
           class="text-muted-foreground hover:text-foreground transition-colors"
-          class:font-medium={page.url.pathname.includes("/dashboard")}
+          class:font-medium={$page.url.pathname.includes("/dashboard")}
         >
           Dashboard
         </a>
         <a
           href="/settings"
           class="text-muted-foreground hover:text-foreground transition-colors"
-          class:font-medium={page.url.pathname.includes("/settings")}
+          class:font-medium={$page.url.pathname.includes("/settings")}
         >
           Settings
         </a>
@@ -92,21 +96,6 @@
         >
           Settings
         </button>
-        {#if $authMode === "online"}
-          <!-- <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
-          <SignedOut>
-            <div class="flex flex-col gap-2">
-              <SignInButton mode="modal">
-                <Button variant="ghost" size="sm" class="w-full">Sign in</Button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <Button variant="default" size="sm" class="w-full">Sign up</Button>
-              </SignUpButton>
-            </div>
-          </SignedOut> -->
-        {/if}
       </div>
     </div>
   {/if}

@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from "uuid";
  * Represents a user session identifier.
  * Can be anonymous or associated with a Clerk user.
  */
-interface UserSession {
+export interface UserSession {
   id: string; // Unique identifier for the session (anonymous ID)
   createdAt: number; // Timestamp when session was created
   lastModified: number; // Timestamp when session was last updated (touch point)
@@ -171,29 +171,47 @@ export async function initializeTracking(): Promise<void> {
 
   try {
     let currentSession = get(sessionStore);
-    console.log("[Tracking] initializeTracking: Initial store value:", currentSession);
+    console.log(
+      "[Tracking] initializeTracking: Initial store value before loading:",
+      JSON.stringify(currentSession)
+    );
 
     // Only attempt to load/set if the store isn't already populated
     if (!currentSession) {
       currentSession = loadSession();
-      console.log("[Tracking] initializeTracking: Loaded from localStorage:", currentSession);
-      // Update the store ONLY if a session was successfully loaded from storage
-      // DO NOT create a new one here if loadSession() returned null.
-      if (currentSession) {
-        sessionStore.set(currentSession);
-        console.log("[Tracking] initializeTracking: Store updated with loaded session.");
-      } else {
+      console.log(
+        "[Tracking] initializeTracking: Loaded from localStorage:",
+        JSON.stringify(currentSession)
+      );
+
+      // If STILL no session after loading, ensure one is created
+      if (!currentSession) {
         console.log(
-          "[Tracking] initializeTracking: No session found in localStorage, store remains null."
+          "[Tracking] initializeTracking: No session in localStorage, ensuring one is created..."
+        );
+        currentSession = sessionStore.ensure(); // This will create, save, and set the store
+        console.log(
+          "[Tracking] initializeTracking: Session ensured (created):",
+          JSON.stringify(currentSession)
+        );
+      } else {
+        // If loaded successfully, update the store
+        sessionStore.set(currentSession);
+        console.log(
+          "[Tracking] initializeTracking: Store updated with loaded session.",
+          JSON.stringify(currentSession)
         );
       }
     } else {
       console.log(
         "[Tracking] initializeTracking: Using existing session already in store:",
-        currentSession.id
+        JSON.stringify(currentSession)
       );
     }
-    console.log("[Tracking] initializeTracking: Finished. Final session state:", get(sessionStore));
+    console.log(
+      "[Tracking] initializeTracking: Finished. Final session state in store before resolving:",
+      JSON.stringify(get(sessionStore))
+    );
   } catch (error) {
     console.error("[Tracking] initializeTracking: Error during initialization:", error);
   }
@@ -220,54 +238,57 @@ export function getSessionState(): "anonymous" | "associated" {
  * @param userId The authenticated user's Clerk ID.
  * @param email Optional user email.
  */
-export function markSessionAssociated(userId: string, email?: string): void {
-  if (!browser) return;
-
-  console.log(`[Tracking] markSessionAssociated: Called with userId: ${userId}, email: ${email}`);
-
-  sessionStore.update((session) => {
-    console.log("[Tracking] markSessionAssociated: Current session before update:", session);
-    if (!session) {
+export function markSessionAssociated(clerkUserId: string, email?: string): void {
+  console.log(
+    `[Tracking:markSessionAssociated] Attempting to associate session. Clerk User ID: ${clerkUserId}, Email: ${email}`
+  );
+  sessionStore.update((currentSession) => {
+    console.log(
+      "[Tracking:markSessionAssociated] Running sessionStore.update. Current session:",
+      currentSession
+    );
+    if (!currentSession) {
       console.error(
-        "[Tracking] markSessionAssociated: Attempted to associate a null session! This should not happen after initialization."
+        "[Tracking:markSessionAssociated Error] No current session found to associate."
       );
-      // Optionally create a new session here, but it indicates a flow issue
-      // session = createNewSessionObject();
-      return session; // Return null or the newly created session if handled
+      return null;
     }
-
-    if (session.state === "associated" && session.clerkUserId === userId) {
-      console.log("[Tracking] markSessionAssociated: Session already associated with this user.");
-      return session; // No change needed
+    if (currentSession.state === "associated") {
+      console.warn(
+        `[Tracking:markSessionAssociated Warn] Session ${currentSession.id} is already associated. Ignoring call.`
+      );
+      return currentSession;
     }
 
     const updatedSession: UserSession = {
-      ...session,
+      ...currentSession,
       state: "associated",
-      clerkUserId: userId,
-      clerkUserEmail: email, // Store provided email
+      clerkUserId: clerkUserId,
+      clerkUserEmail: email ?? currentSession.clerkUserEmail, // Keep existing email if new one isn't provided
       lastModified: Date.now()
     };
 
-    console.log("[Tracking] markSessionAssociated: Updating session in store:", updatedSession);
+    console.log(
+      `[Tracking:markSessionAssociated Success] Preparing update for session ${updatedSession.id} to 'associated'. New state object:`,
+      updatedSession
+    );
     try {
       localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedSession));
-      console.log("[Tracking] markSessionAssociated: Successfully saved to localStorage.");
+      console.log(
+        "[Tracking:markSessionAssociated] Successfully saved updated session to localStorage."
+      );
+      // Return the updated session to update the store's value
+      return updatedSession;
     } catch (error) {
       console.error(
-        "[Tracking] markSessionAssociated: Failed to save updated session to localStorage:",
+        "[Tracking:markSessionAssociated] Failed to save updated session to localStorage:",
         error
       );
-      // Decide if we should revert the store update or proceed with store updated but not saved
+      // Still return the updated session state for the store, even if localStorage failed
+      return updatedSession;
     }
-    return updatedSession;
   });
-
-  // Log the state immediately after update call (may not reflect async update immediately)
-  console.log(
-    "[Tracking] markSessionAssociated: Store state immediately after update call:",
-    get(sessionStore)
-  );
+  console.log("[Tracking:markSessionAssociated] Finished sessionStore.update call.");
 }
 
 /**
@@ -427,4 +448,13 @@ export function getAppOpenHistory(sinceTimestamp?: number): number[] {
     console.error("Failed to get app open history:", error);
     return [];
   }
+}
+
+/**
+ * Retrieves the current session ID.
+ * Returns null if no session exists.
+ */
+export function getSessionId(): string | null {
+  const session = get(sessionStore);
+  return session ? session.id : null;
 }
