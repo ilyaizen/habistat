@@ -1,5 +1,79 @@
 # **Habistat - Implementation Plan**
 
+Task: Refactor `session-info.svelte` component, move auth persistent session user information (user id/email info) to `src/routes/+layout.svelte`.
+
+In the `src/routes/+layout.svelte` file, the application's root layout manages multiple core functionalities, including handling authentication with Clerk. Here's a breakdown of the key areas related to authentication and some recommendations to improve the app flow:
+
+## Authentication with Clerk
+
+The application uses Clerk for authentication and manages this state within the `+layout.svelte` component. Here's a snippet of how Clerk is integrated:
+
+```svelte
+<ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+  <!-- ClerkProvider wraps the application to provide authentication context -->
+  <div class="flex min-h-screen flex-col">
+    {#if $showHeaderFooter}
+      <!-- Render AppHeader conditionally based on derived store -->
+      <AppHeader />
+    {/if}
+    <MotionWrapper>
+      <!-- Main content area -->
+      <main class="min-h-screen flex-1">
+        {#if i18nReady && trackingInitialized}
+          <!-- Render child content using the children prop -->
+          {@render children()}
+        {:else}
+          <!-- Display loading indicator while waiting for initialization -->
+          <div class="flex min-h-[60vh] items-center justify-center">
+            <p>Loading core app...</p>
+          </div>
+        {/if}
+      </main>
+    </MotionWrapper>
+    {#if $showHeaderFooter}
+      <!-- Render AppFooter conditionally -->
+      <AppFooter />
+    {/if}
+  </div>
+</ClerkProvider>
+```
+
+### Features
+
+- **ClerkProvider**: Wraps the application to provide authentication context.
+- The app conditionally renders components like headers and footers based on the app's state, controlled via readable stores like `authModeStore`.
+
+## Optional Authentication Flow
+
+Since authentication is optional, the code includes fallbacks and checks to ensure the app can function both with and without active authentication. Consider adding additional logging or user messages to indicate when authentication is optional and how users can opt into it.
+
+### Improvements
+
+1. **User Feedback**: Add user feedback to indicate authentication status clearly. You might consider showing a banner or notification when the app is running offline or when authentication is optional.
+
+2. **Expanded Error Handling**: In the `setupClerkListener` function, ensure robust error handling to manage situations where Clerk isn't properly initialized or if real-time updates fail:
+
+   ```typescript
+   async function setupClerkListener() {
+     try {
+       // Current attempts to handle loading and setup for Clerk
+       // Ensure fallback for UI if Clerk fails
+       const clerkInstance = window.Clerk as LoadedClerk | undefined;
+       if (!clerkInstance) {
+         set(null); // Set null if Clerk is not loaded
+         console.error("[Error] Clerk not loaded, ensure it is implemented correctly.");
+       }
+       // Existing listener setup
+     } catch (error) {
+       console.error("[Setup Clerk Listener] Error:", error);
+     }
+   }
+   ```
+
+3. **Flexibility in Theme and Connectivity**: The component efficiently manages themes and connectivity states. Continue to improve this by integrating visual cues or animations when themes change or connectivity status updates.
+
+By improving the user feedback and error handling, you enhance the robustness of the authentication flow. Additionally, ensuring that these operations are seamless, and user-friendly improves overall user experience.
+
 ## ~~DONE: Phase 1: Homepage & UI Foundation~~
 
 **Goal:**

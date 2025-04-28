@@ -7,6 +7,7 @@
  * - Application initialization
  * - Header/footer visibility
  * - Authentication state with Clerk
+ * - Session association
  */ -->
 
 <script lang="ts">
@@ -20,8 +21,8 @@
   import { ClerkProvider } from "svelte-clerk";
   // Re-import Clerk types needed for the readable store
   import type { LoadedClerk, UserResource } from "@clerk/types";
-  // Import tracking initialization function (association logic moved elsewhere)
-  import { initializeTracking } from "$lib/utils/tracking";
+  // Import tracking initialization function and session management utilities
+  import { initializeTracking, sessionStore, markSessionAssociated } from "$lib/utils/tracking";
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
   import type { LayoutData } from "./$types"; // Import LayoutData type
   import AppFooter from "$lib/components/app-footer.svelte";
@@ -61,6 +62,64 @@
   // Theme management variables
   let media: MediaQueryList | null = null; // Reference to the media query list for dark mode preference
   let systemListener: (() => void) | null = null; // Listener function for system theme changes
+
+  // Create a readable store for the Clerk user state
+  const clerkUserStore = readable<UserResource | null>(null, (set) => {
+    if (!browser) return;
+
+    let unsubscribe: (() => void) | null = null;
+
+    // Function to initialize Clerk state from window object
+    function initializeClerkStateFromWindow() {
+      const clerk = window.Clerk as unknown as LoadedClerk | undefined;
+      if (clerk) {
+        console.log("[Layout] window.Clerk found:", clerk);
+        set(clerk.user ?? null);
+
+        // Add listener to update store on auth changes
+        unsubscribe = clerk.addListener(({ user }) => {
+          console.log("[Layout] Clerk listener update:", user);
+          set(user ?? null);
+        });
+      } else {
+        console.log("[Layout] window.Clerk not found yet, will retry...");
+        set(null);
+        // Retry after a short delay
+        setTimeout(initializeClerkStateFromWindow, 200);
+      }
+    }
+
+    // Start initialization
+    initializeClerkStateFromWindow();
+
+    // Cleanup function
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  });
+
+  // Make the Clerk user store available via context
+  setContext("clerkUser", clerkUserStore);
+
+  // Effect to handle session association when user logs in
+  $effect(() => {
+    if (!browser) return;
+
+    const user = $clerkUserStore;
+    const session = $sessionStore;
+
+    console.log(
+      `[Layout Effect] User: ${user?.id ?? "null"}, Session: ${session?.id ?? "null"} (${session?.state ?? "unknown"})`
+    );
+
+    // Check if we need to associate the session
+    if (user?.id && session?.state === "anonymous") {
+      console.log(`[Layout Effect] Associating session for user ${user.id}`);
+      markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
+    }
+  });
 
   /**
    * Applies the system theme (dark/light) based on the user's OS preference.

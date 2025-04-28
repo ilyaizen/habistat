@@ -8,14 +8,13 @@
   import { handleLogout } from "$lib/utils/auth";
   import { goto } from "$app/navigation";
   import { settings } from "$lib/stores/settings";
-  import { derived, get, type Readable, writable } from "svelte/store";
+  import { derived, get, type Readable } from "svelte/store";
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-  import { SignedIn, SignedOut } from "svelte-clerk";
-  import type { UserResource, LoadedClerk } from "@clerk/types";
-  import { browser } from "$app/environment";
-  import { onMount } from "svelte";
+  import { getContext } from "svelte";
+  import type { UserResource } from "@clerk/types";
 
   const anonymousId = derived(anonymousUserId, ($id) => $id);
+  const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");
 
   const sessionDetails = derived(sessionStore, ($session) => {
     return {
@@ -27,10 +26,6 @@
   });
 
   const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
-
-  // Store to hold the user object obtained from window.Clerk
-  const clerkUserStore = writable<UserResource | null>(null);
-  const isClerkLoadedStore = writable<boolean>(false);
 
   // Reactive state
   let deleting = $state(false);
@@ -47,52 +42,12 @@
     }
   });
 
-  // Function to initialize Clerk state from window object
-  function initializeClerkStateFromWindow() {
-    if (!browser) return null;
-
-    const clerk = window.Clerk as unknown as LoadedClerk | undefined;
-    if (clerk) {
-      console.log("[SessionInfo] window.Clerk found:", clerk);
-      isClerkLoadedStore.set(true);
-      clerkUserStore.set(clerk.user ?? null);
-
-      // Add listener to update store on auth changes
-      const unsubscribe = clerk.addListener(({ user }) => {
-        console.log("[SessionInfo] Clerk listener update:", user);
-        clerkUserStore.set(user ?? null);
-      });
-
-      // Return cleanup function for the listener
-      return unsubscribe;
-    } else {
-      console.log("[SessionInfo] window.Clerk not found yet, will retry...");
-      isClerkLoadedStore.set(false);
-      clerkUserStore.set(null);
-      // Retry after a short delay
-      setTimeout(initializeClerkStateFromWindow, 200);
-      // Return null as there is no listener to unsubscribe yet
-      return null;
-    }
-  }
-
-  let cleanupClerkListener: (() => void) | null = null;
-
-  onMount(() => {
-    cleanupClerkListener = initializeClerkStateFromWindow();
-    return () => {
-      cleanupClerkListener?.(); // Cleanup listener on component destroy
-    };
-  });
-
   async function deleteUserSessionWithConfirm() {
     if (deleting) return;
 
     deleting = true;
     try {
       await handleLogout();
-      // Manually clear store after logout
-      clerkUserStore.set(null);
     } catch (error) {
       console.error("Failed to delete session:", error);
     } finally {
@@ -102,7 +57,7 @@
   }
 </script>
 
-{#if $isClerkLoadedStore}
+{#if $clerkUser !== undefined}
   <div class="space-y-6">
     <div class="space-y-2">
       <Label class="text-lg">Session Information</Label>
@@ -161,7 +116,7 @@
           </AlertDialog.Content>
         </AlertDialog.Root>
       </div>
-      {#if $clerkUserStore}
+      {#if $clerkUser}
         <p class="text-muted-foreground text-xs">
           This session ID is linked to your signed-in account (details below).
         </p>
@@ -175,8 +130,8 @@
       </noscript>
     </div>
 
-    {#if $clerkUserStore}
-      {@const user = $clerkUserStore}
+    {#if $clerkUser}
+      {@const user = $clerkUser}
       <div class="space-y-2">
         <Label for="accountEmailInput" class="text-sm font-medium">Account Email</Label>
         <Input
@@ -202,7 +157,7 @@
       </div>
     {/if}
 
-    {#if !$clerkUserStore}
+    {#if !$clerkUser}
       <div class="space-y-2">
         <p class="text-muted-foreground text-sm">You are not signed in.</p>
         {#if $sessionDetails.state === "anonymous" && $anonymousId}

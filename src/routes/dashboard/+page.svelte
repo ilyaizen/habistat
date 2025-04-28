@@ -91,19 +91,6 @@
     let userIdToUse: string | null = null;
     let needsActivityLoad = false;
 
-    // --- Perform Association Check ---
-    if (user?.id && session.state === "anonymous") {
-      console.log(
-        `[Dashboard Effect Action] User found and session anonymous. Calling markSessionAssociated for user ${user.id}`
-      );
-      markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
-
-      // IMPORTANT: After marking, the $sessionStore dependency *should* re-trigger this effect.
-      // The *next* run of the effect will hopefully have session.state === 'associated'.
-      // We don't proceed to load data in *this* run to avoid race conditions.
-      loadingState = true; // Keep loading while waiting for association to reflect
-    }
-
     // --- Determine User ID to Use ---
     if (user?.id && session.state === "associated") {
       // User logged in, session associated
@@ -116,17 +103,16 @@
       console.log(`[Dashboard Effect] Using Anonymous Session ID: ${userIdToUse}`);
       needsActivityLoad = true;
     } else if (!user?.id && session.state === "associated") {
-      // Edge case: User logged out, but session *was* associated. Treat as anonymous for now.
-      // This might happen if logout clears Clerk user before session state clears.
-      // Consider clearing session fully on logout via handleLogout in auth.ts.
-      userIdToUse = session.id; // Fallback to anonymous ID
-      console.warn(
-        `[Dashboard Effect] User logged out but session still 'associated'. Using anonymous ID: ${userIdToUse}`
+      // This can happen briefly during logout while stores are updating
+      // We'll use the session ID and wait for the session state to update
+      userIdToUse = session.id;
+      console.log(
+        `[Dashboard Effect] Session state transitioning during logout. Using session ID: ${userIdToUse}`
       );
       needsActivityLoad = true;
     } else {
-      // Still waiting for user, or other invalid state
-      console.log("[Dashboard Effect] Waiting for valid user/session state combination.");
+      // Still waiting for user/session state to stabilize
+      console.log("[Dashboard Effect] Waiting for user/session state to stabilize.");
       loadingState = true; // Keep loading
     }
 
