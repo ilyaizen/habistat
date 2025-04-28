@@ -153,7 +153,6 @@
           class="flex-1"
           aria-label="Account ID"
         />
-        <p class="text-muted-foreground text-sm">Account linked to the session ID above.</p>
       </div>
     {/if}
 
