@@ -3,76 +3,81 @@
   import { Input } from "./ui/input";
   import { Label } from "./ui/label";
   import { Trash2 } from "lucide-svelte";
-  import {
-    getAppOpenHistory,
-    sessionStore,
-    anonymousUserId as trackedAnonymousUserId
-  } from "$lib/utils/tracking";
+  import { page } from "$app/stores";
+  import { getAppOpenHistory, sessionStore, anonymousUserId } from "$lib/utils/tracking";
   import { handleLogout } from "$lib/utils/auth";
   import { goto } from "$app/navigation";
   import { settings } from "$lib/stores/settings";
   import { derived, get, type Readable, writable } from "svelte/store";
-  import { getContext } from "svelte";
-  import type { UserResource } from "@clerk/types";
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+  import { SignedIn, SignedOut } from "svelte-clerk";
+  import type { UserResource } from "@clerk/types";
+  import { getContext } from "svelte";
 
-  // Clerk user state from context - primary source of truth for authentication
-  const clerkUserStore = getContext<Readable<UserResource | null> | undefined>("clerk-user");
+  // Get the reactive user store from context
+  const clerkUser = getContext<Readable<UserResource | null>>("clerk-user");
 
-  // Derive anonymous ID directly from the tracking store
-  const anonymousId = derived(trackedAnonymousUserId, ($id) => $id);
+  // Derive anonymous ID directly from the tracking store's exported anonymousUserId store
+  const anonymousId = derived(anonymousUserId, ($id) => $id);
 
-  // Derive session details (state, linked IDs) from the tracking store
-  const sessionDetails = derived(
-    [sessionStore, clerkUserStore ?? writable(null)],
-    ([$session, $clerkUser]) => {
-      // $clerkUser is now the *value* from the store, or null if store was undefined/empty
-      const clerkUserId = $clerkUser?.id;
-      const sessionState = $session?.state ?? "unknown";
+  // Derive session details based *only* on the local session store now.
+  // Association status is handled implicitly by SignedIn/SignedOut components.
+  const sessionDetails = derived(sessionStore, ($session) => {
+    // Reflect the state stored locally ('anonymous', 'associated', 'unknown')
+    return {
+      state: $session?.state ?? "unknown",
+      // Get Clerk User ID *persisted* in the local session (might be stale)
+      associatedClerkUserId: $session?.clerkUserId ?? null,
+      // Get Clerk User Email *persisted* in the local session (might be stale)
+      associatedClerkEmail: $session?.clerkUserEmail ?? null,
+      // Raw state from local session store
+      rawSessionState: $session?.state ?? null
+    };
+  });
 
-      return {
-        // Derive state based on presence of clerkUserId
-        state: clerkUserId ? "associated" : ($session?.state ?? "anonymous"),
-        associatedClerkUserId: clerkUserId ?? $session?.clerkUserId ?? null,
-        associatedClerkEmail:
-          $clerkUser?.primaryEmailAddress?.emailAddress ?? $session?.clerkUserEmail ?? null,
-        rawSessionState: $session?.state ?? null // Also include raw state for comparison
-      };
-    }
-  );
-
+  // Derive visibility setting for usage history from the global settings store
   const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
 
-  // Reactive state for component logic
-  let deleting = $state(false);
-  let usageHistoryTimestamps = $state<number[]>([]);
-  let confirmDialogOpen = $state(false);
+  // Reactive state for component-specific logic
+  let deleting = $state(false); // Flag to prevent multiple deletion attempts
+  let usageHistoryTimestamps = $state<number[]>([]); // Stores app open timestamps
+  let confirmDialogOpen = $state(false); // Controls the visibility of the confirmation dialog
 
-  // Load usage history when anonymousId is available
+  // Effect to load usage history when the anonymousId becomes available or changes
   $effect(() => {
-    const currentAnonymousId = get(anonymousId);
+    const currentAnonymousId = get(anonymousId); // Get the current value non-reactively
     if (currentAnonymousId) {
-      const history = getAppOpenHistory();
-      // Reverse history to show most recent first
+      const history = getAppOpenHistory(); // Fetch history from local storage
+      // Reverse history to display the most recent opens first
       usageHistoryTimestamps = history ? history.reverse() : [];
     } else {
-      // Clear history if no anonymous ID (e.g., during initial load or after clearing)
+      // Clear history if there's no anonymous ID (e.g., initial load, after clearing data)
       usageHistoryTimestamps = [];
     }
   });
 
-  // Function to handle deletion confirmation and logout
-  async function deleteUserSessionWithConfirm() {
-    if (deleting) return;
+  // Log page data on component mount for inspection
+  $effect(() => {
+    console.log("[SessionInfo] $page.data:", $page.data);
+  });
 
-    deleting = true;
+  /**
+   * Handles the confirmation and execution of the user/session data deletion.
+   * Calls the shared logout handler which clears Clerk session and local session data.
+   */
+  async function deleteUserSessionWithConfirm() {
+    if (deleting) return; // Prevent concurrent deletion requests
+
+    deleting = true; // Set deleting flag
     try {
       // Use the shared logout handler which signs out of Clerk and clears sessionStore
       await handleLogout();
     } catch (error) {
+      // Log any errors during the logout/deletion process
       console.error("Failed to delete session:", error);
-      // Optionally show user feedback here
+      // TODO: Optionally show user feedback here (e.g., toast notification)
     } finally {
+      // Reset deleting flag and close the dialog regardless of success/failure
       deleting = false;
       confirmDialogOpen = false;
     }
@@ -80,9 +85,15 @@
 </script>
 
 <div class="space-y-6">
-  <!-- Always show Anonymous Session ID -->
   <div class="space-y-2">
-    <Label for="anonymousIdInput" class="text-sm font-medium">Anonymous Session ID</Label>
+    <Label class="text-lg">Session Information</Label>
+    <p class="text-muted-foreground text-sm">
+      Details about your current session, including anonymous and linked account identifiers.
+    </p>
+  </div>
+  <!-- Always show Session ID -->
+  <div class="space-y-2">
+    <Label for="anonymousIdInput" class="text-sm font-medium">Session ID</Label>
     <div class="flex items-center space-x-2">
       <Input
         id="anonymousIdInput"
@@ -133,70 +144,80 @@
         </AlertDialog.Content>
       </AlertDialog.Root>
     </div>
-    {#if $sessionDetails.state === "associated"}
+    <!-- Use context store to show status -->
+    {#if $clerkUser === undefined}
+      <p class="text-muted-foreground text-xs">Checking authentication status...</p>
+    {:else if $clerkUser}
       <p class="text-muted-foreground text-xs">
-        This anonymous ID is linked to your account ({$sessionDetails.associatedClerkEmail ??
-          $sessionDetails.associatedClerkUserId ??
-          "..."}).
+        This session ID is linked to your signed-in account (details below).
       </p>
-    {:else if !$clerkUserStore}
+    {:else}
       <p class="text-muted-foreground text-xs">
         You are currently anonymous. Signing in will link this ID to your account.
       </p>
     {/if}
+    <noscript>
+      <p class="text-muted-foreground text-xs">Sign-in status requires JavaScript.</p>
+    </noscript>
   </div>
 
   <!-- Clerk Authenticated User Info -->
-  {#if $clerkUserStore}
-    {@const user = $clerkUserStore} // Ensure type safety
-    <div class="space-y-2">
-      <Label for="accountEmailInput" class="text-sm font-medium">Account Email</Label>
-      <Input
-        id="accountEmailInput"
-        type="text"
-        value={user.primaryEmailAddress?.emailAddress ?? "No email associated"}
-        readonly
-        class="flex-1"
-        aria-label="Account Email"
-      />
-    </div>
-
-    <div class="space-y-2">
-      <Label for="accountIdInput" class="text-sm font-medium">Account ID (Clerk)</Label>
-      <Input
-        id="accountIdInput"
-        type="text"
-        value={user.id}
-        readonly
-        class="flex-1"
-        aria-label="Account ID"
-      />
-      {#if $sessionDetails.state === "associated"}
-        <p class="text-muted-foreground text-sm">Account linked to the anonymous session above.</p>
-      {:else}
-        <p class="text-warning-foreground text-sm">
-          Warning: Logged in, but session association pending or failed. Local data might not be
-          linked.
-        </p>
-      {/if}
-    </div>
-
-    <!-- Sign In/Up Buttons (Only show if NOT logged in via Clerk) -->
-  {:else}
-    <div class="space-y-2">
-      <p class="text-muted-foreground text-sm">You are not signed in.</p>
-      {#if $sessionDetails.state === "anonymous" && $anonymousId}
-        <p class="text-muted-foreground text-xs">
-          You have local data stored under the anonymous ID shown above. Signing in will associate
-          this data with your account.
-        </p>
-      {/if}
-      <div class="flex gap-2">
-        <Button variant="outline" onclick={() => goto("/sign-in")}>Sign In</Button>
-        <Button variant="outline" onclick={() => goto("/sign-up")}>Sign Up</Button>
+  <SignedIn>
+    {#if $clerkUser}
+      <div class="space-y-2">
+        <Label for="accountEmailInput" class="text-sm font-medium">Account Email</Label>
+        <Input
+          id="accountEmailInput"
+          type="text"
+          value={$clerkUser.primaryEmailAddress?.emailAddress ?? "No email associated"}
+          readonly
+          class="flex-1"
+          aria-label="Account Email"
+        />
       </div>
-    </div>
+
+      <div class="space-y-2">
+        <Label for="accountIdInput" class="text-sm font-medium">Account ID</Label>
+        <Input
+          id="accountIdInput"
+          type="text"
+          value={$clerkUser.id ?? "No ID associated"}
+          readonly
+          class="flex-1"
+          aria-label="Account ID"
+        />
+        <p class="text-muted-foreground text-sm">Account linked to the session ID above.</p>
+      </div>
+    {:else}
+      <!-- Optional: Show loading or error if SignedIn but context is null -->
+      <p class="text-muted-foreground text-xs">Loading user details...</p>
+    {/if}
+  </SignedIn>
+
+  <!-- Sign In/Up Buttons (Only show if NOT logged in via Clerk) -->
+  <!-- Use context store check instead of ClerkLoaded -->
+  {#if $clerkUser === null}
+    <SignedOut>
+      <div class="space-y-2">
+        <p class="text-muted-foreground text-sm">You are not signed in.</p>
+        {#if $sessionDetails.state === "anonymous" && $anonymousId}
+          <p class="text-muted-foreground text-xs">
+            You have local data stored under the session ID shown above. Signing in will associate
+            this data with your account.
+          </p>
+        {/if}
+        <div class="flex gap-2">
+          <Button variant="outline" onclick={() => goto("/sign-in")}>Sign In</Button>
+          <Button variant="outline" onclick={() => goto("/sign-up")}>Sign Up</Button>
+        </div>
+      </div>
+    </SignedOut>
   {/if}
+  <noscript>
+    <div class="space-y-2">
+      <p class="text-muted-foreground text-sm">Sign-in/Sign-up requires JavaScript.</p>
+    </div>
+  </noscript>
 
   <!-- Usage History (Conditional) -->
   {#if $showUsageHistory}
@@ -216,17 +237,17 @@
 
   <!-- Session State (Debug Info) -->
   <div class="space-y-2">
-    <Label for="sessionStateDebugInput" class="text-sm font-medium">Session State (Debug)</Label>
+    <Label for="sessionStateDebugInput" class="text-sm font-medium">Session State</Label>
     <Input
       id="sessionStateDebugInput"
       type="text"
       value={$sessionDetails.state ?? "unknown"}
       readonly
       class="flex-1"
-      aria-label="Local Session State Debug"
+      aria-label="Local Session State"
     />
     <p class="text-muted-foreground text-xs">
-      Indicates if the session is 'anonymous' or 'associated' (based on Clerk state).
+      Indicates if the session is 'anonymous' or 'associated' (linked to your signed-in account).
     </p>
   </div>
 </div>

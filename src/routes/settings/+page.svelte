@@ -111,9 +111,6 @@
   <h1 class="mb-4 text-2xl font-semibold">Settings</h1>
 
   <Card class="mb-6">
-    <CardHeader>
-      <Label class="text-lg">Session</Label>
-    </CardHeader>
     <CardContent>
       <SessionInfo />
     </CardContent>
