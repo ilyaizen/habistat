@@ -152,9 +152,9 @@ export const anonymousUserId = derived(
 );
 
 /**
- * Initializes tracking. Ensures an anonymous session exists on the client.
- * Should be called once when the app mounts client-side.
- * RETURNS A PROMISE that resolves when the session is loaded/ensured.
+ * Initializes tracking. Only loads existing session if present.
+ * Does NOT create a new session automatically.
+ * RETURNS A PROMISE that resolves when the session is loaded.
  */
 export async function initializeTracking(): Promise<void> {
   console.log("[Tracking] initializeTracking: Starting...");
@@ -170,7 +170,7 @@ export async function initializeTracking(): Promise<void> {
       JSON.stringify(currentSession)
     );
 
-    // Only attempt to load/set if the store isn't already populated
+    // Only attempt to load if the store isn't already populated
     if (!currentSession) {
       currentSession = loadSession();
       console.log(
@@ -178,18 +178,8 @@ export async function initializeTracking(): Promise<void> {
         JSON.stringify(currentSession)
       );
 
-      // If STILL no session after loading, ensure one is created
-      if (!currentSession) {
-        console.log(
-          "[Tracking] initializeTracking: No session in localStorage, ensuring one is created..."
-        );
-        currentSession = sessionStore.ensure(); // This will create, save, and set the store
-        console.log(
-          "[Tracking] initializeTracking: Session ensured (created):",
-          JSON.stringify(currentSession)
-        );
-      } else {
-        // If loaded successfully, update the store
+      // If we found a session in localStorage, set it in the store
+      if (currentSession) {
         sessionStore.set(currentSession);
         console.log(
           "[Tracking] initializeTracking: Store updated with loaded session.",

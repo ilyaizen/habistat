@@ -15,7 +15,6 @@
   import { goto } from "$app/navigation";
   import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
   import { browser } from "$app/environment";
-  import { onMount } from "svelte";
   import { getContext } from "svelte";
   import { get, type Writable } from "svelte/store";
 
@@ -29,26 +28,18 @@
   let initialCheckDone = $state(false);
   let sessionStarting = $state(false);
 
-  // Disable page scrolling while on landing page
-  onMount(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  });
-
   // Initialize drawer state based on user session
   $effect(() => {
     if (!initialCheckDone && browser) {
-      drawerOpen = !get(anonymousUserId);
+      const session = get(sessionStore);
+      drawerOpen = !session; // Open drawer if no session exists
       initialCheckDone = true;
     }
   });
 
   /**
    * Handles the START button click action
-   * Ensures a session exists and redirects to dashboard
-   * Includes error handling for session creation failures
+   * Creates a new session for new users and redirects to dashboard
    */
   async function handleStart() {
     if (sessionStarting) return;
@@ -56,7 +47,7 @@
     try {
       sessionStarting = true;
       console.log("+page.svelte: handleStart called");
-      const session = sessionStore.ensure();
+      const session = sessionStore.ensure(); // Only create session when Start is clicked
 
       if (session?.id) {
         console.log("+page.svelte: Session ensured, navigating to dashboard.");
