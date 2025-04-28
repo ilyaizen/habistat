@@ -4,7 +4,7 @@
   import { afterNavigate } from "$app/navigation";
 
   // Force transitions to run on every navigation
-  let key = 0;
+  let key = $state(0);
   afterNavigate(() => {
     key++;
   });
@@ -43,10 +43,12 @@
     };
     return sampleCurveY(solveCurveX(t));
   }
+
+  let { children } = $props();
 </script>
 
 {#key key}
   <div in:fly={{ y: 30, duration: $settings.enableMotion ? 350 : 0, easing: customEase }}>
-    <slot />
+    {@render children()}
   </div>
 {/key}

@@ -164,66 +164,9 @@
     }
   }
 
-  // --- Reinstated Clerk User State Management --- >
-  // Create a Svelte readable store to reactively track the Clerk user object.
-  // This store is updated whenever the Clerk authentication state changes.
-  const clerkUser = readable<UserResource | null>(null, (set) => {
-    let unsubscribe: () => void = () => {}; // Function to clean up the Clerk listener
-
-    // Asynchronous function to set up the listener for Clerk state changes.
-    async function setupClerkListener() {
-      if (!browser) return; // Ensure we are in the browser
-      try {
-        // Wait for Clerk to load (ClerkProvider should handle this, but we ensure)
-        // Access Clerk instance via window.Clerk after it's loaded
-        const clerkInstance = window.Clerk as LoadedClerk | undefined;
-
-        if (!clerkInstance) {
-          // Retry if Clerk not loaded yet
-          // console.warn("[Layout Clerk Setup] window.Clerk not loaded, retrying...");
-          // setTimeout(setupClerkListener, 100); // Optional: add a small delay
-          // For now, just set null and let the listener pick it up later
-          set(null);
-          // Listener below will still run once Clerk loads
-        }
-
-        // Even if instance isn't available immediately, setup the listener
-        // ClerkProvider ensures Clerk loads and initializes.
-        if (window.Clerk) {
-          set(window.Clerk.user ?? null); // Set initial value
-          unsubscribe = window.Clerk.addListener(({ user }) => {
-            set(user ?? null); // Update the store with the new user object (or null)
-          });
-        } else {
-          console.error(
-            "[Layout Clerk Setup] window.Clerk instance not found, cannot add listener immediately."
-          );
-          set(null);
-        }
-      } catch (error) {
-        console.error("[Layout Clerk Setup] Error setting Clerk listener:", error);
-        set(null); // Set to null on error
-      }
-    }
-
-    // Run on mount to ensure Clerk potentially loaded by ClerkProvider
-    onMount(() => {
-      setupClerkListener();
-    });
-
-    // Cleanup function for the readable store: remove the Clerk listener
-    return () => {
-      unsubscribe();
-    };
-  });
-  // Set the reactive clerkUser store in Svelte context for child components
-  setContext("clerk-user", clerkUser);
-  // <--- End Reinstated Clerk User State Management ---
-
   onMount(() => {
     // Initialize core functionalities when the component mounts in the browser.
     initializeAppCore();
-    // Clerk listener setup moved inside the readable store
 
     // Return cleanup function to remove listeners when the component is destroyed.
     return () => {
