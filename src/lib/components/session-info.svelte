@@ -3,7 +3,6 @@
   import { Input } from "./ui/input";
   import { Label } from "./ui/label";
   import { Trash2 } from "lucide-svelte";
-  import { page } from "$app/stores";
   import { getAppOpenHistory, sessionStore, anonymousUserId } from "$lib/utils/tracking";
   import { handleLogout } from "$lib/utils/auth";
   import { goto } from "$app/navigation";
@@ -13,9 +12,13 @@
   import { getContext } from "svelte";
   import type { UserResource } from "@clerk/types";
 
+  // Derive anonymous ID from the store for reactive updates
   const anonymousId = derived(anonymousUserId, ($id) => $id);
+
+  // Get Clerk user context for authentication state
   const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");
 
+  // Derive session details for display and state management
   const sessionDetails = derived(sessionStore, ($session) => {
     return {
       state: $session?.state ?? "unknown",
@@ -25,13 +28,15 @@
     };
   });
 
+  // Control visibility of usage history section
   const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
 
-  // Reactive state
-  let deleting = $state(false);
-  let usageHistoryTimestamps = $state<number[]>([]);
-  let confirmDialogOpen = $state(false);
+  // Local state management
+  let deleting = $state(false); // Tracks ongoing deletion process
+  let usageHistoryTimestamps = $state<number[]>([]); // Stores app open timestamps
+  let confirmDialogOpen = $state(false); // Controls visibility of confirmation dialog
 
+  // Effect to update usage history when anonymous ID changes
   $effect(() => {
     const currentAnonymousId = get(anonymousId);
     if (currentAnonymousId) {
@@ -42,6 +47,11 @@
     }
   });
 
+  /**
+   * Handles user session deletion with confirmation
+   * Prevents multiple simultaneous deletion attempts
+   * Cleans up state after completion regardless of success/failure
+   */
   async function deleteUserSessionWithConfirm() {
     if (deleting) return;
 
@@ -57,14 +67,22 @@
   }
 </script>
 
+/** * SessionInfo Component * * Displays and manages user session information including: * -
+Anonymous session ID * - Clerk authentication status * - Usage history * - Session state debugging
+info * * This component handles both anonymous and authenticated states, * providing session
+management and data clearing functionality. */
+<!-- Main component container - Only renders when Clerk user state is determined -->
 {#if $clerkUser !== undefined}
   <div class="space-y-6">
+    <!-- Session Information Header -->
     <div class="space-y-2">
       <Label class="text-lg">Session Information</Label>
       <p class="text-muted-foreground text-sm">
         Details about your current session, including anonymous and linked account identifiers.
       </p>
     </div>
+
+    <!-- Anonymous Session ID Section -->
     <div class="space-y-2">
       <Label for="anonymousIdInput" class="text-sm font-medium">Session ID</Label>
       <div class="flex items-center space-x-2">
@@ -77,6 +95,7 @@
           aria-label="Anonymous Session ID"
         />
 
+        <!-- Session Deletion Dialog -->
         <AlertDialog.Root bind:open={confirmDialogOpen}>
           <AlertDialog.Trigger>
             <Button
@@ -85,6 +104,7 @@
               title="Clear Local Data & Log Out"
               disabled={deleting || !$anonymousId}
             >
+              <!-- Loading spinner during deletion -->
               {#if deleting}
                 <span
                   class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
@@ -116,6 +136,8 @@
           </AlertDialog.Content>
         </AlertDialog.Root>
       </div>
+
+      <!-- Session status explanation -->
       {#if $clerkUser}
         <p class="text-muted-foreground text-xs">
           This session ID is linked to your signed-in account (details below).
@@ -130,6 +152,7 @@
       </noscript>
     </div>
 
+    <!-- Authenticated User Details Section -->
     {#if $clerkUser}
       {@const user = $clerkUser}
       <div class="space-y-2">
@@ -156,6 +179,7 @@
       </div>
     {/if}
 
+    <!-- Anonymous User Actions Section -->
     {#if !$clerkUser}
       <div class="space-y-2">
         <p class="text-muted-foreground text-sm">You are not signed in.</p>
@@ -172,6 +196,7 @@
       </div>
     {/if}
 
+    <!-- Usage History Section (Conditionally Rendered) -->
     {#if $showUsageHistory}
       <div class="space-y-2">
         <h3 class="text-sm font-medium">Usage History (App Opens)</h3>
@@ -189,6 +214,7 @@
       </div>
     {/if}
 
+    <!-- Debug Information Section -->
     <div class="space-y-2">
       <Label for="sessionStateDebugInput" class="text-sm font-medium">Local Session State</Label>
       <Input
@@ -205,6 +231,7 @@
     </div>
   </div>
 {:else}
+  <!-- Loading State -->
   <div class="flex items-center justify-center p-6">
     <span
       class="inline-block h-6 w-6 animate-spin rounded-full border-4 border-current border-t-transparent"
