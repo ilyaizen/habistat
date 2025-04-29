@@ -1,3 +1,16 @@
+<!-- /**
+ * SessionInfo Component
+ *
+ * Displays and manages user session information including:
+ * - Anonymous session ID
+ * - Clerk authentication status
+ * - Usage history
+ * - Session state debugging info
+ *
+ * This component handles both anonymous and authenticated states,
+ * providing session management and data clearing functionality.
+ */ -->
+
 <script lang="ts">
   import { Button } from "./ui/button";
   import { Input } from "./ui/input";
@@ -67,10 +80,6 @@
   }
 </script>
 
-/** * SessionInfo Component * * Displays and manages user session information including: * -
-Anonymous session ID * - Clerk authentication status * - Usage history * - Session state debugging
-info * * This component handles both anonymous and authenticated states, * providing session
-management and data clearing functionality. */
 <!-- Main component container - Only renders when Clerk user state is determined -->
 {#if $clerkUser !== undefined}
   <div class="space-y-6">
