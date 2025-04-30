@@ -198,16 +198,16 @@
 {#if $networkIsOnline}
   <!-- Online: Render ClerkProvider and main app content -->
   <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
-    <div class="flex min-h-screen flex-col">
+    <div class="flex h-screen flex-col overflow-auto">
       {#if showHeaderFooter}
         <AppHeader />
       {/if}
       <MotionWrapper>
-        <main class="flex-1">
+        <main class="mt-16 flex-1">
           {#if i18nReady && trackingInitialized}
             {@render children()}
           {:else}
-            <div class="flex min-h-[60vh] items-center justify-center">
+            <div class="flex h-full items-center justify-center">
               <p>Loading core app...</p>
             </div>
           {/if}
@@ -220,7 +220,7 @@
   </ClerkProvider>
 {:else}
   <!-- Offline: Display an offline indicator/message -->
-  <div class="bg-background text-foreground flex min-h-screen flex-col items-center justify-center">
+  <div class="bg-background text-foreground flex h-screen flex-col items-center justify-center">
     <div
       class="bg-card text-card-foreground flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm"
     >
@@ -233,7 +233,7 @@
   </div>
 {/if}
 
-<!-- Render EnvironmentIndicator fixed at the bottom right, always visible -->
-<div class="fixed right-4 bottom-4 z-50">
+<!-- Render EnvironmentIndicator fixed at the bottom right -->
+<div class="fixed bottom-4 left-4 z-10">
   <EnvironmentIndicator />
 </div>

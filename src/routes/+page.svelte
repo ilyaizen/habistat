@@ -143,7 +143,7 @@
 </div> -->
 
 <!-- Main landing page layout -->
-<div class="flex min-h-screen flex-col items-center justify-center text-center">
+<div class="flex h-full flex-col items-center justify-center text-center">
   <img src="/logo.svg" alt="Habistat Logo" class="mb-6 h-30 w-30" />
   <h1 class="mb-4 text-4xl font-bold">Habistat</h1>
   <p class="text-muted-foreground mb-8 text-lg">Track your habits, build your future.</p>
