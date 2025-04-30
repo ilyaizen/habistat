@@ -1,14 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import {
-    logAppOpenIfNeeded,
-    getAppOpenHistory,
-    getAssociatedUserId,
-    anonymousUserId,
-    sessionStore,
-    markSessionAssociated,
-    type UserSession
-  } from "$lib/utils/tracking";
+  import { logAppOpenIfNeeded, getAppOpenHistory, sessionStore } from "$lib/utils/tracking";
   import { goto } from "$app/navigation";
   import ActivityMonitor from "$lib/components/activity-monitor.svelte";
   import * as Alert from "$lib/components/ui/alert";
@@ -16,7 +8,6 @@
   import { _ } from "svelte-i18n";
   import type { Writable, Readable } from "svelte/store";
   import { browser } from "$app/environment";
-  import { get } from "svelte/store";
   import type { UserResource } from "@clerk/types";
   import { getContext } from "svelte";
 
