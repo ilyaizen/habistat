@@ -62,17 +62,13 @@
     function initializeClerkStateFromWindow() {
       const clerk = window.Clerk as unknown as LoadedClerk | undefined;
       if (clerk) {
-        console.log("[Layout] window.Clerk found:", clerk);
         set(clerk.user ?? null);
 
         // Add listener to update store on auth changes
         unsubscribe = clerk.addListener(({ user }) => {
-          console.log("[Layout] Clerk listener update:", user);
           set(user ?? null);
         });
       } else {
-        console.log("[Layout] window.Clerk not found yet, will retry...");
-        set(null);
         // Retry after a short delay
         setTimeout(initializeClerkStateFromWindow, 200);
       }
@@ -99,13 +95,8 @@
     const user = $clerkUserStore;
     const session = $sessionStore;
 
-    console.log(
-      `[Layout Effect] User: ${user?.id ?? "null"}, Session: ${session?.id ?? "null"} (${session?.state ?? "unknown"})`
-    );
-
     // Check if we need to associate the session
     if (user?.id && session?.state === "anonymous") {
-      console.log(`[Layout Effect] Associating session for user ${user.id}`);
       markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
     }
   });
@@ -184,7 +175,6 @@
         await waitLocale();
         i18nReady = true;
       } catch (error) {
-        // Log i18n errors but mark as ready to avoid blocking app load
         console.error("Error initializing i18n:", error);
         i18nReady = true;
       }

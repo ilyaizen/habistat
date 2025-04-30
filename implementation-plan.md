@@ -1,5 +1,24 @@
 # **Habistat - Implementation Plan**
 
+
+
+---
+
+## Phase 1B: Platform Layout UI Improvements (Redesigned Dashboard/Settings)
+
+Inspiration: T3.chat
+
+- I need to make auth optional while also ensuring that users receive clear feedback about their authentication status.
+- Regularizing the theme and connectivity logic, ensuring synchronization between user settings and system defaults.
+- Redesign Dashboard with Sidebar.
+
+- [ ] Shadcn Sidebar
+- [ ] Setting Subroutes for
+- [ ] Curved Header
+
+---
+
+
 ## ~~DONE: Phase 1A: Homepage & UI Foundation~~
 
 **Goal:**
@@ -47,22 +66,6 @@ Establish a clean, multilingual, and minimalistic user interface foundation. Sim
 - [x] Ensure all UI changes work offline without backend dependencies
 - [x] Avoid SSR or dynamic data fetching in this phase
 - [x] Keep everything static and client-rendered
-
----
-
-## Phase 1B: Platform Layout UI Improvements (Redesigned Dashboard/Settings)
-
-Inspiration: T3.chat
-
-- I need to make auth optional while also ensuring that users receive clear feedback about their authentication status.
-- Regularizing the theme and connectivity logic, ensuring synchronization between user settings and system defaults.
-- Redesign Dashboard with Sidebar.
-
-- [ ] Shadcn Sidebar
-- [ ] Setting Subroutes for
-- [ ] Curved Header
-
----
 
 ## ~~DONE: Phase 2: Activity Visualization & Session Info Display~~
 

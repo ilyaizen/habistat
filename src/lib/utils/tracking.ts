@@ -96,7 +96,6 @@ function createSessionStore() {
         // If session is null (maybe SSR or cleared), do nothing
         // Or, if in browser and somehow null, create a new one
         if (!session) {
-          console.warn("Touching session when it's null. Creating new session.");
           const newSession = createNewSessionObject();
           localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(newSession));
           return newSession; // Update store with new session
@@ -132,7 +131,6 @@ function createSessionStore() {
         currentSession = createNewSessionObject();
         localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentSession));
         set(currentSession);
-        console.log("[Tracking] Created new session:", currentSession.id);
       }
       return currentSession!;
     }
@@ -157,45 +155,18 @@ export const anonymousUserId = derived(
  * RETURNS A PROMISE that resolves when the session is loaded.
  */
 export async function initializeTracking(): Promise<void> {
-  console.log("[Tracking] initializeTracking: Starting...");
-  if (!browser) {
-    console.log("[Tracking] initializeTracking: Not in browser, returning.");
-    return;
-  }
+  if (!browser) return;
 
   try {
     let currentSession = get(sessionStore);
-    console.log(
-      "[Tracking] initializeTracking: Initial store value before loading:",
-      JSON.stringify(currentSession)
-    );
 
-    // Only attempt to load if the store isn't already populated
     if (!currentSession) {
       currentSession = loadSession();
-      console.log(
-        "[Tracking] initializeTracking: Loaded from localStorage:",
-        JSON.stringify(currentSession)
-      );
 
-      // If we found a session in localStorage, set it in the store
       if (currentSession) {
         sessionStore.set(currentSession);
-        console.log(
-          "[Tracking] initializeTracking: Store updated with loaded session.",
-          JSON.stringify(currentSession)
-        );
       }
-    } else {
-      console.log(
-        "[Tracking] initializeTracking: Using existing session already in store:",
-        JSON.stringify(currentSession)
-      );
     }
-    console.log(
-      "[Tracking] initializeTracking: Finished. Final session state in store before resolving:",
-      JSON.stringify(get(sessionStore))
-    );
   } catch (error) {
     console.error("[Tracking] initializeTracking: Error during initialization:", error);
   }
@@ -223,9 +194,7 @@ export function getSessionState(): "anonymous" | "associated" {
  * @param email Optional user email.
  */
 export function markSessionAssociated(clerkUserId: string, email?: string): void {
-  console.log("[Auth] Starting session association for:", clerkUserId);
   sessionStore.update((currentSession) => {
-    console.log("[Auth] Current session state:", currentSession);
     if (!currentSession) {
       console.error("[Auth] No session to associate");
       return null;
