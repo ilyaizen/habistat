@@ -14,8 +14,10 @@
   import { page } from "$app/state";
   import { setContext, type Snippet } from "svelte";
   import { waitLocale } from "svelte-i18n";
-  import { writable, get, readable } from "svelte/store";
+  import { get, readable } from "svelte/store";
   import { theme } from "$lib/stores/settings";
+  // Import the network status store
+  import { isOnline as networkIsOnline } from "$lib/stores/network";
   import { resetMode, setMode } from "mode-watcher";
   import { ClerkProvider } from "svelte-clerk";
   // Re-import Clerk types needed for the readable store
@@ -26,6 +28,9 @@
   import type { LayoutData } from "./$types"; // Import LayoutData type
   import AppFooter from "$lib/components/app-footer.svelte";
   import { browser } from "$app/environment";
+  import AppHeader from "$lib/components/app-header.svelte";
+  // Import the new EnvironmentIndicator
+  import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
 
   // Logging Clerk publishable key during development for verification
   console.log(
@@ -34,8 +39,6 @@
   );
 
   import "../app.css";
-
-  import AppHeader from "$lib/components/app-header.svelte";
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -53,8 +56,9 @@
   let systemListener: (() => void) | null = null; // Listener function for system theme changes
 
   // Create a readable store for the Clerk user state
+  // Only initialize this store if online, otherwise ClerkProvider won't be rendered
   const clerkUserStore = readable<UserResource | null>(null, (set) => {
-    if (!browser) return;
+    if (!browser || !get(networkIsOnline)) return; // Check network status here
 
     let unsubscribe: (() => void) | null = null;
 
@@ -89,8 +93,9 @@
   setContext("clerkUser", clerkUserStore);
 
   // Effect to handle session association when user logs in
+  // Only run this effect if online
   $effect(() => {
-    if (!browser) return;
+    if (!browser || !$networkIsOnline) return;
 
     const user = $clerkUserStore;
     const session = $sessionStore;
@@ -156,7 +161,7 @@
   /**
    * Initializes core application functionalities on component mount in the browser.
    * Includes theme setup, tracking initialization, and i18n setup.
-   * Clerk initialization is handled separately by ClerkProvider.
+   * Clerk initialization is handled separately by ClerkProvider, if online.
    */
   async function initializeAppCore() {
     if (!browser) return;
@@ -167,6 +172,7 @@
       selectTheme(currentTheme);
 
       // Initialize tracking (waits for store to load from localStorage)
+      // Tracking initialization can happen regardless of online status
       await initializeTracking();
       trackingInitialized = true;
 
@@ -199,30 +205,45 @@
   });
 </script>
 
-<ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
-  <!-- ClerkProvider wraps the application to provide authentication context -->
-  <div class="flex min-h-screen flex-col">
-    {#if showHeaderFooter}
-      <!-- Render AppHeader conditionally based on derived store -->
-      <AppHeader />
-    {/if}
-    <MotionWrapper>
-      <!-- Main content area -->
-      <main class="min-h-screen flex-1">
-        {#if i18nReady && trackingInitialized}
-          <!-- Render child content using the children prop -->
-          {@render children()}
-        {:else}
-          <!-- Display loading indicator while waiting for initialization -->
-          <div class="flex min-h-[60vh] items-center justify-center">
-            <p>Loading core app...</p>
-          </div>
-        {/if}
-      </main>
-    </MotionWrapper>
-    {#if showHeaderFooter}
-      <!-- Render AppFooter conditionally -->
-      <AppFooter />
-    {/if}
+{#if $networkIsOnline}
+  <!-- Online: Render ClerkProvider and main app content -->
+  <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <div class="flex min-h-screen flex-col">
+      {#if showHeaderFooter}
+        <AppHeader />
+      {/if}
+      <MotionWrapper>
+        <main class="min-h-screen flex-1">
+          {#if i18nReady && trackingInitialized}
+            {@render children()}
+          {:else}
+            <div class="flex min-h-[60vh] items-center justify-center">
+              <p>Loading core app...</p>
+            </div>
+          {/if}
+        </main>
+      </MotionWrapper>
+      {#if showHeaderFooter}
+        <AppFooter />
+      {/if}
+    </div>
+  </ClerkProvider>
+{:else}
+  <!-- Offline: Display an offline indicator/message -->
+  <div class="bg-background text-foreground flex min-h-screen flex-col items-center justify-center">
+    <div
+      class="bg-card text-card-foreground flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm"
+    >
+      <h1 class="text-2xl font-semibold tracking-tight">Application Offline</h1>
+      <p class="text-muted-foreground text-sm">Please check your internet connection.</p>
+      <p class="text-muted-foreground text-sm">
+        Some features may be unavailable until you are back online.
+      </p>
+    </div>
   </div>
-</ClerkProvider>
+{/if}
+
+<!-- Render EnvironmentIndicator fixed at the bottom right, always visible -->
+<div class="fixed right-4 bottom-4 z-50">
+  <EnvironmentIndicator />
+</div>

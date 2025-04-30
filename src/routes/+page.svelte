@@ -11,7 +11,6 @@
 <script lang="ts">
   import { Button } from "$lib/components/ui/button";
   import AboutDrawer from "$lib/components/about-drawer.svelte";
-  import EnvironmentBadge from "$lib/components/environment-badge.svelte";
   import { goto } from "$app/navigation";
   import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
   import { browser } from "$app/environment";
@@ -138,9 +137,10 @@
   });
 </script>
 
-<div class="absolute top-2 right-2">
+<!-- Environment badge removed from here -->
+<!-- <div class="absolute top-2 right-2">
   <EnvironmentBadge />
-</div>
+</div> -->
 
 <!-- Main landing page layout -->
 <div class="flex min-h-screen flex-col items-center justify-center text-center">
