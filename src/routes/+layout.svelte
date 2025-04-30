@@ -36,7 +36,6 @@
   import "../app.css";
 
   import AppHeader from "$lib/components/app-header.svelte";
-  import { goto } from "$app/navigation";
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -44,11 +43,6 @@
   // Derive whether to show header/footer based on the current page path
   // Hides them on the landing page ("/")
   const showHeaderFooter = $derived(page.url.pathname !== "/");
-
-  // Stores for managing authentication state
-  const authModeStore = writable<"offline" | "online">("offline"); // Tracks if auth should operate online or offline
-  // Make stores available to child components via context
-  setContext("authMode", authModeStore);
 
   // State for tracking initialization progress
   let i18nReady = $state(false); // Flag indicating i18n initialization is complete
