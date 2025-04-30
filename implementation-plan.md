@@ -13,7 +13,7 @@ Inspiration: T3.chat
 
 - [ ] Shadcn Sidebar
 - [ ] Setting Subroutes for Account, Customization, History & Sync
-- [ ] Curved Header
+- [ ] Curved Header Effect
 
 ---
 

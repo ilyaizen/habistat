@@ -16,27 +16,17 @@
   import { waitLocale } from "svelte-i18n";
   import { get, readable } from "svelte/store";
   import { theme } from "$lib/stores/settings";
-  // Import the network status store
-  import { isOnline as networkIsOnline } from "$lib/stores/network";
   import { resetMode, setMode } from "mode-watcher";
   import { ClerkProvider } from "svelte-clerk";
-  // Re-import Clerk types needed for the readable store
   import type { LoadedClerk, UserResource } from "@clerk/types";
-  // Import tracking initialization function and session management utilities
   import { initializeTracking, sessionStore, markSessionAssociated } from "$lib/utils/tracking";
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
-  import type { LayoutData } from "./$types"; // Import LayoutData type
+  import type { LayoutData } from "./$types";
+  import AppHeader from "$lib/components/app-header.svelte";
   import AppFooter from "$lib/components/app-footer.svelte";
   import { browser } from "$app/environment";
-  import AppHeader from "$lib/components/app-header.svelte";
-  // Import the new EnvironmentIndicator
+  import { isOnline as networkIsOnline } from "$lib/stores/network";
   import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
-
-  // Logging Clerk publishable key during development for verification
-  console.log(
-    "Layout - VITE_PUBLIC_CLERK_PUBLISHABLE_KEY:",
-    import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY
-  );
 
   import "../app.css";
 
@@ -213,7 +203,7 @@
         <AppHeader />
       {/if}
       <MotionWrapper>
-        <main class="min-h-screen flex-1">
+        <main class="flex-1">
           {#if i18nReady && trackingInitialized}
             {@render children()}
           {:else}
