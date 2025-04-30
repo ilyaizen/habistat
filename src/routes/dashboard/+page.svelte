@@ -25,13 +25,11 @@
 
   onMount(() => {
     if (browser) {
-      // onMount is now simpler, effect handles loading
       console.log("[Dashboard onMount] Component mounted.");
     }
   });
 
   function loadActivityData() {
-    // Ensure browser context for localStorage access in getAppOpenHistory
     if (!browser) return;
     try {
       const historyTimestamps = getAppOpenHistory();
@@ -61,73 +59,47 @@
     }
   }
 
-  // Reactive effect to load data when user/session state is ready
   $effect(() => {
-    if (!browser) return; // Don't run on server
+    if (!browser) return;
 
     const user = $userStore;
     const session = $sessionStore;
 
-    console.log(
-      `[Dashboard Effect Run] User: ${user?.id ?? "null"}, Session: ${session?.id ?? "null"} (${session?.state ?? "unknown"})`
-    );
-
-    // Wait until session is loaded/initialized
     if (!session) {
-      console.log("[Dashboard Effect] Waiting for session store to initialize...");
-      loadingState = true; // Keep showing loading until session is ready
+      loadingState = true;
       return;
     }
 
     let userIdToUse: string | null = null;
     let needsActivityLoad = false;
 
-    // --- Determine User ID to Use ---
     if (user?.id && session.state === "associated") {
-      // User logged in, session associated
       userIdToUse = user.id;
-      console.log(`[Dashboard Effect] Using Clerk User ID: ${userIdToUse}`);
       needsActivityLoad = true;
     } else if (!user?.id && session.state === "anonymous") {
-      // User logged out (or never logged in), session is anonymous
-      userIdToUse = session.id; // Use anonymous ID
-      console.log(`[Dashboard Effect] Using Anonymous Session ID: ${userIdToUse}`);
+      userIdToUse = session.id;
       needsActivityLoad = true;
     } else if (!user?.id && session.state === "associated") {
-      // This can happen briefly during logout while stores are updating
-      // We'll use the session ID and wait for the session state to update
       userIdToUse = session.id;
-      console.log(
-        `[Dashboard Effect] Session state transitioning during logout. Using session ID: ${userIdToUse}`
-      );
       needsActivityLoad = true;
     } else {
-      // Still waiting for user/session state to stabilize
-      console.log("[Dashboard Effect] Waiting for user/session state to stabilize.");
-      loadingState = true; // Keep loading
+      loadingState = true;
     }
 
-    // --- Set currentUserId and Load Data if Ready ---
     if (userIdToUse) {
       currentUserId = userIdToUse;
       if (needsActivityLoad) {
-        console.log(`[Dashboard Effect] Loading activity data for user: ${currentUserId}`);
-        logAppOpenIfNeeded(); // Log app open for the determined user
-        loadActivityData(); // Load data for the determined user (already sets loadingState = false)
+        logAppOpenIfNeeded();
+        loadActivityData();
       } else {
-        loadingState = false; // Ensure loading stops if activity load isn't needed but user is determined
+        loadingState = false;
       }
     } else {
-      // If no userIdToUse could be determined, potentially redirect or show error
-      console.error(
-        "[Dashboard Effect] Could not determine a valid user ID. Redirecting to sign-in."
-      );
-      loadingState = false; // Stop loading before redirect
+      loadingState = false;
       goto("/sign-in", { replaceState: true });
     }
   });
 
-  // Helper function reused by loadActivityData
   function formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -136,56 +108,52 @@
   }
 </script>
 
-<div class="flex flex-col">
-  <main class="flex-1 p-4 md:p-6 lg:p-8">
-    <div class="container mx-auto max-w-6xl">
-      {#if browser}
-        {#if loadingState}
-          <div class="flex min-h-[60vh] items-center justify-center">
-            <p class="text-muted-foreground text-lg">Loading dashboard...</p>
-          </div>
-        {:else}
-          <div class="mb-6 flex items-center justify-between">
-            <h1 class="text-3xl font-bold">{$_("dashboard.title")}</h1>
-            {#if !$isOnline && $authMode === "online"}
-              <Alert.Root variant="destructive" class="max-w-md">
-                <Alert.Description>
-                  You are currently offline. Your data will be stored locally and synced when you're
-                  back online.
-                </Alert.Description>
-              </Alert.Root>
-            {/if}
-          </div>
-
-          {#if fetchError}
-            <Alert.Root variant="destructive" class="mb-4">
-              <Alert.Title>{$_("common.error")}</Alert.Title>
-              <Alert.Description>{fetchError}</Alert.Description>
-            </Alert.Root>
-          {/if}
-
-          {#if currentUserId && !fetchError}
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-              <Card.Root class="md:col-span-3">
-                <Card.Header>
-                  <Card.Title class="text-xl">{$_("dashboard.activity_title")}</Card.Title>
-                </Card.Header>
-                <Card.Content>
-                  {#if activeDates.size > 0}
-                    <ActivityMonitor {activeDates} sessionStartDate={earliestActivityDate} />
-                  {:else}
-                    <p class="text-muted-foreground">{$_("dashboard.no_activity")}</p>
-                  {/if}
-                </Card.Content>
-              </Card.Root>
-            </div>
-          {/if}
+{#if browser}
+  {#if loadingState}
+    <div class="flex min-h-[60vh] items-center justify-center">
+      <p class="text-muted-foreground text-lg">Loading dashboard...</p>
+    </div>
+  {:else}
+    <div class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-bold">{$_("dashboard.title")}</h1>
+        {#if !$isOnline && $authMode === "online"}
+          <Alert.Root variant="destructive" class="max-w-md">
+            <Alert.Description>
+              You are currently offline. Your data will be stored locally and synced when you're
+              back online.
+            </Alert.Description>
+          </Alert.Root>
         {/if}
-      {:else}
-        <div class="flex min-h-[60vh] items-center justify-center">
-          <p class="text-muted-foreground text-lg">Loading dashboard...</p>
+      </div>
+
+      {#if fetchError}
+        <Alert.Root variant="destructive">
+          <Alert.Title>{$_("common.error")}</Alert.Title>
+          <Alert.Description>{fetchError}</Alert.Description>
+        </Alert.Root>
+      {/if}
+
+      {#if currentUserId && !fetchError}
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <Card.Root class="md:col-span-3">
+            <Card.Header>
+              <Card.Title class="text-xl">{$_("dashboard.activity_title")}</Card.Title>
+            </Card.Header>
+            <Card.Content>
+              {#if activeDates.size > 0}
+                <ActivityMonitor {activeDates} sessionStartDate={earliestActivityDate} />
+              {:else}
+                <p class="text-muted-foreground">{$_("dashboard.no_activity")}</p>
+              {/if}
+            </Card.Content>
+          </Card.Root>
         </div>
       {/if}
     </div>
-  </main>
-</div>
+  {/if}
+{:else}
+  <div class="flex min-h-[60vh] items-center justify-center">
+    <p class="text-muted-foreground text-lg">Loading dashboard...</p>
+  </div>
+{/if}

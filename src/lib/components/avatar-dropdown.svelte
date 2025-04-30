@@ -6,6 +6,7 @@
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { browser } from "$app/environment";
+  import { SignedIn, UserButton } from "svelte-clerk";
   // import {
   //   AlertDialog,
   //   AlertDialogAction,
@@ -73,6 +74,9 @@
   }
 </script>
 
+<SignedIn>
+  <UserButton afterSignOutUrl="/" showName={false} />
+</SignedIn>
 <DropdownMenu.Root>
   <DropdownMenu.Trigger>
     <Avatar class="border-border bg-muted h-8 w-8 border">

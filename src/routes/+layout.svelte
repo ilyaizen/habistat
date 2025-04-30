@@ -203,7 +203,7 @@
         <AppHeader />
       {/if}
       <MotionWrapper>
-        <main class="mt-16 flex-1">
+        <main class="flex-1">
           {#if i18nReady && trackingInitialized}
             {@render children()}
           {:else}
