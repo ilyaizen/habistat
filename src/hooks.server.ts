@@ -49,7 +49,6 @@ declare global {
         getToken: () => Promise<string | null>;
       };
       isAuthenticated?: boolean; // Your custom flag
-      isOffline?: boolean; // Your custom flag
     }
   }
 }

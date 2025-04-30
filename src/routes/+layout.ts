@@ -21,7 +21,6 @@ export const load: LayoutLoad = async ({ data }) => {
 
   // Pass auth state to the layout
   return {
-    isAuthenticated: data?.isAuthenticated ?? false,
-    isOffline: data?.isOffline ?? true
+    isAuthenticated: !!data?.user
   };
 };

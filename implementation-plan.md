@@ -1,80 +1,6 @@
 # **Habistat - Implementation Plan**
 
-Task: Refactor `session-info.svelte` component, move auth persistent session user information (user id/email info) to `src/routes/+layout.svelte`.
-
-In the `src/routes/+layout.svelte` file, the application's root layout manages multiple core functionalities, including handling authentication with Clerk. Here's a breakdown of the key areas related to authentication and some recommendations to improve the app flow:
-
-## Authentication with Clerk
-
-The application uses Clerk for authentication and manages this state within the `+layout.svelte` component. Here's a snippet of how Clerk is integrated:
-
-```svelte
-<ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
-  <!-- ClerkProvider wraps the application to provide authentication context -->
-  <div class="flex min-h-screen flex-col">
-    {#if $showHeaderFooter}
-      <!-- Render AppHeader conditionally based on derived store -->
-      <AppHeader />
-    {/if}
-    <MotionWrapper>
-      <!-- Main content area -->
-      <main class="min-h-screen flex-1">
-        {#if i18nReady && trackingInitialized}
-          <!-- Render child content using the children prop -->
-          {@render children()}
-        {:else}
-          <!-- Display loading indicator while waiting for initialization -->
-          <div class="flex min-h-[60vh] items-center justify-center">
-            <p>Loading core app...</p>
-          </div>
-        {/if}
-      </main>
-    </MotionWrapper>
-    {#if $showHeaderFooter}
-      <!-- Render AppFooter conditionally -->
-      <AppFooter />
-    {/if}
-  </div>
-</ClerkProvider>
-```
-
-### Features
-
-- **ClerkProvider**: Wraps the application to provide authentication context.
-- The app conditionally renders components like headers and footers based on the app's state, controlled via readable stores like `authModeStore`.
-
-## Optional Authentication Flow
-
-Since authentication is optional, the code includes fallbacks and checks to ensure the app can function both with and without active authentication. Consider adding additional logging or user messages to indicate when authentication is optional and how users can opt into it.
-
-### Improvements
-
-1. **User Feedback**: Add user feedback to indicate authentication status clearly. You might consider showing a banner or notification when the app is running offline or when authentication is optional.
-
-2. **Expanded Error Handling**: In the `setupClerkListener` function, ensure robust error handling to manage situations where Clerk isn't properly initialized or if real-time updates fail:
-
-   ```typescript
-   async function setupClerkListener() {
-     try {
-       // Current attempts to handle loading and setup for Clerk
-       // Ensure fallback for UI if Clerk fails
-       const clerkInstance = window.Clerk as LoadedClerk | undefined;
-       if (!clerkInstance) {
-         set(null); // Set null if Clerk is not loaded
-         console.error("[Error] Clerk not loaded, ensure it is implemented correctly.");
-       }
-       // Existing listener setup
-     } catch (error) {
-       console.error("[Setup Clerk Listener] Error:", error);
-     }
-   }
-   ```
-
-3. **Flexibility in Theme and Connectivity**: The component efficiently manages themes and connectivity states. Continue to improve this by integrating visual cues or animations when themes change or connectivity status updates.
-
-By improving the user feedback and error handling, you enhance the robustness of the authentication flow. Additionally, ensuring that these operations are seamless, and user-friendly improves overall user experience.
-
-## ~~DONE: Phase 1: Homepage & UI Foundation~~
+## ~~DONE: Phase 1A: Homepage & UI Foundation~~
 
 **Goal:**
 
@@ -121,6 +47,20 @@ Establish a clean, multilingual, and minimalistic user interface foundation. Sim
 - [x] Ensure all UI changes work offline without backend dependencies
 - [x] Avoid SSR or dynamic data fetching in this phase
 - [x] Keep everything static and client-rendered
+
+---
+
+## Phase 1B: Platform Layout UI Improvements (Redesigned Dashboard/Settings)
+
+Inspiration: T3.chat
+
+- I need to make auth optional while also ensuring that users receive clear feedback about their authentication status.
+- Regularizing the theme and connectivity logic, ensuring synchronization between user settings and system defaults.
+- Redesign Dashboard with Sidebar.
+
+- [ ] Shadcn Sidebar
+- [ ] Setting Subroutes for
+- [ ] Curved Header
 
 ---
 
@@ -235,21 +175,25 @@ Draws on "Streak Calendar" structure, adapted for SvelteKit/Shadcn-Svelte, local
   - [ ] Fetch data _from the local `calendars` store_.
   - [ ] Sort calendars based on their `position` field before rendering.
   - [ ] Use `{#each}` to render `CalendarListItem` components (`src/lib/components/calendars/calendar-list-item.svelte`).
-  - [ ] Add a "Create New Calendar" `Button` triggering a dialog.
+  - [ ] Add a "Create New Calendar" `Button` linking to `/calendars/new`.
 - [ ] **`CalendarListItem` Component:**
   - [ ] Display calendar `name` and a visual indicator for `colorTheme`.
-  - [ ] Include `Button`s for "Edit" (opens dialog), "Delete" (opens confirmation), and potentially "View" (navigates to `/[calendarId]`).
+  - [ ] Include `Button`s for "Edit" (links to `/calendars/[id]/edit`), "Delete" (opens confirmation), and "View" (navigates to `/calendars/[id]`).
   - [ ] Add basic "Move Up" / "Move Down" buttons (for reordering).
-- [ ] **Calendar CRUD Dialog:** Create a reusable `CalendarDialog` component (`src/lib/components/calendars/calendar-dialog.svelte`).
-  - [ ] Use `shadcn-svelte` `Dialog`, `Input` (for name), `Select` or custom component (for colorTheme).
-  - [ ] Handle both "Create" and "Edit" modes. On Edit, pre-fill with existing data.
+- [ ] **Calendar CRUD Pages:** Create the following routes:
+  - [ ] `/calendars/new` (`src/routes/calendars/new/+page.svelte`): New calendar creation form
+  - [ ] `/calendars/[id]/edit` (`src/routes/calendars/[id]/edit/+page.svelte`): Edit existing calendar form
+  - [ ] Both pages should:
+    - [ ] Use `shadcn-svelte` `Form`, `Input` (for name), `Select` or custom component (for colorTheme)
+    - [ ] Include validation and error handling
+    - [ ] Redirect back to calendar list on success
 - [ ] **Calendar Logic (Stores & Components):**
   - [ ] Implement `addCalendar`, `updateCalendar`, `deleteCalendar`, `moveCalendarUp/Down` functions in `src/lib/stores/calendars.ts`.
   - [ ] These functions must:
     - [ ] Modify the store's array data.
     - [ ] Recalculate `position` values for affected items (add = append, delete = shift up, move = swap/shift).
     - [ ] Trigger `localStorage` save implicitly via store update.
-  - [ ] Connect UI buttons/dialogs to call these store functions.
+  - [ ] Connect form submissions to call these store functions.
 
 ### 3. Habit Management UI/UX (Within Calendar Context)
 
@@ -258,23 +202,27 @@ Draws on "Streak Calendar" structure, adapted for SvelteKit/Shadcn-Svelte, local
   - [ ] Fetch habits associated with this `calendarId` using a `derived` store that filters the main `habits` store.
   - [ ] Display the calendar name/theme.
   - [ ] List associated habits, sorted by `position`, using `{#each}` and a `HabitListItem` component (`src/lib/components/habits/habit-list-item.svelte`).
-  - [ ] Add a "Create New Habit" button (scoped to the current calendar) triggering a dialog.
+  - [ ] Add a "Create New Habit" button linking to `/calendars/[calendarId]/habits/new`.
 - [ ] **`HabitListItem` Component:**
   - [ ] Display habit `name` and potentially `timerDuration` indicator.
-  - [ ] Include `Button`s for "Edit" (opens dialog), "Delete" (opens confirmation).
+  - [ ] Include `Button`s for "Edit" (links to `/calendars/[calendarId]/habits/[id]/edit`), "Delete" (opens confirmation).
   - [ ] Add basic "Move Up" / "Move Down" buttons for reordering within the calendar list.
   - [ ] Add a "Log Completion (+)" button.
   - [ ] Display the count of completions for _today_ next to the habit name (use a `derived` store based on `completions` store).
-- [ ] **Habit CRUD Dialog:** Create a reusable `HabitDialog` component (`src/lib/components/habits/habit-dialog.svelte`).
-  - [ ] Use `shadcn-svelte` `Dialog`, `Input` (for name), optional `Input type=number` (for `timerDuration`).
-  - [ ] Handle both "Create" and "Edit" modes. Needs the `calendarId` context.
+- [ ] **Habit CRUD Pages:** Create the following routes:
+  - [ ] `/calendars/[calendarId]/habits/new` (`src/routes/calendars/[calendarId]/habits/new/+page.svelte`): New habit creation form
+  - [ ] `/calendars/[calendarId]/habits/[id]/edit` (`src/routes/calendars/[calendarId]/habits/[id]/edit/+page.svelte`): Edit existing habit form
+  - [ ] Both pages should:
+    - [ ] Use `shadcn-svelte` `Form`, `Input` (for name), optional `Input type=number` (for `timerDuration`)
+    - [ ] Include validation and error handling
+    - [ ] Redirect back to calendar detail view on success
 - [ ] **Habit Logic (Stores & Components):**
   - [ ] Implement `addHabit`, `updateHabit`, `deleteHabit`, `moveHabitUp/Down` functions in `src/lib/stores/habits.ts`.
   - [ ] These functions must:
     - [ ] Modify the store's array data, ensuring `calendarId` is set correctly.
     - [ ] Recalculate `position` values _within the scope of the parent calendar_.
     - [ ] Trigger `localStorage` save.
-  - [ ] Connect UI buttons/dialogs to call these store functions.
+  - [ ] Connect form submissions to call these store functions.
 
 ### 4. Completion Logging
 

@@ -2,7 +2,6 @@
  * Root layout component for the Habistat application.
  * Handles core application setup including:
  * - Theme management (system/light/dark)
- * - Online/offline state
  * - Internationalization (i18n)
  * - Application initialization
  * - Header/footer visibility
@@ -12,10 +11,10 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import { setContext, type Snippet } from "svelte";
   import { waitLocale } from "svelte-i18n";
-  import { writable, get, type Readable, derived as derivedStore, readable } from "svelte/store";
+  import { writable, get, readable } from "svelte/store";
   import { theme } from "$lib/stores/settings";
   import { resetMode, setMode } from "mode-watcher";
   import { ClerkProvider } from "svelte-clerk";
@@ -27,8 +26,6 @@
   import type { LayoutData } from "./$types"; // Import LayoutData type
   import AppFooter from "$lib/components/app-footer.svelte";
   import { browser } from "$app/environment";
-  // SessionAssociator component is no longer needed here
-  // import SessionAssociator from "$lib/components/session-associator.svelte";
 
   // Logging Clerk publishable key during development for verification
   console.log(
@@ -46,14 +43,12 @@
 
   // Derive whether to show header/footer based on the current page path
   // Hides them on the landing page ("/")
-  const showHeaderFooter = derivedStore(page, ($p) => $p.url.pathname !== "/");
+  const showHeaderFooter = $derived(page.url.pathname !== "/");
 
-  // Stores for managing authentication and connectivity state
+  // Stores for managing authentication state
   const authModeStore = writable<"offline" | "online">("offline"); // Tracks if auth should operate online or offline
-  const isOnlineStore = writable(true); // Tracks the browser's online status
   // Make stores available to child components via context
   setContext("authMode", authModeStore);
-  setContext("isOnline", isOnlineStore);
 
   // State for tracking initialization progress
   let i18nReady = $state(false); // Flag indicating i18n initialization is complete
@@ -174,17 +169,8 @@
   }
 
   /**
-   * Updates the `isOnlineStore` and `authModeStore` based on the browser's navigator.onLine status.
-   */
-  function updateOnlineStatus() {
-    const online = navigator.onLine;
-    isOnlineStore.set(online);
-    authModeStore.set(online ? "online" : "offline");
-  }
-
-  /**
    * Initializes core application functionalities on component mount in the browser.
-   * Includes theme setup, tracking initialization, online/offline status detection, and i18n setup.
+   * Includes theme setup, tracking initialization, and i18n setup.
    * Clerk initialization is handled separately by ClerkProvider.
    */
   async function initializeAppCore() {
@@ -198,13 +184,6 @@
       // Initialize tracking (waits for store to load from localStorage)
       await initializeTracking();
       trackingInitialized = true;
-
-      // Set up online/offline handlers
-      window.addEventListener("online", updateOnlineStatus);
-      window.addEventListener("offline", updateOnlineStatus);
-
-      // Initial online status check
-      updateOnlineStatus();
 
       // Initialize i18n
       try {
@@ -230,8 +209,6 @@
     // Return cleanup function to remove listeners when the component is destroyed.
     return () => {
       if (browser) {
-        window.removeEventListener("online", updateOnlineStatus);
-        window.removeEventListener("offline", updateOnlineStatus);
         cleanupSystemListener();
       }
     };
@@ -241,7 +218,7 @@
 <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
   <!-- ClerkProvider wraps the application to provide authentication context -->
   <div class="flex min-h-screen flex-col">
-    {#if $showHeaderFooter}
+    {#if showHeaderFooter}
       <!-- Render AppHeader conditionally based on derived store -->
       <AppHeader />
     {/if}
@@ -259,7 +236,7 @@
         {/if}
       </main>
     </MotionWrapper>
-    {#if $showHeaderFooter}
+    {#if showHeaderFooter}
       <!-- Render AppFooter conditionally -->
       <AppFooter />
     {/if}
