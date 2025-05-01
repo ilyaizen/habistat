@@ -137,13 +137,8 @@
   });
 </script>
 
-<!-- Environment badge removed from here -->
-<!-- <div class="absolute top-2 right-2">
-  <EnvironmentBadge />
-</div> -->
-
 <!-- Main landing page layout -->
-<div class="flex h-full flex-col items-center justify-center text-center">
+<div class="mt-32 flex h-full flex-col items-center justify-center text-center">
   <img src="/logo.svg" alt="Habistat Logo" class="mb-6 h-30 w-30" />
   <h1 class="mb-4 text-4xl font-bold">Habistat</h1>
   <p class="text-muted-foreground mb-8 text-lg">Track your habits, build your future.</p>
