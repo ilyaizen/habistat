@@ -11,9 +11,9 @@
       href: "/dashboard"
     },
     {
-      title: "Analytics",
+      title: "Statistics",
       icon: BarChart,
-      href: "/dashboard/analytics"
+      href: "/dashboard/statistics"
     },
     {
       title: "Calendar",
@@ -21,14 +21,9 @@
       href: "/dashboard/calendar"
     },
     {
-      title: "Search",
-      icon: Search,
-      href: "/dashboard/search"
-    },
-    {
       title: "Settings",
       icon: Settings,
-      href: "/dashboard/settings"
+      href: "/settings"
     }
   ];
 
@@ -37,7 +32,7 @@
 
 <div class="relative flex overflow-hidden">
   <Sidebar.Provider class="-full">
-    <Sidebar.Root variant="sidebar" class=" mt-10">
+    <Sidebar.Root variant="sidebar">
       <Sidebar.Content>
         <Sidebar.Group>
           <Sidebar.GroupLabel>Dashboard</Sidebar.GroupLabel>

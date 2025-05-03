@@ -8,3 +8,7 @@ export {
   Root as ScrollArea,
   Scrollbar as ScrollAreaScrollbar
 };
+
+export function Viewport(Viewport: any) {
+  throw new Error("Function not implemented.");
+}

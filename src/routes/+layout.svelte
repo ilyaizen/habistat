@@ -4,7 +4,6 @@
  * - Theme management (system/light/dark)
  * - Internationalization (i18n)
  * - Application initialization
- * - Header/footer visibility
  * - Authentication state with Clerk
  * - Session association
  */ -->
@@ -22,8 +21,6 @@
   import { initializeTracking, sessionStore, markSessionAssociated } from "$lib/utils/tracking";
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
   import type { LayoutData } from "./$types";
-  import AppHeader from "$lib/components/app-header.svelte";
-  import AppFooter from "$lib/components/app-footer.svelte";
   import { browser } from "$app/environment";
   import { isOnline as networkIsOnline } from "$lib/stores/network";
   import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
@@ -32,10 +29,6 @@
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
-
-  // Derive whether to show header/footer based on the current page path
-  // Hides them on the landing page ("/")
-  const showHeaderFooter = $derived(page.url.pathname !== "/");
 
   // State for tracking initialization progress
   let i18nReady = $state(false); // Flag indicating i18n initialization is complete
@@ -199,9 +192,6 @@
   <!-- Online: Render ClerkProvider and main app content -->
   <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
     <div class="flex h-screen flex-col overflow-auto">
-      {#if showHeaderFooter}
-        <AppHeader />
-      {/if}
       <MotionWrapper>
         <main class="flex-1">
           {#if i18nReady && trackingInitialized}
@@ -213,9 +203,6 @@
           {/if}
         </main>
       </MotionWrapper>
-      {#if showHeaderFooter}
-        <AppFooter />
-      {/if}
     </div>
   </ClerkProvider>
 {:else}
