@@ -1,4 +1,5 @@
 import type { Handle } from "@sveltejs/kit";
+import { dev } from "$app/environment";
 // Import the Clerk client factory
 import { createClerkClient } from "@clerk/backend";
 import { CLERK_SECRET_KEY } from "$env/static/private";
@@ -13,8 +14,36 @@ const clerkClient = createClerkClient({
 
 // Simplified handle function for svelte-clerk
 export const handle: Handle = async ({ event, resolve }) => {
-  // Get session using Clerk client
-  event.locals.session = await clerkClient.authenticateRequest(event.request);
+  if (dev) {
+    console.log("[hooks.server.ts] Incoming request path:", event.url.pathname);
+    console.log("[hooks.server.ts] Request headers:", Object.fromEntries(event.request.headers));
+  }
+
+  try {
+    // Get session using Clerk client
+    const session = await clerkClient.authenticateRequest(event.request);
+
+    if (dev) {
+      const auth = session?.toAuth();
+      console.log("[hooks.server.ts] Clerk session result:", {
+        hasSession: !!session,
+        status: session?.status,
+        userId: auth?.sessionClaims?.sub
+      });
+    }
+
+    const auth = session?.toAuth();
+    event.locals.session = {
+      ...session,
+      userId: auth?.sessionClaims?.sub
+    };
+  } catch (error) {
+    if (dev) {
+      console.error("[hooks.server.ts] Auth error:", error);
+    }
+    // Don't throw the error, just set session to null
+    event.locals.session = null;
+  }
 
   // Resolve the request
   return resolve(event);

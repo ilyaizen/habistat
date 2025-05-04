@@ -20,6 +20,7 @@
   import type { LoadedClerk, UserResource } from "@clerk/types";
   import { initializeTracking, sessionStore, markSessionAssociated } from "$lib/utils/tracking";
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
+  import AppHeader from "$lib/components/app-header.svelte";
   import type { LayoutData } from "./$types";
   import { browser } from "$app/environment";
   import { isOnline as networkIsOnline } from "$lib/stores/network";
@@ -191,14 +192,18 @@
 {#if $networkIsOnline}
   <!-- Online: Render ClerkProvider and main app content -->
   <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
-    <div class="flex h-screen flex-col overflow-auto">
+    <div class="flex h-screen flex-col overflow-hidden">
+      <AppHeader />
       <MotionWrapper>
-        <main class="flex-1">
+        <main class="flex-1 overflow-hidden">
           {#if i18nReady && trackingInitialized}
             {@render children()}
           {:else}
             <div class="flex h-full items-center justify-center">
-              <p>Loading core app...</p>
+              <!-- Loading spinner or placeholder -->
+              <div
+                class="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"
+              />
             </div>
           {/if}
         </main>
@@ -206,21 +211,27 @@
     </div>
   </ClerkProvider>
 {:else}
-  <!-- Offline: Display an offline indicator/message -->
-  <div class="bg-background text-foreground flex h-screen flex-col items-center justify-center">
-    <div
-      class="bg-card text-card-foreground flex flex-col items-center space-y-4 rounded-lg border p-6 shadow-sm"
-    >
-      <h1 class="text-2xl font-semibold tracking-tight">Application Offline</h1>
-      <p class="text-muted-foreground text-sm">Please check your internet connection.</p>
-      <p class="text-muted-foreground text-sm">
-        Some features may be unavailable until you are back online.
-      </p>
-    </div>
+  <!-- Offline: Render offline content -->
+  <div class="flex h-screen flex-col overflow-hidden">
+    <AppHeader />
+    <MotionWrapper>
+      <main class="flex-1 overflow-hidden">
+        {#if i18nReady && trackingInitialized}
+          {@render children()}
+        {:else}
+          <div class="flex h-full items-center justify-center">
+            <!-- Loading spinner or placeholder -->
+            <div
+              class="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"
+            />
+          </div>
+        {/if}
+      </main>
+    </MotionWrapper>
   </div>
 {/if}
 
 <!-- Render EnvironmentIndicator fixed at the bottom right -->
 <div class="fixed bottom-4 left-4 z-10">
-  <EnvironmentIndicator />
+  <EnvironmentIndicator></EnvironmentIndicator>
 </div>

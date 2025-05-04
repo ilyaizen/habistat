@@ -42,12 +42,12 @@ interface ImportMeta {
   env?: ImportMetaEnv;
 }
 
-import type { RequestState } from "@clerk/backend";
+import type { ClerkAPIResponseError, SessionClaims, RequestState } from "@clerk/backend";
 
 declare global {
   namespace App {
     interface Locals {
-      session?: RequestState;
+      session: RequestState | null;
     }
   }
 }

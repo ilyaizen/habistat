@@ -13,7 +13,7 @@
     "error": "Error"
   },
   "dashboard": {
-    "title": "Dashboard",
+    "title": "Overview",
     "activity_title": "Usage History",
     "no_activity": "No activity recorded yet.",
     "session_info": "Session Info"

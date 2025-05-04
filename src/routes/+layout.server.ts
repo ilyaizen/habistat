@@ -1,21 +1,25 @@
 import type { LayoutServerLoad } from "./$types";
+// import { dev } from "$app/environment";
 
 // This function runs on the server for every page load.
 // It accesses the session data populated by hooks.server.ts
 // and makes it available to the client-side layout.
-export const load: LayoutServerLoad = async ({ locals }) => {
+export const load: LayoutServerLoad = async ({ locals, url }) => {
   // Extract relevant user info from the Clerk session object
-  // The structure depends on what authenticateRequest puts in locals.session
-  // Assuming it follows Clerk's standard session claims structure.
-  const userId = locals.session?.userId;
-  // You might want to fetch email or other details if needed,
-  // but userId is often sufficient for the initial association trigger.
-  // const email = locals.session?. /* access email if available */;
+  const userId = locals.session?.claims?.sub;
 
-  console.log("[+layout.server.ts] load: userId from locals:", userId);
+  // if (dev) {
+  //   console.log("[+layout.server.ts] Current path:", url.pathname);
+  //   console.log("[+layout.server.ts] Auth state:", {
+  //     hasLocals: !!locals,
+  //     hasSession: !!locals.session,
+  //     userId,
+  //     claims: locals.session?.claims
+  //   });
+  // }
 
   return {
     // Pass only necessary, serializable data to the client
-    user: userId ? { id: userId /* , email: email */ } : null
+    user: userId ? { id: userId } : null
   };
 };

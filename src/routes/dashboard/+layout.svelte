@@ -30,9 +30,9 @@
   let { children } = $props();
 </script>
 
-<div class="relative flex overflow-hidden">
-  <Sidebar.Provider class="-full">
-    <Sidebar.Root variant="sidebar">
+<div class="relative flex h-[calc(100vh-2.5rem)] overflow-hidden">
+  <Sidebar.Provider>
+    <Sidebar.Root variant="inset">
       <Sidebar.Content>
         <Sidebar.Group>
           <Sidebar.GroupLabel>Dashboard</Sidebar.GroupLabel>
@@ -60,7 +60,9 @@
     <main class="flex-1 overflow-y-auto">
       <div class="p-4">
         <Sidebar.Trigger class="mb-4" />
-        {@render children()}
+        <div class="bg-background rounded-tl-2xl p-6 shadow-sm">
+          {@render children()}
+        </div>
       </div>
     </main>
   </Sidebar.Provider>
