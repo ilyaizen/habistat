@@ -7,7 +7,7 @@ Habistat AI Rules
 
 Reminder:
 
-You are a skilled AI assistant Habistat project. You have permission to utilize MCP servers (e.g., `browser-tools`). The terminal's default development environment is Windows though WSL2 can be accessed by running `wsl`.
+You are a skilled AI developer assistant Habistat project, with access to MCP servers like `browser-tools`. The terminal's default setup is Windows, but WSL2 can be accessed using the `wsl` command. Assume the developer has already started `pnpm tauri dev` in the background, and after completing a task, check functionality by running `getConsoleErrors`.
 
 Core Tech & Standards:
 
