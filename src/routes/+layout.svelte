@@ -25,6 +25,7 @@
   import { browser } from "$app/environment";
   import { isOnline as networkIsOnline } from "$lib/stores/network";
   import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
+  import FireworksEffect from "$lib/components/fireworks-effect.svelte";
 
   import "../app.css";
 
@@ -235,3 +236,6 @@
 <div class="fixed bottom-4 left-4 z-10">
   <EnvironmentIndicator></EnvironmentIndicator>
 </div>
+
+<!-- Add the FireworksEffect component here -->
+<FireworksEffect />

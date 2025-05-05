@@ -5,11 +5,20 @@
   import { X } from "lucide-svelte";
   import { anonymousUserId } from "$lib/utils/tracking";
   import { goto } from "$app/navigation";
+  import { triggerFireworks } from "$lib/stores/fireworks";
 
   // Props
   export let showMoreInfoButton = false;
   export let open = false;
   export let handleStart: () => void;
+
+  // Function to handle start action and trigger fireworks
+  function handleStartAndFireworks() {
+    // Call the original handleStart function
+    handleStart();
+    // Trigger the fireworks effect
+    triggerFireworks.set(true);
+  }
 </script>
 
 <Drawer.Root bind:open>
@@ -57,7 +66,7 @@
               <Button onclick={() => goto("/dashboard")} size="lg">Dashboard</Button>
             {:else}
               <!-- Show "Start" if no anonymous session ID exists -->
-              <Button onclick={handleStart} size="lg">Start</Button>
+              <Button onclick={handleStartAndFireworks} size="lg">Start</Button>
             {/if}
           </div>
         </div>
