@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { triggerFireworks } from "$lib/stores/fireworks";
-  import { derived } from "svelte/store";
 
   // Svelte 5 $state and $effect runes
   let isTriggered = $state(false);
