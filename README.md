@@ -1,6 +1,6 @@
 # Habistat
 
-I am developing "Habistat," a cross-platform, offline-first productivity app that features habit tracking on habit on multiple customizable calendars, an uptime monitoring ("Usage Monitor"), real-time synchronization (when online), optional sign-up, and OAuth capabilities, leveraging the specified modern tech stack, using pnpm, SvelteKit, and Tauri. The app will later be able to sync stuff to Convex, with OAuth capabilities using Clerk. The whole app is translated to many languages using i18n tooling, and is supposed to work on Tauri's (the system's) native webview, on the frontend with, from what I gather, needs to have minimal usage of SSR and not rely on Tauri's Rust backend.
+"Habistat," a cross-platform, offline-first productivity app that features habit tracking on habit on multiple customizable calendars, an uptime monitoring ("Usage Monitor"), real-time synchronization (when online), optional sign-up, and OAuth capabilities, leveraging the specified modern tech stack, using pnpm, SvelteKit, and Tauri. The app will later be able to sync stuff to Convex, with OAuth capabilities using Clerk. The whole app is translated to many languages using i18n tooling, and is supposed to work on Tauri's (the system's) native webview, on the frontend with, from what I gather, needs to have minimal usage of SSR and not rely on Tauri's Rust backend.
 
 ## Features
 

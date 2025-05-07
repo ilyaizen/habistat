@@ -193,10 +193,10 @@
 {#if $networkIsOnline}
   <!-- Online: Render ClerkProvider and main app content -->
   <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
-    <div class="flex h-screen flex-col overflow-hidden">
+    <div class="flex h-screen flex-col">
       <AppHeader />
       <MotionWrapper>
-        <main class="flex-1 overflow-hidden">
+        <main class="flex-1">
           {#if i18nReady && trackingInitialized}
             {@render children()}
           {:else}
@@ -213,10 +213,10 @@
   </ClerkProvider>
 {:else}
   <!-- Offline: Render offline content -->
-  <div class="flex h-screen flex-col overflow-hidden">
+  <div class="flex h-screen flex-col">
     <AppHeader />
     <MotionWrapper>
-      <main class="flex-1 overflow-hidden">
+      <main class="flex-1">
         {#if i18nReady && trackingInitialized}
           {@render children()}
         {:else}
