@@ -233,9 +233,9 @@
 {/if}
 
 <!-- Render EnvironmentIndicator fixed at the bottom right -->
-<div class="fixed bottom-4 left-4 z-10">
+<!-- <div class="fixed bottom-4 left-4 z-10">
   <EnvironmentIndicator></EnvironmentIndicator>
-</div>
+</div> -->
 
 <!-- Add the FireworksEffect component here -->
 <FireworksEffect />
