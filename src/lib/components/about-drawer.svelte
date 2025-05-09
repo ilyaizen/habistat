@@ -63,10 +63,12 @@
           <div class="mt-8 flex justify-center">
             {#if $anonymousUserId}
               <!-- Show "Dashboard" if an anonymous session ID exists -->
-              <Button onclick={() => goto("/dashboard")} size="lg">Dashboard</Button>
+              <Button onclick={() => goto("/dashboard")} size="lg" class="btn-2-5d"
+                >Dashboard</Button
+              >
             {:else}
               <!-- Show "Start" if no anonymous session ID exists -->
-              <Button onclick={handleStartAndFireworks} size="lg">Start</Button>
+              <Button onclick={handleStartAndFireworks} size="lg" class="btn-2-5d">Start</Button>
             {/if}
           </div>
         </div>

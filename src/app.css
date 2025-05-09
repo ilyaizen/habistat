@@ -230,3 +230,43 @@
     --hue2: 660deg;
   }
 }
+
+/* Custom 2.5D Button Style */
+.btn-2-5d {
+  position: relative;
+  /* Use --primary-border for a theme-consistent darker bottom edge */
+  border-bottom: 4px solid var(--primary-border);
+  /* New "outline-border" using box-shadow, same color as bottom border - made subtler */
+  box-shadow: 0 0 0 1px var(--primary-border);
+  /* removed outline and outline-offset */
+
+  /* Smooth transitions for hover and active states - include box-shadow */
+  transition:
+    transform 0.1s ease-out,
+    box-shadow 0.1s ease-out,
+    /* Added box-shadow to transitions */ margin-top 0.1s ease-out;
+}
+
+.btn-2-5d:hover:not(:disabled) {
+  /* Lift the button */
+  transform: translateY(-2px);
+  /* Animate box-shadow on hover to make it slightly thicker - made subtler */
+  box-shadow: 0 0 0 2px var(--primary-border);
+  /* Keep bottom border width consistent on hover */
+  border-bottom-width: 4px;
+}
+
+.btn-2-5d:active:not(:disabled) {
+  /* Press the button down and adjust border for active effect */
+  transform: translateY(1px);
+  border-bottom-width: 2px; /* This transition is fine for active state */
+  margin-top: 2px; /* Compensate for transform and border change */
+  /* Reset box-shadow on active to new initial subtle state */
+  box-shadow: 0 0 0 1px var(--primary-border);
+  /* Ensure all transitions are covered for active state too */
+  transition:
+    transform 0.1s ease-out,
+    border-bottom-width 0.1s ease-out,
+    margin-top 0.1s ease-out,
+    box-shadow 0.1s ease-out;
+}
