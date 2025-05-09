@@ -29,7 +29,7 @@
         class="fixed bottom-0 left-1/2 z-[100] -translate-x-1/2 p-2"
         transition:slide={{ duration: 250 }}
       >
-        <Button class={buttonVariants({ variant: "default" })} aria-label="Show more info">
+        <Button class={buttonVariants({ variant: "outline" })} aria-label="Show more info">
           More Info
         </Button>
       </div>
@@ -63,12 +63,10 @@
           <div class="mt-8 flex justify-center">
             {#if $anonymousUserId}
               <!-- Show "Dashboard" if an anonymous session ID exists -->
-              <Button onclick={() => goto("/dashboard")} size="lg" class="btn-2-5d"
-                >Dashboard</Button
-              >
+              <Button onclick={() => goto("/dashboard")} size="lg" class="btn-3d">Dashboard</Button>
             {:else}
               <!-- Show "Start" if no anonymous session ID exists -->
-              <Button onclick={handleStartAndFireworks} size="lg" class="btn-2-5d">Start</Button>
+              <Button onclick={handleStartAndFireworks} size="lg" class="btn-3d">Start</Button>
             {/if}
           </div>
         </div>

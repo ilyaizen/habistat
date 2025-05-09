@@ -151,17 +151,12 @@
 
   {#if $anonymousUserId}
     <!-- Show Dashboard button for returning users -->
-    <Button
-      onclick={() => goto("/dashboard")}
-      size="lg"
-      disabled={sessionStarting}
-      class="btn-2-5d"
-    >
+    <Button onclick={() => goto("/dashboard")} size="lg" disabled={sessionStarting} class="btn-3d">
       {sessionStarting ? "Loading..." : "Dashboard"}
     </Button>
   {:else}
     <!-- Show Start button for new users -->
-    <Button onclick={handleStart} size="lg" disabled={sessionStarting} class="btn-2-5d">
+    <Button onclick={handleStart} size="lg" disabled={sessionStarting} class="btn-3d">
       {sessionStarting ? "Starting..." : "Start"}
     </Button>
   {/if}
