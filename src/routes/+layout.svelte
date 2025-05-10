@@ -194,7 +194,7 @@
   <!-- Online: Render ClerkProvider and main app content -->
   <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
     <div class="flex h-screen flex-col">
-      <AppHeader />
+      <!-- <AppHeader /> -->
       <MotionWrapper>
         <main class="flex-1">
           {#if i18nReady && trackingInitialized}

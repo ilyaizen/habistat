@@ -16,6 +16,7 @@
   import { browser } from "$app/environment";
   import { getContext } from "svelte";
   import { get, type Writable } from "svelte/store";
+  import { triggerFireworks } from "$lib/stores/fireworks";
 
   // Get online status from context
   const isOnline = getContext<Writable<boolean>>("isOnline");
@@ -50,6 +51,8 @@
 
       if (session?.id) {
         console.log("+page.svelte: Session ensured, navigating to dashboard.");
+        // Trigger fireworks effect after successful session start
+        triggerFireworks.set(true);
         await goto("/dashboard");
       } else {
         console.error("+page.svelte: Failed to ensure session.");

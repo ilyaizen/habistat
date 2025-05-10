@@ -11,14 +11,6 @@
   export let showMoreInfoButton = false;
   export let open = false;
   export let handleStart: () => void;
-
-  // Function to handle start action and trigger fireworks
-  function handleStartAndFireworks() {
-    // Call the original handleStart function
-    handleStart();
-    // Trigger the fireworks effect
-    triggerFireworks.set(true);
-  }
 </script>
 
 <Drawer.Root bind:open>
@@ -65,8 +57,7 @@
               <!-- Show "Dashboard" if an anonymous session ID exists -->
               <Button onclick={() => goto("/dashboard")} size="lg" class="btn-3d">Dashboard</Button>
             {:else}
-              <!-- Show "Start" if no anonymous session ID exists -->
-              <Button onclick={handleStartAndFireworks} size="lg" class="btn-3d">Start</Button>
+              <Button onclick={handleStart} size="lg" class="btn-3d">Start</Button>
             {/if}
           </div>
         </div>

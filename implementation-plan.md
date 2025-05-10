@@ -62,8 +62,8 @@ Establish a clean, multilingual, and minimalistic user interface foundation. Sim
 ### 1.5. Offline-First & Static
 
 - [ ] Ensure all UI changes work offline without backend dependencies
-- [ ] Avoid SSR or dynamic data fetching in this phase
-- [ ] Keep everything static and client-rendered
+- [x] Avoid SSR or dynamic data fetching in this phase
+- [x] Keep everything static and client-rendered
 
 ## ~~DONE: Phase 2: Activity Visualization & Session Info Display~~
 
