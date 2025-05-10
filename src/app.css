@@ -86,6 +86,8 @@
     --radius-md: calc(var(--radius) - 2px);
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
+    --button-outline-foreground: oklch(0.26 0.016 0);
+    --button-outline-border: oklch(0.74 0.063 80.8);
   }
 
   .dark {
@@ -108,6 +110,7 @@
     --border-width: 4px;
     --input: oklch(1 0 0 / 20%);
     --ring: oklch(0.553 0.013 58.071);
+    --primary-border: oklch(0.553 0.013 58.071);
     --sidebar: oklch(0.28 0.006 56.043);
     --sidebar-foreground: oklch(0.985 0.001 106.423);
     --sidebar-primary: oklch(0.588 0.243 264.376);
@@ -117,6 +120,8 @@
     --sidebar-border: oklch(1 0 0 / 15%);
     --sidebar-ring: oklch(0.653 0.013 58.071);
     --radius: 0.5rem;
+    --button-outline-foreground: oklch(0.985 0.001 106.423);
+    --button-outline-border: oklch(0.553 0.013 58.071);
   }
 
   * {
@@ -248,4 +253,13 @@
   border-bottom-width: 2px;
   box-shadow: 0 0 0 1px var(--primary-border);
   transition: border-bottom-width 0.1s ease-out;
+}
+
+/*
+  Patch: Utility class for outline buttons to use the correct text and border color
+  Ensures correct appearance in both light and dark themes
+*/
+.button-outline {
+  color: var(--button-outline-foreground) !important;
+  border-color: var(--button-outline-border) !important;
 }
