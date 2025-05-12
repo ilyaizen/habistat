@@ -194,7 +194,6 @@
   <!-- Online: Render ClerkProvider and main app content -->
   <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
     <div class="flex h-screen flex-col">
-      <!-- <AppHeader /> -->
       <MotionWrapper>
         <main class="flex-1">
           {#if i18nReady && trackingInitialized}
@@ -214,7 +213,6 @@
 {:else}
   <!-- Offline: Render offline content -->
   <div class="flex h-screen flex-col">
-    <AppHeader />
     <MotionWrapper>
       <main class="flex-1">
         {#if i18nReady && trackingInitialized}
@@ -233,9 +231,9 @@
 {/if}
 
 <!-- Render EnvironmentIndicator fixed at the bottom right -->
+<!-- TODO: 2025-05-12 - temporarily disabled to avoid cluttering the UI -->
 <!-- <div class="fixed bottom-4 left-4 z-10">
   <EnvironmentIndicator></EnvironmentIndicator>
 </div> -->
 
-<!-- Add the FireworksEffect component here -->
 <FireworksEffect />
