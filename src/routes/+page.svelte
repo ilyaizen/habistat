@@ -169,5 +169,4 @@
 <AboutDrawer {showMoreInfoButton} bind:open={drawerOpen} {handleStart} />
 
 <style>
-  /* Removed previous .start-button-custom styles */
 </style>
