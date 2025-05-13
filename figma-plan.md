@@ -9,6 +9,7 @@
 
 ![[o4-ui-inspiration-1.jpg]]
 ![[o4-ui-inspiration-2.png]]
+![[o4-ui-inspiration-3.png]]
 
 ## Layout Overview
 
