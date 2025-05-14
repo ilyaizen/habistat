@@ -10,7 +10,6 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
-  import { page } from "$app/state";
   import { setContext, type Snippet } from "svelte";
   import { waitLocale } from "svelte-i18n";
   import { get, readable } from "svelte/store";
@@ -20,12 +19,12 @@
   import type { LoadedClerk, UserResource } from "@clerk/types";
   import { initializeTracking, sessionStore, markSessionAssociated } from "$lib/utils/tracking";
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
-  import AppHeader from "$lib/components/app-header.svelte";
   import type { LayoutData } from "./$types";
   import { browser } from "$app/environment";
   import { isOnline as networkIsOnline } from "$lib/stores/network";
-  import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
+  // import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
+  import { Toaster } from "$lib/components/ui/sonner/index.js"; // Sonner toast system (global notifications)
 
   import "../app.css";
 
@@ -237,3 +236,6 @@
 </div> -->
 
 <FireworksEffect />
+
+<!-- Global toast notification system (Sonner) -->
+<Toaster />

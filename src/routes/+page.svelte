@@ -17,6 +17,7 @@
   import { getContext } from "svelte";
   import { get, type Writable } from "svelte/store";
   import { triggerFireworks } from "$lib/stores/fireworks";
+  import { toast } from "svelte-sonner"; // Sonner toast for notifications
 
   // Get online status from context
   const isOnline = getContext<Writable<boolean>>("isOnline");
@@ -53,6 +54,10 @@
         console.log("+page.svelte: Session ensured, navigating to dashboard.");
         // Trigger fireworks effect after successful session start
         triggerFireworks.set(true);
+        // Show a success toast notification for session creation
+        toast.success("Session created!", {
+          description: "Welcome to Habistat!"
+        });
         await goto("/dashboard");
       } else {
         console.error("+page.svelte: Failed to ensure session.");
