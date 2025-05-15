@@ -30,40 +30,36 @@
   let { children } = $props();
 </script>
 
-<div class="flex h-screen">
-  <Sidebar.Provider>
-    <Sidebar.Root variant="floating">
-      <Sidebar.Content>
-        <Sidebar.Group>
-          <Sidebar.GroupLabel>Dashboard</Sidebar.GroupLabel>
-          <Sidebar.GroupContent>
-            <Sidebar.Menu>
-              {#each sidebarItems as item (item.title)}
-                <Sidebar.MenuItem>
-                  <Sidebar.MenuButton>
-                    {#snippet child({ props })}
-                      <a href={item.href} {...props}>
-                        <!-- svelte-ignore svelte_component_deprecated -->
-                        <svelte:component this={item.icon} />
-                        <span>{item.title}</span>
-                      </a>
-                    {/snippet}
-                  </Sidebar.MenuButton>
-                </Sidebar.MenuItem>
-              {/each}
-            </Sidebar.Menu>
-          </Sidebar.GroupContent>
-        </Sidebar.Group>
-      </Sidebar.Content>
-    </Sidebar.Root>
-
-    <main class="flex-1 overflow-y-auto">
-      <div class="p-4">
-        <Sidebar.Trigger class="mb-4" />
-        <div class="bg-background rounded-tl-2xl p-6 shadow-sm">
-          {@render children()}
-        </div>
-      </div>
-    </main>
-  </Sidebar.Provider>
-</div>
+<!-- <Sidebar.Provider>
+  <Sidebar.Root variant="floating">
+    <Sidebar.Content>
+      <Sidebar.Group>
+        <Sidebar.GroupLabel>Dashboard</Sidebar.GroupLabel>
+        <Sidebar.GroupContent>
+          <Sidebar.Menu>
+            {#each sidebarItems as item (item.title)}
+              <Sidebar.MenuItem>
+                <Sidebar.MenuButton>
+                  {#snippet child({ props })}
+                    <a href={item.href} {...props}>
+                      <svelte:component this={item.icon} />
+                      <span>{item.title}</span>
+                    </a>
+                  {/snippet}
+                </Sidebar.MenuButton>
+              </Sidebar.MenuItem>
+            {/each}
+          </Sidebar.Menu>
+        </Sidebar.GroupContent>
+      </Sidebar.Group>
+    </Sidebar.Content>
+  </Sidebar.Root>
+</Sidebar.Provider> -->
+<main class="flex-1 overflow-y-auto">
+  <div class="p-4">
+    <!-- <Sidebar.Trigger class="mb-4" /> -->
+    <div class="bg-red-500/50 p-6 shadow-sm">
+      {@render children()}
+    </div>
+  </div>
+</main>
