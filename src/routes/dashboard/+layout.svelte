@@ -30,9 +30,9 @@
   let { children } = $props();
 </script>
 
-<div class="relative flex h-[calc(100vh-2.5rem)] overflow-hidden">
+<div class="flex h-screen">
   <Sidebar.Provider>
-    <Sidebar.Root variant="inset">
+    <Sidebar.Root variant="floating">
       <Sidebar.Content>
         <Sidebar.Group>
           <Sidebar.GroupLabel>Dashboard</Sidebar.GroupLabel>
