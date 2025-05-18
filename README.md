@@ -4,10 +4,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-<!-- Optional: Add other badges like build status, version, etc. if you have them -->
-<!-- e.g., [![Build Status](https://travis-ci.org/your-repo.svg?branch=master)](https://travis-ci.org/your-repo) -->
-<!-- e.g., [![Release Version](https://img.shields.io/github/v/release/your-repo)](https://github.com/your-repo/releases/latest) -->
-
 **Habistat** is a gamified, privacy-focused, cross-platform productivity app designed to help you build positive habits, break bad ones, and gain insights into your daily app usage. It stands as an open-source alternative to popular applications like **Everyday**, **Habitify**, and **Habitica**, offering a powerful yet intuitive experience.
 
 ## **Website: [habistat.app](https://habistat.vercel.app)**
@@ -16,8 +12,6 @@
 
 ## 🗺️ Roadmap (Future Ideas)
 
-- [ ] Advanced analytics and reporting for habits and app usage.
-- [ ] AI-driven insights and suggestions for habit formation (Premium).
 - [ ] More gamification elements (badges, leaderboards for friends).
 - [ ] Public API for integrations.
 - [ ] More themes and customization options.
@@ -74,11 +68,11 @@ Getting started with Habistat is simple:
 
 Habistat offers flexible options to suit your needs:
 
-| Feature             | Free Tier | Premium                          |
-| :------------------ | :-------- | :------------------------------- |
-| Custom Calendars    | Up to 3   | Unlimited                        |
-| Habits per Calendar | Up to 3   | Unlimited                        |
-| **Price**           | **0**     | **1.99/month OR 14.99 lifetime** |
+| Feature             | Free Tier | Premium                                |
+| :------------------ | :-------- | :------------------------------------- |
+| Custom Calendars    | Up to 3   | Unlimited                              |
+| Habits per Calendar | Up to 3   | Unlimited                              |
+| **Price**           | **$0**    | **$1.99/month** or **$14.99 lifetime** |
 
 ---
 
@@ -101,91 +95,11 @@ Habistat is built with a modern and robust technology stack:
 
 ---
 
-## 🧑‍💻 Getting Started (For Developers)
-
-Interested in contributing or running Habistat locally? Here's how:
-
-### Prerequisites
-
-Ensure you have the following installed on your system:
-
-- [Node.js](https://nodejs.org/) (v18 or later recommended)
-- [Rust](https://www.rust-lang.org/) Programming Language & Cargo
-- [pnpm](https://pnpm.io/) Package Manager (`npm install -g pnpm`)
-- Tauri V2 Prerequisites (see [Tauri documentation](https://v2.tauri.app/start/prerequisites/))
-
-### Installation & Running
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/ilyaizen/habistat.git # Replace with your actual repo URL if different
-   cd habistat
-   ```
-
-2. **Install dependencies:**
-
-   ```bash
-   pnpm install
-   ```
-
-3. **Set up Environment Variables:**
-
-   - Habistat uses Convex for cloud sync and Clerk for authentication. You'll need to create accounts with these services and obtain API keys.
-   - Copy the example environment file:
-     ```bash
-     cp .env.example .env
-     ```
-   - Populate `.env` with your Convex and Clerk credentials:
-
-     ```env
-     # Convex
-     VITE_CONVEX_URL="YOUR_CONVEX_DEPLOYMENT_URL"
-
-     # Clerk
-     VITE_CLERK_PUBLISHABLE_KEY="YOUR_CLERK_PUBLISHABLE_KEY"
-     ```
-
-   - _Note: For local-only anonymous use, these might not be strictly necessary to run the app, but they are required for cloud sync and OAuth features._
-
-4. **Run the development server:**
-
-   ```bash
-   pnpm tauri dev
-   ```
-
-   This will compile the Rust backend and start the SvelteKit frontend in development mode.
-
-5. **Build the application:**
-   ```bash
-   pnpm tauri build
-   ```
-   This will create a distributable application package for your platform.
-
----
-
-## 🤝 Contributing
-
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-If you have suggestions for adding or removing projects, feel free to [open an issue](https://github.com/ilyaizen/habistat/issues/new) to discuss it, or directly [create a pull request](https://github.com/ilyaizen/habistat/pulls).
-
-Please make sure to update tests as appropriate.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-
----
-
 ## 🔗 Useful Links
 
 - **Website:** [https://habistat.vercel.app](https://habistat.vercel.app)
 - **Creator:** [Ilya Aizenberg](https://github.com/ilyaizen)
-- **Issue Tracker:** [https://github.com/ilyaizen/habistat/issues](https://github.com/ilyaizen/habistat/issues) <!-- Update if this is not the correct repo -->
+- **Issue Tracker:** [https://github.com/ilyaizen/habistat/issues](https://github.com/ilyaizen/habistat/issues)
 
 ---
 
