@@ -1,5 +1,26 @@
 # Habistat Main Page Design Plan
 
+Frontpage:
+
+Habistat
+
+> Track your habits & app usage. Achieve your goals.
+> Offline-first, private by design.
+>
+> _(Optional: "Sign up later for optional cloud sync.")_
+
+Drawer Button -> The drawer "More Info" content is automatically shown for new users and is the main designed element of the frontpage.
+
+Dashboard:
+
+Header -> Habistat Logo (Links to Frontpage), Navigation Links (Dashboard / Stats / Pricing), Settings Button, Theme Toggle Button, and User Button.
+
+Content ->
+
+Settings:
+
+---
+
 ## Design Inspiration
 
 - Inspired by the attached image: soft, friendly, playful, and motivating.

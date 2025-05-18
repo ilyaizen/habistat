@@ -1,183 +1,198 @@
-# Habistat
+# **✅ Habistat**
 
-Track habits, monitor app usage, achieve goals. Private, offline-first, with optional AI.
+**Track Habits, Monitor Usage, Achieve Goals 🎯**
 
-Intro Line:
-Build better habits, track your progress, and achieve your goals—all in a privacy-first, customizable app.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Info Line:
-Your data stays on your device. Optional sync and sign-up available after you get started.
+<!-- Optional: Add other badges like build status, version, etc. if you have them -->
+<!-- e.g., [![Build Status](https://travis-ci.org/your-repo.svg?branch=master)](https://travis-ci.org/your-repo) -->
+<!-- e.g., [![Release Version](https://img.shields.io/github/v/release/your-repo)](https://github.com/your-repo/releases/latest) -->
 
-Okay, let's distill this down to its core appeal, playing on your unique "why."
+**Habistat** is a gamified, privacy-focused, cross-platform productivity app designed to help you build positive habits, break bad ones, and gain insights into your daily app usage. It stands as an open-source alternative to popular applications like **Everyday**, **Habitify**, and **Habitica**, offering a powerful yet intuitive experience.
 
-Here are a few options, from ultra-minimal to slightly more descriptive:
-
-**Key Principles Applied:**
-
-- **Focus on the User Benefit:** What will _they_ get out of it?
-- **Highlight the USP:** The habit tracking + usage monitoring combo is key.
-- **Emphasize Privacy/Offline-First:** This is a strong selling point.
-- **Be Direct & Clear:** No jargon where simple words suffice.
-- **Create Intrigue:** Make them want to dive in.
+## **Website: [habistat.app](https://habistat.vercel.app)**
 
 ---
 
-**Option 1 (Ultra-Minimal & Direct):**
+## 🗺️ Roadmap (Future Ideas)
 
-> **Habistat: Master Habits & App Time.**
-> Finally, track habits _and_ app usage in one place.
-> Achieve your goals – offline and private on your device.
->
-> _(Optional: "Cloud sync & sign-up available after starting.")_
-
-**Why it works:**
-
-- Strong, benefit-driven headline.
-- "Finally" addresses the gap you identified.
-- Clearly states core functions and key benefits (goals, offline, private).
+- [ ] Advanced analytics and reporting for habits and app usage.
+- [ ] AI-driven insights and suggestions for habit formation (Premium).
+- [ ] More gamification elements (badges, leaderboards for friends).
+- [ ] Public API for integrations.
+- [ ] More themes and customization options.
+- [ ] ... and much more! Feel free to suggest features!
 
 ---
 
-**Option 2 (Benefit-Focused):**
+## ✨ Key Features
 
-> **Habistat: Habits + Usage = Your Best Self.**
-> Understand your patterns, build focus, and crush your goals.
-> All your data stays private, offline-first on your device.
->
-> _(Optional: "Seamless online sync & account options available.")_
+Habistat comes packed with features to empower your productivity journey:
 
-**Why it works:**
-
-- Intriguing "equation" headline.
-- Focuses on the _outcome_ of using the app.
-- Reassures about privacy clearly.
-
----
-
-**Option 3 (Slightly More Evocative):**
-
-> **Unlock Your Focus with Habistat.**
-> Connect your habits to your app usage. Build momentum, achieve more.
-> Your progress, your data – privately stored on this device.
->
-> _(Optional: "Optional cloud sync when you're ready.")_
-
-**Why it works:**
-
-- "Unlock Your Focus" is an appealing call.
-- "Connect your habits to your app usage" clearly states the unique link.
-- "Build momentum" is an attractive benefit.
+- **📊 Usage Monitor:** Visually track your application uptime on a comprehensive dashboard, offering a 60-day overview of your digital activity.
+- **✅ Positive Habit Tracking:** Cultivate good habits with daily check-ins. Watch your streaks grow and visualize your progress.
+- **🚫 Negative Habit Tracking ("Don't Do"):** Effectively break bad habits by monitoring days you successfully avoid them. Gain points for your discipline!
+- **📅 Customizable Calendars:** Organize your habits across multiple, distinct calendars. Assign a unique color theme to each for enhanced visual organization and quick identification.
+- **🏆 Gamification & Points:** Earn points for completing habits, maintaining streaks, and avoiding negative habits, making self-improvement engaging.
+- **💾 Offline-First Design:** Access and manage all your data locally. Habistat is fully functional without an internet connection, ensuring your data is always available to you.
+- **👤 Optional Sign-Up & OAuth:** Use Habistat anonymously indefinitely. For enhanced features, optionally sign up effortlessly using email or social providers (e.g., Google) via Clerk-powered OAuth.
+- **🔄 Real-Time Cloud Sync:** (Requires sign-up) Seamlessly synchronize your data across multiple devices using Convex cloud whenever you're online.
+- **🌙 Automatic Dark & Light Modes:** Enjoy a visually comfortable experience. Choose between dark and light themes manually, or let Habistat switch automatically based on your system settings.
+- **🌐 Multi-Language Support:** Habistat is available in various languages, thanks to comprehensive internationalization (i18n) support.
+- **🎨 Clean & Customizable Interface:** A modern and intuitive UI built with SvelteKit and Tailwind CSS, enhanced with shadcn-svelte components.
 
 ---
 
-**Option 4 (Problem/Solution Angle):**
+## 🚀 How It Works: A Quick Guide
 
-> **Tired of juggling habit trackers and usage monitors?** > **Habistat brings them together.**
-> Track habits, see your app usage, and hit your goals.
-> Offline-first, private by design.
->
-> _(Optional: "Sign up later for optional cloud sync.")_
+Getting started with Habistat is simple:
 
-**Why it works:**
+1. **Create a Calendar:**
 
-- Directly addresses the pain point you built the app to solve.
-- "Private by design" is a strong statement.
+   - Upon starting, press the **Add New Calendar** button.
+   - Give your calendar a name (e.g., "Fitness", "Work", "Mindfulness").
+   - Choose a unique color theme for easy identification.
 
----
+2. **Add Your First Habit:**
 
-**Regarding "semi-gamified" and "optionally-AI":**
-These are good features, but for an _initial intro_, they can add complexity. I'd recommend introducing them _after_ the user understands the core value proposition, perhaps as part of an onboarding tour or a "What's New/Features" section. If you _must_ include them:
+   - Within your newly created calendar, press the accompanying **Add New Habit** button.
+   - **Habit Name:** Define what you want to track (e.g., "Exercise", "Meditate", "Stop Snacking After 8 PM").
+   - **Habit Mode:**
+     - **Positive:** For habits you want to build (e.g., "Read for 30 minutes").
+     - **Negative:** For habits you want to break (e.g., "No Social Media After 10 PM").
+   - **Timer Duration (Optional):** Set a duration for time-based habits (e.g., `15m`, `1h`).
+   - **Habit Points:** Assign points to the habit (e.g., `1`, `5`, `10`) to gamify your progress.
 
-- "...all in one engaging, offline-first app. (Includes optional AI insights!)"
-  This keeps "engaging" (for gamified) broad and makes AI a clear "bonus."
-
-**Which to choose?**
-
-- **Option 1** is probably the most balanced for clarity and brevity.
-- **Option 2** is great if you want to emphasize personal growth.
-- **Option 3** is slightly more sophisticated in its language.
-- **Option 4** is excellent if you know your target audience feels this specific pain point acutely.
-
-Consider A/B testing if possible!
+3. **Track & Monitor:**
+   - Check off completed habits daily.
+   - Monitor your app usage on the dashboard.
+   - Watch your streaks grow and your points accumulate!
 
 ---
 
-Here’s a refined and concise copy for your app's introduction and info text, designed to be engaging and clear:
+## 💰 Pricing
 
-**Intro Line:**
-Build habits, track usage, and crush goals with a fun, semi-gamified, offline-first app.
+Habistat offers flexible options to suit your needs:
 
-**Info Line:**
-Your privacy matters—data stays on your device. Optional sync and sign-up available later.
-
-This version focuses on the core benefits and privacy assurance, making it punchy and appealing to users while maintaining the essence of your original text. It avoids technical jargon and emphasizes user experience.
-
-If you'd like to include a brief tagline or description for promotional purposes (e.g., app store or website), you could add:
-
-**Tagline:**
-Habistat: Your offline-first productivity companion for habits and goals.
-
-Let me know if you'd like further tweaks or additional context!
+| Feature             | Free Tier | Premium                          |
+| :------------------ | :-------- | :------------------------------- |
+| Custom Calendars    | Up to 3   | Unlimited                        |
+| Habits per Calendar | Up to 3   | Unlimited                        |
+| **Price**           | **0**     | **1.99/month OR 14.99 lifetime** |
 
 ---
 
-I need to rethink the copy of the introduction text of my app.
+## 🛠️ Tech Stack
 
-I have this intro line:
+Habistat is built with a modern and robust technology stack:
 
-Track habits, monitor usage, and accomplish goals – all in one semi-gamified, optionally-AI, offline-first app.
-
-And info line:
-
-Your data stays private—stored only on this device. Optional sync and sign-up will be available after starting.
-
-"Habistat," a cross-platform, offline-first productivity app that features habit tracking on habit on multiple customizable calendars, an uptime monitoring ("Usage Monitor"), real-time synchronization (when online), optional sign-up, and OAuth capabilities, leveraging the specified modern tech stack, using pnpm, SvelteKit, and Tauri. The app will later be able to sync stuff to Convex, with OAuth capabilities using Clerk. The whole app is translated to many languages using i18n tooling, and is supposed to work on Tauri's (the system's) native webview, on the frontend with, from what I gather, needs to have minimal usage of SSR and not rely on Tauri's Rust backend.
-
-2025-05-10: I built this app because: lack of habit trackers that also track usage of the app.
-
-## Features
-
-- **📊 Usage Monitor:** Visually track application uptime on your dashboard (60-day view).
-- **✅ Positive Habit Tracking:** Build good habits with daily check-ins and visual streaks.
-- **🚫 "Don't Do" Habits:** Break bad habits by tracking successful avoidance days.
-- **📅 Customizable Calendars:** Organize habits into multiple calendars, each with a unique color theme.
-- **💾 Offline-First Access:** Use the app fully offline; your data is always available locally.
-- **👤 Optional & OAuth Sign-Up:** Use anonymously forever, or sign up easily (Email, Google, etc.) to enable cloud features.
-- **🔄 Real-Time Cloud Sync:** Seamlessly sync data across devices when online (requires sign-up).
-- **🌙 Dark & Light Modes:** Automatic or manual theme switching for comfortable viewing.
-- **🌐 Multi-Language Support:** Available in multiple languages through internationalization.
+- **Core Framework:** [Tauri v2](https://v2.tauri.app/) (Rust backend, web frontend)
+- **Frontend:** [SvelteKit](https://svelte.dev/)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **UI Components:** [shadcn-svelte](https://next.shadcn-svelte.com/)
+- **Local Database:** [SQLite](https://www.sqlite.org/) via [Drizzle ORM](https://orm.drizzle.team/)
+- **Cloud Sync & Backend:** [Convex](https://convex.dev/)
+- **Authentication:** [Clerk](https://clerk.com/) (OAuth with Google, etc.) via [svelte-clerk](https://svelte-clerk.netlify.app)
+- **Internationalization:** [svelte-i18n](https://github.com/kaisermann/svelte-i18n)
+- **Utilities:**
+  - [uuid](https://github.com/uuidjs/uuid) (Unique Identifiers)
+  - [date-fns](https://date-fns.org/) (Date Manipulation and Formatting)
+- **Package Manager:** [pnpm](https://pnpm.io/)
 
 ---
 
-## Getting Started
+## 🧑‍💻 Getting Started (For Developers)
+
+Interested in contributing or running Habistat locally? Here's how:
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or later)
-- [Rust](https://www.rust-lang.org/) Programming Language
-- [pnpm](https://pnpm.io/) Package Manager
-- [Tauri v2](https://v2.tauri.app/) Backend Framework
-- [SvelteKit](https://svelte.dev/) Frontend Framework
-- [Tailwind CSS v4](https://tailwindcss.com/) Styling
-- [Drizzle ORM](https://orm.drizzle.team/) Data (ORM)
-- [SQLite](https://www.sqlite.org/) Data (Local)
-- [Convex](https://convex.dev/) Cloud
-- [Clerk](https://clerk.com/) OAuth
-- [shadcn-svelte](https://next.shadcn-svelte.com/) UI Components
-- [svelte-clerk](https://svelte-clerk.netlify.app) Authentication
-- [svelte-i18n](https://github.com/kaisermann/svelte-i18n) Internationalization
-- [uuid](https://github.com/uuidjs/uuid) Unique Identifiers
-- [date-fns](https://date-fns.org/) Frontend Date Manipulation and Formatting
+Ensure you have the following installed on your system:
 
-## Links
+- [Node.js](https://nodejs.org/) (v18 or later recommended)
+- [Rust](https://www.rust-lang.org/) Programming Language & Cargo
+- [pnpm](https://pnpm.io/) Package Manager (`npm install -g pnpm`)
+- Tauri V2 Prerequisites (see [Tauri documentation](https://v2.tauri.app/start/prerequisites/))
 
-- Website: [https://habistat.vercel.app](https://habistat.vercel.app)
-- Creator: [Ilya Aizenberg](https://github.com/ilyaizen)
+### Installation & Running
 
-## License
+1. **Clone the repository:**
 
-This project is licensed under the [MIT License](LICENSE).
+   ```bash
+   git clone https://github.com/ilyaizen/habistat.git # Replace with your actual repo URL if different
+   cd habistat
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   pnpm install
+   ```
+
+3. **Set up Environment Variables:**
+
+   - Habistat uses Convex for cloud sync and Clerk for authentication. You'll need to create accounts with these services and obtain API keys.
+   - Copy the example environment file:
+     ```bash
+     cp .env.example .env
+     ```
+   - Populate `.env` with your Convex and Clerk credentials:
+
+     ```env
+     # Convex
+     VITE_CONVEX_URL="YOUR_CONVEX_DEPLOYMENT_URL"
+
+     # Clerk
+     VITE_CLERK_PUBLISHABLE_KEY="YOUR_CLERK_PUBLISHABLE_KEY"
+     ```
+
+   - _Note: For local-only anonymous use, these might not be strictly necessary to run the app, but they are required for cloud sync and OAuth features._
+
+4. **Run the development server:**
+
+   ```bash
+   pnpm tauri dev
+   ```
+
+   This will compile the Rust backend and start the SvelteKit frontend in development mode.
+
+5. **Build the application:**
+   ```bash
+   pnpm tauri build
+   ```
+   This will create a distributable application package for your platform.
 
 ---
 
-Happy tracking! 🎯
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have suggestions for adding or removing projects, feel free to [open an issue](https://github.com/ilyaizen/habistat/issues/new) to discuss it, or directly [create a pull request](https://github.com/ilyaizen/habistat/pulls).
+
+Please make sure to update tests as appropriate.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+
+---
+
+## 🔗 Useful Links
+
+- **Website:** [https://habistat.vercel.app](https://habistat.vercel.app)
+- **Creator:** [Ilya Aizenberg](https://github.com/ilyaizen)
+- **Issue Tracker:** [https://github.com/ilyaizen/habistat/issues](https://github.com/ilyaizen/habistat/issues) <!-- Update if this is not the correct repo -->
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+Happy tracking and achieving your goals with Habistat! 🎉
