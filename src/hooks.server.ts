@@ -14,23 +14,23 @@ const clerkClient = createClerkClient({
 
 // Simplified handle function for svelte-clerk
 export const handle: Handle = async ({ event, resolve }) => {
-  if (dev) {
-    console.log("[hooks.server.ts] Incoming request path:", event.url.pathname);
-    console.log("[hooks.server.ts] Request headers:", Object.fromEntries(event.request.headers));
-  }
+  // if (dev) {
+  //   console.log("[hooks.server.ts] Incoming request path:", event.url.pathname);
+  //   console.log("[hooks.server.ts] Request headers:", Object.fromEntries(event.request.headers));
+  // }
 
   try {
     // Get session using Clerk client
     const session = await clerkClient.authenticateRequest(event.request);
 
-    if (dev) {
-      const auth = session?.toAuth();
-      console.log("[hooks.server.ts] Clerk session result:", {
-        hasSession: !!session,
-        status: session?.status,
-        userId: auth?.sessionClaims?.sub
-      });
-    }
+    // if (dev) {
+    //   const auth = session?.toAuth();
+    //   console.log("[hooks.server.ts] Clerk session result:", {
+    //     hasSession: !!session,
+    //     status: session?.status,
+    //     userId: auth?.sessionClaims?.sub
+    //   });
+    // }
 
     const auth = session?.toAuth();
     event.locals.session = {

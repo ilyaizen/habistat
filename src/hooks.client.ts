@@ -5,14 +5,14 @@ import { type } from "@tauri-apps/plugin-os";
 import { PUBLIC_CLERK_PUBLISHABLE_KEY } from "$env/static/public";
 
 // Initialize Tauri plugins
-if (browser && (window as any).__TAURI__) {
-  try {
-    const osType = type();
-    console.log("OS Type:", osType);
-  } catch (error) {
-    console.error("Failed to get OS type:", error);
-  }
-}
+// if (browser && (window as any).__TAURI__) {
+//   try {
+//     const osType = type();
+//     console.log("OS Type:", osType);
+//   } catch (error) {
+//     console.error("Failed to get OS type:", error);
+//   }
+// }
 
 // Clerk initialization is handled by ClerkProvider in layout, remove this block
 // initializeClerk(PUBLIC_CLERK_PUBLISHABLE_KEY, {
@@ -23,6 +23,6 @@ if (browser && (window as any).__TAURI__) {
 // });
 
 // Add error handling function
-export const handleError: HandleClientError = async ({ error, event }) => {
-  console.error(error, event);
-};
+// export const handleError: HandleClientError = async ({ error, event }) => {
+//   console.error(error, event);
+// };

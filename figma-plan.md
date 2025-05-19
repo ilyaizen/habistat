@@ -1,15 +1,39 @@
 # Habistat Main Page Design Plan
 
+Brutalist Design
+
+Dashboard page:
+
+Dashboard navigation:
+
+Home
+Dashboard
+Stats
+Settings
+...
+More Info
+Feedback
+...
+User Avatar Button + Username + Plan (e.g. 'Free') (at the bottom)
+
+Content:
+
 Frontpage:
+
+I need a frontpage for my app Habistat, a habit tracker.
+
+Use the following information:
 
 Habistat
 
-> Track your habits & app usage. Achieve your goals.
+> Track Habits, Monitor Usage, Achieve Goals 🎯
 > Offline-first, private by design.
 >
-> _(Optional: "Sign up later for optional cloud sync.")_
+> (Start Button)
+>
+> _(Grayed-out small text below button: "Sign up later for optional cloud sync.")_
 
-Drawer Button -> The drawer "More Info" content is automatically shown for new users and is the main designed element of the frontpage.
+Drawer Button -> The drawer "More Info" content is automatically shown for new users and is the main designed element of the frontpage. The drawer has...
 
 Dashboard:
 
