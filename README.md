@@ -10,15 +10,6 @@
 
 ---
 
-## 🗺️ Roadmap (Future Ideas)
-
-- [ ] More gamification elements (badges, leaderboards for friends).
-- [ ] Public API for integrations.
-- [ ] More themes and customization options.
-- [ ] ... and much more! Feel free to suggest features!
-
----
-
 ## ✨ Key Features
 
 Habistat comes packed with features to empower your productivity journey:
@@ -34,6 +25,15 @@ Habistat comes packed with features to empower your productivity journey:
 - **🌙 Automatic Dark & Light Modes:** Enjoy a visually comfortable experience. Choose between dark and light themes manually, or let Habistat switch automatically based on your system settings.
 - **🌐 Multi-Language Support:** Habistat is available in various languages, thanks to comprehensive internationalization (i18n) support.
 - **🎨 Clean & Customizable Interface:** A modern and intuitive UI built with SvelteKit and Tailwind CSS, enhanced with shadcn-svelte components.
+
+---
+
+## 🗺️ Roadmap (Future Ideas)
+
+- [ ] More gamification elements (badges, leaderboards for friends).
+- [ ] Public API for integrations.
+- [ ] More themes and customization options.
+- [ ] ... and much more! Feel free to suggest features!
 
 ---
 
@@ -110,3 +110,79 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 ---
 
 Happy tracking and achieving your goals with Habistat! 🎉
+
+---
+
+I need a frontpage for my app Habistat, a habit tracker. Brutalist Design.
+## Design Plan
+
+# **Build Habits. Track Progress. Achieve Your Goals.**
+
+🌐 **Open-Source** | 🛡️ **Privacy-First** | 🔄 **Cross-Platform** | 🎯 **Semi-Gamified**
+
+**Habistat** is a free, open-source, and privacy-focused companion for habit tracking and productivity. Built with lightweight **[Tauri](https://v2.tauri.app/)**, it offers a seamless experience across Web, Windows, and Android. Make self-improvement engaging with streaks, points, and a virtual garden that grows with your success.
+
+[**Start Tracking Now - No Account Needed**] (Styled 2D button with transitions ✨)
+_Free, private, and ready in seconds._
+
+---
+
+## **Why Habistat?**
+
+Tired of complex trackers or apps that don't respect your privacy? Habistat offers a refreshing alternative to tools like **[Everyday](https://everyday.app/)**, **[Habitify](https://www.habitify.me/)**, and **[Habitica](https://habitica.com/)**. Built on the proven "Don't Break the Chain" principle, it reduces habit tracking to its purest form: a simple daily check-off.
+
+With each habit you complete, your personal streak advances, your virtual garden flourishes and you earn self-assigned points. This immediate, visual feedback sustains engagement, while the entirely self-regulated points system empowers you to determine how-and to what end-you reward yourself.
+
+Choose **Habistat** to reclaim control of your routine. Experience habit tracking as it was meant to be: straightforward, secure and inherently yours.
+
+---
+
+## ✨ **Features**
+
+- **Positive & Negative Habit Tracking:** Mark daily "do" habits to build streaks or log "don't do" habits to curb unwanted behaviors, each action earns self-assigned points.
+
+- **Usage Dashboard & Progress Visualization:** Review your app usage history, then watch your long-term journey unfold through intuitive charts and a GitHub-style activity grid.
+
+- **Custom Calendars & Gamification:** Organize habits into color-coded calendars, earn points for completions and streaks, and nurture a virtual garden that reflects your consistency.
+
+- **Offline-First & Cloud Sync:** All data lives locally and works without internet. Opt-in via email or social OAuth for real-time, cross-device synchronization.
+
+- **Data Portability:** Export or import your full habit history at any time to back up, migrate, or restore progress seamlessly.
+
+- **Adaptive Interface:** Enjoy automatic light/dark modes, multi-language support via i18n, and a clean, customizable UI built on SvelteKit, Tailwind CSS and shadcn-svelte.
+
+---
+
+## 🚀 **Getting Started**
+
+Launch Habistat and begin your journey in minutes:
+
+1. **Create Your First Calendar:**
+   - Hit the **"Add New Calendar"** button.
+   - Name it (e.g., "Fitness", "Work Goals", "Mindfulness").
+   - Pick a color theme to make it your own.
+2. **Add Your Habits:**
+   - Inside your calendar, click **"Add New Habit"**.
+   - **Name it:** e.g., "Morning Exercise", "Read 30 Mins", "No Social Media Before 8 PM".
+   - **Choose Mode:**
+     - **Positive:** For habits you want to build.
+     - **Negative:** For habits you want to break.
+   - **Set Timer (Optional):** For time-based goals (e.g., `15m`, `1h`).
+   - **Assign Points:** Gamify with points (e.g., `1`, `5`, `10`).
+3. **Track, Monitor & Grow:**
+   - Check off habits daily to build your streak.
+   - Monitor app usage on your dashboard.
+   - Watch your points and virtual garden flourish!
+
+---
+
+## 🗺️ **Roadmap**
+
+We're always working to make Habistat even better. Here's a sneak peek:
+
+- [ ] Enhanced Gamification: Badges, levels, and friendly leaderboards.
+- [ ] Public API for community integrations.
+- [ ] Expanded theme and customization options.
+- [ ] Deeper insights and reporting.
+- [ ] ...and much more! We welcome your feature suggestions!
+
