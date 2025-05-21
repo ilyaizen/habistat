@@ -1,6 +1,6 @@
 # **✅ Habistat**
 
-**Track Habits, Monitor Usage, Achieve Goals 🎯**
+**Build Habits. Track Progress. Achieve Goals. 🎯**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -64,18 +64,6 @@ Getting started with Habistat is simple:
 
 ---
 
-## 💰 Pricing
-
-Habistat offers flexible options to suit your needs:
-
-| Feature             | Free Tier | Premium                                |
-| :------------------ | :-------- | :------------------------------------- |
-| Custom Calendars    | Up to 3   | Unlimited                              |
-| Habits per Calendar | Up to 3   | Unlimited                              |
-| **Price**           | **$0**    | **$1.99/month** or **$14.99 lifetime** |
-
----
-
 ## 🛠️ Tech Stack
 
 Habistat is built with a modern and robust technology stack:
@@ -112,11 +100,9 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 Happy tracking and achieving your goals with Habistat! 🎉
 
 ---
-
-I need a frontpage for my app Habistat, a habit tracker. Brutalist Design.
 ## Design Plan
 
-# **Build Habits. Track Progress. Achieve Your Goals.**
+# **Build Habits. Track Progress. Achieve Goals.**
 
 🌐 **Open-Source** | 🛡️ **Privacy-First** | 🔄 **Cross-Platform** | 🎯 **Semi-Gamified**
 

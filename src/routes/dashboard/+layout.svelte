@@ -58,7 +58,7 @@
 <main class="flex-1 overflow-y-auto">
   <div class="p-4">
     <!-- <Sidebar.Trigger class="mb-4" /> -->
-    <div class="p-6 shadow-sm">
+    <div class="bg-blue-500/50 p-6">
       {@render children()}
     </div>
   </div>

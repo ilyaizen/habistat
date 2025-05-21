@@ -88,6 +88,7 @@
     --radius-xl: calc(var(--radius) + 4px);
     --button-outline-foreground: oklch(0.26 0.016 0);
     --button-outline-border: oklch(0.74 0.063 80.8);
+    --scrollbar-thumb: oklch(0.88 0.055 83.6);
   }
 
   .dark {
@@ -122,6 +123,7 @@
     --radius: 0.5rem;
     --button-outline-foreground: oklch(0.985 0.001 106.423);
     --button-outline-border: oklch(0.553 0.013 58.071);
+    --scrollbar-thumb: oklch(0.26 0.016 0);
   }
 
   * {
@@ -262,4 +264,26 @@
 .button-outline {
   color: var(--button-outline-foreground) !important;
   border-color: var(--button-outline-border) !important;
+}
+
+/*
+  Custom, subtle scrollbar for About Drawer content
+  - Uses neutral gray for thumb and transparent track for minimal distraction
+  - Adjusts thumb color for dark mode using .dark selector
+  - Works in Chrome, Edge, Safari (Webkit), and Firefox
+*/
+.about-drawer-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.about-drawer-scroll::-webkit-scrollbar {
+  width: 16px;
+  background: transparent;
+}
+
+.about-drawer-scroll::-webkit-scrollbar-thumb {
+  border-radius: 16px;
+  background: var(--scrollbar-thumb);
+  min-height: 24px;
 }
