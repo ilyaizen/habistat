@@ -100,6 +100,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 Happy tracking and achieving your goals with Habistat! 🎉
 
 ---
+
 ## Design Plan
 
 # **Build Habits. Track Progress. Achieve Goals.**
@@ -171,4 +172,3 @@ We're always working to make Habistat even better. Here's a sneak peek:
 - [ ] Expanded theme and customization options.
 - [ ] Deeper insights and reporting.
 - [ ] ...and much more! We welcome your feature suggestions!
-

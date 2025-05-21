@@ -110,7 +110,7 @@
 
 {#if browser}
   {#if loadingState}
-    <div class="flex min-h-[60vh] items-center justify-center">
+    <div class="flex items-center justify-center">
       <p class="text-muted-foreground text-lg">Loading dashboard...</p>
     </div>
   {:else}
@@ -153,7 +153,7 @@
     </div>
   {/if}
 {:else}
-  <div class="flex min-h-[60vh] items-center justify-center">
+  <div class="flex items-center justify-center">
     <p class="text-muted-foreground text-lg">Loading dashboard...</p>
   </div>
 {/if}

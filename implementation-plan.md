@@ -12,7 +12,7 @@ Inspiration: T3.chat
 - Redesign Dashboard with Sidebar.
 
 - [ ] Shadcn Sidebar
-- [ ] Setting Subroutes for Account, Customization, History & Sync
+- [ ] Setting Subroutes for Account, Customization, History & Sync, Export / Import
 - [ ] Curved Header Effect
 
 ---

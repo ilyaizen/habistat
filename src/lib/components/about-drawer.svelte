@@ -20,7 +20,10 @@
         class="fixed bottom-0 left-1/2 z-[100] -translate-x-1/2 p-2"
         transition:slide={{ duration: 250 }}
       >
-        <Button class={buttonVariants({ variant: "outline" })} aria-label="Show more info">
+        <Button
+          class={`${buttonVariants({ variant: "outline" })} text-primary-background`}
+          aria-label="Show more info"
+        >
           More Info
         </Button>
       </div>
@@ -58,7 +61,7 @@
             <img src="/logo.png" alt="Habistat Logo" class="h-10 w-10" />
             Habistat
           </span>
-          <h1 class="mt-8 text-4xl leading-tight tracking-wide uppercase">
+          <h1 class="mt-8 text-5xl leading-snug">
             <strong>Build Habits.<br />Track Progress.<br />Achieve Goals.</strong>
           </h1>
           <p class="mt-8 text-sm">
