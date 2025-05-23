@@ -25,6 +25,7 @@
   // import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
   import { Toaster } from "$lib/components/ui/sonner/index.js"; // Sonner toast system (global notifications)
+  import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
 
   import "../app.css";
 
@@ -187,6 +188,9 @@
       }
     };
   });
+
+  // Inject Vercel Speed Insights for performance monitoring (runs only in browser)
+  injectSpeedInsights();
 </script>
 
 {#if $networkIsOnline}
