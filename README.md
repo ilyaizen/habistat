@@ -6,11 +6,77 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Habistat** is a free, open-source habit tracker focused on privacy and simplicity. It helps you build good habits, break bad ones, and track daily activity, with your data fully under your control. Features include time-based habit tracking and optional gamification: streaks, points, and a virtual garden that grows – ideally, like you. 🌱
+**Habistat** is a free and open-source habit tracker focused on privacy and simplicity. It helps you build good habits, break bad ones, and track daily activity, with your data fully under your control. Features include time-based habit tracking and optional gamification: streaks, points, and a virtual garden that grows – ideally, like you. 🌱
 
 An alternative to **[Everyday](https://everyday.app/)**, **[Habitify](https://www.habitify.me/)**, and **[Habitica](https://habitica.com/)**, it is built with the lightweight **[Tauri](https://v2.tauri.app/)** framework and runs smoothly on Android, iOS, Windows, macOS, and in any modern browser.
 
 👉 [**habistat.app**](https://habistat.vercel.app)
+
+---
+
+## 💾 Prompts
+
+I want to create a habit tracking web application called Habistat. The webapp should be responsive and have a beautiful and modern UI, which is minimalistic and has proper components, a proper color palette, and so on. Here's what I want to implement:
+
+1. Dashboard:
+   - I want to display a summary of the user's habits and progress.
+   - Include a GitHub-style activity grid to show habit completion over time.
+   - Show charts and visualizations of the user's trends and progress.
+
+2. Habit Management:
+   - Allow users to create, edit, and delete habits.
+   - Each habit should have a name, type (positive or negative), optional timer, and point value.
+   - Implement a calendar view for habit tracking.
+
+3. Calendar System:
+   - Enable users to create multiple calendars with custom names and colors. (for categories)
+   - Allow users to assign habits within these calendars.
+
+4. Habit Tracking:
+   - Provide a daily check-off system for habit completion. (call the action 'Complete')
+   - Implement appropriate counters for each habit for the habit details page.
+   - The Dashboard should display the activities, including the virtual garden on the side.
+   - Calculate and display points earned for completed habits.
+
+5. Gamification:
+   - Create a virtual garden that grows based on habit completion.
+   - Implement a reward system tied to points and streaks.
+
+6. User Preferences:
+   - Add a page header and footer
+   - Include light and dark mode options.
+   - Implement multi-language support.
+
+7. Data Management:
+   - Allow users to import and export their habit data.
+   - Implement an offline-first approach for data storage.
+
+8. Optional Sync:
+   - Provide an option for users to sync their data across devices.
+
+Implementation Phases:
+
+Phase 1: Core Functionality
+- Implement the basic dashboard layout.
+- Create the habit management system (CRUD operations).
+- Develop the daily habit tracking mechanism.
+
+Phase 2: Visual Enhancements
+- Add the GitHub-style activity grid to the dashboard.
+- Implement charts and visualizations for progress tracking.
+- Design and integrate the virtual garden feature.
+
+Phase 3: Advanced Features
+- Develop the calendar system for organizing habits.
+- Implement the gamification elements (points, rewards).
+- Add user preferences (theme switching, language options).
+
+Phase 4: Data Handling
+- Create import/export functionality for habit data.
+- Implement offline data storage.
+- Develop optional sync feature for cross-device usage.
+
+Each phase should be implemented iteratively, with visible outputs after each iteration. The focus should be on creating a functional and visually appealing frontend without concern for backend implementation details.
 
 ---
 
