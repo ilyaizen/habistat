@@ -35,7 +35,7 @@
     </div>
     <!-- Tagline -->
     <div class="text-muted-foreground text-center text-lg font-medium sm:text-xl">
-      Build habits, track progress, achieve goals.
+      Build habits. Track progress. Achieve goals.
     </div>
     <!-- Features Row -->
     <div class="mt-16 mb-16 flex flex-row flex-wrap justify-center gap-16">
@@ -56,13 +56,14 @@
       <!--
           Responsive font size for intro text.
         -->
-      <strong>Habistat</strong> is a free and open-source habit tracker focused on privacy and simplicity.
-      It helps you build good habits, break bad ones, and track daily activity, with your data fully
-      under your control. Features include time-based habit tracking and optional gamification: streaks,
-      points, and a virtual garden that grows – ideally, like you. 🌱
+      <strong>Habistat</strong> is a free and open-source <strong>habit tracker</strong> focused on privacy
+      and simplicity. It helps you build good habits, break bad ones, and track daily activity, with
+      your data fully under your control. Features include time-based habit tracking and optional gamification:
+      streaks, points, and a virtual garden that grows – ideally, like you. 🌱
     </p>
     <p class="max-w-2xl text-base sm:text-lg">
-      An alternative to Everyday, Habitify, and Habitica, it is built with the lightweight
+      An alternative to apps like <strong>Everyday</strong>, <strong>Habitify</strong>, and
+      <strong>Habitica</strong>, it is built with the lightweight
       <a
         href="https://v2.tauri.app/"
         target="_blank"
