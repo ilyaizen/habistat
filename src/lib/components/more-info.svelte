@@ -40,7 +40,7 @@
           Responsive heading size for logo.
         -->
       </div>
-      <p class="mb-8 text-xs sm:mb-16">
+      <p class="mb-8 text-center text-xs sm:mb-16">
         <!--
           Reduced bottom margin on mobile to save space.
         -->
@@ -133,14 +133,14 @@
   </div>
 
   <!-- Single Column Content Area: Detailed information about Habistat -->
-  <Card class="mx-auto w-full max-w-3xl">
+  <Card class="mx-auto w-full max-w-3xl p-4 text-lg sm:p-8 md:p-16">
     <CardContent class="space-y-8">
       <!--
         Content is centered and width-constrained for readability on large screens, full width on mobile.
       -->
       <!-- Why Habistat Section -->
       <div>
-        <h2 class="mb-3 text-2xl font-semibold">
+        <h2 class="mb-8 text-center text-3xl font-semibold">
           <span role="img" aria-label="Shrine">⛩️</span> Why Habistat?
         </h2>
         <p class="mb-2 leading-relaxed">
@@ -155,7 +155,7 @@
 
       <!-- Features Section -->
       <div>
-        <h2 class="mb-3 text-2xl font-semibold">
+        <h2 class="te mb-8 text-center text-3xl font-semibold">
           <span role="img" aria-label="Sparkles">✨</span> Features
         </h2>
         <ul class="list-inside space-y-2 leading-relaxed">
@@ -191,7 +191,7 @@
 
       <!-- Getting Started Section -->
       <div>
-        <h2 class="mb-3 text-2xl font-semibold">
+        <h2 class="te mb-8 text-center text-3xl font-semibold">
           <span role="img" aria-label="Rocket">🚀</span> Getting Started
         </h2>
         <ol class="list-inside list-decimal space-y-2 leading-relaxed">
@@ -215,7 +215,7 @@
 
       <!-- Roadmap Section -->
       <div>
-        <h2 class="mb-3 text-2xl font-semibold">
+        <h2 class="te mb-8 text-center text-3xl font-semibold">
           <span role="img" aria-label="Map">🗺️</span> Roadmap (Future Ideas)
         </h2>
         <ul class="list-inside list-disc space-y-1 leading-relaxed">
@@ -232,7 +232,7 @@
 
       <!-- Tech Stack Section -->
       <div>
-        <h2 class="mb-3 text-2xl font-semibold">
+        <h2 class="te mb-8 text-center text-3xl font-semibold">
           <span role="img" aria-label="Tools">🛠️</span> Tech Stack
         </h2>
         <p class="mb-3 leading-relaxed">
@@ -363,7 +363,7 @@
 
       <!-- Useful Links Section -->
       <div>
-        <h2 class="mb-3 text-2xl font-semibold">
+        <h2 class="te mb-8 text-center text-3xl font-semibold">
           <span role="img" aria-label="Chain link">🔗</span> Useful Links
         </h2>
         <ul class="list-inside list-disc space-y-1 leading-relaxed">
@@ -403,7 +403,7 @@
 
       <!-- License Section -->
       <div>
-        <h2 class="mb-3 text-2xl font-semibold">
+        <h2 class="te mb-8 text-center text-2xl font-semibold">
           <span role="img" aria-label="Scroll">📜</span> License
         </h2>
         <p class="leading-relaxed">
@@ -428,3 +428,9 @@
     </CardContent>
   </Card>
 </div>
+
+<style>
+  a {
+    text-decoration: underline !important;
+  }
+</style>
