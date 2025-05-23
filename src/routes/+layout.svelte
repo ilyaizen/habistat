@@ -191,6 +191,7 @@
 
   // Inject Vercel Speed Insights for performance monitoring (runs only in browser)
   injectSpeedInsights();
+  injectAnalytics();
 </script>
 
 {#if $networkIsOnline}
