@@ -26,7 +26,7 @@
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
   import { Toaster } from "$lib/components/ui/sonner/index.js"; // Sonner toast system (global notifications)
   import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
-
+  import { injectAnalytics } from "@vercel/analytics/sveltekit";
   import "../app.css";
 
   // Props received from parent routes using Svelte 5 $props rune
