@@ -11,7 +11,6 @@
   // handleStart: Function to execute when the "Start Tracking Now" button is clicked
   export let handleStart: () => void;
   // showMoreInfoButton: Prop to control visibility of a button (currently unused in this snippet, might be for parent)
-  export let showMoreInfoButton = false; // Kept for compatibility, though not directly used in the new layout
 </script>
 
 <!--
