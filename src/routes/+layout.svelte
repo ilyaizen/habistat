@@ -22,15 +22,16 @@
   import type { LayoutData } from "./$types";
   import { browser } from "$app/environment";
   import { isOnline as networkIsOnline } from "$lib/stores/network";
-  // import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
+  import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
   import { Toaster } from "$lib/components/ui/sonner/index.js"; // Sonner toast system (global notifications)
   import { injectAnalytics } from "@vercel/analytics/sveltekit";
   import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
   import "../app.css";
-
+  import AppHeader from "$lib/components/app-header.svelte";
+  import AppFooter from "$lib/components/app-footer.svelte";
   // Props received from parent routes using Svelte 5 $props rune
-  let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
+  let { children } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
 
   // State for tracking initialization progress
   let i18nReady = $state(false); // Flag indicating i18n initialization is complete
@@ -198,6 +199,7 @@
   <!-- Online: Render ClerkProvider and main app content -->
   <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
     <div class="flex h-screen flex-col">
+      <AppHeader />
       <MotionWrapper>
         <main class="flex-1">
           {#if i18nReady && trackingInitialized}
@@ -212,6 +214,7 @@
           {/if}
         </main>
       </MotionWrapper>
+      <AppFooter />
     </div>
   </ClerkProvider>
 {:else}
@@ -236,9 +239,9 @@
 
 <!-- Render EnvironmentIndicator fixed at the bottom right -->
 <!-- TODO: 2025-05-12 - temporarily disabled to avoid cluttering the UI -->
-<!-- <div class="fixed bottom-4 left-4 z-10">
+<div class="fixed bottom-4 left-4 z-10">
   <EnvironmentIndicator></EnvironmentIndicator>
-</div> -->
+</div>
 
 <FireworksEffect />
 

@@ -17,7 +17,13 @@ An alternative to apps like **[Everyday](https://everyday.app/)**, **[Habitify](
 
 ## 💾 Prompts
 
-I want to create a habit tracking web application called Habistat. The webapp should be responsive and have a beautiful and modern UI, which is minimalistic and has proper components, a proper color palette, and so on. Here's what I want to implement:
+I want to create a habit tracking web application called Habistat. The webapp should be responsive and have a beautiful and modern UI, which is minimalistic and has proper components, a proper color palette, and so on.
+
+I already essentially finished implementing the following:
+
+The basic frontpage with a visible-on-scroll 'More info' drawer button that has the app information copy from the README.md. The layout has a header and footer.
+
+Here's what I want to implement:
 
 1. Dashboard:
    - I want to display a summary of the user's habits and progress.
