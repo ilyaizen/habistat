@@ -9,7 +9,7 @@
   import { _ } from "svelte-i18n";
   import type { UserResource } from "@clerk/types";
 
-  import AvatarDropdown from "./avatar-dropdown.svelte";
+  import AvatarDropdown from "./avatar-dropdown-old.svelte";
 
   let isMobileMenuOpen = false;
 

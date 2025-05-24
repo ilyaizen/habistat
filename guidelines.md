@@ -36,6 +36,7 @@ pnpm format            # Prettier
 ## Project Structure
 
 ```txt
+/convex         # Convex functions directory
 /src-tauri      # Rust + Tauri setup
 /src            # SvelteKit + shared utils
   /routes       # Pages & endpoints
@@ -129,6 +130,6 @@ pnpm format            # Prettier
 - Read `@README.md` and understand the project better.
 - Read `@tech-stack.md` for tool documentation links.
 - Read `@implementation-plan.md` and understand the required tasks.
-- Use `@llms-convex.txt`, `@llms-drizzle.txt`, `@llms-mcp-full.txt`, `@llms-small-svelte.txt` to clarify latest tool best-practices.
+- Use `@llms-convex.txt`, `@llms-small-svelte.txt` to clarify latest tool best-practices.
 - Apply `@add-comments.mdc` to code when possible.
 - Use the available MCP functionality (such as: `browser-tools`) freely.

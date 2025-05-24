@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { logAppOpenIfNeeded, getAppOpenHistory, sessionStore } from "$lib/utils/tracking";
   import { goto } from "$app/navigation";
-  import ActivityMonitor from "$lib/components/activity-monitor.svelte";
+  import ActivityMonitor from "$lib/components/activity-monitor-old.svelte";
   import * as Alert from "$lib/components/ui/alert";
   import * as Card from "$lib/components/ui/card";
   import { _ } from "svelte-i18n";

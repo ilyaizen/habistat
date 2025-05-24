@@ -3,9 +3,7 @@
 │   └── rules
 │       ├── add-comments.mdc
 │       ├── code-style.mdc
-│       ├── cursor-rules.mdc
-│       ├── dev-workflow.mdc
-│       └── project-core.mdc
+│       └── cursor-rules.mdc
 ├── .obsidian
 │   ├── app.json
 │   ├── appearance.json
@@ -14,10 +12,18 @@
 ├── .vscode
 │   ├── extensions.json
 │   └── settings.json
-├── scripts
-│   ├── generate-144-icon.mjs
-│   ├── generate-pwa-icons.mjs
-│   └── verify-icons.mjs
+├── convex
+│   ├── _generated
+│   │   ├── api.d.ts
+│   │   ├── api.js
+│   │   ├── dataModel.d.ts
+│   │   ├── server.d.ts
+│   │   └── server.js
+│   ├── README.md
+│   ├── http.ts
+│   ├── schema.ts
+│   ├── tsconfig.json
+│   └── users.ts
 ├── src
 │   ├── i18n
 │   │   ├── en.json
@@ -26,37 +32,48 @@
 │   │   └── index.ts
 │   ├── lib
 │   │   ├── components
-│   │   │   ├── auth
-│   │   │   │   ├── claim-session.svelte
-│   │   │   │   └── clerk-wrapper.svelte
 │   │   │   ├── about-drawer.svelte
 │   │   │   ├── activity-monitor.svelte
-│   │   │   ├── anonymous-avatar-dropdown.svelte
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
 │   │   │   ├── avatar-dropdown.svelte
+│   │   │   ├── environment-indicator.svelte
+│   │   │   ├── fireworks-effect.svelte
 │   │   │   ├── language-switcher.svelte
+│   │   │   ├── more-info.svelte
 │   │   │   ├── motion-wrapper.svelte
-│   │   │   ├── network-status.svelte
 │   │   │   ├── session-info.svelte
 │   │   │   └── theme-toggle.svelte
 │   │   ├── hooks
 │   │   │   └── is-mobile.svelte.ts
 │   │   ├── stores
+│   │   │   ├── fireworks.ts
+│   │   │   ├── network.ts
+│   │   │   ├── platform.ts
 │   │   │   └── settings.ts
+│   │   ├── types
 │   │   ├── utils
+│   │   │   ├── auth.ts
+│   │   │   ├── environment.ts
 │   │   │   └── tracking.ts
 │   │   └── utils.ts
 │   ├── params
 │   │   └── lang.ts
 │   ├── routes
+│   │   ├── about
+│   │   │   └── +page.svelte
+│   │   ├── calendars
+│   │   │   └── [calendarId]
 │   │   ├── dashboard
+│   │   │   ├── +layout.svelte
 │   │   │   └── +page.svelte
 │   │   ├── settings
 │   │   │   └── +page.svelte
 │   │   ├── sign-in
+│   │   │   ├── +page.server.ts
 │   │   │   └── +page.svelte
 │   │   ├── sign-up
+│   │   │   ├── +page.server.ts
 │   │   │   └── +page.svelte
 │   │   ├── +layout.server.ts
 │   │   ├── +layout.svelte
@@ -69,8 +86,7 @@
 │   ├── env.d.ts
 │   ├── esm-env.js
 │   ├── hooks.client.ts
-│   ├── hooks.server.ts
-│   └── service-worker.js
+│   └── hooks.server.ts
 ├── src-tauri
 │   ├── capabilities
 │   │   └── default.json
@@ -83,17 +99,21 @@
 │   ├── build.rs
 │   └── tauri.conf.json
 ├── static
+│   ├── .well-known
 │   ├── screenshots
 │   │   ├── screenshot-desktop.png
 │   │   └── screenshot-mobile.png
 │   ├── app-192x192.png
 │   ├── app-512x512.png
+│   ├── favicon.ico
 │   ├── flag-es.png
 │   ├── flag-il.png
 │   ├── flag-us.png
+│   ├── illustration-preview.png
 │   ├── logo.png
 │   ├── logo.svg
-│   └── maskable-icon-512x512.png
+│   ├── maskable-icon-512x512.png
+│   └── offline.html
 ├── .env
 ├── .env.d.ts
 ├── .env.example
@@ -101,7 +121,6 @@
 ├── .mcp.json
 ├── .prettierignore
 ├── .prettierrc
-├── .windsurfrules
 ├── LICENSE
 ├── README.md
 ├── app-icon.png
@@ -110,11 +129,12 @@
 ├── guidelines.md
 ├── implementation-plan.md
 ├── index.ts
+├── llms-convex.txt
+├── llms-small-svelte.txt
 ├── package.json
 ├── pnpm-lock.yaml
 ├── postcss.config.cjs
 ├── svelte.config.js
-├── tailwind.config.js
 ├── tech-stack.md
 ├── tsconfig.json
 └── vite.config.mjs

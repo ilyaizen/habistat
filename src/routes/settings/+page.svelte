@@ -6,7 +6,7 @@
   import { goto } from "$app/navigation";
 
   import Switch from "$lib/components/ui/switch/switch.svelte";
-  import SessionInfo from "$lib/components/session-info.svelte";
+  import SessionInfo from "$lib/components/session-info-old.svelte";
   import { anonymousUserId } from "$lib/utils/tracking";
   import { onDestroy, onMount } from "svelte";
 

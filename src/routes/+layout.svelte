@@ -22,7 +22,7 @@
   import type { LayoutData } from "./$types";
   import { browser } from "$app/environment";
   import { isOnline as networkIsOnline } from "$lib/stores/network";
-  import EnvironmentIndicator from "$lib/components/environment-indicator.svelte";
+  import EnvironmentIndicator from "$lib/components/environment-indicator-old.svelte";
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
   import { Toaster } from "$lib/components/ui/sonner/index.js"; // Sonner toast system (global notifications)
   import { injectAnalytics } from "@vercel/analytics/sveltekit";
