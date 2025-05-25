@@ -54,3 +54,9 @@ export const flyAndScale = (
     easing: cubicOut
   };
 };
+
+/**
+ * Adds an optional `ref` property for Svelte element binding.
+ * Usage: WithElementRef<HTMLButtonAttributes> will add `ref?: HTMLElement | null`.
+ */
+export type WithElementRef<T, E = HTMLElement> = T & { ref?: E | null };

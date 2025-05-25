@@ -10,7 +10,7 @@
   import type { UserResource } from "@clerk/types";
 
   import AvatarDropdown from "./avatar-dropdown-old.svelte";
-
+  import ThemeToggle from "./theme-toggle.svelte";
   let isMobileMenuOpen = false;
 
   // Get Clerk user state from context
@@ -77,6 +77,7 @@
     </nav>
 
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
+      <ThemeToggle />
       <AvatarDropdown />
     </div>
   </div>

@@ -146,7 +146,7 @@
 </script>
 
 <!-- Main landing page layout -->
-<div class="mt-32 flex flex-col items-center justify-center">
+<div class="mt-24 flex flex-col items-center justify-center">
   <img src="/logo.svg" alt="Habistat Logo" class="mb-6 h-30 w-30" />
   <h1 class="mb-4 text-4xl font-bold">Habistat</h1>
   <p class="text-muted-foreground mb-8 text-lg">Build habits. Track progress. Achieve goals.</p>
