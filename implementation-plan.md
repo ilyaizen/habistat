@@ -8,44 +8,49 @@ First section:
 
 I want to create a habit tracking web application called Habistat. The webapp should be responsive and have a beautiful and modern UI, which is minimalistic and has proper components, a proper color palette, and so on.
 
-I already essentially finished implementing the following:
-
-The basic frontpage with a visible-on-scroll 'More info' drawer button that has the copy ready for initial use.
+I've pretty much completed the basic front page, including a visible-on-scroll 'More Info' drawer button with the initial copy ready to go.
 
 Things that need some work:
 
 Here's what I want to implement:
 
 1. Dashboard:
+
    - I want to display a summary of the user's habits and progress.
    - Include a GitHub-style activity grid to show habit completion over time. (Deferred; just use charts for now)
    - Show charts and visualizations of the user's trends and progress.
 
 2. Habit Management:
+
    - Allow users to create, edit, and delete habits.
    - Each habit should have a name, type (positive or negative), optional timer, and point value.
    - Implement a calendar view for habit tracking.
 
 3. Calendar System:
+
    - Enable users to create multiple calendars with custom names and colors. (for categories)
    - Allow users to assign habits within these calendars.
 
 4. Habit Tracking:
+
    - Provide a daily check-off system for habit completion. (call the action 'Complete')
    - Implement appropriate counters for each habit for the habit details page.
    - The Dashboard should display the activities, including the virtual garden on the side.
    - Calculate and display points earned for completed habits.
 
-1. Gamification (Deferred; just use totals chart for that section):
+5. Gamification (Deferred; just use totals chart for that section):
+
    - Create a virtual garden that grows based on habit completion.
    - Implement a reward system tied to points and streaks.
 
 6. User Preferences:
+
    - Add a page header and footer
    - Include light and dark mode options.
    - Implement multi-language support.
 
 7. Data Management:
+
    - Allow users to import and export their habit data.
    - Implement an offline-first approach for data storage.
 
@@ -55,42 +60,39 @@ Here's what I want to implement:
 Implementation Phases:
 
 Phase 1: Core Functionality
+
 - Implement the basic dashboard layout.
 - Create the habit management system (CRUD operations).
 - Develop the daily habit tracking mechanism.
 
 Phase 2: Visual Enhancements
+
 - Add the GitHub-style activity grid to the dashboard.
 - Implement charts and visualizations for progress tracking.
 - Design and integrate the virtual garden feature.
 
 Phase 3: Advanced Features
+
 - Develop the calendar system for organizing habits.
 - Implement the gamification elements (points, rewards).
 - Add user preferences (theme switching, language options).
 
 Phase 4: Data Handling
+
 - Create import/export functionality for habit data.
 - Implement offline data storage.
 - Develop optional sync feature for cross-device usage.
 
 Each phase should be implemented iteratively, with visible outputs after each iteration. The focus should be on creating a functional and visually appealing frontend without concern for backend implementation details.
 
-
 ---
 
 ## Phase 1B: Platform Layout UI Improvements (Redesigned Dashboard/Settings)
 
-Inspiration: T3.chat
-
 - Make plan for step 1.5 (Offline-First & Static) of Phase 1A.
 - I need to make auth optional while also ensuring that users receive clear feedback about their authentication status.
-- Regularizing the theme and connectivity logic, ensuring synchronization between user settings and system defaults.
-- Redesign Dashboard with Sidebar.
 
-- [ ] Shadcn Sidebar
 - [ ] Setting Subroutes for Account, Customization, History & Sync, Export / Import
-- [ ] Curved Header Effect
 
 ---
 

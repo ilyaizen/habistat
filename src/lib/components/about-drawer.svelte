@@ -3,8 +3,6 @@
   import { Button, buttonVariants } from "$lib/components/ui/button";
   import * as Drawer from "$lib/components/ui/drawer/index.js";
   import { X } from "lucide-svelte";
-  import { anonymousUserId } from "$lib/utils/tracking";
-  import { goto } from "$app/navigation";
   import MoreInfo from "./more-info.svelte";
 
   // Props
@@ -31,7 +29,9 @@
     {/if}
   </Drawer.Trigger>
 
-  <Drawer.Content class="mx-auto flex max-h-[90vh] max-w-[90vw] flex-col">
+  <Drawer.Content
+    class="mx-auto flex max-h-[90vh] max-w-full flex-col px-2 sm:max-w-2xl md:max-w-3xl md:px-6 lg:max-w-5xl"
+  >
     <!--
       Sticky header (title + close button) stays at the top and full width
     -->
@@ -41,9 +41,7 @@
     >
       <X class="h-4 w-4" />
     </Drawer.Close>
-    <!--
-      Main About/More Info content is now in a separate component for clarity and reusability.
-    -->
-    <MoreInfo {open} {handleStart} {showMoreInfoButton} />
+    <!-- Main About/More Info content is now in a separate component for clarity and reusability -->
+    <MoreInfo {open} {handleStart} />
   </Drawer.Content>
 </Drawer.Root>

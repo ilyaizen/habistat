@@ -1,61 +1,52 @@
 <!-- Dashboard layout with shadcn sidebar -->
 <script lang="ts">
   import * as Sidebar from "$lib/components/ui/sidebar";
-  import {
-    Home,
-    Calendar,
-    Settings,
-    Search,
-    BarChart,
-    User,
-    Info,
-    MessageSquare
-  } from "lucide-svelte";
+  import { Home, Settings, BarChart, User, Info, MessageSquare } from "lucide-svelte";
   import type { HTMLAnchorAttributes } from "svelte/elements";
 
   // Menu items for the sidebar
-  const topSidebarItems = [
-    {
-      title: "Home",
-      icon: Home,
-      href: "/"
-    },
-    {
-      title: "Dashboard",
-      icon: Home, // Assuming 'Home' icon for Dashboard Overview
-      href: "/dashboard"
-    },
-    {
-      title: "Stats",
-      icon: BarChart,
-      href: "/dashboard/statistics" // Assuming existing stats page
-    },
-    {
-      title: "Settings",
-      icon: Settings,
-      href: "/settings"
-    }
-  ];
+  // const topSidebarItems = [
+  //   {
+  //     title: "Home",
+  //     icon: Home,
+  //     href: "/"
+  //   },
+  //   {
+  //     title: "Dashboard",
+  //     icon: Home, // Assuming 'Home' icon for Dashboard Overview
+  //     href: "/dashboard"
+  //   },
+  //   {
+  //     title: "Stats",
+  //     icon: BarChart,
+  //     href: "/dashboard/statistics" // Assuming existing stats page
+  //   },
+  //   {
+  //     title: "Settings",
+  //     icon: Settings,
+  //     href: "/settings"
+  //   }
+  // ];
 
-  const bottomSidebarItems = [
-    {
-      title: "More Info",
-      icon: Info,
-      href: "/more-info" // Placeholder href
-    },
-    {
-      title: "Feedback",
-      icon: MessageSquare,
-      href: "/feedback" // Placeholder href
-    }
-  ];
+  // const bottomSidebarItems = [
+  //   {
+  //     title: "More Info",
+  //     icon: Info,
+  //     href: "/more-info" // Placeholder href
+  //   },
+  //   {
+  //     title: "Feedback",
+  //     icon: MessageSquare,
+  //     href: "/feedback" // Placeholder href
+  //   }
+  // ];
 
   let { children } = $props();
 </script>
 
 <div class="flex h-screen">
   <!-- Sidebar Provider wraps all sidebar components for context sharing -->
-  <Sidebar.Provider class="flex w-60 flex-col justify-between">
+  <!-- <Sidebar.Provider class="flex w-60 flex-col justify-between">
     <Sidebar.Root>
       <Sidebar.Content>
         <Sidebar.Group>
@@ -98,14 +89,13 @@
         </Sidebar.Group>
       </Sidebar.Content>
       <Sidebar.Footer class="border-t p-4">
-        <!-- User Avatar and Username placeholder -->
         <div class="flex items-center space-x-2">
           <User class="h-8 w-8 rounded-full bg-gray-300" />
           <span>Username</span>
         </div>
       </Sidebar.Footer>
     </Sidebar.Root>
-  </Sidebar.Provider>
+  </Sidebar.Provider> -->
 
   <!-- Main content area with proper layout -->
   <main class="bg-background flex-1 overflow-y-auto p-6">

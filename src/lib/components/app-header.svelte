@@ -34,7 +34,7 @@
 </script>
 
 <header class="border-border/40 relative border-b">
-  <div class="container mx-auto flex h-10 justify-between px-4 rtl:flex-row-reverse">
+  <div class="container mx-auto flex h-16 justify-between px-4 rtl:flex-row-reverse">
     <div class="flex items-center md:hidden">
       <Button variant="ghost" size="sm" class="h-9 w-9 px-0" onclick={toggleMobileMenu}>
         {#if isMobileMenuOpen}

@@ -198,10 +198,22 @@
 {#if $networkIsOnline}
   <!-- Online: Render ClerkProvider and main app content -->
   <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <!--
+      Layout container:
+      - h-screen: container takes exactly the viewport height
+      - flex flex-col: vertical stacking of header, main, and footer
+      This forces the footer to always sit at the bottom of the viewport.
+    -->
     <div class="flex h-screen flex-col">
       <AppHeader />
-      <MotionWrapper>
-        <main class="flex-1">
+      <MotionWrapper class="min-h-0 flex-1">
+        <!--
+          Main content area:
+          - flex-1: expands to fill available space between header and footer
+          - overflow-auto: allows scrolling when content exceeds available space
+          - min-h-0: prevents flex item from forcing extra height
+        -->
+        <main class="min-h-0 flex-1 overflow-auto">
           {#if i18nReady && trackingInitialized}
             {@render children()}
           {:else}
@@ -219,9 +231,21 @@
   </ClerkProvider>
 {:else}
   <!-- Offline: Render offline content -->
+  <!--
+    Offline layout container:
+    - h-screen: container takes exactly the viewport height
+    - flex flex-col: vertical stacking of main and footer
+    This forces the footer to always sit at the bottom of the viewport.
+  -->
   <div class="flex h-screen flex-col">
-    <MotionWrapper>
-      <main class="flex-1">
+    <MotionWrapper class="min-h-0 flex-1">
+      <!--
+        Main content area (offline):
+        - flex-1: expands to fill available space above the footer
+        - overflow-auto: allows scrolling when content exceeds available space
+        - min-h-0: prevents flex item from forcing extra height
+      -->
+      <main class="min-h-0 flex-1 overflow-auto">
         {#if i18nReady && trackingInitialized}
           {@render children()}
         {:else}
@@ -234,14 +258,9 @@
         {/if}
       </main>
     </MotionWrapper>
+    <AppFooter />
   </div>
 {/if}
-
-<!-- Render EnvironmentIndicator fixed at the bottom right -->
-<!-- TODO: 2025-05-12 - temporarily disabled to avoid cluttering the UI -->
-<div class="fixed bottom-4 left-4 z-10">
-  <EnvironmentIndicator></EnvironmentIndicator>
-</div>
 
 <FireworksEffect />
 

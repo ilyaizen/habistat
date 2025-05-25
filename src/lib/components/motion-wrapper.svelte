@@ -44,11 +44,15 @@
     return sampleCurveY(solveCurveX(t));
   }
 
-  let { children } = $props();
+  let { children, class: className = "", ...rest } = $props();
 </script>
 
 {#key key}
-  <div in:fly={{ y: 30, duration: $settings.enableMotion ? 350 : 0, easing: customEase }}>
+  <div
+    in:fly={{ y: 30, duration: $settings.enableMotion ? 350 : 0, easing: customEase }}
+    class="flex h-full flex-col {className}"
+    {...rest}
+  >
     {@render children()}
   </div>
 {/key}

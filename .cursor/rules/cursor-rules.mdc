@@ -3,7 +3,7 @@ description: Habistat Tauri/SvelteKit Rules
 globs: *
 alwaysApply: true
 ---
-Habistat AI Rules
+# Habistat AI Rules
 
 Reminder:
 
