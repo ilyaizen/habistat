@@ -1,8 +1,8 @@
 <!-- Dashboard layout with shadcn sidebar -->
 <script lang="ts">
-  import * as Sidebar from "$lib/components/ui/sidebar";
-  import { Home, Settings, BarChart, User, Info, MessageSquare } from "lucide-svelte";
-  import type { HTMLAnchorAttributes } from "svelte/elements";
+  // import * as Sidebar from "$lib/components/ui/sidebar";
+  // import { Home, Settings, BarChart, User, Info, MessageSquare } from "lucide-svelte";
+  // import type { HTMLAnchorAttributes } from "svelte/elements";
 
   // Menu items for the sidebar
   // const topSidebarItems = [
@@ -44,7 +44,7 @@
   let { children } = $props();
 </script>
 
-<div class="flex h-screen">
+<div class="flex">
   <!-- Sidebar Provider wraps all sidebar components for context sharing -->
   <!-- <Sidebar.Provider class="flex w-60 flex-col justify-between">
     <Sidebar.Root>

@@ -40,6 +40,7 @@
   // Theme management variables
   let media: MediaQueryList | null = null; // Reference to the media query list for dark mode preference
   let systemListener: (() => void) | null = null; // Listener function for system theme changes
+  let lastAppliedTheme: "system" | "light" | "dark" | null = null;
 
   // Create a readable store for the Clerk user state
   // Only initialize this store if online, otherwise ClerkProvider won't be rendered
@@ -193,6 +194,14 @@
   // Inject Vercel Analytics, Speed Insights for performance monitoring (runs only in browser)
   injectSpeedInsights();
   injectAnalytics();
+
+  $effect(() => {
+    if (!browser) return;
+    if ($theme !== lastAppliedTheme) {
+      selectTheme($theme);
+      lastAppliedTheme = $theme;
+    }
+  });
 </script>
 
 {#if $networkIsOnline}
