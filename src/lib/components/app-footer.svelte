@@ -16,13 +16,15 @@
   -->
   <div class="container mx-auto flex h-16 items-center justify-between px-4">
     <!-- Left side: Copyright and EnvironmentIndicator -->
-    <div class="text-muted-foreground flex items-center gap-2 text-sm">This is the footer...</div>
+    <div class="text-muted-foreground flex items-center gap-4 text-sm">
+      <!-- This is the footer... -->
+    </div>
 
     <!-- Right side: Version and social links -->
-    <div class="text-muted-foreground flex items-center gap-2 text-xs">
+    <div class="text-muted-foreground flex items-center gap-4 text-xs">
       <!-- Inline environment indicator (shows environment/platform/network) -->
       <EnvironmentIndicator />
-      <span>{currentYear} &copy; Habistat</span>
+      <!-- <span>{currentYear} &copy; Habistat</span> -->
       <!-- App version -->
       <span class="text-muted-foreground text-xs">{VERSION}</span>
       <!-- Social links -->
