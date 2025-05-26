@@ -33,6 +33,14 @@
   }
 </script>
 
+<!--
+  Habistat App Header
+  All navigation links in this header must correspond to actual routes in
+  src/routes.
+  This ensures navigation does not break and is easy to maintain.
+  The 'Dev' navigation item is for developer tools and diagnostics, only visible to all users for now.
+  -->
+
 <header class="border-border/40 relative border-b">
   <div class="container mx-auto flex h-16 justify-between px-4 rtl:flex-row-reverse">
     <div class="flex items-center md:hidden">
@@ -66,12 +74,38 @@
         >
           Dashboard
         </a>
+
+        <!-- Calendars navigation item for calendar management -->
+        <a
+          href="/calendars"
+          class="text-muted-foreground hover:text-foreground transition-colors"
+          class:font-medium={$page.url.pathname.includes("/calendars")}
+        >
+          Calendars
+        </a>
+        <!-- Stats navigation item for user statistics and analytics -->
+        <a
+          href="/stats"
+          class="text-muted-foreground hover:text-foreground transition-colors"
+          class:font-medium={$page.url.pathname.includes("/stats")}
+        >
+          Stats
+        </a>
+
         <a
           href="/settings"
           class="text-muted-foreground hover:text-foreground transition-colors"
           class:font-medium={$page.url.pathname.includes("/settings")}
         >
           Settings
+        </a>
+        <!-- Dev navigation item for developers -->
+        <a
+          href="/dev"
+          class="text-muted-foreground hover:text-foreground transition-colors"
+          class:font-medium={$page.url.pathname.includes("/dev")}
+        >
+          Dev
         </a>
       </div>
     </nav>
@@ -96,6 +130,27 @@
           on:click={() => handleNavigation("/settings")}
         >
           Settings
+        </button>
+        <!-- Dev navigation item for developers -->
+        <button
+          class="text-muted-foreground hover:text-foreground text-left font-medium transition-colors"
+          on:click={() => handleNavigation("/dev")}
+        >
+          Dev
+        </button>
+        <!-- Calendars navigation item for calendar management -->
+        <button
+          class="text-muted-foreground hover:text-foreground text-left font-medium transition-colors"
+          on:click={() => handleNavigation("/calendars")}
+        >
+          Calendars
+        </button>
+        <!-- Stats navigation item for user statistics and analytics -->
+        <button
+          class="text-muted-foreground hover:text-foreground text-left font-medium transition-colors"
+          on:click={() => handleNavigation("/stats")}
+        >
+          Stats
         </button>
       </div>
     </div>

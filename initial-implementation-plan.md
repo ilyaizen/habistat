@@ -52,19 +52,19 @@ This plan builds upon your existing progress, aiming for iterative development w
 
 **Tasks:**
 
-- [ ] **Main Navigation:**
-  - [ ] Design and implement the primary navigation structure (e.g., sidebar or tab bar for Dashboard, Calendars, Settings).
-  - [ ] Create placeholder Svelte components/pages for these main sections (`/dashboard`, `/calendars`, `/settings`).
-- [ ] **Settings Page Structure:**
-  - [ ] Implement the main `/settings` page (`src/routes/settings/+page.svelte` and `+layout.svelte`).
-  - [ ] Create sub-routes and placeholder pages for:
-    - [ ] `/settings/account` (will display user info and auth actions later)
-    - [ ] `/settings/customization` (for theme and appearance options)
-    - [ ] `/settings/sync` (for sync status and controls later)
-    - [ ] `/settings/data` (for import/export UI elements later)
-- [ ] **User Preferences - Customization:**
-  - [ ] Implement Light/Dark mode switching logic within `/settings/customization`.
-  - [ ] Ensure theme preference persists (e.g., using `localStorage` and applying theme on app load).
+- [x] **Main Navigation:**
+  - [x] Design and implement the primary navigation structure (Dashboard, Calendars, Stats, Settings).
+  - [x] Create placeholder Svelte components/pages for these main sections (`/dashboard`, `/calendars`, `/stats`, `/settings`).
+- [x] **Settings Page Structure:**
+  - [x] Implement the main `/settings` page (`src/routes/settings/+page.svelte` and `+layout.svelte`).
+  - [x] Create sub-routes and placeholder pages for:
+    - [x] `/settings/account` (will display user info and auth actions later)
+    - [x] `/settings/customization` (for theme and appearance options)
+    - [x] `/settings/sync` (for sync status and controls later)
+    - [x] `/settings/data` (for import/export UI elements later)
+- [x] **User Preferences - Customization:**
+  - [x] Implement Light/Dark mode switching logic within `/settings/customization`.
+  - [x] Ensure theme preference persists (e.g., using `localStorage` and applying theme on app load).
 - [ ] **Offline-First & Auth UX:**
   - [ ] Refine and document the strategy for offline data handling (how data flows from UI to local storage).
   - [ ] Design and implement UI elements to clearly communicate:
@@ -106,7 +106,7 @@ This plan builds upon your existing progress, aiming for iterative development w
 
 - _(Ensure Clerk components are styled consistently and loading/error states are handled gracefully)_
 
-#### 3.6. Key Deferred Items from your original Phase 3 (to be addressed in later phases):
+#### 3.6. Key Deferred Items from your original Phase 3 (to be addressed in later phases)
 
 - Data Synchronization (actual habit/calendar data) -> **Phase 5**
 - Anonymous Data Migration -> **Phase 5**
