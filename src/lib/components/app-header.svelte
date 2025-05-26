@@ -117,7 +117,7 @@
     </nav>
 
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
-      <ThemeToggle />
+      <!-- <ThemeToggle /> -->
       <AvatarDropdown />
     </div>
   </div>
@@ -127,29 +127,15 @@
       <div class="flex flex-col space-y-4 p-4">
         <button
           class="text-muted-foreground hover:text-foreground text-left font-medium"
+          on:click={() => handleNavigation("/")}
+        >
+          Home
+        </button>
+        <button
+          class="text-muted-foreground hover:text-foreground text-left font-medium"
           on:click={() => handleNavigation("/dashboard")}
         >
           Dashboard
-        </button>
-        <button
-          class="text-muted-foreground hover:text-foreground text-left font-medium transition-colors"
-          on:click={() => handleNavigation("/settings")}
-        >
-          Settings
-        </button>
-        <!-- Dev navigation item for developers -->
-        <button
-          class="text-muted-foreground hover:text-foreground text-left font-medium transition-colors"
-          on:click={() => handleNavigation("/dev")}
-        >
-          Dev
-        </button>
-        <!-- Calendars navigation item for calendar management -->
-        <button
-          class="text-muted-foreground hover:text-foreground text-left font-medium transition-colors"
-          on:click={() => handleNavigation("/calendars")}
-        >
-          Calendars
         </button>
         <!-- Stats navigation item for user statistics and analytics -->
         <button
@@ -157,6 +143,12 @@
           on:click={() => handleNavigation("/stats")}
         >
           Stats
+        </button>
+        <button
+          class="text-muted-foreground hover:text-foreground text-left font-medium"
+          on:click={() => handleNavigation("/pricing")}
+        >
+          Pricing
         </button>
       </div>
     </div>

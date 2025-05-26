@@ -21,12 +21,6 @@
 <div
   class="about-drawer-scroll text-muted-foreground min-h-0 flex-1 overflow-y-auto p-4 sm:p-8 md:p-16"
 >
-  <!--
-    Responsive padding: p-4 on mobile, p-8 on small screens, p-16 on md+ for comfortable spacing.
-  -->
-  <!--
-      Responsive grid: single column on mobile, two columns on md+ screens. Increased gap for better separation.
-    -->
   <div class="flex flex-col items-center justify-center space-y-4">
     <!-- Logo + Title -->
     <div class="flex items-center gap-4">
@@ -34,7 +28,7 @@
       <h1 class="mt-1 text-4xl">Habistat</h1>
     </div>
     <!-- Tagline -->
-    <div class="text-muted-foreground text-center text-lg font-medium sm:text-xl">
+    <div class="text-muted-foreground text-md text-center font-medium sm:text-xl">
       Build habits. Track progress. Achieve goals.
     </div>
     <!-- Features Row -->
