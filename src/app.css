@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 
 @custom-variant dark (.dark &);
 
@@ -11,7 +12,10 @@
     --card-foreground: oklch(0.3519 0.0069 95.2564);
     --popover: oklch(0.9142 0.008 106.5576);
     --popover-foreground: oklch(0.3519 0.0069 95.2564);
+    --primary: oklch(0.4826 0.0652 143.0892);
     --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.7545 0.0365 146.5094);
+    --secondary-foreground: oklch(0.4177 0.0042 145.5003);
     --muted: oklch(0.8789 0.0122 111.7845);
     --muted-foreground: oklch(0.5237 0.0031 106.5056);
     --accent: oklch(0.8459 0.0231 109.6192);
@@ -34,10 +38,10 @@
     --sidebar-accent-foreground: oklch(1 0 0);
     --sidebar-border: oklch(0.8208 0.0168 118.1875);
     --sidebar-ring: oklch(0.5034 0.0476 104.9529);
-    --font-sans: Oxanium, sans-serif;
+    --font-sans: "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif;
     --font-serif: Merriweather, serif;
     --font-mono: Fira Code, monospace;
-    --radius: 1rem;
+    --radius: 0.5rem;
     --shadow-2xs: 0px 2px 3px 0px hsl(60 3.3898% 23.1373% / 0.09);
     --shadow-xs: 0px 2px 3px 0px hsl(60 3.3898% 23.1373% / 0.09);
     --shadow-sm:
@@ -56,6 +60,11 @@
       0px 2px 3px 0px hsl(60 3.3898% 23.1373% / 0.18),
       0px 8px 10px -1px hsl(60 3.3898% 23.1373% / 0.18);
     --shadow-2xl: 0px 2px 3px 0px hsl(60 3.3898% 23.1373% / 0.45);
+    --btn-3d-border-color: oklch(from var(--primary) calc(l - 0.1) c h);
+    --btn-3d-bottom-border-color: oklch(from var(--primary) calc(l - 0.1) c h);
+    --btn-3d-hover-bg: oklch(from var(--primary) calc(l + 0.05) c h);
+    --btn-3d-active-bg: oklch(from var(--primary) calc(l - 0.05) c h);
+    --scrollbar-thumb: var(--muted-foreground);
   }
 
   .dark {
@@ -65,7 +74,10 @@
     --card-foreground: oklch(0.9117 0.0017 145.561);
     --popover: oklch(0.2599 0.0018 106.5266);
     --popover-foreground: oklch(0.9117 0.0017 145.561);
+    --primary: oklch(0.6263 0.09 142.0875);
     --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.4177 0.0042 145.5003);
+    --secondary-foreground: oklch(0.8689 0.0017 145.5602);
     --muted: oklch(0.2599 0.0018 106.5266);
     --muted-foreground: oklch(0.6737 0.0019 67.7912);
     --accent: oklch(0.3109 0.0163 275.5153);
@@ -88,10 +100,10 @@
     --sidebar-accent-foreground: oklch(0.2621 0.0242 284.6079);
     --sidebar-border: oklch(0.3555 0.0034 106.571);
     --sidebar-ring: oklch(0.6494 0.064 102.7316);
-    --font-sans: Oxanium, sans-serif;
+    --font-sans: "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif;
     --font-serif: Merriweather, serif;
     --font-mono: Fira Code, monospace;
-    --radius: 1rem;
+    --radius: 0.5rem;
     --shadow-2xs: 0px 2px 3px 0px hsl(0 0% 10.1961% / 0.09);
     --shadow-xs: 0px 2px 3px 0px hsl(0 0% 10.1961% / 0.09);
     --shadow-sm:
@@ -104,6 +116,11 @@
     --shadow-xl:
       0px 2px 3px 0px hsl(0 0% 10.1961% / 0.18), 0px 8px 10px -1px hsl(0 0% 10.1961% / 0.18);
     --shadow-2xl: 0px 2px 3px 0px hsl(0 0% 10.1961% / 0.45);
+    --btn-3d-border-color: oklch(from var(--primary) calc(l - 0.2) c h);
+    --btn-3d-bottom-border-color: oklch(from var(--primary) calc(l - 0.2) c h);
+    --btn-3d-hover-bg: oklch(from var(--primary) calc(l + 0.05) c h);
+    --btn-3d-active-bg: oklch(from var(--primary) calc(l - 0.05) c h);
+    --scrollbar-thumb: var(--muted-foreground);
   }
 
   @theme inline {
@@ -270,24 +287,53 @@
   }
 }
 
-/* Custom 3D Button Style */
+/*
+  Minimalist Front-Facing 3D Button Style
+  - Purpose: Creates a button with a subtle 3D effect using a thicker bottom border.
+  - How it works: A standard 2px border is applied, with a thicker, darker border
+    at the bottom to simulate depth. Colors are derived from --primary.
+  - Active state: Simulates pressing by reducing the bottom border's thickness and
+    changing its color to match the other borders, making it appear flat.
+  - Hover state: Lifts the button and changes background for feedback.
+*/
 .btn-3d {
-  border-bottom: 4px solid var(--primary-border);
-  box-shadow: 0 0 0 1px var(--primary-border);
-  transition: transform 0.1s ease-out;
-  scale: 1.25;
+  /* min-width: 200px; */
+  max-width: 250px;
+  padding: 1.5rem 3rem;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-style: solid;
+  border-width: 4px; /* Standard border for top, left, right */
+  border-color: var(--btn-3d-border-color);
+  border-bottom-width: 8px; /* Thicker border for 3D effect */
+  border-bottom-color: var(--btn-3d-bottom-border-color); /* Darker color for depth */
+  border-radius: var(--radius-xl);
+  /* padding: 0.65em 1.2em; */
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  /* Smooth transitions for visual feedback */
+  transition:
+    transform 0.1s ease-out,
+    background-color 0.1s ease-out,
+    border-bottom-width 0.1s ease-out,
+    border-bottom-color 0.1s ease-out;
+  box-shadow: none; /* Ensure no inherited box-shadow interferes */
+  font-size: 1.15rem;
+  /* padding: 1.5rem 2rem; */
 }
 
 .btn-3d:hover:not(:disabled) {
-  transform: translateY(-2px);
-  border-bottom-width: 4px;
+  transform: translateY(-2px); /* Lifts the button slightly */
+  background-color: var(--btn-3d-hover-bg); /* Subtle background change */
 }
 
 .btn-3d:active:not(:disabled) {
-  transform: translateY(1px);
-  border-bottom-width: 2px;
-  box-shadow: 0 0 0 1px var(--primary-border);
-  transition: border-bottom-width 0.1s ease-out;
+  transform: translateY(2px); /* Pushes the button 'into' its depth */
+  background-color: var(--btn-3d-active-bg);
+  /* Bottom border flattens to simulate being pressed */
+  border-bottom-width: 4px;
+  border-bottom-color: var(--btn-3d-border-color); /* Matches other borders when pressed */
 }
 
 /*

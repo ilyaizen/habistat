@@ -43,6 +43,17 @@
   let systemListener: (() => void) | null = null; // Listener function for system theme changes
   let lastAppliedTheme: "system" | "light" | "dark" | null = null;
 
+  // Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
+  import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
+  // Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
+  /*
+    Noto Sans and Noto Sans Hebrew are loaded via @import in src/app.css for global font-sans usage.
+    This ensures proper rendering for both Latin and Hebrew scripts.
+    See src/app.css for the @import and --font-sans override.
+  */
+  // import "@fontsource/oxanium"; // Sans-serif font for UI/headers (removed)
+  // import "@fontsource/fira-code"; // Monospace font for code/inputs
+
   // Create a readable store for the Clerk user state
   // Only initialize this store if online, otherwise ClerkProvider won't be rendered
   const clerkUserStore = readable<UserResource | null>(null, (set) => {
