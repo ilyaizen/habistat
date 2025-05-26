@@ -30,7 +30,7 @@
   <div class="flex flex-col items-center justify-center space-y-4">
     <!-- Logo + Title -->
     <div class="flex items-center gap-3">
-      <img src="/logo.png" alt="Habistat Logo" class="h-8 w-8 sm:h-10 sm:w-10" />
+      <img src="/logo.svg" alt="Habistat Logo" class="h-8 w-8 sm:h-10 sm:w-10" />
       <h1 class="text-4xl font-bold tracking-tight">Habistat</h1>
     </div>
     <!-- Tagline -->
