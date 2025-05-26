@@ -94,7 +94,7 @@
       {#if $anonymousUserId}
         Dashboard
       {:else}
-        Start Tracking Now
+        Start
       {/if}
     </Button>
     <p class="text-muted-foreground/80 text-xs italic">No sign-up required.</p>

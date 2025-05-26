@@ -221,23 +221,22 @@
   <ClerkProvider publishableKey={import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}>
     <!--
       Layout container:
-      - h-screen: container takes exactly the viewport height
+      - min-h-screen: container takes at least the viewport height
       - flex flex-col: vertical stacking of header, main, and footer
-      This forces the footer to always sit at the bottom of the viewport.
+      Header is always at the top, footer at the bottom, main content fills the space.
     -->
-    <div class="flex h-screen flex-col">
+    <div class="flex min-h-screen flex-col">
       {#if $page.url.pathname !== "/"}
         <!-- Header is hidden on the landing page ("/") -->
         <AppHeader />
       {/if}
-      <MotionWrapper class="min-h-0 flex-1">
+      <main class="flex-1 overflow-auto">
         <!--
           Main content area:
           - flex-1: expands to fill available space between header and footer
           - overflow-auto: allows scrolling when content exceeds available space
-          - min-h-0: prevents flex item from forcing extra height
         -->
-        <main class="min-h-0 flex-1 overflow-auto">
+        <MotionWrapper>
           {#if i18nReady && trackingInitialized}
             {@render children()}
           {:else}
@@ -248,8 +247,8 @@
               ></div>
             </div>
           {/if}
-        </main>
-      </MotionWrapper>
+        </MotionWrapper>
+      </main>
       {#if $page.url.pathname !== "/"}
         <!-- Footer is hidden on the landing page ("/") -->
         <AppFooter />
@@ -258,21 +257,9 @@
   </ClerkProvider>
 {:else}
   <!-- Offline: Render offline content -->
-  <!--
-    Offline layout container:
-    - h-screen: container takes exactly the viewport height
-    - flex flex-col: vertical stacking of main and footer
-    This forces the footer to always sit at the bottom of the viewport.
-  -->
-  <div class="flex h-screen flex-col">
-    <MotionWrapper class="min-h-0 flex-1">
-      <!--
-        Main content area (offline):
-        - flex-1: expands to fill available space above the footer
-        - overflow-auto: allows scrolling when content exceeds available space
-        - min-h-0: prevents flex item from forcing extra height
-      -->
-      <main class="min-h-0 flex-1 overflow-auto">
+  <div class="flex min-h-screen flex-col">
+    <main class="flex-1 overflow-auto">
+      <MotionWrapper>
         {#if i18nReady && trackingInitialized}
           {@render children()}
         {:else}
@@ -283,8 +270,8 @@
             ></div>
           </div>
         {/if}
-      </main>
-    </MotionWrapper>
+      </MotionWrapper>
+    </main>
     {#if $page.url.pathname !== "/"}
       <!-- Footer is hidden on the landing page ("/") -->
       <AppFooter />

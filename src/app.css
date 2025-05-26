@@ -60,10 +60,6 @@
       0px 2px 3px 0px hsl(60 3.3898% 23.1373% / 0.18),
       0px 8px 10px -1px hsl(60 3.3898% 23.1373% / 0.18);
     --shadow-2xl: 0px 2px 3px 0px hsl(60 3.3898% 23.1373% / 0.45);
-    --btn-3d-border-color: oklch(from var(--primary) calc(l - 0.1) c h);
-    --btn-3d-bottom-border-color: oklch(from var(--primary) calc(l - 0.1) c h);
-    --btn-3d-hover-bg: oklch(from var(--primary) calc(l + 0.05) c h);
-    --btn-3d-active-bg: oklch(from var(--primary) calc(l - 0.05) c h);
     --scrollbar-thumb: var(--muted-foreground);
   }
 
@@ -116,10 +112,6 @@
     --shadow-xl:
       0px 2px 3px 0px hsl(0 0% 10.1961% / 0.18), 0px 8px 10px -1px hsl(0 0% 10.1961% / 0.18);
     --shadow-2xl: 0px 2px 3px 0px hsl(0 0% 10.1961% / 0.45);
-    --btn-3d-border-color: oklch(from var(--primary) calc(l - 0.2) c h);
-    --btn-3d-bottom-border-color: oklch(from var(--primary) calc(l - 0.2) c h);
-    --btn-3d-hover-bg: oklch(from var(--primary) calc(l + 0.05) c h);
-    --btn-3d-active-bg: oklch(from var(--primary) calc(l - 0.05) c h);
     --scrollbar-thumb: var(--muted-foreground);
   }
 
@@ -288,52 +280,41 @@
 }
 
 /*
-  Minimalist Front-Facing 3D Button Style
-  - Purpose: Creates a button with a subtle 3D effect using a thicker bottom border.
-  - How it works: A standard 2px border is applied, with a thicker, darker border
-    at the bottom to simulate depth. Colors are derived from --primary.
-  - Active state: Simulates pressing by reducing the bottom border's thickness and
-    changing its color to match the other borders, making it appear flat.
-  - Hover state: Lifts the button and changes background for feedback.
+  2.5D Flat-Design Button (shadcn theme variables only)
+  - Uses only shadcn theme variables for all colors
+  - --primary: background
+  - --primary-foreground: text
+  - --border: border color
+  - --accent: bottom border color (for 2.5D effect)
+  - Consistent across dark/light modes
 */
 .btn-3d {
-  /* min-width: 200px; */
-  max-width: 250px;
-  padding: 1.5rem 3rem;
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  width: auto;
+  height: 3rem;
+  padding: 1rem 2rem;
+
   border-style: solid;
-  border-width: 4px; /* Standard border for top, left, right */
-  border-color: var(--btn-3d-border-color);
-  border-bottom-width: 8px; /* Thicker border for 3D effect */
-  border-bottom-color: var(--btn-3d-bottom-border-color); /* Darker color for depth */
+  border-width: 3px;
+  border-color: oklch(from var(--primary) calc(l - 0.1) c h);
+  border-bottom-width: 6px;
+  border-bottom-color: oklch(from var(--primary) calc(l - 0.1) c h);
   border-radius: var(--radius-xl);
-  /* padding: 0.65em 1.2em; */
   text-align: center;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   cursor: pointer;
-  /* Smooth transitions for visual feedback */
-  transition:
-    transform 0.1s ease-out,
-    background-color 0.1s ease-out,
-    border-bottom-width 0.1s ease-out,
-    border-bottom-color 0.1s ease-out;
-  box-shadow: none; /* Ensure no inherited box-shadow interferes */
   font-size: 1.15rem;
-  /* padding: 1.5rem 2rem; */
 }
 
-.btn-3d:hover:not(:disabled) {
-  transform: translateY(-2px); /* Lifts the button slightly */
-  background-color: var(--btn-3d-hover-bg); /* Subtle background change */
+.btn-3d:hover:not(:disabled),
+.btn-3d:focus-visible:not(:disabled) {
+  transform: translateY(-2px);
+  background-color: var(--primary);
 }
 
 .btn-3d:active:not(:disabled) {
-  transform: translateY(2px); /* Pushes the button 'into' its depth */
-  background-color: var(--btn-3d-active-bg);
-  /* Bottom border flattens to simulate being pressed */
-  border-bottom-width: 4px;
-  border-bottom-color: var(--btn-3d-border-color); /* Matches other borders when pressed */
+  transform: translateY(2px);
+  background-color: var(--primary);
+  border-bottom-width: 3px;
+  border-bottom-color: oklch(from var(--primary) calc(l - 0.1) c h);
 }
 
 /*

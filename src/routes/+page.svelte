@@ -153,7 +153,12 @@
     class="mb-8 h-26 w-26 drop-shadow-md drop-shadow-green-950/80"
   />
   <h1 class="mb-4 text-5xl font-bold">Habistat</h1>
-  <p class="text-muted-foreground mb-8 text-lg">Build habits. Track progress. Achieve goals.</p>
+  <!-- Responsive tagline: adjusts font size, alignment, and margin for different screen sizes -->
+  <p
+    class="text-muted-foreground mb-6 text-center text-base sm:text-lg md:mb-8 md:text-left md:text-xl lg:text-2xl"
+  >
+    Build habits. Track progress. Achieve goals.
+  </p>
 
   {#if !$isOnline && $authMode === "online"}
     <p class="text-muted-foreground mb-4">
