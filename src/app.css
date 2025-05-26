@@ -243,6 +243,7 @@
   border-bottom: 4px solid var(--primary-border);
   box-shadow: 0 0 0 1px var(--primary-border);
   transition: transform 0.1s ease-out;
+  scale: 1.25;
 }
 
 .btn-3d:hover:not(:disabled) {
@@ -286,4 +287,19 @@
   border-radius: 16px;
   background: var(--scrollbar-thumb);
   min-height: 24px;
+}
+
+/* Nunito font for headers (h1-h6) and .nunito-header utility class */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.nunito-header {
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-weight: 900;
+  color: var(--sidebar-foreground);
 }

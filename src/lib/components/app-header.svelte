@@ -56,7 +56,7 @@
 
     <!-- Logo on the left -->
     <div class="hidden items-center md:flex rtl:mr-0 rtl:ml-4">
-      <a href="/" class="flex items-center space-x-2 rtl:space-x-reverse">
+      <a href="/" class="nunito-header flex items-center space-x-2 rtl:space-x-reverse">
         <img src="/logo.svg" alt="Habistat Logo" class="h-6 w-6" />
         <span class="hidden font-bold sm:inline-block">Habistat</span>
       </a>
@@ -66,7 +66,7 @@
     <nav
       class="absolute top-0 left-1/2 hidden h-full -translate-x-1/2 items-center justify-center md:flex"
     >
-      <div class="flex items-center gap-6 text-sm">
+      <div class="nunito-header flex items-center gap-6 text-sm">
         <a
           href="/dashboard"
           class="text-muted-foreground hover:text-foreground transition-colors"
