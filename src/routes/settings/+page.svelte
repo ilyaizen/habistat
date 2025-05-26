@@ -22,6 +22,9 @@
   // Import tab bar UI primitives
   import { Tabs, TabsList, TabsTrigger, TabsContent } from "$lib/components/ui/tabs";
 
+  // Import TabMotionWrapper for tab content transitions
+  import TabMotionWrapper from "$lib/components/tab-motion-wrapper.svelte";
+
   // Track the active tab (default: customization)
   let activeTab = "customization";
 
@@ -118,15 +121,15 @@
 
   <!-- Tab bar at the top -->
   <Tabs bind:value={activeTab} class="w-full">
-    <TabsList class="border-border bg-background mb-4 flex w-full justify-between border-b">
+    <TabsList class="mb-4 flex w-full justify-between">
       <!-- Each tab trigger represents a settings section -->
       <TabsTrigger value="account">Account</TabsTrigger>
       <TabsTrigger value="customization">Customization</TabsTrigger>
       <TabsTrigger value="sync">Sync</TabsTrigger>
       <TabsTrigger value="data">Data</TabsTrigger>
     </TabsList>
-    <!-- Use {#key activeTab} to trigger transition on tab change -->
-    {#key activeTab}
+    <!-- Use TabMotionWrapper to animate tab content transitions -->
+    <TabMotionWrapper key={activeTab}>
       {#if activeTab === "account"}
         <Card class="mb-6">
           <CardContent>
@@ -220,7 +223,7 @@
           </CardContent>
         </Card>
       {/if}
-    {/key}
+    </TabMotionWrapper>
   </Tabs>
 </div>
 

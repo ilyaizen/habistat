@@ -76,13 +76,13 @@
         </a>
 
         <!-- Calendars navigation item for calendar management -->
-        <a
+        <!-- <a
           href="/calendars"
           class="text-muted-foreground hover:text-foreground transition-colors"
           class:font-medium={$page.url.pathname.includes("/calendars")}
         >
           Calendars
-        </a>
+        </a> -->
         <!-- Stats navigation item for user statistics and analytics -->
         <a
           href="/stats"
@@ -91,22 +91,28 @@
         >
           Stats
         </a>
-
         <a
+          href="/pricing"
+          class="text-muted-foreground hover:text-foreground transition-colors"
+          class:font-medium={$page.url.pathname.includes("/pricing")}
+        >
+          Pricing
+        </a>
+        <!-- <a
           href="/settings"
           class="text-muted-foreground hover:text-foreground transition-colors"
           class:font-medium={$page.url.pathname.includes("/settings")}
         >
           Settings
-        </a>
+        </a> -->
         <!-- Dev navigation item for developers -->
-        <a
+        <!-- <a
           href="/dev"
           class="text-muted-foreground hover:text-foreground transition-colors"
           class:font-medium={$page.url.pathname.includes("/dev")}
         >
           Dev
-        </a>
+        </a> -->
       </div>
     </nav>
 
