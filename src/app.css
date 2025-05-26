@@ -291,9 +291,6 @@
 .btn-3d {
   width: auto;
   height: 3.5rem;
-  /* padding: 1.5rem 3rem; */
-
-  /* border-style: solid; */
   border-width: 3px;
   border-color: oklch(from var(--primary) calc(l - 0.2) c h);
   border-bottom-width: 6px;
@@ -304,6 +301,7 @@
   font-size: 1.15rem;
   font-weight: bold;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 4px 8px 2px var(--accent);
 }
 
 .btn-3d:hover:not(:disabled),
