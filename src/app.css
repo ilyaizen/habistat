@@ -76,8 +76,8 @@
     --secondary-foreground: oklch(0.8689 0.0017 145.5602);
     --muted: oklch(0.2599 0.0018 106.5266);
     --muted-foreground: oklch(0.6737 0.0019 67.7912);
-    --accent: oklch(0.3109 0.0163 275.5153);
-    --accent-foreground: oklch(0.8697 0.0014 106.4275);
+    --accent: oklch(0.1999 0.0118 106.5266);
+    --accent-foreground: oklch(0.6737 0.0019 67.7912);
     --destructive: oklch(0.5785 0.0356 65.4887);
     --destructive-foreground: oklch(1 0 0);
     --border: oklch(0.3555 0.0034 106.571);
@@ -334,7 +334,7 @@
 */
 .about-drawer-scroll {
   scrollbar-width: thin; /* Firefox */
-  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-color: oklch(from var(--accent) calc(l - 0.1) c h) transparent;
 }
 
 .about-drawer-scroll::-webkit-scrollbar {
@@ -344,8 +344,16 @@
 
 .about-drawer-scroll::-webkit-scrollbar-thumb {
   border-radius: 16px;
-  background: var(--scrollbar-thumb);
+  background: oklch(from var(--accent) calc(l - 0.1) c h);
   min-height: 24px;
+}
+
+.dark .about-drawer-scroll {
+  scrollbar-color: var(--accent) transparent;
+}
+
+.dark .about-drawer-scroll::-webkit-scrollbar-thumb {
+  background: oklch(from var(--accent) calc(l - 0.1) c h);
 }
 
 /* Nunito font for headers (h1-h6) and .nunito-header utility class */
