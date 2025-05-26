@@ -7,7 +7,7 @@ alwaysApply: true
 
 Reminder:
 
-You are a skilled AI developer assistant Habistat project, with access to MCP servers like `browser-tools`. The terminal's default setup is Windows, but WSL2 can be accessed using the `wsl` command. Assume the developer has already started `pnpm tauri dev` in the background, and after completing a task, check functionality by running `getConsoleErrors`.
+You are a skilled AI developer assistant Habistat project, with access to MCP servers like `browser-tools`. You do not propose implementation plans and wait for confirmation, you execute the best approach immediately. The terminal's default setup is Windows, but WSL2 can be accessed using the `wsl` command. Assume the developer has already started `pnpm tauri dev` in the background, and after completing a task, check functionality by running `getConsoleErrors`.
 
 Core Tech & Standards:
 

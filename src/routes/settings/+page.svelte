@@ -125,107 +125,102 @@
       <TabsTrigger value="sync">Sync</TabsTrigger>
       <TabsTrigger value="data">Data</TabsTrigger>
     </TabsList>
-    <!-- Account Tab: Session/User Info -->
-    <TabsContent value="account">
-      <!-- Account info and session management -->
-      <Card class="mb-6">
-        <CardContent>
-          <!-- SessionInfo shows user/auth status -->
-          <SessionInfo />
-        </CardContent>
-      </Card>
-    </TabsContent>
-    <!-- Customization Tab: Theme & Language -->
-    <TabsContent value="customization">
-      <!-- Theme selection -->
-      <Card class="mb-6">
-        <CardHeader>
-          <Label class="flex items-center gap-2"><Sun class="h-4 w-4" /> Theme</Label>
-        </CardHeader>
-        <CardContent>
-          <div class="mt-2 flex flex-wrap gap-4">
-            <Button
-              size="sm"
-              variant={currentTheme === "light" ? "default" : "outline"}
-              onclick={() => selectTheme("light")}>Light</Button
-            >
-            <Button
-              size="sm"
-              variant={currentTheme === "dark" ? "default" : "outline"}
-              onclick={() => selectTheme("dark")}>Dark</Button
-            >
-            <Button
-              size="sm"
-              variant={currentTheme === "system" ? "default" : "outline"}
-              onclick={() => selectTheme("system")}>System</Button
-            >
-          </div>
-        </CardContent>
-      </Card>
-      <!-- Language selection -->
-      <Card class="mb-6">
-        <CardHeader>
-          <Label class="flex items-center gap-2"><Languages class="h-4 w-4" /> Language</Label>
-        </CardHeader>
-        <CardContent>
-          <div class="mt-2 flex gap-4">
-            {#each locales as loc}
+    <!-- Use {#key activeTab} to trigger transition on tab change -->
+    {#key activeTab}
+      {#if activeTab === "account"}
+        <Card class="mb-6">
+          <CardContent>
+            <!-- SessionInfo shows user/auth status -->
+            <SessionInfo />
+          </CardContent>
+        </Card>
+      {:else if activeTab === "customization"}
+        <!-- Theme selection -->
+        <Card class="mb-6">
+          <CardHeader>
+            <Label class="flex items-center gap-2"><Sun class="h-4 w-4" /> Theme</Label>
+          </CardHeader>
+          <CardContent>
+            <div class="mt-2 flex flex-wrap gap-4">
               <Button
                 size="sm"
-                variant={$locale === loc ? "default" : "outline"}
-                class="flex items-center gap-2"
-                onclick={() => handleLanguageChange(loc)}
+                variant={currentTheme === "light" ? "default" : "outline"}
+                onclick={() => selectTheme("light")}>Light</Button
               >
-                <img
-                  src={languageMap[loc].flagSrc}
-                  alt={loc.toUpperCase()}
-                  class="size-4 rounded-[3px]"
-                  width={16}
-                  height={16}
-                />
-                {languageMap[loc].name}
-              </Button>
-            {/each}
-          </div>
-        </CardContent>
-      </Card>
-    </TabsContent>
-    <!-- Sync Tab: Placeholder for future sync settings -->
-    <TabsContent value="sync">
-      <Card>
-        <CardHeader>
-          <Label class="text-lg">Sync</Label>
-        </CardHeader>
-        <CardContent>
-          <!-- Placeholder: Add sync status/settings here in future -->
-          <div class="text-muted-foreground">Sync settings and status will appear here.</div>
-        </CardContent>
-      </Card>
-    </TabsContent>
-    <!-- Data Tab: App settings, developer mode, etc. -->
-    <TabsContent value="data">
-      <Card>
-        <CardHeader>
-          <Label class="text-lg">App Settings</Label>
-        </CardHeader>
-        <CardContent class="space-y-4">
-          <div class="flex items-center justify-between">
-            <Label for="devmode">Developer Mode</Label>
-            <Switch id="devmode" bind:checked={$settings.developerMode} />
-          </div>
-          {#if developerMode}
-            <div class="flex items-center justify-between">
-              <Label for="usage">Show Usage History</Label>
-              <Switch id="usage" bind:checked={$settings.showUsageHistory} />
+              <Button
+                size="sm"
+                variant={currentTheme === "dark" ? "default" : "outline"}
+                onclick={() => selectTheme("dark")}>Dark</Button
+              >
+              <Button
+                size="sm"
+                variant={currentTheme === "system" ? "default" : "outline"}
+                onclick={() => selectTheme("system")}>System</Button
+              >
             </div>
-          {/if}
-          <div class="flex items-center justify-between">
-            <Label for="motion">Enable Animations</Label>
-            <Switch id="motion" bind:checked={$settings.enableMotion} />
-          </div>
-        </CardContent>
-      </Card>
-    </TabsContent>
+          </CardContent>
+        </Card>
+        <!-- Language selection -->
+        <Card class="mb-6">
+          <CardHeader>
+            <Label class="flex items-center gap-2"><Languages class="h-4 w-4" /> Language</Label>
+          </CardHeader>
+          <CardContent>
+            <div class="mt-2 flex gap-4">
+              {#each locales as loc}
+                <Button
+                  size="sm"
+                  variant={$locale === loc ? "default" : "outline"}
+                  class="flex items-center gap-2"
+                  onclick={() => handleLanguageChange(loc)}
+                >
+                  <img
+                    src={languageMap[loc].flagSrc}
+                    alt={loc.toUpperCase()}
+                    class="size-4 rounded-[3px]"
+                    width={16}
+                    height={16}
+                  />
+                  {languageMap[loc].name}
+                </Button>
+              {/each}
+            </div>
+          </CardContent>
+        </Card>
+      {:else if activeTab === "sync"}
+        <Card>
+          <CardHeader>
+            <Label class="text-lg">Sync</Label>
+          </CardHeader>
+          <CardContent>
+            <!-- Placeholder: Add sync status/settings here in future -->
+            <div class="text-muted-foreground">Sync settings and status will appear here.</div>
+          </CardContent>
+        </Card>
+      {:else if activeTab === "data"}
+        <Card>
+          <CardHeader>
+            <Label class="text-lg">App Settings</Label>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="flex items-center justify-between">
+              <Label for="devmode">Developer Mode</Label>
+              <Switch id="devmode" bind:checked={$settings.developerMode} />
+            </div>
+            {#if developerMode}
+              <div class="flex items-center justify-between">
+                <Label for="usage">Show Usage History</Label>
+                <Switch id="usage" bind:checked={$settings.showUsageHistory} />
+              </div>
+            {/if}
+            <div class="flex items-center justify-between">
+              <Label for="motion">Enable Animations</Label>
+              <Switch id="motion" bind:checked={$settings.enableMotion} />
+            </div>
+          </CardContent>
+        </Card>
+      {/if}
+    {/key}
   </Tabs>
 </div>
 

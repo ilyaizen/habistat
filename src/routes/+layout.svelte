@@ -30,6 +30,7 @@
   import "../app.css";
   import AppHeader from "$lib/components/app-header.svelte";
   import AppFooter from "$lib/components/app-footer.svelte";
+  import { page } from "$app/stores";
   // Props received from parent routes using Svelte 5 $props rune
   let { children } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
 
@@ -214,7 +215,10 @@
       This forces the footer to always sit at the bottom of the viewport.
     -->
     <div class="flex h-screen flex-col">
-      <AppHeader />
+      {#if $page.url.pathname !== "/"}
+        <!-- Header is hidden on the landing page ("/") -->
+        <AppHeader />
+      {/if}
       <MotionWrapper class="min-h-0 flex-1">
         <!--
           Main content area:
@@ -235,7 +239,10 @@
           {/if}
         </main>
       </MotionWrapper>
-      <AppFooter />
+      {#if $page.url.pathname !== "/"}
+        <!-- Footer is hidden on the landing page ("/") -->
+        <AppFooter />
+      {/if}
     </div>
   </ClerkProvider>
 {:else}
@@ -267,7 +274,10 @@
         {/if}
       </main>
     </MotionWrapper>
-    <AppFooter />
+    {#if $page.url.pathname !== "/"}
+      <!-- Footer is hidden on the landing page ("/") -->
+      <AppFooter />
+    {/if}
   </div>
 {/if}
 
