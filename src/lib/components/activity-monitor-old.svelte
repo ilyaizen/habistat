@@ -144,46 +144,22 @@
   .activity-bar-green {
     background: linear-gradient(
       to bottom,
-      color-mix(in oklab, var(--primary), white 70%) 0%,
-      /* highlight */ var(--primary) 20%,
-      color-mix(in oklab, var(--primary), black 20%) 100% /* base shadow */
+      color-mix(in oklab, var(--primary), white 20%) 0%,
+      /* highlight */ var(--primary) 50%,
+      color-mix(in oklab, var(--primary), black 10%) 100%
     );
     transition:
       /* box-shadow 0.2s, */
       transform 0.2s,
       background 0.2s;
   }
-  .activity-bar-green:hover {
-    background: linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--primary), white 85%) 0%,
-      color-mix(in oklab, var(--primary), white 40%) 20%,
-      var(--primary) 100%
-    );
-    /* box-shadow: 0 0 8px 2px color-mix(in oklab, var(--primary), white 40%); */
-    /* transform: scaleY(1.15); */
-  }
 
   .activity-bar-red {
     background: linear-gradient(
       to bottom,
-      color-mix(in oklab, var(--destructive), white 70%) 0%,
-      /* highlight */ var(--destructive) 20%,
-      color-mix(in oklab, var(--destructive), black 20%) 100% /* base shadow */
+      color-mix(in oklab, var(--destructive), white 20%) 0%,
+      /* highlight */ var(--destructive) 50%,
+      color-mix(in oklab, var(--destructive), black 10%) 100% /* base shadow */
     );
-    transition:
-      box-shadow 0.2s,
-      transform 0.2s,
-      background 0.2s;
-  }
-  .activity-bar-red:hover {
-    background: linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--destructive), white 85%) 0%,
-      color-mix(in oklab, var(--destructive), white 40%) 20%,
-      var(--destructive) 100%
-    );
-    /* box-shadow: 0 0 8px 2px color-mix(in oklab, var(--destructive), white 40%); */
-    /* transform: scaleY(1.15); */
   }
 </style>
