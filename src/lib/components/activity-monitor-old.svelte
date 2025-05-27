@@ -1,4 +1,16 @@
 <script lang="ts">
+  /**
+   * Activity Monitor Component
+   * -----------------------------------
+   * Displays a visual overview of user activity over the past N days.
+   * Each bar represents a day: green for active, red for inactive, gray for pre-registration (before tracking started).
+   * Used to give users a quick glance at their recent app usage.
+   *
+   * Props:
+   * - activeDates: Set<string> of 'YYYY-MM-DD' dates when user was active
+   * - numDays: number of days to show (default 30)
+   * - sessionStartDate: optional 'YYYY-MM-DD' string, first day of tracking
+   */
   import { ScrollArea } from "$lib/components/ui/scroll-area";
 
   let {
@@ -11,7 +23,10 @@
     sessionStartDate?: string | null;
   } = $props();
 
-  // Helper function to format date as YYYY-MM-DD
+  /**
+   * Formats a Date object as 'YYYY-MM-DD'.
+   * Used for consistent date string comparison.
+   */
   function formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -19,14 +34,23 @@
     return `${year}-${month}-${day}`;
   }
 
+  /**
+   * Represents the status of a single day in the activity bar.
+   */
   interface DayStatus {
     date: string; // YYYY-MM-DD
     status: "active" | "inactive" | "pre-registration";
     isToday: boolean;
   }
 
+  // Array of day statuses for rendering the activity bars
   let activityDays: DayStatus[] = $state([]);
 
+  /**
+   * Generates the activity data for the past numDays.
+   * Each day is marked as active, inactive, or pre-registration.
+   * Most recent day is left-most in the bar.
+   */
   function generateActivityData() {
     const days: DayStatus[] = [];
     const today = new Date();
@@ -44,6 +68,7 @@
       let status: "active" | "inactive" | "pre-registration";
       const isToday = currentDateStr === todayStr;
 
+      // Determine the status for this day
       if (sessionStart && currentDate < sessionStart) {
         status = "pre-registration";
       } else if (activeDates.has(currentDateStr)) {
@@ -67,19 +92,44 @@
   });
 </script>
 
-<div class="bg-card max-w-[300px] rounded-md border p-1">
-  <div class="flex space-x-0.5 p-0.5">
+<!-- Activity Monitor UI -->
+<div class="bg-card max-w-[320px] rounded-md border p-2" aria-label="Activity Monitor Overview">
+  <!-- Heading -->
+  <div class="mb-2 flex items-center justify-between">
+    <span class="text-base font-semibold">Activity Overview</span>
+    <span class="text-muted-foreground text-xs">Last {numDays} days</span>
+  </div>
+
+  <!-- Activity Bars -->
+  <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
     {#each activityDays as day (day.date)}
       <div
         class="h-6 w-2 rounded"
         class:activity-bar-green={day.status === "active"}
         class:activity-bar-red={day.status === "inactive"}
         class:bg-secondary={day.status === "pre-registration"}
+        aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""}`}
         title={`${day.date}${day.isToday ? " (Today)" : ""} - ${day.status}`}
       >
-        <!-- Bar content is empty -->
+        <!-- Bar content is empty; color indicates status -->
       </div>
     {/each}
+  </div>
+
+  <!-- Legend for color meanings -->
+  <div class="text-muted-foreground mt-3 flex flex-row items-center justify-between text-xs">
+    <div class="flex items-center space-x-1">
+      <span class="activity-bar-green border-border inline-block h-3 w-3 rounded border"></span>
+      <span>Active</span>
+    </div>
+    <div class="flex items-center space-x-1">
+      <span class="activity-bar-red border-border inline-block h-3 w-3 rounded border"></span>
+      <span>Inactive</span>
+    </div>
+    <div class="flex items-center space-x-1">
+      <span class="bg-secondary border-border inline-block h-3 w-3 rounded border"></span>
+      <span>Pre-registration</span>
+    </div>
   </div>
 </div>
 
