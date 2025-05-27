@@ -1,4 +1,4 @@
-# **✅ Habistat**
+# **![App Icon|20](app-icon.png) Habistat**
 
 > **Build habits. Track progress. Achieve goals.**
 
@@ -6,13 +6,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Habistat** is a free and open-source **habit tracker** focused on privacy and simplicity. It helps you build good habits, break bad ones, and track daily activity, with your data fully under your control. Features include time-based habit tracking and optional gamification: streaks, points, and a virtual garden that grows – ideally, like you. 🌱
+**Habistat** is an open-source **habit-tracker** focused on privacy and simplicity. It helps you build good habits, break bad ones, and track daily activity, with your data fully under your control. Features include time-based habit tracking and optional gamification: streaks, points, and a virtual garden that grows – ideally, like you. 🌱
 
 An alternative to apps like **[Everyday](https://everyday.app/)**, **[Habitify](https://www.habitify.me/)**, and **[Habitica](https://habitica.com/)**, it is built with the lightweight **[Tauri](https://v2.tauri.app/)** framework and runs smoothly on Android, iOS, Windows, macOS, and in any modern browser.
 
-**Start Tracking Now:**
-
-👉 [**habistat.app**](https://habistat.vercel.app)
+## 👉 [**habistat.app**](https://habistat.vercel.app) 👈
 
 ---
 
