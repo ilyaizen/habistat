@@ -1,4 +1,4 @@
-# <img src="app-icon.png" alt="App Icon" width="20" style="margin-right: 8px" />**Habistat**
+# <img src="app-icon.png" alt="App Icon" width="20" /> **Habistat**
 
 > **Build habits. Track progress. Achieve goals.**
 
