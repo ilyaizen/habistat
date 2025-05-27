@@ -1,5 +1,6 @@
-<img src="app-icon.png" alt="App Icon" style="max-width: 64px;" />
 # **Habistat**
+
+<img src="app-icon.png" alt="App Icon" style="max-width: 64px;" />
 
 > **Build habits. Track progress. Achieve goals.**
 
