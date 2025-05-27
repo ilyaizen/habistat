@@ -150,7 +150,7 @@
   <img
     src="/logo.svg"
     alt="Habistat Logo"
-    class="mb-8 h-26 w-26 drop-shadow-md drop-shadow-green-950/80"
+    class="mb-8 h-26 w-26 drop-shadow-xs drop-shadow-green-950/80"
   />
   <h1 class="mb-4 text-5xl font-bold">Habistat</h1>
   <!-- Responsive tagline: adjusts font size, alignment, and margin for different screen sizes -->

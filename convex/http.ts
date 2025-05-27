@@ -2,6 +2,7 @@ import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { Webhook } from "svix";
 import { internal } from "./_generated/api";
+import { internalMutation } from "./_generated/server";
 
 // The Clerk webhook secret, stored in an environment variable
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
@@ -66,12 +67,13 @@ const handleClerkWebhook = httpAction(async (ctx, request) => {
 
     try {
       // Call the internal Convex mutation to create or update the user
-      // await ctx.runMutation(internal.users.createOrUpdate, {
+      // await ctx.runMutation(internal.users_createOrUpdate, {
       //   clerkId: clerkId,
       //   email: primaryEmail,
       //   name: first_name ? `${first_name}${last_name ? ` ${last_name}` : ""}` : undefined,
       //   avatarUrl: image_url
       // });
+      // This ensures Convex user records stay in sync with Clerk
       console.log(`Successfully processed ${eventType} for user ${clerkId}`);
       // Return a success response to Clerk
       return new Response(null, { status: 200 });
