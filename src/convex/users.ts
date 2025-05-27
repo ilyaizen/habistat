@@ -1,11 +1,12 @@
-import { mutation, query } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 /**
  * Creates a new user record or updates an existing one based on Clerk ID.
  * This is intended to be called internally, often triggered by a Clerk webhook.
+ * Marked as internalMutation so it can be called from Convex HTTP actions/webhooks.
  */
-export const createOrUpdate = mutation({
+export const createOrUpdate = internalMutation({
   // Define arguments using Convex validation
   args: {
     clerkId: v.string(),
@@ -46,42 +47,15 @@ export const createOrUpdate = mutation({
   }
 });
 
-/**
- * Placeholder mutation for migrating anonymous data.
- * This needs to be implemented based on the specific data structures.
- */
-export const migrateAnonymousData = mutation({
-  args: {
-    // anonymousData: v.object({ /* ... define expected structure ... */ }),
-    anonymousData: v.any() // Use v.any() for now, refine later
-  },
-  handler: async (ctx, args) => {
-    // IMPORTANT: This mutation requires the user to be authenticated.
-    // Get the user identity from the context.
-    const identity = await ctx.auth.getUserIdentity();
-
-    if (!identity) {
-      throw new Error("User must be authenticated to migrate data.");
-    }
-
-    const userId = identity.subject; // Clerk User ID
-    console.log(`Migrating anonymous data for user: ${userId}`);
-    console.log("Received data:", args.anonymousData);
-
-    // TODO: Implement the logic to merge args.anonymousData with the user's existing data.
-    // This might involve fetching the user's current data, applying merge rules,
-    // and patching the user record or related records (habits, etc.).
-    console.warn("Anonymous data migration logic not implemented in Convex mutation.");
-
-    // Example: Fetch user, merge, patch
-    // const user = await ctx.db.query('users').withIndex('by_clerk_id', q => q.eq('clerkId', userId)).unique();
-    // if (user) {
-    //   const mergedData = { /* ... merge logic ... */ };
-    //   await ctx.db.patch(user._id, mergedData);
-    // }
-
-    return { success: true }; // Indicate success (even if placeholder)
-  }
-});
+// Placeholder for anonymous data migration mutation. Uncomment and use internalMutation if needed in the future.
+// import { internalMutation } from "./_generated/server";
+// export const migrateAnonymousData = internalMutation({
+//   args: {
+//     anonymousData: v.any()
+//   },
+//   handler: async (ctx: MutationCtx, args: { anonymousData: any }) => {
+//     // ...implementation...
+//   }
+// });
 
 // TODO: Add queries as needed, e.g., getUserById, getUserSettings, etc.

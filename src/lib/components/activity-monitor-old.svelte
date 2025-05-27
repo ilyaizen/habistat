@@ -3,7 +3,7 @@
 
   let {
     activeDates = $bindable(new Set<string>()), // Set of 'YYYY-MM-DD' strings
-    numDays = 60, // Number of past days to display including current
+    numDays = 30, // Number of past days to display including current
     sessionStartDate = null // Optional 'YYYY-MM-DD' string for the start of tracking
   }: {
     activeDates?: Set<string>;
@@ -67,21 +67,73 @@
   });
 </script>
 
-<ScrollArea orientation="horizontal" class="bg-card rounded border p-2">
-  <div class="flex space-x-px">
+<div class="bg-card max-w-[300px] rounded-md border p-1">
+  <div class="flex space-x-0.5 p-0.5">
     {#each activityDays as day (day.date)}
       <div
-        class="h-8 w-2 flex-shrink-0 rounded-sm"
-        class:bg-green-500={day.status === "active"}
-        class:bg-red-500={day.status === "inactive"}
+        class="h-6 w-2 rounded"
+        class:activity-bar-green={day.status === "active"}
+        class:activity-bar-red={day.status === "inactive"}
         class:bg-secondary={day.status === "pre-registration"}
         title={`${day.date}${day.isToday ? " (Today)" : ""} - ${day.status}`}
       >
-        <!-- Bar content can be empty -->
+        <!-- Bar content is empty -->
       </div>
     {/each}
   </div>
-</ScrollArea>
+</div>
 
 <style>
+  /*
+  Custom gradient and hover styles for activity bars using project CSS variables.
+  - Green: Uses --primary for active days, with a lighter highlight at the top using color-mix.
+  - Red: Uses --destructive for inactive days, with a lighter highlight at the top using color-mix.
+  - Both have smooth hover transitions and a scale effect.
+  - This approach ensures theme consistency and supports dark mode.
+*/
+  .activity-bar-green {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary), white 70%) 0%,
+      /* highlight */ var(--primary) 20%,
+      color-mix(in oklab, var(--primary), black 20%) 100% /* base shadow */
+    );
+    transition:
+      /* box-shadow 0.2s, */
+      transform 0.2s,
+      background 0.2s;
+  }
+  .activity-bar-green:hover {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary), white 85%) 0%,
+      color-mix(in oklab, var(--primary), white 40%) 20%,
+      var(--primary) 100%
+    );
+    /* box-shadow: 0 0 8px 2px color-mix(in oklab, var(--primary), white 40%); */
+    /* transform: scaleY(1.15); */
+  }
+
+  .activity-bar-red {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--destructive), white 70%) 0%,
+      /* highlight */ var(--destructive) 20%,
+      color-mix(in oklab, var(--destructive), black 20%) 100% /* base shadow */
+    );
+    transition:
+      box-shadow 0.2s,
+      transform 0.2s,
+      background 0.2s;
+  }
+  .activity-bar-red:hover {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--destructive), white 85%) 0%,
+      color-mix(in oklab, var(--destructive), white 40%) 20%,
+      var(--destructive) 100%
+    );
+    /* box-shadow: 0 0 8px 2px color-mix(in oklab, var(--destructive), white 40%); */
+    /* transform: scaleY(1.15); */
+  }
 </style>
