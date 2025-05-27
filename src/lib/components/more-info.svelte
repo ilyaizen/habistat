@@ -50,7 +50,7 @@
       <!--
           Responsive font size for intro text.
         -->
-      <strong>Habistat</strong> is an open-source <strong>habit tracker</strong> focused on privacy and
+      <strong>Habistat</strong> is an open-source <strong>habit-tracker</strong> focused on privacy and
       simplicity. It helps you build good habits, break bad ones, and track daily activity, with your
       data fully under your control. Features include time-based habit tracking and optional gamification:
       streaks, points, and a virtual garden that grows – ideally, like you. 🌱

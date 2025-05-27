@@ -65,13 +65,13 @@ This plan builds upon your existing progress, aiming for iterative development w
 - [x] **User Preferences - Customization:**
   - [x] Implement Light/Dark mode switching logic within `/settings/customization`.
   - [x] Ensure theme preference persists (e.g., using `localStorage` and applying theme on app load).
-- [ ] **Offline-First & Auth UX:**
-  - [ ] Refine and document the strategy for offline data handling (how data flows from UI to local storage).
-  - [ ] Design and implement UI elements to clearly communicate:
-    - [ ] Authentication status (Anonymous / Logged In User).
-    - [ ] Benefits of creating an account / logging in (e.g., cloud sync).
-    - [ ] Sync status (Offline, Syncing, Synced - placeholders for now).
-- [ ] **Responsive Layout:** Ensure the main app structure and settings pages are responsive.
+- [x] **Offline-First & Auth UX:**
+  - [x] Refine and document the strategy for offline data handling (how data flows from UI to local storage).
+  - [x] Design and implement UI elements to clearly communicate:
+    - [x] Authentication status (Anonymous / Logged In User).
+    - [x] Benefits of creating an account / logging in (e.g., cloud sync).
+    - [x] Sync status (Offline, Syncing, Synced - placeholders for now).
+- [x] **Responsive Layout:** Ensure the main app structure and settings pages are responsive.
 
 ---
 
