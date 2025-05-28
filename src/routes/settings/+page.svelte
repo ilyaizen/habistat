@@ -169,7 +169,7 @@
             <Label class="flex items-center gap-2"><Languages class="h-4 w-4" /> Language</Label>
           </CardHeader>
           <CardContent>
-            <div class="mt-2 flex gap-4">
+            <div class="mt-2 flex w-full flex-wrap justify-start gap-4">
               {#each locales as loc}
                 <Button
                   size="sm"

@@ -93,7 +93,10 @@
 </script>
 
 <!-- Activity Monitor UI -->
-<div class="bg-card max-w-[320px] rounded-md border p-2" aria-label="Activity Monitor Overview">
+<div
+  class="bg-card max-w-[300px] rounded-md border p-2 shadow-md"
+  aria-label="Activity Monitor Overview"
+>
   <!-- Heading -->
   <div class="mb-2 flex items-center justify-between">
     <span class="text-base font-semibold">Activity Overview</span>

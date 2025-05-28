@@ -24,6 +24,7 @@
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import { getContext } from "svelte";
   import type { UserResource } from "@clerk/types";
+  import { SignInButton, SignUpButton } from "svelte-clerk";
 
   // Derive anonymous ID from the store for reactive updates
   const anonymousId = derived(anonymousUserId, ($id) => $id);
@@ -199,8 +200,13 @@
           </p>
         {/if}
         <div class="flex gap-2">
-          <Button variant="outline" onclick={() => goto("/sign-in")}>Sign In</Button>
-          <Button variant="outline" onclick={() => goto("/sign-up")}>Sign Up</Button>
+          <!-- Use Clerk modal buttons for authentication -->
+          <SignInButton mode="modal">
+            <Button variant="outline">Sign In</Button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <Button variant="outline">Sign Up</Button>
+          </SignUpButton>
         </div>
       </div>
     {/if}

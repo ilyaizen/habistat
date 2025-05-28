@@ -28,7 +28,7 @@
       <h1 class="mt-1 text-4xl">Habistat</h1>
     </div>
     <!-- Tagline -->
-    <div class="text-muted-foreground text-md text-center font-medium sm:text-xl">
+    <div class="text-muted-foreground text-center text-sm sm:text-xl">
       Build habits. Track progress. Achieve goals.
     </div>
     <!-- Features Row -->
@@ -46,7 +46,7 @@
         <span class="text-base font-semibold">Semi-Gamified</span>
       </div>
     </div>
-    <p class="max-w-2xl text-base sm:text-lg">
+    <p class="max-w-2xl text-sm sm:text-lg">
       <!--
           Responsive font size for intro text.
         -->
@@ -55,7 +55,7 @@
       data fully under your control. Features include time-based habit tracking and optional gamification:
       streaks, points, and a virtual garden that grows – ideally, like you. 🌱
     </p>
-    <p class="max-w-2xl text-base sm:text-lg">
+    <p class="max-w-2xl text-sm sm:text-lg">
       An alternative to apps like <strong>Everyday</strong>, <strong>Habitify</strong>, and
       <strong>Habitica</strong>, it is built with the lightweight
       <a
