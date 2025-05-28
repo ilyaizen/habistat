@@ -76,6 +76,55 @@ if (browser) {
   // DO NOT create a new one automatically here
 }
 
+// --- Helper functions for session store methods ---
+
+/**
+ * Updates the session's lastModified timestamp. Call this on significant user actions.
+ */
+function touchSession(update: (fn: (session: UserSession | null) => UserSession | null) => void) {
+  if (!browser) return;
+  update((session) => {
+    if (!session) {
+      // No session: create a new one
+      const newSession = createNewSessionObject();
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(newSession));
+      return newSession;
+    }
+    // Update lastModified
+    const updated = { ...session, lastModified: Date.now() };
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  });
+}
+
+/**
+ * Clears session and history from storage and resets the store.
+ */
+function clearSession(set: (value: UserSession | null) => void) {
+  if (browser) {
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+    localStorage.removeItem(LAST_LOGGED_OPEN_KEY);
+    localStorage.removeItem(APP_OPEN_HISTORY_KEY);
+  }
+  set(null);
+}
+
+/**
+ * Ensures a session exists, creating one if needed. Returns the session.
+ */
+function ensureSession(
+  getStore: () => UserSession | null,
+  set: (value: UserSession) => void
+): UserSession {
+  let currentSession = getStore();
+  if (!currentSession && browser) {
+    currentSession = createNewSessionObject();
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentSession));
+    set(currentSession);
+  }
+  return currentSession!;
+}
+
 /**
  * Svelte store for managing the anonymous session object.
  */
@@ -87,53 +136,9 @@ function createSessionStore() {
     subscribe,
     set,
     update,
-    /**
-     * Updates the session's lastModified timestamp. Call this on significant user actions.
-     */
-    touch: () => {
-      if (!browser) return; // Only run touch logic in browser
-      update((session) => {
-        // If session is null (maybe SSR or cleared), do nothing
-        // Or, if in browser and somehow null, create a new one
-        if (!session) {
-          const newSession = createNewSessionObject();
-          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(newSession));
-          return newSession; // Update store with new session
-        }
-        // Update existing session
-        const updated = { ...session, lastModified: Date.now() };
-        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updated));
-        return updated;
-      });
-    },
-    /**
-     * Resets the session: clears storage and sets store to null.
-     * Used primarily during logout/session deletion.
-     */
-    clear: () => {
-      if (browser) {
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        // --- Add clearing history keys --- >
-        localStorage.removeItem(LAST_LOGGED_OPEN_KEY);
-        localStorage.removeItem(APP_OPEN_HISTORY_KEY);
-        // <----------------------------------
-      }
-      set(null); // Reset store state
-    },
-    /**
-     * Ensures a session exists, creating one if needed.
-     * Typically called on app initialization.
-     * Returns the current or newly created session.
-     */
-    ensure: (): UserSession => {
-      let currentSession = get(sessionStore);
-      if (!currentSession && browser) {
-        currentSession = createNewSessionObject();
-        localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentSession));
-        set(currentSession);
-      }
-      return currentSession!;
-    }
+    touch: () => touchSession(update),
+    clear: () => clearSession(set),
+    ensure: (): UserSession => ensureSession(() => get(sessionStore), set)
   };
 }
 
@@ -159,14 +164,12 @@ export async function initializeTracking(): Promise<void> {
 
   try {
     let currentSession = get(sessionStore);
+    if (currentSession) return; // Early return if already initialized
 
-    if (!currentSession) {
-      currentSession = loadSession();
+    currentSession = loadSession();
+    if (!currentSession) return; // No session to load, do nothing
 
-      if (currentSession) {
-        sessionStore.set(currentSession);
-      }
-    }
+    sessionStore.set(currentSession);
   } catch (error) {
     console.error("[Tracking] initializeTracking: Error during initialization:", error);
   }
@@ -255,6 +258,16 @@ export function getAssociatedSessionDetails(): {
   };
 }
 
+// --- Helper for debugSessionStatus ---
+function printSessionDebugInfo(session: UserSession, state: "anonymous" | "associated") {
+  console.log(`Session ID (Anonymous): ${session.id}`);
+  console.log(`Session Created At: ${new Date(session.createdAt).toISOString()}`);
+  console.log(`Session Last Modified: ${new Date(session.lastModified).toISOString()}`);
+  console.log(`Current State: ${state}`); // 'anonymous' or 'associated'
+  console.log(`Associated User ID: ${session.clerkUserId ?? "Not set"}`);
+  console.log(`Associated User Email: ${session.clerkUserEmail ?? "Not set"}`);
+}
+
 /**
  * Logs the current session status to the console for debugging.
  */
@@ -267,19 +280,24 @@ export function debugSessionStatus(): void {
   const state = getSessionState();
 
   console.log(`--- Session Debug Status (${new Date().toISOString()}) ---`);
-  if (session) {
-    console.log(`  Session ID (Anonymous): ${session.id}`);
-    console.log(`  Session Created At: ${new Date(session.createdAt).toISOString()}`);
-    console.log(`  Session Last Modified: ${new Date(session.lastModified).toISOString()}`);
-    console.log(`  Current State: ${state}`); // 'anonymous' or 'associated'
-    console.log(`  Associated User ID: ${session.clerkUserId ?? "Not set"}`);
-    console.log(`  Associated User Email: ${session.clerkUserEmail ?? "Not set"}`);
-  } else {
+  if (!session) {
     console.log("  No active session found in localStorage.");
+    return;
   }
+  printSessionDebugInfo(session, state);
 }
 
-// --- Add back App Open Logging Functions ---
+// --- Helper for logAppOpen ---
+function appendAppOpenHistory(now: number) {
+  const historyStr = localStorage.getItem(APP_OPEN_HISTORY_KEY);
+  const history: number[] = historyStr ? JSON.parse(historyStr) : [];
+  history.push(now);
+  localStorage.setItem(APP_OPEN_HISTORY_KEY, JSON.stringify(history));
+}
+
+function updateLastLoggedOpen(now: number) {
+  localStorage.setItem(LAST_LOGGED_OPEN_KEY, now.toString());
+}
 
 /**
  * Internal helper to record an app open event to localStorage.
@@ -292,17 +310,8 @@ function logAppOpen(userId: string): void {
 
   try {
     const now = Date.now();
-    const historyStr = localStorage.getItem(APP_OPEN_HISTORY_KEY);
-    const history: number[] = historyStr ? JSON.parse(historyStr) : [];
-
-    history.push(now); // Add current timestamp
-
-    // Store updated history (consider potential size limits of localStorage)
-    localStorage.setItem(APP_OPEN_HISTORY_KEY, JSON.stringify(history));
-
-    // Update the last logged open time
-    localStorage.setItem(LAST_LOGGED_OPEN_KEY, now.toString());
-
+    appendAppOpenHistory(now);
+    updateLastLoggedOpen(now);
     console.log(`App open logged for user ${userId} at ${new Date(now).toISOString()}`);
   } catch (error) {
     console.error("Failed to log app open to localStorage:", error);
