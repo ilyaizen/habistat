@@ -190,6 +190,18 @@
             </div>
           </CardContent>
         </Card>
+        <!-- Enable Animations setting -->
+        <Card class="mb-6">
+          <CardHeader>
+            <Label class="flex items-center gap-2" for="motion">Animations</Label>
+          </CardHeader>
+          <CardContent>
+            <div class="flex items-center justify-between">
+              <Label for="motion">Enable Animations</Label>
+              <Switch id="motion" bind:checked={$settings.enableMotion} />
+            </div>
+          </CardContent>
+        </Card>
       {:else if activeTab === "sync"}
         <Card>
           <CardHeader>
@@ -216,10 +228,6 @@
                 <Switch id="usage" bind:checked={$settings.showUsageHistory} />
               </div>
             {/if}
-            <div class="flex items-center justify-between">
-              <Label for="motion">Enable Animations</Label>
-              <Switch id="motion" bind:checked={$settings.enableMotion} />
-            </div>
           </CardContent>
         </Card>
       {/if}
