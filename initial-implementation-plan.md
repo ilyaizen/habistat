@@ -21,7 +21,7 @@ This plan builds upon your existing progress, aiming for iterative development w
 
 - [x] Redesign the homepage (`src/routes/+page.svelte`) to be minimal and clean.
 - [x] Remove header and footer from the homepage.
-- [x] Display a simple welcome message, app logo, and language selector.
+- [ ] Display a simple welcome message, app logo, and language selector.
 - [x] Prepare homepage layout for future onboarding content.
 
 #### 1.3. Refactor Header & Footer

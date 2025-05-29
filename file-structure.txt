@@ -1,9 +1,10 @@
 .
 ├── .cursor
-│   └── rules
-│       ├── add-comments.mdc
-│       ├── code-style.mdc
-│       └── cursor-rules.mdc
+│   ├── rules
+│   │   ├── add-comments.mdc
+│   │   ├── code-style.mdc
+│   │   └── cursor-rules.mdc
+│   └── environment.json
 ├── .obsidian
 │   ├── app.json
 │   ├── appearance.json
@@ -12,19 +13,20 @@
 ├── .vscode
 │   ├── extensions.json
 │   └── settings.json
-├── convex
-│   ├── _generated
-│   │   ├── api.d.ts
-│   │   ├── api.js
-│   │   ├── dataModel.d.ts
-│   │   ├── server.d.ts
-│   │   └── server.js
-│   ├── README.md
-│   ├── http.ts
-│   ├── schema.ts
-│   ├── tsconfig.json
-│   └── users.ts
 ├── src
+│   ├── convex
+│   │   ├── _generated
+│   │   │   ├── api.d.ts
+│   │   │   ├── api.js
+│   │   │   ├── dataModel.d.ts
+│   │   │   ├── server.d.ts
+│   │   │   └── server.js
+│   │   ├── README.md
+│   │   ├── auth.config.ts
+│   │   ├── http.ts
+│   │   ├── schema.ts
+│   │   ├── tsconfig.json
+│   │   └── users.ts
 │   ├── i18n
 │   │   ├── en.json
 │   │   ├── es.json
@@ -33,16 +35,17 @@
 │   ├── lib
 │   │   ├── components
 │   │   │   ├── about-drawer.svelte
-│   │   │   ├── activity-monitor.svelte
+│   │   │   ├── activity-monitor-old.svelte
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
-│   │   │   ├── avatar-dropdown.svelte
-│   │   │   ├── environment-indicator.svelte
+│   │   │   ├── avatar-dropdown-old.svelte
+│   │   │   ├── environment-indicator-old.svelte
 │   │   │   ├── fireworks-effect.svelte
 │   │   │   ├── language-switcher.svelte
 │   │   │   ├── more-info.svelte
 │   │   │   ├── motion-wrapper.svelte
-│   │   │   ├── session-info.svelte
+│   │   │   ├── session-info-old.svelte
+│   │   │   ├── tab-motion-wrapper.svelte
 │   │   │   └── theme-toggle.svelte
 │   │   ├── hooks
 │   │   │   └── is-mobile.svelte.ts
@@ -63,10 +66,17 @@
 │   │   ├── about
 │   │   │   └── +page.svelte
 │   │   ├── calendars
-│   │   │   └── [calendarId]
+│   │   │   ├── [calendarId]
+│   │   │   └── +page.svelte
 │   │   ├── dashboard
 │   │   │   ├── +layout.svelte
+│   │   │   ├── +page.server.ts
 │   │   │   └── +page.svelte
+│   │   ├── dev
+│   │   │   └── +page.svelte
+│   │   ├── premium
+│   │   │   └── +page.svelte
+│   │   ├── pricing
 │   │   ├── settings
 │   │   │   └── +page.svelte
 │   │   ├── sign-in
@@ -74,6 +84,8 @@
 │   │   │   └── +page.svelte
 │   │   ├── sign-up
 │   │   │   ├── +page.server.ts
+│   │   │   └── +page.svelte
+│   │   ├── stats
 │   │   │   └── +page.svelte
 │   │   ├── +layout.server.ts
 │   │   ├── +layout.svelte
@@ -99,24 +111,29 @@
 │   ├── build.rs
 │   └── tauri.conf.json
 ├── static
-│   ├── .well-known
 │   ├── screenshots
 │   │   ├── screenshot-desktop.png
 │   │   └── screenshot-mobile.png
+│   ├── android-chrome-192x192.png
+│   ├── android-chrome-512x512.png
 │   ├── app-192x192.png
 │   ├── app-512x512.png
+│   ├── apple-touch-icon.png
+│   ├── favicon-16x16.png
+│   ├── favicon-32x32.png
 │   ├── favicon.ico
 │   ├── flag-es.png
 │   ├── flag-il.png
 │   ├── flag-us.png
-│   ├── illustration-preview.png
 │   ├── logo.png
 │   ├── logo.svg
 │   ├── maskable-icon-512x512.png
-│   └── offline.html
+│   ├── offline.html
+│   └── site.webmanifest
 ├── .env
 ├── .env.d.ts
 ├── .env.example
+├── .env.local
 ├── .gitignore
 ├── .mcp.json
 ├── .prettierignore
@@ -125,10 +142,13 @@
 ├── README.md
 ├── app-icon.png
 ├── components.json
+├── convex.json
 ├── file-structure.txt
 ├── guidelines.md
+├── implementation-plan-old.md
 ├── implementation-plan.md
 ├── index.ts
+├── initial-implementation-plan.md
 ├── llms-convex.txt
 ├── llms-small-svelte.txt
 ├── package.json

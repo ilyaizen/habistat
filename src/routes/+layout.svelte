@@ -31,6 +31,7 @@
   import AppHeader from "$lib/components/app-header.svelte";
   import AppFooter from "$lib/components/app-footer.svelte";
   import { page } from "$app/stores";
+  import AboutDrawer from "$lib/components/about-drawer.svelte";
   // Props received from parent routes using Svelte 5 $props rune
   let { children } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
 
@@ -214,6 +215,13 @@
       lastAppliedTheme = $theme;
     }
   });
+
+  let aboutDrawerOpen = $state(false);
+
+  // Reuse or define a handleStart function for AboutDrawer
+  function handleStart() {
+    // You can customize this as needed, or lift from +page.svelte if needed
+  }
 </script>
 
 {#if $networkIsOnline}
@@ -251,7 +259,8 @@
       </main>
       {#if $page.url.pathname !== "/"}
         <!-- Footer is hidden on the landing page ("/") -->
-        <AppFooter />
+        <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
+        <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
       {/if}
     </div>
   </ClerkProvider>

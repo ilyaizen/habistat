@@ -5,10 +5,8 @@
   import { X } from "lucide-svelte";
   import MoreInfo from "./more-info.svelte";
 
-  // Props
-  export let showMoreInfoButton = false;
-  export let open = false;
-  export let handleStart: () => void;
+  // Svelte 5 props: make 'open' bindable
+  let { showMoreInfoButton = false, open = $bindable(), handleStart } = $props();
 </script>
 
 <Drawer.Root bind:open>
@@ -33,7 +31,7 @@
     class="mx-auto flex max-h-[95vh] max-w-[90vw] flex-col sm:max-h-[90vh] sm:max-w-2xl md:max-w-3xl lg:max-w-5xl"
   >
     <!--
-      Sticky header (title + close button) stays at the top and full width
+      Sticky header (close button) stays at the top and full width
     -->
     <Drawer.Close
       class={`${buttonVariants({ variant: "outline", size: "icon" })} absolute top-2 right-2`}
@@ -42,6 +40,6 @@
       <X class="h-4 w-4" />
     </Drawer.Close>
     <!-- Main About/More Info content is now in a separate component for clarity and reusability -->
-    <MoreInfo {open} {handleStart} />
+    <MoreInfo {open} {handleStart} on:close={() => (open = false)} />
   </Drawer.Content>
 </Drawer.Root>

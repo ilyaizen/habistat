@@ -3,14 +3,18 @@
   import { Globe, RefreshCw, Target } from "lucide-svelte";
   import { anonymousUserId } from "$lib/utils/tracking";
   import { goto } from "$app/navigation";
+  import { createEventDispatcher } from "svelte";
   // import { Card, CardContent } from "$lib/components/ui/card";
 
   // Props passed from parent (about-drawer)
   // open: Controls the visibility of the drawer
+  // svelte-ignore export_let_unused
   export let open = false;
   // handleStart: Function to execute when the "Start Tracking Now" button is clicked
   export let handleStart: () => void;
   // showMoreInfoButton: Prop to control visibility of a button (currently unused in this snippet, might be for parent)
+
+  const dispatch = createEventDispatcher();
 </script>
 
 <!--
@@ -80,7 +84,7 @@
         } else {
           handleStart();
         }
-        open = false; // Close drawer on button click
+        dispatch("close"); // Ask parent to close the drawer
       }}
       size="lg"
       class="btn-3d mt-4 w-full max-w-40 self-center"

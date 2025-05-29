@@ -92,11 +92,11 @@
           Stats
         </a>
         <a
-          href="/pricing"
+          href="/premium"
           class="text-muted-foreground hover:text-foreground transition-colors"
-          class:font-medium={$page.url.pathname.includes("/pricing")}
+          class:font-medium={$page.url.pathname.includes("/premium")}
         >
-          Pricing
+          Premium
         </a>
         <!-- <a
           href="/settings"
@@ -146,9 +146,9 @@
         </button>
         <button
           class="text-muted-foreground hover:text-foreground text-left font-medium"
-          on:click={() => handleNavigation("/pricing")}
+          on:click={() => handleNavigation("/premium")}
         >
-          Pricing
+          Premium
         </button>
       </div>
     </div>
