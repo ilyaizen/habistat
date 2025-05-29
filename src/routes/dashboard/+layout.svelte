@@ -6,8 +6,7 @@
 <div class="flex">
   <!-- Main content area with proper layout -->
   <main class="bg-background flex-1 overflow-y-auto p-6">
-    <div class="bg-card text-card-foreground rounded-lg border p-6 shadow-sm">
-      {@render children()}
-    </div>
+    {@render children()}
+    <!-- <div class="bg-card text-card-foreground rounded-lg border p-6 shadow-sm"></div> -->
   </main>
 </div>

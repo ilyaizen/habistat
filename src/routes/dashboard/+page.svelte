@@ -31,10 +31,11 @@
 </script>
 
 <div class="mx-auto max-w-2xl p-6">
-  <h1 class="mb-4 text-2xl font-bold">Dashboard</h1>
-  <ActivityMonitorOld {activeDates} {sessionStartDate} />
-  <p class="text-muted-foreground mt-4">Your habit stats and progress will appear here soon.</p>
-  <!-- <div class="flex flex-row justify-center pt-4"></div> -->
+  <div class="flex flex-row justify-center pt-4">
+    <ActivityMonitorOld {activeDates} {sessionStartDate} />
+  </div>
+  <h1 class="mt-16 mb-4 text-2xl font-bold">Dashboard</h1>
+  <p class="text-muted-foreground">Your habit stats and progress will appear here soon.</p>
 </div>
 
 <!--
