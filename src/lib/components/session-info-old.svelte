@@ -24,8 +24,9 @@
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import { getContext } from "svelte";
   import type { UserResource } from "@clerk/types";
-  import { SignInButton, SignUpButton, UserButton } from "svelte-clerk";
+  import { SignInButton, SignUpButton } from "svelte-clerk";
   import type { Clerk } from "@clerk/clerk-js";
+  // import { UserButton } from "@clerk/clerk-js";
 
   // Derive anonymous ID from the store for reactive updates
   const anonymousId = derived(anonymousUserId, ($id) => $id);
@@ -127,6 +128,21 @@
     } finally {
       deleting = false;
       confirmDialogOpen = false;
+    }
+  }
+
+  // Sign out handler for Clerk
+  async function handleSignOut() {
+    if (!clerk) {
+      alert("Sign out is not available. Please try again later.");
+      return;
+    }
+    try {
+      await clerk.signOut();
+      window.location.href = "/";
+    } catch (err) {
+      alert("Failed to sign out. Please try again.");
+      console.error("Sign out error:", err);
     }
   }
 </script>
@@ -304,8 +320,10 @@
       </div>
     {/if}
     <div class="flex gap-2">
-      <UserButton />
-      <Button variant="outline" onclick={() => goto("/settings")}>Settings</Button>
+      <!-- <UserButton /> -->
+      <!-- Sign out button for signed-in users -->
+      <Button variant="outline" onclick={handleSignOut}>Sign Out</Button>
+      <!-- <Button variant="outline" onclick={() => goto("/settings")}>Settings</Button> -->
     </div>
   </div>
 {:else}

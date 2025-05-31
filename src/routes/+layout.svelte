@@ -196,6 +196,16 @@
     // Initialize core functionalities when the component mounts in the browser.
     initializeAppCore();
 
+    // Set Clerk context for downstream components as soon as Clerk is available
+    if (browser) {
+      const interval = setInterval(() => {
+        if (window.Clerk) {
+          setContext("clerk", window.Clerk);
+          clearInterval(interval);
+        }
+      }, 100);
+    }
+
     // Return cleanup function to remove listeners when the component is destroyed.
     return () => {
       if (browser) {

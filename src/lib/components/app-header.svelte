@@ -117,7 +117,7 @@
     </nav>
 
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
-      <ThemeToggle />
+      <!-- <ThemeToggle /> -->
       {#if $clerkUser}
         <Avatar />
       {:else}
