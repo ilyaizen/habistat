@@ -1,183 +1,285 @@
 # **Habistat - Implementation Plan**
 
-- Read `@initial-implementation-plan.md` and understand the required tasks.
+This document outlines the phased implementation plan for Habistat, evolving it into a Software as a Service (SaaS) application with free and premium tiers. It integrates previous planning documents, user feedback, and new feature requirements.
 
-### **Phase 1: UI Foundation & Static Content**
+## **Core Principles**
 
-**Goal**: Establish a clean, multilingual, and minimalistic user interface foundation. Simplify the homepage, prepare language support, and streamline header/footer components.
+*   **Offline-First**: Core functionality must be available offline. Data is stored locally (SQLite via Drizzle ORM) and synced to Convex when online.
+*   **SaaS Model**: The application will have free and premium tiers, with feature gating and subscription management via Stripe.
+*   **Cross-Platform**: Target Web, Windows, macOS, Android, and iOS using Tauri and SvelteKit.
+*   **User-Controlled Data**: Users can export their data. Privacy is paramount.
+*   **Modern UI/UX**: Clean, responsive, and intuitive interface using Tailwind CSS and shadcn-svelte.
+*   **Incremental Development**: Phased approach with testable milestones.
 
-**Tasks**:
+## **General Notes**
 
-- **1.1. Multilingual Support**:
-    - [x] Set up internationalization (i18n) with support for: English (en), Spanish (es), Hebrew (he).
-    - [x] Create or update translation files in `src/i18n/`.
-    - [x] Implement language switching logic and UI.
-    - [x] Ensure language preference persists across sessions.
-- **1.2. Simplify Homepage**:
-    - [x] Redesign the homepage (`src/routes/+page.svelte`) to be minimal and clean.
-    - [x] Remove header and footer from the homepage.
-    - [x] Display a simple welcome message, app logo, and language selector.
-- **1.3. Refactor Header & Footer**:
-    - [x] Simplify existing header (`app-header.svelte`) and footer (`app-footer.svelte`).
-    - [x] Reduce clutter: keep only essential navigation/actions.
-    - [x] Ensure responsive design.
-    - [x] Make header/footer hidden on the homepage but visible on other pages.
-- **1.4. Styling & Layout**:
-    - [x] Use **TailwindCSS** for consistent styling.
-    - [x] Leverage **shadcn-svelte** components.
-    - [x] Maintain a clean, modern look.
-- **1.5. Offline-First & Static**:
-    - [x] Ensure all UI changes work offline without backend dependencies (initial static setup).
-    - [x] Avoid SSR or dynamic data fetching in this phase.
+*   **Testing**: Implement unit tests (Vitest) for utility functions, Svelte stores, and Convex actions. Component tests (Svelte Testing Library) and End-to-End tests (Playwright/Cypress) should be added progressively.
+*   **Svelte 5**: Adhere to Svelte 5 best practices (runes like `$props`, `$effect` over deprecated syntaxes).
+*   **Styling**: Use Tailwind CSS and `shadcn-svelte` components for UI. Layouts for lists (calendars, habits) will initially be simple stacked cards.
+*   **Error Handling**: Implement robust error handling, including Svelte error boundaries (`<svelte:boundary>`) and clear user feedback.
 
 ---
 
-### **Phase 2: App Structure & Settings Shell**
+### **Phase 0: Project Setup & Foundation Refinement**
 
-**Goal**: Define the overall app navigation, implement the settings page structure, and design the UX for optional authentication and offline-first status.
+**Goal**: Consolidate existing progress and ensure a solid foundation for subsequent phases. Many tasks from previous "Phase 1 & 2" are assumed to be largely complete here.
 
 **Tasks**:
 
-- [x] **Main Navigation**:
-    - [x] Design and implement the primary navigation structure (Dashboard, Calendars, Stats, Settings).
-    - [x] Create placeholder Svelte components/pages for these main sections.
-- [x] **Settings Page Structure**:
-    - [x] Implement the main `/settings` page and layout.
-    - [x] Create sub-routes and placeholder pages for: Account, Customization, Sync, and Data.
-- [x] **User Preferences - Customization**:
-    - [x] Implement Light/Dark mode switching.
-    - [x] Ensure theme preference persists.
-- [x] **Offline-First & Auth UX**:
-    - [x] Refine and document the strategy for offline data handling.
-    - [x] Design and implement UI elements to communicate authentication and sync status.
-- [x] **Responsive Layout**: Ensure the main app structure and settings pages are responsive.
+*   **0.1. Verify Core Setup**:
+    *   [x] SvelteKit project initialized with `adapter-static`.
+    *   [x] Tauri configured for desktop and mobile.
+    *   [x] Tailwind CSS and `shadcn-svelte` integrated.
+    *   [x] Internationalization (`svelte-i18n`) set up (en, es, he) with language switcher.
+*   **0.2. Basic Application Shell**:
+    *   [x] Main layout (`src/routes/+layout.svelte`) with header and footer (hidden on homepage).
+    *   [x] Simplified homepage (`src/routes/+page.svelte`).
+    *   [x] Theme switching (light/dark mode) persistence.
+    *   [x] Basic navigation structure (placeholders for Dashboard, Calendars, Stats, Settings).
+    *   [x] Settings page shell with sub-routes for Account, Customization, Sync, Data.
+*   **0.3. Local Data Layer Setup**:
+    *   [ ] Integrate Drizzle ORM with SQLite for local database persistence.
+    *   [ ] Define initial (empty or basic) schemas for local tables if not already done.
+    *   [ ] Set up Svelte stores that will interact with Drizzle for reactive UI updates.
 
 ---
 
-### **Phase 3: Authentication & User Profile**
+### **Phase 1: SaaS Backend Foundation & Authentication**
 
-**Goal**: Integrate user authentication using Clerk and `svelte-clerk`, set up the Convex backend to store user profiles, and ensure the basic auth flow works on the Web and Tauri.
+**Goal**: Establish the Convex backend with user authentication (Clerk) and subscription-aware user profiles.
 
 **Tasks**:
 
-- [ ] **3.1. Clerk Setup & Integration**:
-    - [ ] Finalize reactive user state handling in layouts/components using `clerk.user`.
-    - [ ] Test and confirm redirection logic for authenticated/unauthenticated users.
-- [ ] **3.2. Convex Backend Setup**:
-    - [ ] Confirm `users` table schema in `convex/schema.ts` includes `clerkId` (unique index), `email`, `name`, `avatarUrl`.
-- [ ] **3.3. Link Clerk Auth to Convex (Webhook)**:
-    - [ ] Complete Clerk webhook configuration and the Convex HTTP Action to handle user creation/updates.
-- [ ] **3.4. Tauri Specific Adjustments**:
-    - [ ] Ensure `allowlist` for HTTP requests is correct in `tauri.conf.json`.
-    - [ ] Test OAuth flow in Tauri webview on Windows/Android.
-- [ ] **3.5. Auth UI/UX Refinements**:
-    - [ ] Ensure Clerk components are styled consistently and handle loading/error states.
+*   **1.1. Convex Backend Setup**:
+    *   [ ] Initialize Convex project and link it.
+    *   [ ] **Update `convex/schema.ts` - `users` table (SaaS ready)**:
+        ```typescript
+        // convex/schema.ts
+        defineTable({
+          clerkId: v.string(), // From Clerk
+          email: v.string(),
+          name: v.optional(v.string()),
+          avatarUrl: v.optional(v.string()),
+          subscriptionId: v.optional(v.string()), // Stripe Subscription ID
+          subscriptionTier: v.optional(v.union(
+            v.literal("free"),
+            v.literal("premium_monthly"),
+            v.literal("premium_lifetime")
+          )),
+          subscriptionExpiresAt: v.optional(v.number()), // Timestamp
+        })
+        .index("by_clerk_id", ["clerkId"])
+        .index("by_subscription_id", ["subscriptionId"])
+        ```
+*   **1.2. Clerk Authentication Integration (`svelte-clerk`)**:
+    *   [ ] Implement `svelte-clerk` for user sign-up, sign-in, sign-out.
+    *   [ ] Configure Clerk environment variables.
+    *   [ ] Server hook (`src/hooks.server.ts`) to populate `event.locals.session`.
+    *   [ ] Wrap root layout with `<ClerkProvider>`.
+    *   [ ] Implement sign-in/sign-up pages and user button (`<UserButton>`).
+    *   [ ] Ensure reactive user state handling in UI.
+    *   [ ] Test redirection logic for protected routes (e.g., `/dashboard`).
+*   **1.3. Link Clerk Auth to Convex Users (Webhook)**:
+    *   [ ] Create Convex HTTP Action (`convex/http.ts`) for Clerk webhooks (`user.created`, `user.updated`).
+    *   [ ] Implement logic to verify webhook signature.
+    *   [ ] In the webhook handler, call an internal Convex mutation (`createOrUpdateUser`) to sync Clerk user data to the Convex `users` table (populating `clerkId`, `email`, `name`, `avatarUrl`, and defaulting `subscriptionTier` to "free").
+*   **1.4. Convex User & Subscription Functions (`convex/users.ts`)**:
+    *   [ ] Create `getCurrentUser` query (as in `saas.md`) to fetch user data including subscription status.
+    *   [ ] Create `internal.users.updateSubscription` mutation (as in `saas.md`) for Stripe webhooks to call later.
+*   **1.5. Tauri Specific Auth Adjustments**:
+    *   [ ] Verify `allowlist` in `tauri.conf.json` for Clerk and Convex domains.
+    *   [ ] Test OAuth flow thoroughly within Tauri webviews (Windows, Android initially).
 
 ---
 
-### **Phase 4: Local-First Core: Calendars & Habits**
+### **Phase 2: Core Habit Tracking - Local First (Drizzle ORM & SQLite)**
 
-**Goal**: Implement full local CRUD operations for calendars and habits, including types and timers, and log completions. All data will persist locally using Svelte stores and `localStorage`.
+**Goal**: Implement full local CRUD operations for calendars, habits (with descriptions, types, timers), and multiple daily completions.
 
 **Tasks**:
 
-- [ ] **4.1. Data Modeling & Local Persistence (Svelte Stores)**:
-    - [ ] Define `Calendar`, `Habit`, `Completion` TypeScript interfaces.
-    - [ ] Create Svelte `writable` stores for `calendars`, `habits`, and `completions`.
-    - [ ] Implement store logic to load from and persist to `localStorage`.
-- [ ] **4.2. Calendar Management UI/UX (Local)**:
-    - [ ] Create a `Calendar List View` to display, create, edit, delete, and reorder calendars from the local store.
-- [ ] **4.3. Habit Management UI/UX (Local)**:
-    - [ ] In the `Calendar Detail View`, manage habits associated with a calendar.
-    - [ ] Implement local CRUD and reordering for habits.
-- [ ] **4.4. Completion Logging (Local)**:
-    - [ ] Implement the "Complete Habit" action to log a new `Completion` object to the local store.
+*   **2.1. Define Local Database Schemas (Drizzle ORM - `src/lib/db/schema.ts`)**:
+    *   [ ] **`calendars`**: `id` (uuid, primary key), `userId` (string, nullable for local-only anonymous data initially), `name` (string), `colorTheme` (string), `position` (integer), `createdAt` (timestamp), `updatedAt` (timestamp).
+    *   [ ] **`habits`**: `id` (uuid, primary key), `userId` (string, nullable), `calendarId` (uuid, references `calendars.id`), `name` (string), `description` (text, optional), `type` (enum: 'positive', 'negative'), `timerEnabled` (boolean, default false), `targetDurationSeconds` (integer, optional), `pointsValue` (integer, optional, default 0), `position` (integer), `createdAt` (timestamp), `updatedAt` (timestamp).
+    *   [ ] **`completions`**: `id` (uuid, primary key), `userId` (string, nullable), `habitId` (uuid, references `habits.id`), `completedAt` (timestamp), `notes` (text, optional), `durationSpentSeconds` (integer, optional), `isDeleted` (boolean, default false, for soft deletes).
+    *   [ ] **`activeTimers`**: `id` (uuid, primary key), `userId` (string, nullable), `habitId` (uuid, references `habits.id`), `startTime` (timestamp), `pausedTime` (timestamp, nullable), `totalPausedDurationSeconds` (integer, default 0), `status` (enum: 'running', 'paused'), `createdAt` (timestamp), `updatedAt` (timestamp).
+*   **2.2. Local Data Service (`src/lib/services/local-data.ts` or similar)**:
+    *   [ ] Implement functions using Drizzle ORM to perform CRUD operations on local SQLite tables.
+    *   [ ] Initialize database connection.
+*   **2.3. Svelte Stores for Reactivity**:
+    *   [ ] Create writable Svelte stores (`src/lib/stores/calendars.ts`, `habits.ts`, `completions.ts`, `activeTimers.ts`).
+    *   [ ] Stores load data from and save data via the Local Data Service. They manage UI state and trigger backend operations.
+*   **2.4. Calendar Management UI/UX (Local)**:
+    *   [ ] **View (`/calendars` or integrated into `/dashboard`):** Display list of calendars (simple stacked `Card` components) from local store, sorted by `position`.
+    *   [ ] **CRUD:** Implement forms/modals for creating, editing (name, color), deleting calendars.
+    *   [ ] **Reordering:** Basic move up/down buttons or drag-and-drop.
+*   **2.5. Habit Management UI/UX (Local)**:
+    *   [ ] **View (within selected Calendar):** Display list of habits (simple stacked `Card` components) for the current calendar, sorted by `position`.
+    *   [ ] **CRUD:** Forms/modals for creating, editing (name, description, type, timer settings, points), deleting habits.
+    *   [ ] **Reordering:** Within the calendar context.
+*   **2.6. Completion Logging (Local - Multiple per day)**:
+    *   [ ] "Complete Habit" button on `HabitListItem`.
+    *   [ ] Logic to add a new `Completion` record to local DB (via stores/service). Each click = new record.
+    *   [ ] Implement soft-delete for completions if a user wants to undo a log for today.
+*   **2.7. Basic Timer UI (Local)**:
+    *   [ ] If `timerEnabled` for a habit, show "Start Timer" button.
+    *   [ ] UI to reflect timer state (running, paused) based on `activeTimers` store.
+    *   [ ] Buttons for Pause, Resume, Complete Timer (logs completion with duration), Cancel Timer.
 
 ---
 
-### **Phase 5: Basic Cloud Sync & Data Migration**
+### **Phase 3: Cloud Sync & SaaS Entitlement Logic (Frontend)**
 
-**Goal**: Implement initial cloud synchronization for authenticated users to Convex and handle the migration of local anonymous data to the cloud upon login.
+**Goal**: Implement cloud synchronization with Convex and integrate frontend logic for SaaS tier limitations.
 
 **Tasks**:
 
-- [ ] **5.1. Convex Schema & Functions**:
-    - [ ] Finalize `calendars`, `habits`, `completions` table schemas in `convex/schema.ts`.
-    - [ ] Implement Convex mutations for CRUD operations.
-    - [ ] Implement Convex queries to fetch user-specific data.
-- [ ] **5.2. Sync Logic Implementation**:
-    - [ ] **Initial Sync (Pull)**: On app load for an authenticated user, fetch all data from Convex and merge with the local store.
-    - [ ] **Ongoing Sync (Push)**: After any local CUD operation, call the corresponding Convex mutation if the user is authenticated.
-- [ ] **5.3. Anonymous Data Migration**:
-    - [ ] On first sign-in, prompt the user to sync local data.
-    - [ ] If confirmed, call Convex mutations to create the items in the cloud.
-- [ ] **5.4. UI Feedback for Sync**:
-    - [ ] Implement visual indicators for sync status (e.g., "Syncing...", "All changes saved").
+*   **3.1. Convex Schemas & Functions (Backend)**:
+    *   [ ] Finalize/Create Convex schemas for `calendars`, `habits`, `completions`, `activeTimers` mirroring local Drizzle schemas but with Convex types (`v.*`) and `userId` (non-nullable, indexed, based on `clerkId`).
+    *   [ ] Implement Convex mutations for CRUD operations on these tables (e.g., `createCalendar`, `logCompletion`, `startTimer`, `stopTimer`).
+    *   [ ] Implement Convex queries to fetch all user-specific data.
+*   **3.2. Sync Logic Implementation (Bidirectional)**:
+    *   [ ] **Initial Sync (Pull):** On app load for an authenticated user (or after login), fetch all data from Convex. Merge with local data (server authoritative for first pull, or more complex merge later).
+    *   [ ] **Ongoing Sync (Push):** After any local CUD operation, if user is authenticated, queue and call the corresponding Convex mutation. Use optimistic updates in UI.
+    *   [ ] **Ongoing Sync (Pull):** Subscribe to Convex queries to receive real-time updates from the server and update local stores/DB.
+    *   [ ] **Conflict Resolution (Basic):** Start with "last write wins" based on `updatedAt` timestamp. Server timestamp preferred.
+*   **3.3. Anonymous Data Migration to Cloud**:
+    *   [ ] On first sign-in/sign-up for a user with existing local anonymous data:
+        *   Prompt to sync local data.
+        *   If confirmed, iterate through local data and call Convex mutations to create items in cloud, associating with the authenticated `userId`.
+        *   Update local records with `userId` and mark as synced.
+*   **3.4. Subscription Store (`src/lib/stores/subscription.ts`)**:
+    *   [ ] Create a writable Svelte store (`subscriptionStatus`) holding `tier`, `expiresAt`, `isActive`.
+    *   [ ] Populate this store by calling `convex.users.getCurrentUser` when an authenticated user loads the app.
+*   **3.5. UI Logic for Free Tier Limits & Entitlements**:
+    *   [ ] Define free tier limits (e.g., 3 calendars, 7 habits per calendar).
+    *   [ ] In UI components for creating items, check against limits from `subscriptionStatus` store. Disable "Create" buttons if limit reached on "free" tier.
+    *   [ ] Show tooltips/messages prompting upgrade.
+    *   [ ] Apply "disabled" visual state (e.g., grayscale, reduced opacity) to items exceeding free limits if a subscription expires or for migrated data exceeding limits. These items should not be interactable for completion/timing but can be edited/deleted.
+*   **3.6. UI Feedback for Sync**:
+    *   [ ] Visual indicators for sync status (Offline, Syncing, Synced). Utilize `isOnline` store (`src/lib/stores/network.ts`).
 
 ---
 
-### **Phase 6: Dashboard Implementation & Basic Visuals**
+### **Phase 4: Dashboard & Gamification Visuals**
 
-**Goal**: Create the main dashboard view, displaying habit summaries, today's activity, and initial progress visualizations.
+**Goal**: Create the main dashboard displaying habit summaries, 30-day history with interactive completion, and initial gamification visuals.
 
 **Tasks**:
 
-- [ ] **6.1. Dashboard Layout**:
-    - [ ] Design a user-friendly dashboard layout.
-    - [ ] Display a "Today's Habits" section with quick actions.
-- [ ] **6.2. Basic Charts**:
-    - [ ] Integrate a charting library.
-    - [ ] Implement charts for habit completion trends.
-- [ ] **6.3. Recent Activity**:
-    - [ ] Add a simple feed of recently completed habits.
+*   **4.1. Dashboard Layout (`/dashboard/+page.svelte`)**:
+    *   [ ] Design a user-friendly dashboard.
+    *   [ ] Display a "Today's Habits" section: list habits relevant for today, show completion status, allow quick completion.
+*   **4.2. 30-Day Habit History & Interactive Completion**:
+    *   [ ] For each habit (or a selection), display a 30-day grid/view showing completion status for each day.
+    *   [ ] For "today" in this view (and in "Today's Habits"):
+        *   If 0 completions for the habit today: Show `[ Complete ]` button.
+        *   If >0 completions: Show `[ - <count> + ]` buttons.
+        *   `+` action: Logs a new completion for today, increments count.
+        *   `-` action: Deletes the most recent completion for today for that habit, decrements count. (Ensure this works with sync).
+*   **4.3. Gamification - Point System**:
+    *   [ ] When a habit with `pointsValue` is completed, update user's total points (locally and sync to a `userStats` table or aggregate on `users` in Convex).
+    *   [ ] Display total points on Dashboard.
+*   **4.4. Gamification - Streak System**:
+    *   [ ] Implement logic (local and Convex query/function) to calculate current and longest streaks for each habit based on `completions` data.
+    *   [ ] Display current streak on `HabitListItem` and Dashboard.
+*   **4.5. "Virtual Garden" as a Chart**:
+    *   [ ] Integrate a charting library (`shadcn-svelte` charts).
+    *   [ ] Display a chart on the dashboard representing overall progress (e.g., total completions per week for past N weeks, habit consistency score, or active streak lengths).
 
 ---
 
-### **Phase 7: Gamification Core (Points & Streaks)**
+### **Phase 5: Premium Onboarding & Stripe Integration**
 
-**Goal**: Introduce core gamification elements like a points system and streak tracking.
+**Goal**: Implement the payment flow using Stripe for premium subscriptions.
 
 **Tasks**:
 
-- [ ] **7.1. Point System**:
-    - [ ] Modify the `Habit` model to include `pointValue`.
-    - [ ] Update the user's total points upon habit completion.
-- [ ] **7.2. Streak System**:
-    - [ ] Implement logic to calculate and display streaks for each habit.
-- [ ] **7.3. Gamification Feedback**:
-    - [ ] Add basic visual feedback for earning points and extending streaks.
+*   **5.1. Stripe Product & Price Setup**:
+    *   [ ] In Stripe Dashboard: Create "Habistat Premium Monthly" and "Habistat Premium Lifetime" products with prices.
+*   **5.2. Premium/Pricing Page (`src/routes/premium/+page.svelte`)**:
+    *   [ ] Clearly list premium benefits (e.g., unlimited calendars/habits, advanced features, support development).
+    *   [ ] "Upgrade to Monthly" and "Upgrade to Lifetime" buttons.
+*   **5.3. Stripe Checkout Integration**:
+    *   [ ] Create Convex action (`convex/stripe.ts` or `http.ts`) `createStripeCheckoutSession` using Stripe Node.js library. Takes `clerkId` (for metadata) and `priceId`.
+    *   [ ] Wire up "Upgrade" buttons to call this action and redirect to Stripe Checkout.
+*   **5.4. Stripe Webhook Handler (`convex/http.ts`)**:
+    *   [ ] Create HTTP action for Stripe webhooks. Secure with signature verification.
+    *   [ ] Handle `checkout.session.completed`: Extract `subscriptionId`, `clerkId` (from metadata). Determine tier and expiration. Call `internal.users.updateSubscription` Convex mutation.
+    *   [ ] Handle `customer.subscription.updated`, `customer.subscription.deleted`: Update user's subscription status in Convex accordingly.
+*   **5.5. Update Settings Page (`/settings/account`)**:
+    *   [ ] Display current subscription tier and expiration (if applicable).
+    *   [ ] "Manage Subscription" button:
+        *   Create Convex action `createStripeBillingPortalSession`.
+        *   Button calls this action and redirects to Stripe Customer Portal.
+    *   [ ] "Upgrade" button linking to `/premium` page if on free tier.
+*   **5.6. Anonymous User to Subscriber Flow Polish**:
+    *   [ ] If migrated local data exceeds free tier limits upon first login, clearly explain and prompt for upgrade with a modal.
 
 ---
 
-### **Phase 8: Advanced Visualizations & Virtual Garden**
+### **Phase 6: Syncable Timer Functionality**
 
-**Goal**: Enhance the dashboard with advanced visualizations like an activity grid and a virtual garden.
+**Goal**: Implement the habit timer feature with local persistence and cloud sync for active timer state.
 
 **Tasks**:
 
-- [ ] **8.1. GitHub-Style Activity Grid**:
-    - [ ] Implement a component to display daily habit completion activity over a longer period.
-- [ ] **8.2. Virtual Garden**:
-    - [ ] Design the concept and visuals for the garden.
-    - [ ] Implement logic to update the garden's state based on user progress.
+*   **6.1. Refine Timer UI**:
+    *   [ ] On `HabitListItem` or habit detail page, if `timerEnabled`:
+        *   If no active timer for this habit: Show "Start Timer" button.
+        *   If an active timer exists (from `activeTimers` store/table): Show current state (Running: HH:MM:SS / Paused) with "Pause", "Resume", "Complete Session", "Cancel Session" buttons.
+*   **6.2. Local Timer Logic (using `activeTimers` store & Drizzle)**:
+    *   [ ] Implement store actions for `startTimer`, `pauseTimer`, `resumeTimer`, `completeTimerSession`, `cancelTimerSession` which update the local SQLite `activeTimers` table and `completions` table (for `completeTimerSession`).
+*   **6.3. Convex Timer Functions (Backend)**:
+    *   [ ] Mutations in `convex/activeTimers.ts` (or similar): `start`, `pause`, `resume`, `complete`, `cancel`. These manipulate the `activeTimers` table in Convex.
+    *   [ ] `complete` mutation should calculate duration, create a `Completion` record in Convex, and delete the `activeTimer` record.
+*   **6.4. Sync Active Timers**:
+    *   [ ] When local timer actions are performed and user is authenticated, call corresponding Convex mutations.
+    *   [ ] Subscribe to Convex query for the user's active timers to reflect server state changes in the local UI (e.g., if timer was managed on another device).
+    *   [ ] Handle offline scenarios: Queue operations. On reconnect, sync. Server needs to handle potential conflicts (e.g., if timer started offline and also on another device for the same habit – for now, assume last operation wins or disallow concurrent timers for the same habit).
 
 ---
 
-### **Phase 9: Data Portability & Final Polish**
+### **Phase 7: Advanced Features & Final Polish**
 
-**Goal**: Implement data import/export functionality, refine the UI/UX, and conduct thorough cross-platform testing.
+**Goal**: Implement data portability, advanced visualizations, and thoroughly polish the application.
 
 **Tasks**:
 
-- [ ] **9.1. Data Export/Import**:
-    - [ ] Allow users to export and import their data in JSON format.
-- [ ] **9.2. UI/UX Polish**:
-    - [ ] Conduct a full review of the application for consistency and ease of use.
-    - [ ] Refine animations and transitions.
-- [ ] **9.3. Performance & Accessibility**:
-    - [ ] Profile and optimize performance.
-    - [ ] Conduct an accessibility review.
-- [ ] **9.4. Cross-Platform Testing**:
-    - [ ] Test all features extensively on Web, Windows, macOS, Android, and iOS.
-- [ ] **9.5. Documentation**:
-    - [ ] Update the `README.md` with final features and instructions.
+*   **7.1. GitHub-Style Activity Grid**:
+    *   [ ] Implement a component on the Dashboard displaying daily habit completion intensity over a longer period (e.g., past year).
+*   **7.2. Data Export/Import (`/settings/data`)**:
+    *   [ ] **Export:** Allow users to export their data (calendars, habits, completions, settings) as a JSON file from local DB.
+    *   [ ] **Import:** Allow users to import from a previously exported JSON file. Handle merging/conflict resolution (e.g., skip duplicates by ID, or offer choices).
+*   **7.3. UI/UX Polish**:
+    *   [ ] Conduct a full review for consistency, clarity, ease of use.
+    *   [ ] Refine animations, transitions, and visual feedback.
+    *   [ ] Improve error messages and loading states.
+*   **7.4. Performance Optimization**:
+    *   [ ] Profile app performance, especially with large datasets (long lists, many completions).
+    *   [ ] Optimize Svelte component rendering, Drizzle queries, and Convex functions. Consider virtual lists if needed.
+*   **7.5. Accessibility (A11y) Review**:
+    *   [ ] Test with screen readers, keyboard navigation.
+    *   [ ] Ensure adequate color contrast, ARIA attributes.
+*   **7.6. Thorough Cross-Platform Testing**:
+    *   [ ] Test all features extensively on Web (Chrome, Firefox, Safari), Windows, macOS, Android, iOS (Tauri apps).
+*   **7.7. Documentation**:
+    *   [ ] Update `README.md` with final features, usage instructions.
+    *   [ ] Add `CONTRIBUTING.md`.
+    *   [ ] Add JSDoc comments to complex functions and components.
+
+---
+
+### **Future Considerations (Post-Launch / Next Iteration)**
+
+*   **Advanced Gamification**: Badges, achievements, levels.
+*   **Social Features**: Share progress with friends, accountability groups (requires careful privacy considerations).
+*   **Deeper Integrations**: Apple Health, Google Fit, Todoist, etc., via their APIs.
+*   **More Themes & Customization**: Beyond light/dark mode.
+*   **Advanced Reporting & Insights**: More detailed stats and trends.
+*   **Robust Conflict Resolution for Sync**: Implement more sophisticated strategies if needed.
+*   **Public API**.
+
+---
+
+2025-05-31
