@@ -6,33 +6,22 @@ import type { Clerk } from "@clerk/clerk-js";
 
 /**
  * Handles user logout/session reset with proper cleanup.
- * This utility function:
- * 1. Signs the user out of Clerk.
- * 2. Clears the existing session data.
- * 3. Creates a new anonymous session.
- * 4. Navigates to the home page.
+ * Accepts a Clerk instance (from Svelte getContext) as an argument.
  *
+ * @param clerk The Clerk instance or null
  * @returns A promise that resolves when the logout process is complete
  */
-export async function handleLogout(): Promise<void> {
-  if (!browser) return;
-
-  const clerk = getContext<Clerk | null>("clerk");
-
+export async function handleLogout(clerk: Clerk | null): Promise<void> {
+  if (!clerk || typeof clerk.signOut !== "function") {
+    console.warn("Clerk instance not available for logout.");
+    return;
+  }
   try {
-    if (clerk) {
-      await clerk.signOut();
-    } else {
-      console.warn("Clerk instance not found in context during logout.");
-    }
-
+    await clerk.signOut();
     // Clear the existing session
     sessionStore.clear();
-
     // Create a new anonymous session
     sessionStore.ensure();
-
-    goto("/");
   } catch (error) {
     console.error("Logout error:", error);
     throw error;

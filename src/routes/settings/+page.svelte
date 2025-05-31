@@ -12,7 +12,8 @@
 
   import { locale } from "svelte-i18n";
   import { browser } from "$app/environment";
-  import { Sun, Languages } from "lucide-svelte";
+  import { Sun, Languages, LoaderPinwheel } from "lucide-svelte";
+
   import { resetMode, setMode } from "mode-watcher";
 
   // Theme
@@ -20,7 +21,7 @@
   import { get } from "svelte/store";
 
   // Import tab bar UI primitives
-  import { Tabs, TabsList, TabsTrigger, TabsContent } from "$lib/components/ui/tabs";
+  import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
 
   // Import TabMotionWrapper for tab content transitions
   import TabMotionWrapper from "$lib/components/tab-motion-wrapper.svelte";
@@ -82,6 +83,15 @@
       console.log("No user ID found in settings, redirecting to home");
       goto("/", { replaceState: true });
       return;
+    }
+
+    // Check if a tab was requested (e.g., from avatar button)
+    if (browser) {
+      const tab = localStorage.getItem("settingsTab");
+      if (tab) {
+        activeTab = tab;
+        localStorage.removeItem("settingsTab");
+      }
     }
 
     if (get(theme) === "system") {
@@ -193,7 +203,9 @@
         <!-- Enable Animations setting -->
         <Card class="mb-6">
           <CardHeader>
-            <Label class="flex items-center gap-2" for="motion">Animations</Label>
+            <Label class="flex items-center gap-2" for="motion">
+              <LoaderPinwheel class="h-4 w-4" /> Animations
+            </Label>
           </CardHeader>
           <CardContent>
             <div class="flex items-center justify-between">

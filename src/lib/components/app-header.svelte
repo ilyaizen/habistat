@@ -4,17 +4,17 @@
   import { getContext, onMount } from "svelte";
   import { Button } from "$lib/components/ui/button";
   import { type Writable, type Readable } from "svelte/store";
-  import { SignInButton, SignUpButton, UserButton, SignedIn, SignedOut } from "svelte-clerk";
   import { goto } from "$app/navigation";
   import { _ } from "svelte-i18n";
   import type { UserResource } from "@clerk/types";
+  import { SignInButton, SignUpButton } from "svelte-clerk";
 
-  import AvatarDropdown from "./avatar-dropdown-old.svelte";
+  import Avatar from "./avatar.svelte";
   import ThemeToggle from "./theme-toggle.svelte";
   let isMobileMenuOpen = false;
 
   // Get Clerk user state from context
-  const user = getContext<Readable<UserResource | null>>("clerk-user");
+  const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");
 
   // Get auth mode from context (still useful for offline indication)
   const authMode = getContext<Writable<"offline" | "online">>("authMode");
@@ -117,8 +117,18 @@
     </nav>
 
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
-      <!-- <ThemeToggle /> -->
-      <AvatarDropdown />
+      <ThemeToggle />
+      {#if $clerkUser}
+        <Avatar />
+      {:else}
+        <!-- Show sign in and sign up modal buttons if not signed in -->
+        <SignInButton mode="modal">
+          <Button variant="outline">Sign In</Button>
+        </SignInButton>
+        <SignUpButton mode="modal">
+          <Button variant="outline">Sign Up</Button>
+        </SignUpButton>
+      {/if}
     </div>
   </div>
 
@@ -150,6 +160,15 @@
         >
           Premium
         </button>
+        {#if !$clerkUser}
+          <!-- Show sign in and sign up modal buttons in mobile menu if not signed in -->
+          <SignInButton mode="modal">
+            <Button variant="outline" class="w-full">Sign In</Button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <Button variant="outline" class="w-full">Sign Up</Button>
+          </SignUpButton>
+        {/if}
       </div>
     </div>
   {/if}

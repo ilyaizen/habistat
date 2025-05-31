@@ -24,13 +24,17 @@
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import { getContext } from "svelte";
   import type { UserResource } from "@clerk/types";
-  import { SignInButton, SignUpButton } from "svelte-clerk";
+  import { SignInButton, SignUpButton, UserButton } from "svelte-clerk";
+  import type { Clerk } from "@clerk/clerk-js";
 
   // Derive anonymous ID from the store for reactive updates
   const anonymousId = derived(anonymousUserId, ($id) => $id);
 
   // Get Clerk user context for authentication state
   const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");
+
+  // Get Clerk instance from Svelte context (must be at top level)
+  const clerk = getContext<Clerk | null>("clerk");
 
   // Derive session details for display and state management
   const sessionDetails = derived(sessionStore, ($session) => {
@@ -62,16 +66,62 @@
   });
 
   /**
+   * Clears all IndexedDB databases for the app.
+   * This is necessary to fully remove all client-side data.
+   */
+  async function clearAllIndexedDB() {
+    if (!window.indexedDB) return;
+    // List all databases (supported in modern browsers)
+    if (indexedDB.databases) {
+      const dbs = await indexedDB.databases();
+      for (const db of dbs) {
+        if (db.name) indexedDB.deleteDatabase(db.name);
+      }
+    } else {
+      // Fallback: try to delete known DBs (if any are hardcoded)
+      // indexedDB.deleteDatabase('your-db-name');
+    }
+  }
+
+  /**
+   * Clears all app-specific session data from Svelte stores and localStorage.
+   * This includes sessionStore, anonymousUserId, and any other relevant keys.
+   */
+  function clearAppSessionData() {
+    try {
+      // Reset Svelte stores (if they have reset methods)
+      if (sessionStore?.set) sessionStore.set(null);
+      // Remove from localStorage (if used)
+      localStorage.removeItem("anonymousUserId");
+      localStorage.removeItem("sessionStore");
+      // Add more keys as needed
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+
+  /**
    * Handles user session deletion with confirmation
-   * Prevents multiple simultaneous deletion attempts
-   * Cleans up state after completion regardless of success/failure
+   * - Disassociates the session
+   * - Logs out Clerk and clears cookies
+   * - Deletes all app data (localStorage, sessionStorage, IndexedDB)
+   * - Redirects to the frontpage for reinitiation
    */
   async function deleteUserSessionWithConfirm() {
     if (deleting) return;
-
     deleting = true;
     try {
-      await handleLogout();
+      // 1. Clear all app data and session state
+      sessionStore.set(null);
+      localStorage.clear();
+      sessionStorage.clear();
+      await clearAllIndexedDB();
+
+      // 2. Log out Clerk and clear cookies (pass Clerk instance to handleLogout)
+      await handleLogout(clerk);
+
+      // 3. Force a hard reload to ensure all state is reset (not just SPA navigation)
+      location.href = "/";
     } catch (error) {
       console.error("Failed to delete session:", error);
     } finally {
@@ -104,7 +154,6 @@
           class="flex-1"
           aria-label="Anonymous Session ID"
         />
-
         <!-- Session Deletion Dialog -->
         <AlertDialog.Root bind:open={confirmDialogOpen}>
           <AlertDialog.Trigger>
@@ -114,7 +163,6 @@
               title="Clear Local Data & Log Out"
               disabled={deleting || !$anonymousId}
             >
-              <!-- Loading spinner during deletion -->
               {#if deleting}
                 <span
                   class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
@@ -146,8 +194,6 @@
           </AlertDialog.Content>
         </AlertDialog.Root>
       </div>
-
-      <!-- Session status explanation -->
       {#if $clerkUser}
         <p class="text-muted-foreground text-xs">
           This session ID is linked to your signed-in account (details below).
@@ -162,33 +208,6 @@
       </noscript>
     </div>
 
-    <!-- Authenticated User Details Section -->
-    {#if $clerkUser}
-      {@const user = $clerkUser}
-      <div class="space-y-2">
-        <Label for="accountEmailInput" class="text-sm font-medium">Account Email</Label>
-        <Input
-          id="accountEmailInput"
-          type="text"
-          value={user.primaryEmailAddress?.emailAddress ?? "No email associated"}
-          readonly
-          class="flex-1"
-          aria-label="Account Email"
-        />
-      </div>
-      <div class="space-y-2">
-        <Label for="accountIdInput" class="text-sm font-medium">Account ID</Label>
-        <Input
-          id="accountIdInput"
-          type="text"
-          value={user.id ?? "No ID associated"}
-          readonly
-          class="flex-1"
-          aria-label="Account ID"
-        />
-      </div>
-    {/if}
-
     <!-- Anonymous User Actions Section -->
     {#if !$clerkUser}
       <div class="space-y-2">
@@ -200,7 +219,6 @@
           </p>
         {/if}
         <div class="flex gap-2">
-          <!-- Use Clerk modal buttons for authentication -->
           <SignInButton mode="modal">
             <Button variant="outline">Sign In</Button>
           </SignInButton>
@@ -243,6 +261,51 @@
       <p class="text-muted-foreground text-xs">
         Indicates if the local session tracker thinks it's 'anonymous' or 'associated'.
       </p>
+    </div>
+
+    <!-- Clerk Session Info Card (separate section) -->
+    {#if $clerkUser}
+      {@const user = $clerkUser}
+      <div class="mb-2">
+        <Label class="text-base font-semibold">Clerk Session Info</Label>
+      </div>
+      <div class="space-y-2">
+        <Label for="accountEmailInput" class="text-sm font-medium">Account Email</Label>
+        <Input
+          id="accountEmailInput"
+          type="text"
+          value={user.primaryEmailAddress?.emailAddress ?? "No email associated"}
+          readonly
+          class="flex-1"
+          aria-label="Account Email"
+        />
+      </div>
+      <div class="space-y-2">
+        <Label for="accountIdInput" class="text-sm font-medium">Account ID</Label>
+        <Input
+          id="accountIdInput"
+          type="text"
+          value={user.id ?? "No ID associated"}
+          readonly
+          class="flex-1"
+          aria-label="Account ID"
+        />
+      </div>
+      <div class="space-y-2">
+        <Label for="avatarUrlInput" class="text-sm font-medium">Avatar URL</Label>
+        <Input
+          id="avatarUrlInput"
+          type="text"
+          value={user.imageUrl ?? "No avatar"}
+          readonly
+          class="flex-1"
+          aria-label="Avatar URL"
+        />
+      </div>
+    {/if}
+    <div class="flex gap-2">
+      <UserButton />
+      <Button variant="outline" onclick={() => goto("/settings")}>Settings</Button>
     </div>
   </div>
 {:else}
