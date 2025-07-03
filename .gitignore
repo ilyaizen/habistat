@@ -15,3 +15,5 @@ bun.lockb
 /.obsidian
 /dist
 /dist-clean
+
+.github/
