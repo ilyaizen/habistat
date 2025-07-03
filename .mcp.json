@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "TalkToFigma": {
+      "command": "bunx",
+      "args": ["cursor-talk-to-figma-mcp@latest"]
+    },
+    "browser-tools": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx @agentdeskai/browser-tools-mcp"],
+      "env": {}
+    }
+  }
+}

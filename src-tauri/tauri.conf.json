@@ -1,0 +1,44 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Habistat",
+  "version": "0.0.1",
+  "identifier": "com.habistat.app",
+  "build": {
+    "beforeDevCommand": "pnpm run dev",
+    "beforeBuildCommand": "pnpm run build && node scripts/prepare-dist.js",
+    "devUrl": "http://localhost:3001",
+    "frontendDist": "../dist-clean"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Habistat",
+        "width": 800,
+        "height": 600,
+        "additionalBrowserArgs": "--enable-smooth-scrolling --allow-file-access-from-files --allow-universal-access-from-files --disable-features=VizDisplayCompositor",
+        "url": "index.html",
+        "center": true,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "withGlobalTauri": true,
+    "trayIcon": null
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "android": {
+      "minSdkVersion": 24
+    }
+  }
+}

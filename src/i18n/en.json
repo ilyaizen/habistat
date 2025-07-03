@@ -1,0 +1,35 @@
+{
+  "app": {
+    "title": "Habistat",
+    "description": "Track your habits and build a better you"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "settings": "Settings",
+    "error": "Error"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "activity_title": "Usage History",
+    "no_activity": "No activity recorded yet.",
+    "session_info": "Session Info"
+  },
+  "errors": {
+    "activity_load": "Could not load activity data."
+  },
+  "footer": {
+    "madeWith": "Made with",
+    "love": "love",
+    "by": "by",
+    "changeLanguage": "Change Language"
+  },
+  "home": {
+    "welcome": "Habistat",
+    "description": "Track your habits and build a better you",
+    "get_started": "Start"
+  }
+}
