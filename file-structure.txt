@@ -5,20 +5,14 @@
 │   ├── rules
 │   │   └── cursor-rules.mdc
 │   └── environment.json
+├── .github
+│   └── workflows
+│       └── release.yml
 ├── .vscode
 │   ├── extensions.json
 │   └── settings.json
 ├── migrations
-│   ├── meta
-│   │   ├── 0000_snapshot.json
-│   │   ├── 0001_snapshot.json
-│   │   ├── 0002_snapshot.json
-│   │   ├── 0003_snapshot.json
-│   │   └── _journal.json
-│   ├── 0000_cloudy_silvermane.sql
-│   ├── 0001_cool_randall_flagg.sql
-│   ├── 0002_solid_mysterio.sql
-│   └── 0003_equal_songbird.sql
+│   └── 0000_initial.sql
 ├── scripts
 │   ├── prepare-dist.js
 │   └── version-bumper.mjs
@@ -45,7 +39,6 @@
 │   │   ├── he.json
 │   │   └── index.ts
 │   ├── lib
-│   │   ├── actions
 │   │   ├── components
 │   │   │   ├── about-drawer.svelte
 │   │   │   ├── activity-monitor.svelte
@@ -60,7 +53,9 @@
 │   │   │   ├── language-switcher.svelte
 │   │   │   ├── more-info.svelte
 │   │   │   ├── motion-wrapper.svelte
+│   │   │   ├── quote-of-the-day.svelte
 │   │   │   ├── session-info.svelte
+│   │   │   ├── social-links.svelte
 │   │   │   ├── store-sync.svelte
 │   │   │   ├── sync-status.svelte
 │   │   │   ├── tab-motion-wrapper.svelte
@@ -95,7 +90,8 @@
 │   │   │   ├── navigation.ts
 │   │   │   ├── tauri-debug.ts
 │   │   │   └── tracking.ts
-│   │   └── utils.ts
+│   │   ├── utils.ts
+│   │   └── version.ts
 │   ├── params
 │   │   └── lang.ts
 │   ├── routes
@@ -181,7 +177,6 @@
 │   ├── llms-small-svelte.txt
 │   ├── rules.md
 │   └── tech-stack.md
-├── .env.d.ts
 ├── .env.example
 ├── .env.local
 ├── .eslintrc.cjs
@@ -196,7 +191,6 @@
 ├── convex.json
 ├── drizzle.config.ts
 ├── file-structure.txt
-├── habistat.sqlite
 ├── package.json
 ├── pnpm-lock.yaml
 ├── postcss.config.cjs
