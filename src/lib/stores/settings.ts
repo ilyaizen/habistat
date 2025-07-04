@@ -7,12 +7,14 @@ interface Settings {
   developerMode: boolean;
   showUsageHistory: boolean;
   enableMotion: boolean;
+  verboseLogs: boolean;
 }
 
 const defaultSettings: Settings = {
   developerMode: false,
   showUsageHistory: false,
-  enableMotion: true
+  enableMotion: true,
+  verboseLogs: false
 };
 
 function createSettingsStore() {
@@ -26,8 +28,9 @@ function createSettingsStore() {
         initial = {
           ...defaultSettings,
           ...parsed,
-          // Always ensure enableMotion is defined
-          enableMotion: parsed.enableMotion ?? defaultSettings.enableMotion
+          // Always ensure enableMotion and verboseLogs are defined
+          enableMotion: parsed.enableMotion ?? defaultSettings.enableMotion,
+          verboseLogs: parsed.verboseLogs ?? defaultSettings.verboseLogs
         };
       }
     } catch (error) {

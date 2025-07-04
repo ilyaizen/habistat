@@ -12,6 +12,7 @@
   import SessionInfo from "$lib/components/session-info.svelte";
   import SyncStatus from "$lib/components/sync-status.svelte";
   // import ActivityMonitor from "$lib/components/activity-monitor.svelte";
+  import SettingsDataTab from "$lib/components/settings-data-tab.svelte";
   // Import tracking utilities
   import { anonymousUserId, getAppOpenHistory, logAppOpenIfNeeded } from "$lib/utils/tracking";
   // Import Svelte lifecycle hooks
@@ -388,47 +389,7 @@
         {/if}
       {:else if activeTab === "data"}
         <!-- Data and Developer Settings Section -->
-        <Card>
-          <CardHeader>
-            <Label class="text-lg">App Settings</Label>
-          </CardHeader>
-          <CardContent class="space-y-4">
-            <!-- Developer Mode Toggle -->
-            <div class="flex items-center justify-between">
-              <Label for="devmode">Developer Mode</Label>
-              <Switch id="devmode" bind:checked={$settings.developerMode} />
-            </div>
-            {#if developerMode}
-              <!-- Conditional UI for developer-only settings -->
-              <div class="flex items-center justify-between">
-                <Label for="show-usage-history" class="text-sm">Show Usage History</Label>
-                <Switch id="show-usage-history" bind:checked={$settings.showUsageHistory} />
-              </div>
-
-              {#if $settings.showUsageHistory}
-                <!-- Usage History Display -->
-                <div class="mt-4">
-                  <h3 class="mb-2 text-lg font-medium">Usage History</h3>
-                  {#if loadingUsageHistory}
-                    <p>Loading history...</p>
-                  {:else if usageHistoryTimestamps.length > 0}
-                    <!-- Activity Monitor component to visualize usage -->
-                    <!-- <ActivityMonitor activeDates={activeDatesSet} /> -->
-
-                    <!-- Raw timestamp list for detailed view -->
-                    <ul class="mt-2 space-y-1 text-sm text-gray-500">
-                      {#each usageHistoryTimestamps as timestamp}
-                        <li>{new Date(timestamp).toLocaleString()}</li>
-                      {/each}
-                    </ul>
-                  {:else}
-                    <p>No usage history recorded yet.</p>
-                  {/if}
-                </div>
-              {/if}
-            {/if}
-          </CardContent>
-        </Card>
+        <SettingsDataTab />
       {/if}
     </TabMotionWrapper>
   </Tabs>

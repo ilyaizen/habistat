@@ -230,7 +230,7 @@
       <ActivityMonitor />
     </div>
   </div>
-  <div class="mb-4 flex items-center gap-2">
+  <div class="mb-4 flex justify-end gap-2">
     <ArrowUpDown class="text-muted-foreground h-4 w-4" />
     <Switch id="reorder-mode" bind:checked={isReorderMode} aria-label="Toggle reorder mode" />
   </div>
@@ -250,7 +250,7 @@
     </div>
   {:else}
     <div
-      class="flex flex-col gap-8 transition-all duration-300 ease-in-out {isReorderMode
+      class="flex flex-col gap-5 transition-all duration-300 ease-in-out {isReorderMode
         ? 'border-primary/30 bg-primary/5 rounded-lg border-2 border-dashed p-4'
         : 'border-2 border-transparent p-0'}"
       data-dnd-zone="calendar"
@@ -279,9 +279,7 @@
               {/if}
               <a
                 href="/dashboard/{cal.id}"
-                class="inline-block text-xl font-semibold transition-opacity hover:opacity-80"
-                style="border-bottom: 2px dashed {cal.colorTheme ||
-                  '#3b82f6'}33; padding-bottom: 10px;"
+                class="mb-2 inline-block text-xl font-semibold transition-opacity hover:opacity-80"
               >
                 {cal.name}
               </a>
