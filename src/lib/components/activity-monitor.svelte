@@ -4,6 +4,12 @@
   import { sessionStore, getAppOpenHistory, logAppOpenIfNeeded } from "$lib/utils/tracking";
   import { get } from "svelte/store";
   import { Skeleton } from "$lib/components/ui/skeleton";
+  import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+    TooltipProvider
+  } from "$lib/components/ui/tooltip";
 
   // Helper to format a date as YYYY-MM-DD in the local timezone.
   function formatLocalDate(date: Date): string {
@@ -19,7 +25,8 @@
   let loadingHistory = $state(true);
   let activityDays: DayStatus[] = $state([]);
 
-  const { numDays = 30 } = $props<{ numDays?: number }>();
+  // TODO: 2025-07-04 - Default was a full month, right now it's 28 days because of overflow issues.
+  const { numDays = 28 } = $props<{ numDays?: number }>();
 
   /**
    * Represents the status of a single day in the activity bar.
@@ -96,60 +103,70 @@
   });
 </script>
 
-<div
-  class="bg-card w-full max-w-[300px] rounded-md border p-2 shadow-md sm:w-[300px]"
-  aria-label="Activity Monitor Overview"
->
-  <div class="mb-2 flex items-center justify-between">
-    <span class="text-base font-semibold">Activity Overview</span>
-    <span class="text-muted-foreground text-xs">Last {numDays} days</span>
-  </div>
+<TooltipProvider>
+  <div
+    class="bg-card w-full max-w-[300px] rounded-md border p-2 shadow-md sm:w-[300px]"
+    aria-label="Activity Monitor Overview"
+  >
+    <div class="mb-2 flex items-center justify-between">
+      <span class="text-base font-semibold">Activity Overview</span>
+      <span class="text-muted-foreground text-xs">Last {numDays} days</span>
+    </div>
 
-  {#if loadingHistory}
-    <div class="space-y-3">
-      <div class="flex space-x-0.5 p-0.5">
-        {#each Array(numDays) as _, i}
-          <Skeleton class="h-6 w-2 rounded" />
+    {#if loadingHistory}
+      <div class="space-y-3">
+        <div class="flex space-x-0.5 p-0.5">
+          {#each Array(numDays) as _, i}
+            <Skeleton class="h-6 w-2 rounded" />
+          {/each}
+        </div>
+        <div class="flex justify-between">
+          <Skeleton class="h-4 w-16" />
+          <Skeleton class="h-4 w-16" />
+          <Skeleton class="h-4 w-24" />
+        </div>
+      </div>
+    {:else}
+      <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
+        {#each activityDays.slice().reverse() as day (day.date)}
+          <Tooltip>
+            <TooltipTrigger>
+              <div
+                class="h-6 w-2 rounded"
+                class:activity-bar-green={day.status === "active"}
+                class:activity-bar-red={day.status === "inactive"}
+                class:bg-secondary={day.status === "pre-registration"}
+                aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""}`}
+              ></div>
+            </TooltipTrigger>
+            <TooltipContent>
+              {#snippet children()}
+                {day.date}{day.isToday ? " (Today)" : ""} - {day.status}
+              {/snippet}
+            </TooltipContent>
+          </Tooltip>
         {/each}
       </div>
-      <div class="flex justify-between">
-        <Skeleton class="h-4 w-16" />
-        <Skeleton class="h-4 w-16" />
-        <Skeleton class="h-4 w-24" />
-      </div>
-    </div>
-  {:else}
-    <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
-      {#each activityDays.slice().reverse() as day (day.date)}
-        <div
-          class="h-6 w-2 rounded"
-          class:activity-bar-green={day.status === "active"}
-          class:activity-bar-red={day.status === "inactive"}
-          class:bg-secondary={day.status === "pre-registration"}
-          aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""}`}
-          title={`${day.date}${day.isToday ? " (Today)" : ""} - ${day.status}`}
-        ></div>
-      {/each}
-    </div>
 
-    <div
-      class="text-muted-foreground mt-3 flex flex-wrap items-center gap-2 text-xs sm:flex-row sm:justify-between sm:gap-0"
-    >
-      <div class="flex items-center space-x-1">
-        <span class="bg-secondary border-border inline-block h-3 w-3 rounded border"></span>
-        <span>Pre-registration</span>
+      <div
+        class="text-muted-foreground mt-3 flex flex-wrap items-center gap-2 text-xs sm:flex-row sm:justify-between sm:gap-0"
+      >
+        <div class="flex items-center space-x-1">
+          <span class="bg-secondary border-border inline-block h-3 w-3 rounded border"></span>
+          <span>Pre-registration</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <span class="activity-bar-red border-border inline-block h-3 w-3 rounded border"></span>
+          <span>Inactive</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <span class="activity-bar-green border-border inline-block h-3 w-3 rounded border"></span>
+          <span>Active</span>
+        </div>
       </div>
-      <div class="flex items-center space-x-1">
-        <span class="activity-bar-red border-border inline-block h-3 w-3 rounded border"></span>
-        <span>Inactive</span>
-      </div>
-      <div class="flex items-center space-x-1">
-        <span class="activity-bar-green border-border inline-block h-3 w-3 rounded border"></span>
-        <span>Active</span>
-      </div>
-    </div>
-  {/if}
-</div>
+    {/if}
+  </div>
+</TooltipProvider>
 
 <style>
   .activity-bar-green {
