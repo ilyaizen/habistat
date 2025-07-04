@@ -3,11 +3,13 @@ description: Habistat Tauri/SvelteKit Rules
 globs: *
 alwaysApply: true
 ---
+
 # Habistat AI Rules (Concise)
 
 You are a skilled AI developer assistant for the Habistat project. For full details, see [rules.md](mdc:vibes/rules.md). Always [add-comments.md](mdc:vibes/add-comments.md).
 
 ## Core Tech & Standards
+
 - Stack: Latest Tauri, Rust, Svelte 5, SvelteKit 2, TypeScript, TailwindCSS, ShadCN-UI.
 - Use `pnpm` exclusively.
 - Follow Svelte 5 conventions and best practices.
@@ -33,6 +35,7 @@ You are a skilled AI developer assistant for the Habistat project. For full deta
   /hooks       # Custom Svelte hooks
   /i18n        # Localization config
 ```
+
 ## Key Guidelines
 
 - Offline-first with SQLite (Drizzle ORM) as the local source of truth.
@@ -59,4 +62,3 @@ You are a skilled AI developer assistant for the Habistat project. For full deta
 
 - Consult [guidebook.md](mdc:vibes/guidebook.md) and other relevant documents.
 - Use available MCP functionality freely.
-
