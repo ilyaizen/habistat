@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
+import devtoolsJson from "vite-plugin-devtools-json";
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -10,7 +11,7 @@ export default defineConfig(async ({ mode }) => {
   const isTauri = process.env.TAURI_PLATFORM !== undefined;
 
   return {
-    plugins: [sveltekit()],
+    plugins: [sveltekit(), devtoolsJson()],
 
     // Development specific configurations
     define: {
@@ -41,7 +42,7 @@ export default defineConfig(async ({ mode }) => {
       },
       // 4. Allow serving files from the workspace root and specific directories
       fs: {
-        allow: ["./src", "./static"]
+        allow: ["./src", "./static", "./migrations"]
       }
     },
     // Tauri specific build options

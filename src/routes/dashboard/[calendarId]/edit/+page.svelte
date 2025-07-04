@@ -12,6 +12,7 @@
   import Label from "$lib/components/ui/label/label.svelte";
   import * as Select from "$lib/components/ui/select";
   import Switch from "$lib/components/ui/switch/switch.svelte";
+  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
 
   /**
    * Extracts the calendar ID from the page parameters using Svelte 5 runes.
@@ -26,6 +27,7 @@
   let position = $state(99); // The display order of the calendar.
   let isEnabled = $state(true); // Toggles the calendar's active status.
   let saving = $state(false); // Tracks the save operation's state to prevent multiple submissions.
+  let deleteDialogOpen = $state(false); // Controls visibility of delete confirmation dialog
 
   // A predefined palette of Tailwind CSS colors for the user to choose from.
   const COLOR_PALETTE = [
@@ -119,6 +121,24 @@
   function cancel() {
     goto("/dashboard");
   }
+
+  /**
+   * Handles deleting the current calendar after user confirmation.
+   */
+  async function deleteCalendar() {
+    if (!calendar) return;
+    saving = true;
+    try {
+      await calendarsStore.remove(calendar.id);
+      goto("/dashboard");
+    } catch (error) {
+      console.error("Failed to delete calendar:", error);
+      // Optionally show a user-facing error message here.
+    } finally {
+      saving = false;
+      deleteDialogOpen = false;
+    }
+  }
 </script>
 
 <!--
@@ -211,6 +231,12 @@
       <!-- Form action buttons -->
       <div class="mt-4 flex justify-end gap-2">
         <Button type="button" variant="outline" onclick={cancel} disabled={saving}>Cancel</Button>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={saving}
+          onclick={() => (deleteDialogOpen = true)}>Delete</Button
+        >
         <Button type="submit" disabled={saving}>
           {#if saving}
             Saving...
@@ -220,5 +246,28 @@
         </Button>
       </div>
     </form>
+
+    <!-- Delete confirmation dialog (outside form) -->
+    <AlertDialog.Root bind:open={deleteDialogOpen}>
+      <AlertDialog.Content>
+        <AlertDialog.Header>
+          <AlertDialog.Title>Delete Calendar?</AlertDialog.Title>
+          <AlertDialog.Description>
+            This will permanently delete the calendar "{calendar?.name}" and all its data. This
+            action cannot be undone. Are you sure?
+          </AlertDialog.Description>
+        </AlertDialog.Header>
+        <AlertDialog.Footer>
+          <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+          <AlertDialog.Action
+            onclick={deleteCalendar}
+            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={saving}
+          >
+            Confirm Delete
+          </AlertDialog.Action>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog.Root>
   {/if}
 </div>

@@ -8,6 +8,7 @@
   import Label from "$lib/components/ui/label/label.svelte"; // Added for consistency if used
   import { get } from "svelte/store";
   import Switch from "$lib/components/ui/switch/switch.svelte";
+  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
 
   // Define habit types for the select component
   const habitTypeItems = [
@@ -26,6 +27,7 @@
   let position = $state(0);
   let isEnabled = $state(true);
   let saving = $state(false);
+  let deleteDialogOpen = $state(false); // Controls visibility of delete confirmation dialog
 
   const calendarId = $derived(page.params.calendarId);
   const habitId = $derived(page.params.habitId);
@@ -90,6 +92,24 @@
 
   function cancelEdit() {
     goto(`/dashboard/${calendarId}/${habitId}`); // Redirect to the detail page
+  }
+
+  /**
+   * Handles deleting the current habit after user confirmation.
+   */
+  async function deleteHabit() {
+    if (!habit) return;
+    saving = true;
+    try {
+      await habitsStore.remove(habit.id);
+      goto(`/dashboard/${calendarId}`);
+    } catch (error) {
+      console.error("Failed to delete habit:", error);
+      // Optionally show a user-facing error message here.
+    } finally {
+      saving = false;
+      deleteDialogOpen = false;
+    }
   }
 </script>
 
@@ -220,6 +240,13 @@
         <Button type="button" variant="outline" onclick={cancelEdit} disabled={saving}
           >Cancel</Button
         >
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={saving}
+          onclick={() => (deleteDialogOpen = true)}>Delete</Button
+        >
+
         <Button type="submit" disabled={saving}>
           {#if saving}
             <svg
@@ -249,5 +276,28 @@
         </Button>
       </div>
     </form>
+
+    <!-- Delete confirmation dialog (outside form) -->
+    <AlertDialog.Root bind:open={deleteDialogOpen}>
+      <AlertDialog.Content>
+        <AlertDialog.Header>
+          <AlertDialog.Title>Delete Habit?</AlertDialog.Title>
+          <AlertDialog.Description>
+            This will permanently delete the habit "{habit?.name}" and all its completion data. This
+            action cannot be undone. Are you sure?
+          </AlertDialog.Description>
+        </AlertDialog.Header>
+        <AlertDialog.Footer>
+          <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+          <AlertDialog.Action
+            onclick={deleteHabit}
+            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={saving}
+          >
+            Confirm Delete
+          </AlertDialog.Action>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog.Root>
   {/if}
 </div>

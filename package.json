@@ -92,6 +92,7 @@
     "uuid": "^11.1.0",
     "vaul-svelte": "1.0.0-next.7",
     "vite": "^6.3.5",
+    "vite-plugin-devtools-json": "^0.2.1",
     "vite-plugin-pwa": "^1.0.0",
     "workbox-cacheable-response": "^7.3.0",
     "workbox-expiration": "^7.3.0",
