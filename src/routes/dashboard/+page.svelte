@@ -16,6 +16,7 @@
   import { IsMobile } from "$lib/hooks/is-mobile.svelte.ts";
   import { Card, CardContent } from "$lib/components/ui/card";
   import { Switch } from "$lib/components/ui/switch";
+  import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
   // import { Label } from "$lib/components/ui/label";
 
   /**
@@ -186,6 +187,28 @@
     goto("/dashboard/new");
   }
 
+  /**
+   * Handles the data generation event from the sample data generator.
+   * Forces a refresh of all stores to ensure the UI displays the new data.
+   */
+  async function handleDataGenerated() {
+    try {
+      // Force refresh all stores to ensure UI updates with new data
+      await Promise.all([
+        calendarsStore.refresh(),
+        habitsStore.refresh(),
+        completionsStore.refresh()
+      ]);
+
+      // Reset initialization state to trigger UI updates
+      initialized = false;
+
+      console.log("Dashboard refreshed after sample data generation");
+    } catch (error) {
+      console.error("Error refreshing dashboard after data generation:", error);
+    }
+  }
+
   // Reset zone states when reorder mode is turned off
   $effect(() => {
     if (!isReorderMode) {
@@ -220,7 +243,10 @@
   {:else if calendars.length === 0}
     <div class="text-center">
       <p class="text-muted-foreground mb-4">No calendars yet. Create one to get started!</p>
-      <Button onclick={openCreateDialog}>Create Calendar</Button>
+      <div class="mt-4 flex justify-center gap-2">
+        <Button size="sm" onclick={openCreateDialog}>New Calendar</Button>
+        <SampleDataGenerator on:dataGenerated={handleDataGenerated} />
+      </div>
     </div>
   {:else}
     <div
@@ -347,7 +373,7 @@
           </div>
         </div>
       {/each}
-      <div class="mt-4 flex justify-center">
+      <div class="mt-4 flex justify-center gap-2">
         <Button size="sm" onclick={openCreateDialog}>New Calendar</Button>
       </div>
     </div>
