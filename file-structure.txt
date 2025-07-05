@@ -54,7 +54,9 @@
 │   │   │   ├── more-info.svelte
 │   │   │   ├── motion-wrapper.svelte
 │   │   │   ├── quote-of-the-day.svelte
+│   │   │   ├── sample-data-generator.svelte
 │   │   │   ├── session-info.svelte
+│   │   │   ├── settings-data-tab.svelte
 │   │   │   ├── social-links.svelte
 │   │   │   ├── store-sync.svelte
 │   │   │   ├── sync-status.svelte

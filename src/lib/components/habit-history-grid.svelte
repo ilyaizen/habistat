@@ -66,7 +66,9 @@
 </script>
 
 <TooltipProvider>
-  <div class="flex items-center gap-0.5" title="Last {numDays} days of activity">
+  <div class="flex items-center gap-0.5">
+    <!-- TODO: 2025-07-05 - Add title="Last {numDays} days of activity" if needed -->
+    <!-- <div class="flex items-center gap-0.5" title="Last {numDays} days of activity"> -->
     {#each days as day (day.date)}
       <Tooltip>
         <TooltipTrigger>
