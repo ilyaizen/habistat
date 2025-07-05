@@ -250,8 +250,8 @@
     </div>
   {:else}
     <div
-      class="flex flex-col gap-5 transition-all duration-300 ease-in-out {isReorderMode
-        ? 'border-primary/30 bg-primary/5 rounded-lg border-2 border-dashed p-4'
+      class="flex flex-col gap-5 transition-all duration-200 ease-in-out {isReorderMode
+        ? 'border-primary/30 bg-primary/10 rounded-lg border-2 border-dashed p-2'
         : 'border-2 border-transparent p-0'}"
       data-dnd-zone="calendar"
       use:dndzone={{
@@ -267,113 +267,138 @@
       {#each localCalendars as cal (cal.id)}
         {@const calHabits = localHabitsByCalendar.get(cal.id) ?? []}
         {@const isThisCalendarActive = activeHabitCalendarId === cal.id}
+        {@const isCalendarDisabled = cal.isEnabled === 0}
         <div animate:flip={{ duration: 200 }} data-calendar-id={cal.id}>
           <div class="flex flex-col">
             <!-- Calendar Title with Colored Underline -->
-            <div class="flex items-center justify-center gap-2">
-              {#if isReorderMode}
+            <div class="flex items-center justify-center">
+              <div
+                class="overflow-hidden transition-all duration-200 {isReorderMode
+                  ? 'w-5 opacity-100'
+                  : 'w-0 opacity-0'}"
+              >
                 <GripVertical
-                  class="text-muted-foreground/50 h-5 w-5 cursor-grab transition-opacity hover:opacity-70 active:cursor-grabbing"
+                  class="text-muted-foreground h-5 w-5 cursor-grab hover:opacity-70 active:cursor-grabbing {isReorderMode
+                    ? 'pointer-events-auto'
+                    : 'pointer-events-none'}"
                   data-drag-handle="calendar"
                 />
-              {/if}
+              </div>
               <a
-                href="/dashboard/{cal.id}"
-                class="mb-2 inline-block text-xl font-semibold transition-opacity hover:opacity-80"
+                href={isCalendarDisabled ? undefined : `/dashboard/${cal.id}`}
+                class="mb-2 inline-block text-xl font-semibold transition-opacity hover:opacity-80 {isCalendarDisabled
+                  ? 'text-muted-foreground/60 pointer-events-none line-through opacity-60'
+                  : ''}"
+                aria-disabled={isCalendarDisabled}
+                tabindex={isCalendarDisabled ? -1 : 0}
+                onclick={() => {
+                  if (!isCalendarDisabled) goto(`/dashboard/${cal.id}`);
+                }}
+                onkeydown={(e) => {
+                  if (!isCalendarDisabled && (e.key === "Enter" || e.key === " ")) {
+                    goto(`/dashboard/${cal.id}`);
+                  }
+                }}
               >
                 {cal.name}
               </a>
             </div>
 
-            <!-- Habits List in Card -->
-            <Card class="rounded-3xl p-1 shadow-lg">
-              <CardContent class="p-0">
-                <div
-                  class="flex flex-col gap-1"
-                  role="group"
-                  data-dnd-zone="habit"
-                  data-calendar-id={cal.id}
-                  use:dndzone={{
-                    items: calHabits,
-                    flipDurationMs: 200,
-                    dropTargetStyle: {},
-                    type: "habit",
-                    morphDisabled: true,
-                    dragDisabled: !isReorderMode
-                  }}
-                  onconsider={(e) => handleHabitDnd(e, cal.id)}
-                  onfinalize={(e) => handleHabitDnd(e, cal.id)}
-                  onmouseenter={() => handleHabitZoneEnter(cal.id)}
-                  onmouseleave={handleHabitZoneLeave}
-                  ondragstart={() => handleHabitDragStart(cal.id)}
-                  ondragend={handleHabitDragEnd}
-                >
-                  {#if calHabits.length > 0}
-                    {#each calHabits as habit (habit.id)}
-                      {@const habitCompletions = $completionsByHabit.get(habit.id) ?? []}
-                      {@const completionsToday = completionsTodayByHabit.get(habit.id) ?? 0}
-                      <div animate:flip={{ duration: 200 }} data-habit-id={habit.id}>
-                        <Card
-                          class="bg-accent/50 flex flex-row flex-nowrap items-center justify-between gap-2 rounded-3xl border-none p-1 transition-all {habit.isEnabled ===
-                          0
-                            ? 'border-dashed opacity-60'
-                            : 'hover:bg-accent/70 hover:shadow-md'}"
+            <!-- Habits List (2025-07-05: Card wrapper removed) -->
+            <div
+              class="flex flex-col gap-1"
+              role="group"
+              data-dnd-zone="habit"
+              data-calendar-id={cal.id}
+              use:dndzone={{
+                items: calHabits,
+                flipDurationMs: 200,
+                dropTargetStyle: {},
+                type: "habit",
+                morphDisabled: true,
+                dragDisabled: !isReorderMode
+              }}
+              onconsider={(e) => handleHabitDnd(e, cal.id)}
+              onfinalize={(e) => handleHabitDnd(e, cal.id)}
+              onmouseenter={() => handleHabitZoneEnter(cal.id)}
+              onmouseleave={handleHabitZoneLeave}
+              ondragstart={() => handleHabitDragStart(cal.id)}
+              ondragend={handleHabitDragEnd}
+            >
+              {#if calHabits.length > 0}
+                {#each calHabits as habit (habit.id)}
+                  {@const habitCompletions = $completionsByHabit.get(habit.id) ?? []}
+                  {@const completionsToday = completionsTodayByHabit.get(habit.id) ?? 0}
+                  {@const isHabitDisabled = habit.isEnabled === 0 || isCalendarDisabled}
+                  <div animate:flip={{ duration: 200 }} data-habit-id={habit.id}>
+                    <Card
+                      class="bg-card flex flex-row flex-nowrap items-center justify-between gap-2 rounded-3xl border p-1 shadow-xs transition-all {isHabitDisabled
+                        ? 'pointer-events-none opacity-50 grayscale'
+                        : ''} {habit.isEnabled === 0 ? 'border-dashed' : 'hover:bg-card/90'}"
+                      aria-disabled={isHabitDisabled}
+                    >
+                      <div class="flex min-w-0 flex-1 items-center">
+                        <div
+                          class="overflow-hidden transition-all duration-200 {isReorderMode
+                            ? 'w-5 opacity-100'
+                            : 'w-0 opacity-0'}"
                         >
-                          <div class="flex min-w-0 flex-1 items-center gap-2">
-                            {#if isReorderMode}
-                              <GripVertical
-                                class="text-muted-foreground/50 hover:text-muted-foreground h-5 w-5 flex-shrink-0 cursor-grab transition-colors active:cursor-grabbing"
-                                data-drag-handle="habit"
-                              />
-                            {/if}
-                            <div
-                              class="min-w-0 flex-1 cursor-pointer truncate overflow-hidden font-medium whitespace-nowrap {isReorderMode
-                                ? ''
-                                : 'ml-2'}"
-                              role="button"
-                              tabindex="0"
-                              onclick={() => goto(`/dashboard/${cal.id}/${habit.id}`)}
-                              onkeydown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  goto(`/dashboard/${cal.id}/${habit.id}`);
-                                }
-                              }}
-                            >
-                              {habit.name}
-                            </div>
-                          </div>
-                          <div class="flex shrink-0 flex-row items-center gap-4">
-                            <HabitHistoryGrid
-                              completions={habitCompletions}
-                              calendarColor={cal.colorTheme || "#3b82f6"}
-                              numDays={isMobile.current ? 14 : 30}
-                            />
-                            <div class="flex w-16 items-center justify-end">
-                              <HabitCompletionControl {habit} {completionsToday} />
-                            </div>
-                          </div>
-                        </Card>
+                          <GripVertical
+                            class="text-muted-foreground/50 hover:text-muted-foreground h-5 w-5 flex-shrink-0 cursor-grab active:cursor-grabbing {isReorderMode
+                              ? 'pointer-events-auto'
+                              : 'pointer-events-none'}"
+                            data-drag-handle="habit"
+                          />
+                        </div>
+                        <div
+                          class="min-w-0 flex-1 truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
+                            ? 'text-muted-foreground/70 line-through'
+                            : ''}"
+                          role="button"
+                          tabindex={isHabitDisabled ? -1 : 0}
+                          onclick={() => {
+                            if (!isHabitDisabled) goto(`/dashboard/${cal.id}/${habit.id}`);
+                          }}
+                          onkeydown={(e) => {
+                            if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
+                              goto(`/dashboard/${cal.id}/${habit.id}`);
+                            }
+                          }}
+                          aria-disabled={isHabitDisabled}
+                        >
+                          {habit.name}
+                        </div>
                       </div>
-                    {/each}
-                  {:else}
-                    <div class="text-muted-foreground p-4 text-center text-sm">
-                      No habits in this calendar.
-                      <Button
-                        variant="link"
-                        class="h-auto p-0 pl-1"
-                        onclick={() => goto(`/dashboard/${cal.id}/new`)}>Add one!</Button
-                      >
-                    </div>
-                  {/if}
+                      <div class="flex shrink-0 flex-row items-center gap-4">
+                        <HabitHistoryGrid
+                          completions={habitCompletions}
+                          calendarColor={cal.colorTheme || "#3b82f6"}
+                          numDays={isMobile.current ? 14 : 30}
+                        />
+                        <div class="flex w-16 items-center justify-end">
+                          {#if !isHabitDisabled}
+                            <HabitCompletionControl {habit} {completionsToday} />
+                          {/if}
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                {/each}
+              {:else}
+                <div class="text-muted-foreground p-4 text-center text-sm">
+                  No habits in this calendar.
+                  <Button
+                    variant="link"
+                    class="h-auto p-0 pl-1"
+                    onclick={() => goto(`/dashboard/${cal.id}/new`)}
+                    disabled={isCalendarDisabled}>Add one!</Button
+                  >
                 </div>
-              </CardContent>
-            </Card>
+              {/if}
+            </div>
           </div>
         </div>
       {/each}
-      <div class="mt-4 flex justify-center gap-2">
-        <Button size="sm" onclick={openCreateDialog}>New Calendar</Button>
-      </div>
     </div>
   {/if}
 </div>

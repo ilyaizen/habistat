@@ -25,8 +25,7 @@
   let loadingHistory = $state(true);
   let activityDays: DayStatus[] = $state([]);
 
-  // TODO: 2025-07-04 - Default was a full month, right now it's 28 days because of overflow issues.
-  const { numDays = 28 } = $props<{ numDays?: number }>();
+  const { numDays = 30 } = $props<{ numDays?: number }>();
 
   /**
    * Represents the status of a single day in the activity bar.
@@ -105,7 +104,7 @@
 
 <TooltipProvider>
   <div
-    class="bg-card w-full max-w-[300px] rounded-md border p-2 shadow-md sm:w-[300px]"
+    class="bg-card w-full max-w-[380px] rounded-md border p-2 shadow-xs sm:w-[380px]"
     aria-label="Activity Monitor Overview"
   >
     <div class="mb-2 flex items-center justify-between">
@@ -117,7 +116,7 @@
       <div class="space-y-3">
         <div class="flex space-x-0.5 p-0.5">
           {#each Array(numDays) as _, i}
-            <Skeleton class="h-6 w-2 rounded" />
+            <Skeleton class="h-6 w-[10px] rounded-lg" />
           {/each}
         </div>
         <div class="flex justify-between">
@@ -132,7 +131,7 @@
           <Tooltip>
             <TooltipTrigger>
               <div
-                class="h-6 w-2 rounded"
+                class="h-6 w-[10px] rounded-lg"
                 class:activity-bar-green={day.status === "active"}
                 class:activity-bar-red={day.status === "inactive"}
                 class:bg-secondary={day.status === "pre-registration"}

@@ -1,6 +1,12 @@
 <script lang="ts">
   import type { Completion } from "$lib/stores/completions";
   import { formatDate, generateColorShades } from "$lib/utils/date";
+  import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+    TooltipProvider
+  } from "$lib/components/ui/tooltip";
 
   let {
     completions = [],
@@ -59,18 +65,29 @@
   });
 </script>
 
-<div class="flex items-center gap-0.5" title="Last {numDays} days of activity">
-  {#each days as day (day.date)}
-    <div
-      class="day-square h-6 w-2 rounded border-transparent"
-      style="--day-color: {day.color};"
-      class:active={day.count > 0}
-      class:border-primary={day.isToday}
-      class:border={day.isToday}
-      title="{day.date}: {day.count} completions"
-    ></div>
-  {/each}
-</div>
+<TooltipProvider>
+  <div class="flex items-center gap-0.5" title="Last {numDays} days of activity">
+    {#each days as day (day.date)}
+      <Tooltip>
+        <TooltipTrigger>
+          <div
+            class="day-square h-6 w-[10px] rounded-lg"
+            style="--day-color: {day.color};"
+            class:active={day.count > 0}
+            aria-label={`Completions for ${day.date}: ${day.count}${day.isToday ? " (Today)" : ""}`}
+          ></div>
+        </TooltipTrigger>
+        <TooltipContent>
+          {#snippet children()}
+            {day.date}{day.isToday ? " (Today)" : ""} - {day.count} completion{day.count === 1
+              ? ""
+              : "s"}
+          {/snippet}
+        </TooltipContent>
+      </Tooltip>
+    {/each}
+  </div>
+</TooltipProvider>
 
 <style>
   :root {
