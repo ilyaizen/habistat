@@ -58,8 +58,8 @@
 {:else}
   <div
     class="{isNegativeHabit
-      ? 'bg-destructive/80'
-      : 'bg-primary/80'} flex items-center gap-1 rounded-full p-0"
+      ? 'bg-destructive/60'
+      : 'bg-primary/60'} flex items-center gap-1 rounded-full p-0"
   >
     <Button
       size="icon"
