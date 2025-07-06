@@ -294,7 +294,7 @@
       <p class="text-muted-foreground mb-4">No calendars yet. Create one to get started!</p>
       <div class="mt-4 flex justify-center gap-2">
         <Button size="sm" onclick={openCreateDialog}>New Calendar</Button>
-        <SampleDataGenerator on:dataGenerated={handleDataGenerated} />
+        <SampleDataGenerator ondatagenerated={handleDataGenerated} />
       </div>
     </div>
   {:else}

@@ -6,7 +6,6 @@
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import { WandSparkles } from "@lucide/svelte";
   import { get } from "svelte/store";
-  import { createEventDispatcher } from "svelte";
   import * as localData from "$lib/services/local-data";
   import {
     sessionStore,
@@ -15,7 +14,11 @@
   } from "$lib/utils/tracking";
   import { v4 as uuid } from "uuid";
 
-  const dispatch = createEventDispatcher();
+  // Callback prop for when data generation completes
+  interface Props {
+    ondatagenerated?: () => void;
+  }
+  let { ondatagenerated }: Props = $props();
 
   let isGenerating = $state(false);
   let showDialog = $state(false);
@@ -318,8 +321,8 @@
 
       console.log("Sample data with 7-day history generated successfully!");
 
-      // Dispatch event to notify parent component
-      dispatch("dataGenerated");
+      // Call callback to notify parent component
+      ondatagenerated?.();
     } catch (error) {
       console.error("Error generating sample data:", error);
     } finally {
