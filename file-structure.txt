@@ -13,7 +13,8 @@
 │   ├── extensions.json
 │   └── settings.json
 ├── migrations
-│   └── 0000_initial.sql
+│   ├── 0000_initial.sql
+│   └── 0001_simplify_completions.sql
 ├── scripts
 │   ├── prepare-dist.js
 │   └── version-bumper.mjs
@@ -101,6 +102,7 @@
 │   │   │   ├── date.ts
 │   │   │   ├── environment.ts
 │   │   │   ├── navigation.ts
+│   │   │   ├── sample-data.ts
 │   │   │   ├── tauri-debug.ts
 │   │   │   └── tracking.ts
 │   │   ├── utils.ts
