@@ -9,6 +9,9 @@
 ├── .github
 │   └── workflows
 │       └── release.yml
+├── .vercel
+│   ├── README.txt
+│   └── project.json
 ├── .vscode
 │   ├── extensions.json
 │   └── settings.json
@@ -191,6 +194,7 @@
 │   └── site.webmanifest
 ├── vibes
 │   ├── add-comments.md
+│   ├── contribution-guide.md
 │   ├── guidebook.md
 │   ├── implementation-plan.md
 │   ├── llms-convex.txt

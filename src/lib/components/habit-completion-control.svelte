@@ -109,7 +109,7 @@
   >
     <Button
       size="icon"
-      variant="ghost"
+      variant="link"
       class="h-6 w-6 rounded-full"
       onclick={handleRemove}
       aria-label="Remove one completion"
@@ -120,7 +120,7 @@
     <div use:trackButtonPosition>
       <Button
         size="icon"
-        variant="ghost"
+        variant="link"
         class="h-6 w-6 rounded-full"
         onclick={handleAdd}
         aria-label="Add one completion"

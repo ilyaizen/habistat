@@ -1,3 +1,8 @@
+// virtual-garden.ts
+// This file contains the p5.js sketch for the virtual garden.
+// It is responsible for generating the garden's plants and background.
+// It is also responsible for updating the garden's configuration when the user's progress changes.
+
 import type p5 from "p5";
 import { getSessionId } from "$lib/utils/tracking";
 
@@ -58,11 +63,13 @@ const plantColors = [
 /**
  * Represents a single plant within the virtual garden.
  * Each plant has its own unique "DNA" (color, shape, size) and growth lifecycle.
+ * It is now positioned in 3D space.
  */
 class Plant {
   p: p5; // The p5.js instance, passed in to ensure all p5 functions are called correctly.
-  x: number; // The x-coordinate of the plant's base.
-  y: number; // The y-coordinate of the plant's base, aligned with the hill.
+  x: number; // The x-coordinate of the plant's base (left/right).
+  y: number; // The y-coordinate of the plant's base (on the ground plane).
+  z: number; // The z-coordinate of the plant's base (depth/perspective).
   maxHeight: number; // The maximum potential height of the plant.
   growth: number = 0; // The current growth progress, from 0 (seed) to 1 (fully grown).
   targetGrowth: number = 1; // The growth level this plant aims to reach.
@@ -86,14 +93,16 @@ class Plant {
    * Creates a new Plant instance.
    * @param x - The base x-position of the plant.
    * @param y - The base y-position of the plant.
+   * @param z - The base z-position of the plant for perspective.
    * @param height - The maximum height the plant can grow to.
    * @param maturityLevel - The initial growth state (0 to 1).
    * @param p - The p5.js instance.
    */
-  constructor(x: number, y: number, height: number, maturityLevel: number, p: p5) {
+  constructor(x: number, y: number, z: number, height: number, maturityLevel: number, p: p5) {
     this.p = p;
     this.x = x;
     this.y = y;
+    this.z = z; // Store the depth coordinate.
     this.maxHeight = height;
 
     // --- Assign unique "DNA" to the plant using the p5 random number generator ---
@@ -122,7 +131,7 @@ class Plant {
     this.stemNoiseSeed = p.random(1000); // Seeds ensure noise is repeatable for this plant.
     this.stemCurveFactor = p.random(15, 40);
     this.growthRateNoiseSeed = p.random(1000);
-    this.leafSizeFactor = p.random(0.6, 1.6); // Each plant gets a unique base size for its leaves.
+    this.leafSizeFactor = p.random(0.3, 0.7); // Each plant gets a unique base size for its leaves.
 
     // Randomly select a flower type.
     const flowerTypes: ("simple" | "layered" | "bell")[] = ["simple", "layered", "bell"];
@@ -133,7 +142,7 @@ class Plant {
     };
 
     // The target growth is influenced by its initial maturity level.
-    this.targetGrowth = 0.8 + maturityLevel * 0.2;
+    this.targetGrowth = 0.4 + maturityLevel * 0.2;
   }
 
   /**
@@ -151,39 +160,53 @@ class Plant {
   }
 
   /**
-   * Renders the entire plant (stem, leaves, and flower) to the canvas.
-   * Different parts of the plant become visible as its growth progresses.
+   * Renders the entire plant, applying fog based on its depth.
+   * @param fogColor - The color of the fog.
+   * @param fogNear - The z-distance where fog starts.
+   * @param fogFar - The z-distance where fog is at maximum.
+   * @param weeklyDelta - The user's progress delta, for animations.
    */
-  draw() {
+  draw(fogColor: p5.Color, fogNear: number, fogFar: number, weeklyDelta: number) {
     if (this.growth <= 0) return;
     const p = this.p;
 
+    // Calculate fog amount based on this plant's z-position.
+    // The amount is a value from 0 (no fog) to 1 (full fog).
+    const fogAmount = p.map(this.z, fogNear, fogFar, 0, 1, true);
+
     p.push();
-    p.translate(this.x, this.y);
+    // Translate to the plant's position in 3D space.
+    p.translate(this.x, this.y, this.z);
     p.colorMode(p.HSB); // Set color mode for this plant's drawing operations.
 
     // 1. Draw the stem and get the position of its tip for the flower.
-    const stemTip = this.drawStem();
+    const stemTip = this.drawStem(fogColor, fogAmount);
 
-    // 2. Draw leaves along the stem once the plant is mature enough.
+    // 2. Draw leaves along the stem.
     if (this.growth > 0.2) {
       for (let i = 0; i < this.leafCount; i++) {
-        // Stagger leaves along the stem's height.
         const leafHeight = (i + 1) / (this.leafCount + 1);
-        // Only draw the leaf if the plant has grown past its position.
         if (this.growth > leafHeight) {
-          this.drawLeaf(leafHeight, i % 2 === 0); // Alternate leaves left and right.
+          this.drawLeaf(leafHeight, i % 2 === 0, fogColor, fogAmount);
         }
       }
     }
 
-    // 3. Draw the flower at the stem's tip once it's ready to bloom.
-    if (this.growth > 0.7) {
-      // The flower's own growth animation starts after the stem is mostly grown.
-      const flowerGrowth = p.map(this.growth, 0.7, 1.0, 0, 1, true);
+    // 3. Draw the flower at the stem's tip, only when the plant is mature enough.
+    // The threshold is relative to the plant's own target growth.
+    const flowerMaturityThreshold = this.targetGrowth * 0.85;
+    if (this.growth > flowerMaturityThreshold) {
+      const flowerGrowth = p.map(
+        this.growth,
+        flowerMaturityThreshold,
+        this.targetGrowth,
+        0,
+        1,
+        true
+      );
       p.push();
       p.translate(stemTip.x, stemTip.y);
-      this.drawFlower(flowerGrowth);
+      this.drawFlower(flowerGrowth, fogColor, fogAmount, weeklyDelta);
       p.pop();
     }
 
@@ -191,122 +214,124 @@ class Plant {
   }
 
   /**
-   * Draws a curved, tapering stem.
-   * The curve is generated with Perlin noise for a natural look.
-   * @returns The p5.Vector position of the stem's tip.
+   * Helper function to blend a plant's color with the scene's fog.
+   * @param originalColorHSB - The original HSB color array of the plant part.
+   * @param fogColor - The p5.Color object for the fog.
+   * @param fogAmount - The intensity of the fog (0 to 1).
+   * @returns The final, fog-blended p5.Color.
    */
-  drawStem() {
+  private getFoggedColor(
+    originalColorHSB: number[],
+    fogColor: p5.Color,
+    fogAmount: number
+  ): p5.Color {
+    const originalP5Color = this.p.color(originalColorHSB);
+    return this.p.lerpColor(originalP5Color, fogColor, fogAmount);
+  }
+
+  /**
+   * Draws a curved, tapering stem, applying the fog effect.
+   */
+  drawStem(fogColor: p5.Color, fogAmount: number) {
     const p = this.p;
     const currentHeight = this.maxHeight * this.growth;
-    if (currentHeight <= 0) return p.createVector(0, 0); // Guard against zero height.
+    if (currentHeight <= 0) return p.createVector(0, 0);
 
     const baseWidth = this.stemWidth;
-    const tipWidth = 1; // Stem should taper to a point.
+    const tipWidth = 1;
 
-    p.fill(this.colors.stem[0], this.colors.stem[1], this.colors.stem[2]);
+    // Apply fog to the stem color.
+    p.fill(this.getFoggedColor(this.colors.stem, fogColor, fogAmount));
     p.noStroke();
 
     const points: { x: number; y: number; width: number }[] = [];
-    const segments = 20; // More segments create a smoother curve.
+    const segments = 20;
     for (let i = 0; i <= segments; i++) {
       const h = (i / segments) * -currentHeight;
       const progress = i / segments;
-      // Use Perlin noise to create a gentle, organic side-to-side curve.
       const curve =
         (p.noise(this.stemNoiseSeed + progress * 2) - 0.5) * this.stemCurveFactor * this.growth;
-
-      // Manual linear interpolation to calculate the stem's width at this point.
-      // This was implemented to bypass a p5.js `lerp()` bug where it received NaN.
       const width = tipWidth + (baseWidth - tipWidth) * p.pow(1 - progress, 3);
-
       points.push({ x: curve, y: h, width: width });
     }
 
-    // Draw the stem shape using the calculated points.
     p.beginShape();
-    // Draw the right side of the stem.
     for (const pt of points) {
       p.vertex(pt.x + pt.width / 2, pt.y);
     }
-    // Draw the left side of the stem in reverse to close the shape.
     for (let i = points.length - 1; i >= 0; i--) {
       const pt = points[i];
       p.vertex(pt.x - pt.width / 2, pt.y);
     }
     p.endShape(p.CLOSE);
 
-    // Return the coordinates of the last point (the tip of the stem).
     return points.length > 0
       ? p.createVector(points[points.length - 1].x, points[points.length - 1].y)
       : p.createVector(0, 0);
   }
 
   /**
-   * Draws a single leaf on the stem.
-   * @param heightPercent - The vertical position on the stem (0 to 1).
-   * @param isRight - Whether the leaf should be on the right or left side.
+   * Draws a single leaf on the stem, applying the fog effect.
    */
-  drawLeaf(heightPercent: number, isRight: boolean) {
+  drawLeaf(heightPercent: number, isRight: boolean, fogColor: p5.Color, fogAmount: number) {
     const p = this.p;
     const currentHeight = this.maxHeight * this.growth;
     const y = -currentHeight * heightPercent;
     const progress = y / -currentHeight;
-
-    // Calculate the leaf's base position on the *curved* stem, not a straight line.
     const x =
       (p.noise(this.stemNoiseSeed + progress * 2) - 0.5) * this.stemCurveFactor * this.growth;
     const direction = isRight ? 1 : -1;
     const angle = p.radians(-60 * direction);
-
-    // Leaf size is now highly variable. It depends on the overall plant growth (maturity)
-    // and a random "DNA" factor unique to each plant, creating more visual diversity.
     const baseLeafSize = 5 + this.growth * 20;
     const leafSize = baseLeafSize * this.leafSizeFactor;
 
     p.push();
     p.translate(x, y);
     p.rotate(angle);
-    p.fill(this.colors.leaf[0], this.colors.leaf[1], this.colors.leaf[2]);
+    // Apply fog to the leaf color.
+    p.fill(this.getFoggedColor(this.colors.leaf, fogColor, fogAmount));
     p.noStroke();
-
-    // Draw a more shapely leaf using curveVertex for a natural, flowing shape.
-    // p.beginShape();
-    // p.curveVertex(0, 0);
-    // p.curveVertex(0, 0);
-    // p.curveVertex((leafSize * 0.5 * direction) / 2, -leafSize * 0.3);
-    // p.curveVertex(leafSize * direction, 0);
-    // p.curveVertex((leafSize * 0.5 * direction) / 2, leafSize * 0.3);
-    // p.curveVertex(0, 0);
-    // p.curveVertex(0, 0);
-    // p.endShape();
-
-    // DEBUG: Use a simple ellipse to bypass the curveVertex error for now.
     p.ellipse(leafSize * 0.4 * direction, 0, leafSize, leafSize / 2);
-
     p.pop();
   }
 
   /**
-   * Draws the flower head at the tip of the stem.
-   * Supports different visual styles like "simple", "layered", or "bell".
-   * @param growth - The growth progress of the flower itself (0 to 1).
+   * Draws the flower head, applying the fog effect and a "bloop" animation.
+   * @param growth - The current growth of the flower (0 to 1).
+   * @param fogColor - The color of the fog.
+   * @param fogAmount - The intensity of the fog (0 to 1).
+   * @param weeklyDelta - The user's progress delta, for animations.
    */
-  drawFlower(growth: number) {
+  drawFlower(growth: number, fogColor: p5.Color, fogAmount: number, weeklyDelta: number) {
     const p = this.p;
     p.push();
-    p.scale(growth * this.flowerParams.size); // The flower scales up as it blooms.
+
+    // The "bloop" effect: If the user has high positive progress, make the flower
+    // pulse with a larger size.
+    let sizeMultiplier = growth * this.flowerParams.size;
+    if (weeklyDelta > 20) {
+      const bloopAmount = p.map(weeklyDelta, 20, 100, 1, 1.5, true); // Scale up to 1.5x
+      // A gentle sine wave pulse. The rate is slow for a calming effect.
+      const pulse = 1 + p.sin(p.frameCount * 0.05) * 0.1;
+      sizeMultiplier *= bloopAmount * pulse;
+    }
+
+    p.scale(sizeMultiplier);
     p.noStroke();
 
     const { type, petalCount } = this.flowerParams;
-    const { petal1, petal2, center } = this.colors;
     const angleStep = p.TWO_PI / petalCount;
+    // Pre-calculate fogged colors for the flower parts.
+    const petal1Color = this.getFoggedColor(this.colors.petal1, fogColor, fogAmount);
+    const petal2Color = this.getFoggedColor(this.colors.petal2, fogColor, fogAmount);
+    const centerColor = this.getFoggedColor(this.colors.center, fogColor, fogAmount);
 
     if (type === "bell") {
-      p.fill(petal1[0], petal1[1], petal1[2]);
+      p.fill(petal1Color);
       p.ellipse(0, 10, 25, 25);
     } else {
       if (type === "layered") {
-        p.fill(petal2[0], petal2[1], petal2[2]);
+        p.fill(petal2Color);
         for (let i = 0; i < petalCount; i++) {
           p.push();
           p.rotate(i * angleStep + angleStep / 2);
@@ -315,7 +340,7 @@ class Plant {
         }
       }
 
-      p.fill(petal1[0], petal1[1], petal1[2]);
+      p.fill(petal1Color);
       for (let i = 0; i < petalCount; i++) {
         p.push();
         p.rotate(i * angleStep);
@@ -324,7 +349,7 @@ class Plant {
       }
     }
 
-    p.fill(center[0], center[1], center[2]);
+    p.fill(centerColor);
     p.ellipse(0, 0, 15, 15);
 
     p.pop();
@@ -332,200 +357,170 @@ class Plant {
 }
 
 /**
- * Manages the entire p5.js sketch, including the scene (sky, hill) and all Plant objects.
- * This class serves as the main controller that is instantiated by the Svelte component.
+ * Manages the entire p5.js sketch, including the scene (sky, ground) and all Plant objects.
  */
 export class VirtualGardenSketch {
-  public p: p5; // The p5.js instance.
-  private gardenConfig: any; // Configuration data passed from Svelte (e.g., plant count, time of day).
-  private plants: Plant[] = []; // An array to hold all the Plant objects in the garden.
-  private hillPoints: number[] = []; // Stores the y-coordinates for the hill's curve.
-  private backgroundLayer!: p5.Graphics; // A graphics buffer for caching the static background scene.
+  public p: p5;
+  private gardenConfig: any;
+  private plants: Plant[] = [];
+  private sceneProperties: { fogColor: p5.Color; fogNear: number; fogFar: number } | null = null;
+  private gardenDepth: number = 0;
 
   constructor(p: p5, initialGardenConfig: any) {
     this.p = p;
     this.gardenConfig = initialGardenConfig || {};
   }
 
-  /**
-   * Updates the garden's configuration with new data from the Svelte component.
-   * This function is optimized to only trigger expensive redraws when necessary.
-   * @param newConfig - The new configuration object.
-   */
   public updateData(newConfig: any) {
     const oldConfig = this.gardenConfig;
     this.gardenConfig = newConfig || {};
-
-    // To avoid jarring changes, the garden is only regenerated if the number of plants changes.
     if ((oldConfig.plantCount || 3) !== (this.gardenConfig.plantCount || 3)) {
       this.generateGarden();
     }
-
-    // The background is computationally expensive to draw. It should only be redrawn
-    // to its off-screen buffer when relevant data (like time of day) actually changes.
-    if (
-      this.backgroundLayer &&
-      (oldConfig.timeOfDay !== this.gardenConfig.timeOfDay ||
-        oldConfig.weeklyPointsDelta !== this.gardenConfig.weeklyPointsDelta)
-    ) {
-      this.drawSceneToBuffer();
-    }
   }
 
-  /**
-   * The p5.js setup function. Called once when the sketch starts.
-   * It initializes the canvas, creates the background buffer, and generates the initial garden state.
-   * @param containerRef - The HTML element to mount the canvas into.
-   */
   public setup = (containerRef: HTMLDivElement) => {
     const p = this.p;
     const { width, height } = containerRef.getBoundingClientRect();
-    const canvas = p.createCanvas(width, height);
+    const canvas = p.createCanvas(width, height, p.WEBGL);
     canvas.parent(containerRef);
-
-    // Create a graphics buffer to cache the background.
-    this.backgroundLayer = p.createGraphics(width, height);
-
-    this.generateHill();
-    this.drawSceneToBuffer(); // Draw the initial background.
+    this.gardenDepth = p.width * 1.5; // Define garden depth once
     this.generateGarden();
   };
 
-  /**
-   * The p5.js draw function. Called continuously in a loop to render the animation.
-   * This is now highly optimized: it just draws the cached background image and then the plants.
-   */
   public draw = () => {
     const p = this.p;
-    // Blit the pre-rendered background from the buffer onto the main canvas.
-    p.image(this.backgroundLayer, 0, 0);
+    p.colorMode(p.HSB);
 
-    // Update and draw each plant in the garden.
+    // Draw the 3D scene and get properties needed for fog.
+    this.sceneProperties = this.drawScene();
+    const weeklyDelta = this.gardenConfig.weeklyPointsDelta || 0;
+
+    // Update and draw each plant, passing the fog properties.
     for (const plant of this.plants) {
       plant.grow();
-      plant.draw();
+      if (this.sceneProperties) {
+        plant.draw(
+          this.sceneProperties.fogColor,
+          this.sceneProperties.fogNear,
+          this.sceneProperties.fogFar,
+          weeklyDelta
+        );
+      }
     }
   };
 
-  /**
-   * Generates the points for the rolling hill at the bottom of the scene.
-   * Uses Perlin noise to create a smooth, natural-looking curve.
-   */
-  private generateHill() {
-    const p = this.p;
-    this.hillPoints = [];
-
-    // Generate a series of y-coordinates for the hill's surface.
-    for (let x = 0; x <= p.width; x += 10) {
-      const hillHeight = p.noise(x * 0.01) * 15 + 20; // Noise creates gentle rolling.
-      this.hillPoints.push(p.height - hillHeight);
-    }
-  }
-
-  /**
-   * (Re)generates the entire collection of plants in the garden.
-   * This is called on initial setup and when the plant count changes.
-   */
   private generateGarden() {
     const p = this.p;
     this.plants = [];
-
-    // Use a consistent seed based on the session ID. This makes the garden's layout
-    // and plant "DNA" reproducible for the same user.
     p.randomSeed(sessionIdToSeed(getSessionId()));
 
     const plantCount = Math.max(1, Math.min(15, this.gardenConfig.plantCount || 3));
     const baseGrowth = Math.max(0, Math.min(1, this.gardenConfig.baseGrowth || 0.5));
     const weeklyDelta = this.gardenConfig.weeklyPointsDelta || 0;
-    // Map weekly progress to a growth factor for plant height.
     const weeklyGrowth = Math.max(0, Math.min(1, (weeklyDelta + 50) / 100));
 
-    const availableWidth = p.width * 0.8;
-    const segmentWidth = availableWidth / plantCount;
-    const startX = p.width * 0.1;
+    const gardenWidth = p.width * 0.9;
+    const groundLevel = p.height / 4;
+    const segmentWidth = gardenWidth / plantCount;
 
     for (let i = 0; i < plantCount; i++) {
-      // To ensure a more natural, dispersed look, we place each plant
-      // randomly within its own designated segment of the canvas.
-      const segmentStart = startX + i * segmentWidth;
+      const segmentStart = -gardenWidth / 2 + i * segmentWidth;
       const x = p.random(segmentStart, segmentStart + segmentWidth);
-
-      // Find the corresponding height of the hill at this x-position.
-      const hillIndex = Math.floor(x / 10);
-      const y = this.hillPoints[hillIndex] || p.height - 25;
-
-      // Plant height is influenced by weekly progress, with some random variation.
-      // A wider random range is used here to create more visible height differences.
-      const baseHeight = 40 + weeklyGrowth * 40;
-      const height = baseHeight + p.random(-35, 35);
-
-      const plant = new Plant(x, y, height, baseGrowth, p);
+      const z = p.random(-this.gardenDepth / 2, this.gardenDepth / 2);
+      const baseHeight = 80 + weeklyGrowth * 80;
+      const height = baseHeight + p.random(-60, 60);
+      const plant = new Plant(x, groundLevel, z, height, baseGrowth, p);
       this.plants.push(plant);
     }
-
-    // Sort plants by y-coordinate to create a simple depth effect.
-    // Plants further down the screen (higher y-value) will be drawn on top of others.
-    this.plants.sort((a, b) => a.y - b.y);
+    this.plants.sort((a, b) => b.z - a.z);
   }
 
-  /**
-   * Draws the background scene, including the sky, sun/moon, and hill.
-   * The colors and elements change based on the time of day and user progress.
-   * This function now draws to the off-screen buffer instead of the main canvas.
-   */
-  private drawSceneToBuffer() {
-    const p = this.backgroundLayer; // Target the graphics buffer for all drawing operations.
+  private drawScene() {
+    const p = this.p;
     const timeOfDay = this.gardenConfig.timeOfDay || "day";
     const weeklyDelta = this.gardenConfig.weeklyPointsDelta || 0;
     const isNegative = weeklyDelta < 0;
 
-    // The graphics buffer (`p`) needs its color mode set explicitly to HSB.
-    // This must be done *before* the push/pop block to ensure the state is set correctly.
-    p.colorMode(this.p.HSB);
+    let skyTop: number[],
+      skyBottom: number[],
+      sunColor: number[],
+      groundNear: number[],
+      groundFar: number[];
+    if (timeOfDay === "night") {
+      skyTop = [240, 70, 10];
+      skyBottom = [240, 60, 35];
+      sunColor = [60, 20, 100];
+    } else if (timeOfDay === "twilight") {
+      skyTop = [270, 60, 30];
+      skyBottom = [30, 60, 80];
+      sunColor = [30, 80, 90];
+    } else {
+      skyTop = [210, 80, 95];
+      skyBottom = [200, 50, 100];
+      sunColor = [50, 70, 95];
+    }
+
+    const hillHue = isNegative ? 45 : 120;
+    groundNear = [hillHue, isNegative ? 40 : 30, 90];
+    groundFar = [hillHue, isNegative ? 60 : 50, 60];
+
+    p.background(skyBottom[0], skyBottom[1], skyBottom[2]);
+    p.noStroke();
+
+    // The camera is positioned to provide a stable, slightly elevated overview of the garden.
+    // It's pulled back to ensure the entire scene, including the sky and ground, is visible.
+    // The camera looks slightly down towards the horizon.
+    const cameraY = -p.height * 0.2;
+    const cameraZ = p.height / p.tan(p.PI / 18); // Position camera for a 30-degree field of view.
+    p.camera(0, cameraY, cameraZ, 0, 0, 0, 0, 1, 0);
+
+    p.ambientLight(150);
+    p.directionalLight(p.color(255, 255, 240), 0.5, -1, -0.5);
 
     p.push();
-
-    // Set sky and sun/moon colors based on the time of day from the config.
-    let skyColor = [200, 60, 85]; // Day
-    let sunColor = [50, 70, 95];
-    let sunSize = 25;
-
-    if (timeOfDay === "night") {
-      skyColor = [220, 60, 25];
-      sunColor = [60, 30, 80]; // Moon
-      sunSize = 20;
-    } else if (timeOfDay === "twilight") {
-      skyColor = [280, 50, 45];
-      sunColor = [30, 80, 90];
-    }
-
-    p.background(p.color(skyColor));
-
-    // Sun/Moon
-    p.fill(p.color(sunColor));
-    p.noStroke();
-    const sunX = timeOfDay === "night" ? p.width * 0.3 : p.width * 0.8;
-    const sunY = p.height * 0.2;
-    p.ellipse(sunX, sunY, sunSize, sunSize);
-
-    // The hill's color reflects the user's weekly progress.
-    // Green for positive progress, yellow-brown for negative.
-    const hillHue = isNegative ? 45 : 120;
-    const hillSat = isNegative ? 70 : 50;
-    const hillBright = isNegative ? 70 : 65;
-
-    p.fill(hillHue, hillSat, hillBright);
-    p.noStroke();
-
-    // Draw the hill as a single shape for a smooth appearance.
+    p.translate(0, 0, -p.width * 2);
     p.beginShape();
-    p.vertex(0, p.height);
-    for (let i = 0; i < this.hillPoints.length; i++) {
-      p.vertex(i * 10, this.hillPoints[i]);
-    }
-    p.vertex(p.width, p.height);
-    p.endShape(this.p.CLOSE);
-
+    p.fill(skyTop[0], skyTop[1], skyTop[2]);
+    p.vertex(-p.width * 3, -p.height * 3);
+    p.vertex(p.width * 3, -p.height * 3);
+    p.fill(skyBottom[0], skyBottom[1], skyBottom[2]);
+    p.vertex(p.width * 3, p.height * 3);
+    p.vertex(-p.width * 3, p.height * 3);
+    p.endShape(p.CLOSE);
     p.pop();
+
+    p.push();
+    const sunX = timeOfDay === "night" ? -p.width * 0.7 : p.width * 0.8;
+    const sunY = -p.height * 0.6;
+    const sunZ = -p.width * 1.5;
+    p.translate(sunX, sunY, sunZ);
+    p.emissiveMaterial(sunColor[0], sunColor[1], sunColor[2]);
+    p.sphere(p.width * 0.1);
+    p.pop();
+
+    p.push();
+    const groundY = p.height / 4;
+    p.translate(0, groundY, 0);
+    p.rotateX(p.HALF_PI);
+    const groundSize = p.width * 2;
+    p.beginShape();
+    p.fill(groundFar[0], groundFar[1], groundFar[2]);
+    p.vertex(-groundSize, -groundSize);
+    p.vertex(groundSize, -groundSize);
+    p.fill(groundNear[0], groundNear[1], groundNear[2]);
+    p.vertex(groundSize, groundSize);
+    p.vertex(-groundSize, groundSize);
+    p.endShape(p.CLOSE);
+    p.pop();
+
+    // NEW: Define fog properties to be used by the plants.
+    // The fog color matches the bottom of the sky for a seamless blend.
+    const fogColor = p.color(skyBottom);
+    // Fog starts at the center of the garden and gets stronger towards the back.
+    const fogNear = 0;
+    const fogFar = this.gardenDepth / 2;
+
+    return { fogColor, fogNear, fogFar };
   }
 }

@@ -56,7 +56,6 @@ export default defineSchema({
     completedAt: v.number() // The only timestamp we need - when habit was completed
   })
     .index("by_user_habit", ["userId", "habitId"])
-    .index("by_user_date", ["userId", "completedAt"])
     .index("by_local_uuid", ["userId", "localUuid"])
     .index("by_user_completed_at", ["userId", "completedAt"]), // For sync conflict resolution
 

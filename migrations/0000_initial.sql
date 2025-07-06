@@ -1,4 +1,4 @@
-CREATE TABLE `activeTimers` (
+CREATE TABLE IF NOT EXISTS `activeTimers` (
   `id` text PRIMARY KEY NOT NULL,
   `userId` text,
   `habitId` text NOT NULL,
@@ -10,12 +10,12 @@ CREATE TABLE `activeTimers` (
   `updatedAt` integer NOT NULL
 );
 
-CREATE TABLE `appOpens` (
+CREATE TABLE IF NOT EXISTS `appOpens` (
   `id` text PRIMARY KEY NOT NULL,
   `timestamp` integer NOT NULL
 );
 
-CREATE TABLE `calendars` (
+CREATE TABLE IF NOT EXISTS `calendars` (
   `id` text PRIMARY KEY NOT NULL,
   `userId` text,
   `name` text NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE `calendars` (
   `updatedAt` integer NOT NULL
 );
 
-CREATE TABLE `habits` (
+CREATE TABLE IF NOT EXISTS `habits` (
   `id` text PRIMARY KEY NOT NULL,
   `userId` text,
   `calendarId` text NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE `habits` (
   `updatedAt` integer NOT NULL
 );
 
-CREATE TABLE `completions` (
+CREATE TABLE IF NOT EXISTS `completions` (
   `id` text PRIMARY KEY NOT NULL,
   `userId` text,
   `habitId` text NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE `completions` (
   `updatedAt` integer NOT NULL
 );
 
-CREATE TABLE `syncMetadata` (
+CREATE TABLE IF NOT EXISTS `syncMetadata` (
   `id` text PRIMARY KEY NOT NULL,
   `lastSyncTimestamp` integer DEFAULT 0 NOT NULL
 );

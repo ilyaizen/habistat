@@ -1,16 +1,24 @@
-# ✅ **Habistat**
+<img src="static/logo.png" alt="Habistat Logo" width="100"/>
+
+# **Habistat**
 
 > **Build habits. Track progress. Achieve goals.**
 
 🌐 **Open-Source** | 🔄 **Cross-Platform** | 🎯 **Semi-Gamified**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+
+## **Get Started: [habistat.app](https://habistat.app)** 👈
 
 **Habistat** is a free and open-source **habit tracker** focused on privacy and simplicity. It helps you build good habits, break bad ones, and track daily activity, with your data fully under your control. Features include time-based habit tracking and optional gamification: streaks, points, and a virtual garden that grows – ideally, like you. 🌱
 
 An alternative to apps like **[Everyday](https://everyday.app/)**, **[Habitify](https://www.habitify.me/)**, and **[Habitica](https://habitica.com/)**, it is built with the lightweight **[Tauri](https://v2.tauri.app/)** framework and runs smoothly on Android, iOS, Windows, macOS, and in any modern browser.
 
-## [https://habistat.vercel.app](https://habistat.vercel.app)
+> [!NOTE]
+> The currently available versions are Windows and web, with other versions coming soon.
+
+> [!NOTE]
+> This app is currently in its alpha development stage and may not be stable until future versions.
 
 ---
 
@@ -54,12 +62,12 @@ Habistat is built with a modern and robust technology stack:
 - **Authentication:** [Clerk](https://clerk.com/) (OAuth with Google, etc.) via [svelte-clerk](https://svelte-clerk.netlify.app)
 - **Internationalization:** [svelte-i18n](https://github.com/kaisermann/svelte-i18n)
 - **Utilities:**
-  - [uuid](https://github.com/uuidjs/uuid) (Unique Identifiers)
   - [date-fns](https://date-fns.org/) (Date Manipulation and Formatting)
+  - [uuid](https://github.com/uuidjs/uuid) (Unique Identifiers)
+  - [p5.js](https://p5js.org/) (Creative Coding & Visualization for the Virtual Garden)
   - [@number-flow/svelte](https://github.com/barvian/number-flow) (Animated Number Transitions)
   - [svelte-confetti](https://github.com/mitcheljager/svelte-confetti) (Confetti Effects)
   - [crazy-fireworks](https://codepen.io/matt-cannon/pen/YPKGBGm) (Fireworks Effects)
-  - [p5.js](https://p5js.org/) (Creative Coding & Visualization for the Virtual Garden)
 
 ---
 
@@ -95,22 +103,13 @@ habistat/
 └── vibes/                        # Documentation & development guides
 ```
 
-### Key Directories
-
-- **`/src/lib/components/`** - Reusable Svelte components including UI elements, forms, and feature-specific components.
-- **`/src/lib/stores/`** - Svelte stores managing application state (habits, calendars, sync, settings, etc.).
-- **`/src/lib/services/`** - Business logic for local data management, sync operations, and database migrations.
-- **`/src/convex/`** - Cloud backend functions for data synchronization and user management.
-- **`/src/routes/`** - SvelteKit file-based routing with pages for dashboard, settings, and API endpoints.
-- **`/src-tauri/`** - Rust backend providing native desktop capabilities and system integration.
-
-For more information, see full [file-structure.txt](file-structure.txt).
+To view the complete file structure, refer to [file-structure.txt](file-structure.txt).
 
 ---
 
 ## Useful Links
 
-- **Website:** [https://habistat.vercel.app](https://habistat.vercel.app)
+- **Website:** [https://www.habistat.app](https://www.habistat.app)
 - **Creator:** [Ilya Aizenberg](https://github.com/ilyaizen)
 - **Issue Tracker:** [https://github.com/ilyaizen/habistat/issues](https://github.com/ilyaizen/habistat/issues)
 
@@ -118,7 +117,7 @@ For more information, see full [file-structure.txt](file-structure.txt).
 
 ## License
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU AGPL v3**. See the [LICENSE](LICENSE) file for details.
 
 ---
 

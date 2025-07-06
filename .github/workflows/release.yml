@@ -1,0 +1,225 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: short
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag_name: ${{ steps.version.outputs.tag_name }}
+      release_id: ${{ steps.tauri_action.outputs.releaseId }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "tag_name=v$version" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Only windows target needed
+          targets: ""
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        run: pnpm build
+
+      - name: Build and release Tauri app
+        uses: tauri-apps/tauri-action@v0
+        id: tauri_action
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ steps.version.outputs.tag_name }}
+          releaseName: "Habistat ${{ steps.version.outputs.tag_name }}"
+          releaseBody: |
+            See the assets below to download this version and install.
+
+            ### What's Changed
+            - See full changelog in CHANGELOG.md
+
+            ### Installation Notes
+            - **Windows**: Download the `.msi` installer
+            - **Android**: Download the `.apk` file (built separately)
+          releaseDraft: false
+          prerelease: false
+          args: ""
+          includeUpdaterJson: true
+          retryAttempts: 2
+
+  publish-android:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs: publish-tauri
+    # Temporarily disabled until Android setup is complete
+    if: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend for Android
+        run: pnpm build
+
+      - name: Setup Android environment
+        run: |
+          echo "NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$ANDROID_NDK_HOME" >> $GITHUB_ENV
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            src-tauri/gen/android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Initialize Android project
+        run: |
+          # Remove any existing Android project to ensure clean state
+          rm -rf src-tauri/gen/android
+
+          # Initialize Android project
+          pnpm tauri android init
+
+          # Verify required files exist
+          if [ ! -f "src-tauri/gen/android/app/build.gradle.kts" ]; then
+            echo "❌ Android initialization failed - missing build.gradle.kts"
+            exit 1
+          fi
+          echo "✅ Android project initialized successfully"
+
+      - name: Setup Android signing (if available)
+        if: ${{ env.ANDROID_SIGNING_KEY != '' }}
+        env:
+          ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
+        run: |
+          # Create keystore from secret
+          echo "$ANDROID_SIGNING_KEY" | base64 -d > ${{ github.workspace }}/android-release.keystore
+
+          # Configure signing in gradle.properties
+          cat >> src-tauri/gen/android/gradle.properties << EOF
+          HABISTAT_STORE_FILE=${{ github.workspace }}/android-release.keystore
+          HABISTAT_STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          HABISTAT_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}
+          HABISTAT_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
+      - name: Build Android APK (Release)
+        if: ${{ env.ANDROID_SIGNING_KEY != '' }}
+        env:
+          ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_HABISTAT_STORE_FILE: ${{ github.workspace }}/android-release.keystore
+          ORG_GRADLE_PROJECT_HABISTAT_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ORG_GRADLE_PROJECT_HABISTAT_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ORG_GRADLE_PROJECT_HABISTAT_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          pnpm tauri android build --target aarch64 --apk
+
+      - name: Build Android APK (Debug - fallback)
+        if: ${{ env.ANDROID_SIGNING_KEY == '' }}
+        env:
+          ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
+        run: |
+          echo "⚠️ No signing keys provided, building debug APK"
+          pnpm tauri android build --target aarch64 --apk --debug
+
+      - name: Upload Android artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ needs.publish-tauri.outputs.tag_name }}"
+          VERSION="${{ needs.publish-tauri.outputs.version }}"
+
+          echo "📱 Uploading Android artifacts for $TAG_NAME (v$VERSION)"
+
+          # Find and upload APK files
+          find src-tauri/gen/android -name "*.apk" -type f | while read apk_file; do
+            if [[ "$apk_file" == *"release"* ]]; then
+              filename="Habistat_${VERSION}_android_aarch64.apk"
+            elif [[ "$apk_file" == *"debug"* ]]; then
+              filename="Habistat_${VERSION}_android_aarch64_debug.apk"
+            else
+              filename="Habistat_${VERSION}_android_$(basename "$apk_file")"
+            fi
+
+            echo "📤 Uploading: $filename"
+            gh release upload "$TAG_NAME" "$apk_file#$filename" --clobber
+          done
+
+          # Find and upload AAB files (for Play Store)
+          find src-tauri/gen/android -name "*.aab" -type f | while read aab_file; do
+            filename="Habistat_${VERSION}_android_aarch64.aab"
+            echo "📤 Uploading AAB: $filename"
+            gh release upload "$TAG_NAME" "$aab_file#$filename" --clobber
+          done
+
+          echo "✅ Android artifacts uploaded successfully"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Clean up sensitive files
+          rm -f ${{ github.workspace }}/android-release.keystore
+          rm -f src-tauri/gen/android/gradle.properties

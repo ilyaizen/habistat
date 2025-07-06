@@ -16,4 +16,4 @@ bun.lockb
 /dist
 /dist-clean
 
-.github/
+/.vercel

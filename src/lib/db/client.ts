@@ -2,7 +2,6 @@
 // - Browser: sql.js (WASM) with IndexedDB persistence
 // - Tauri/Node: better-sqlite3 (via server.ts)
 
-import { browser } from "$app/environment";
 import * as schema from "$lib/db/schema";
 import initSqlJs from "sql.js";
 import wasmUrl from "sql.js/dist/sql-wasm.wasm?url";
@@ -54,17 +53,31 @@ export async function getDb(): Promise<any> {
   }
 
   if (!globalThis.dbPromise) {
-    if (browser) {
-      globalThis.dbPromise = initializeBrowserDb();
-    } else {
+    // Use `import.meta.env.SSR` which is true in Node/Tauri and false in the browser.
+    // This allows Vite/SvelteKit to tree-shake the unused module path.
+    if (import.meta.env.SSR) {
       // Dynamically import the server-side DB initializer.
       // This prevents `better-sqlite3` from being bundled in the browser build.
-      globalThis.dbPromise = import("./server.ts").then((module) => module.initializeNodeDb());
+      globalThis.dbPromise = import("./server.server.ts").then((module) =>
+        module.initializeNodeDb()
+      );
+    } else {
+      globalThis.dbPromise = initializeBrowserDb();
     }
   }
 
-  await globalThis.dbPromise;
-  return globalThis.dbInstance;
+  try {
+    await globalThis.dbPromise;
+    if (!globalThis.dbInstance) {
+      throw new Error("Database instance is null after initialization");
+    }
+    return globalThis.dbInstance;
+  } catch (error) {
+    console.error("Failed to get database instance:", error);
+    // Reset the promise so we can try again
+    globalThis.dbPromise = null;
+    throw error;
+  }
 }
 
 // --- Browser-specific (sql.js) Implementation ---
@@ -92,7 +105,10 @@ async function loadSqlJsDb(SQL: any): Promise<any> {
 
   const processDb = (db: any) => {
     try {
+      // Create migrations table if it doesn't exist
       db.run("CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY)");
+
+      // Get list of applied migrations
       const appliedMigrationsStmt = db.prepare("SELECT name FROM _migrations");
       const appliedMigrationNames = new Set<string>();
       while (appliedMigrationsStmt.step()) {
@@ -104,12 +120,28 @@ async function loadSqlJsDb(SQL: any): Promise<any> {
 
       if (migrationsToApply.length > 0) {
         for (const migration of migrationsToApply) {
-          const cleanQuery = migration.query.replace(/--> statement-breakpoint/g, "");
-          db.run(cleanQuery);
-          const stmt = db.prepare("INSERT INTO _migrations (name) VALUES (?)");
-          stmt.bind([migration.name]);
-          stmt.step();
-          stmt.free();
+          try {
+            const cleanQuery = migration.query.replace(/--> statement-breakpoint/g, "");
+            db.run(cleanQuery);
+
+            // Mark migration as applied
+            const stmt = db.prepare("INSERT OR IGNORE INTO _migrations (name) VALUES (?)");
+            stmt.bind([migration.name]);
+            stmt.step();
+            stmt.free();
+          } catch (migrationError: any) {
+            // For development, we'll continue with other migrations instead of failing completely
+            // This helps with migration conflicts during development
+            if (migrationError.message.includes("already exists")) {
+              // Still mark it as applied to prevent future attempts
+              const stmt = db.prepare("INSERT OR IGNORE INTO _migrations (name) VALUES (?)");
+              stmt.bind([migration.name]);
+              stmt.step();
+              stmt.free();
+            } else {
+              throw migrationError;
+            }
+          }
         }
       }
     } catch (e: any) {
@@ -193,6 +225,7 @@ async function initializeBrowserDb() {
   } catch (error) {
     console.error("Failed to initialize browser database:", error);
     globalThis.dbInstance = null;
+    throw error;
   }
 }
 

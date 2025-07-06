@@ -38,18 +38,18 @@ export default defineConfig(async ({ mode }) => {
       watch: {
         // 3. tell vite to ignore watching `src-tauri` and `implementation-plan.md`
         // TODO: 2025-04-26 - why is this still reloading everything ever update to implementation-plan.md?
-        ignored: ["**/src-tauri/**", "implementation-plan.md"]
+        ignored: ["**/src-tauri/**", "**/vibes/**"]
       },
       // 4. Allow serving files from the workspace root and specific directories
       fs: {
-        allow: ["./src", "./static", "./migrations"]
+        allow: ["./src", "./static", "./migrations", "./node_modules"]
       }
     },
     // Tauri specific build options
     build: {
       // For better Tauri compatibility
-      target: isTauri ? "es2015" : "esnext",
-      sourcemap: mode === "development",
+      target: "esnext",
+      sourcemap: true,
       minify: mode === "production" && !isTauri ? "esbuild" : false,
       rollupOptions: {
         output: {
@@ -60,7 +60,9 @@ export default defineConfig(async ({ mode }) => {
         }
       },
       // Copy public assets properly without node_modules
-      copyPublicDir: true
+      copyPublicDir: true,
+      // Ensure WASM files are treated as assets
+      assetsInlineLimit: 0
     }
   };
 });

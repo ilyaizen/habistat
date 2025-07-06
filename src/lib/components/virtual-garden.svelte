@@ -74,14 +74,14 @@
         <P5Canvas {sketch} class="h-full w-full" />
       {/if}
     </div>
-    <div
+    <!-- <div
       class="absolute top-0 left-0 flex w-full flex-wrap items-center gap-2 bg-black/20 p-2 backdrop-blur-sm"
     >
       <Badge variant="secondary" class="gap-1.5 border-0 {healthStatus().color}">
         <sveltecomponent this={healthStatus().icon} class="h-3.5 w-3.5"></sveltecomponent>
         {healthStatus().label}
       </Badge>
-    </div>
+    </div> -->
   </div>
 </div>
 

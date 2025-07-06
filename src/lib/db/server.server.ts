@@ -26,7 +26,9 @@ export async function initializeNodeDb() {
     globalThis.dbInstance = drizzle(sqlite, { schema, logger: false });
 
     // This will automatically run migrations on startup.
-    migrate(globalThis.dbInstance, { migrationsFolder: "./migrations" });
+    // Use an absolute path for migrations to ensure it works in built Tauri apps
+    const migrationsPath = process.env.TAURI_DEBUG ? "./migrations" : process.cwd() + "/migrations";
+    migrate(globalThis.dbInstance, { migrationsFolder: migrationsPath });
   } catch (error) {
     console.error("Failed to initialize Node.js database:", error);
     globalThis.dbInstance = null;

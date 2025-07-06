@@ -16,7 +16,8 @@
   </div>
   <div class="flex flex-col items-end justify-center gap-4">
     <ActivityMonitor />
-    <VirtualGarden />
+    <!-- TODO: 2025-07-07 - Add virtual garden back in when we have a better way to handle the canvas -->
+    <!-- <VirtualGarden /> -->
   </div>
 </div>
 

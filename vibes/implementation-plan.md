@@ -1,7 +1,7 @@
 # **Habistat Implementation Plan**
 
 **Version:** 0.0.1
-**Last Updated:** 2025-06-28
+**Last Updated:** 2025-07-08
 
 ---
 
@@ -245,35 +245,50 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 
 ---
 
-### **Phase 6: CI/CD & Automated Builds**
+### **Phase 6: Desktop & Mobile Build Validation**
+
+**Goal**: Ensure the application can be successfully built and packaged for Windows and Android target platforms locally. This validates the build configuration before moving to automated CI/CD.
+
+**Tasks**:
+
+- **6.1. Windows Build Validation**:
+  - [ ] Configure `tauri.conf.json` for Windows build (icons, identifier, etc.).
+  - [ ] Run `pnpm tauri build` locally and confirm successful creation of the `.msi` installer.
+  - [ ] Install and run the application on a Windows machine to verify core functionality.
+  - [ ] Debug any platform-specific issues (e.g., white screen, file system access).
+- **6.2. Initial Android Build Setup**:
+  - [ ] Set up the Android development environment (Android Studio, NDK, SDK).
+  - [ ] Configure `tauri.conf.json` for Android (`bundle`, `minSdkVersion`, etc.).
+  - [ ] Run `pnpm tauri android init` to generate the Android project shell in `src-tauri/gen/android`.
+  - [ ] Run `pnpm tauri android dev` to test the app on an emulator or physical device.
+  - [ ] Address initial build errors and configuration issues. The goal is a successful debug build, not a release-signed APK at this stage.
+
+---
+
+### **Phase 7: CI/CD & Automated Builds**
 
 **Goal**: Automate the build and release process for desktop and mobile platforms using GitHub Actions.
 
 **Tasks**:
 
-- **6.1. Create GitHub Actions Workflow**:
+- **7.1. Create GitHub Actions Workflow**:
   - [ ] A workflow is defined in `.github/workflows/release.yml`.
   - [ ] The workflow triggers on pushes to the `master` branch and can be run manually.
   - [ ] It uses `tauri-apps/tauri-action` to build the application.
-- **6.2. Windows Build Job**:
+- **7.2. Windows Build Job**:
   - [ ] A job builds the application on `windows-latest`.
   - [ ] On completion, it uploads the `.msi` installer as a release artifact.
-- **6.3. Android Build Job**:
+- **7.3. Android Build Job**:
   - [ ] A job builds the application on `ubuntu-latest`.
   - [ ] It requires `ANDROID_SIGNING_KEY` and `ANDROID_KEYSTORE_PASSWORD` secrets to be configured in the GitHub repository to sign the `.apk`.
   - [ ] On completion, it uploads the signed `.apk` as a release artifact.
 
 ---
 
-### ~~**Phase 7: Syncable Timer Functionality**~~ (Deferred)
+### ~~**Phase 8: Syncable Timer Functionality**~~ (Deferred)
 
 **Goal**: Implement the habit timer feature with local persistence and cloud sync for active timer state.
 
-**Tasks**:
+---
 
-- **6.1. Refine Timer UI**:
-  - [ ] On `HabitListItem` or habit detail page, if `timerEnabled`:
-    - If no active timer for this habit: Show "Start Timer" button.
-    - If an active timer exists (from `activeTimers` store/table): Show current state (Running: HH:MM:SS / Paused) with "Pause", "Resume", "Complete Session", "Cancel Session" buttons.
-- **6.2. Local Timer Logic (using `activeTimers` store & Drizzle)**:
-  - [ ] Implement store actions for `
+EOF.

@@ -20,9 +20,8 @@
   import { useNavigation } from "$lib/hooks/use-navigation.svelte";
   import { useAppInit } from "$lib/hooks/use-app-init.svelte";
   import { handleRefresh } from "$lib/utils/context-menu";
-  // import EnvironmentIndicator from "$lib/components/environment-indicator-old.svelte";
-  // import { injectAnalytics } from "@vercel/analytics/sveltekit";
-  // import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
+  import { injectAnalytics } from "@vercel/analytics/sveltekit";
+  import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
   import "../app.css";
   import AppHeader from "$lib/components/app-header.svelte";
   import AppFooter from "$lib/components/app-footer.svelte";
@@ -33,6 +32,7 @@
   import ConfettiEffect from "$lib/components/confetti-effect.svelte";
   import { Toaster } from "$lib/components/ui/sonner";
   import * as ContextMenu from "$lib/components/ui/context-menu";
+  import { runDiagnostics } from "$lib/utils/tauri-debug";
 
   import StoreSync from "$lib/components/store-sync.svelte";
 
@@ -61,12 +61,15 @@
 
   // Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
   import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
+
   // Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
+
   /*
     Noto Sans and Noto Sans Hebrew are loaded via @import in src/app.css for global font-sans usage.
     This ensures proper rendering for both Latin and Hebrew scripts.
     See src/app.css for the @import and --font-sans override.
   */
+
   // import "@fontsource/oxanium"; // Sans-serif font for UI/headers (removed)
   // import "@fontsource/fira-code"; // Monospace font for code/inputs
 
@@ -75,6 +78,10 @@
   clerk.setupSessionAssociation();
 
   onMount(() => {
+    // Run diagnostics for Tauri builds
+    if (browser) {
+      runDiagnostics();
+    }
     // Initialize core functionalities when the component mounts in the browser.
     appInit.initializeAppCore();
     theme.initializeTheme();
@@ -100,8 +107,8 @@
   });
 
   // Inject Vercel Analytics, Speed Insights for performance monitoring (runs only in browser)
-  // injectSpeedInsights();
-  // injectAnalytics();
+  injectSpeedInsights();
+  injectAnalytics();
 
   // Set up Convex client for Svelte context - only in browser
   if (browser) {

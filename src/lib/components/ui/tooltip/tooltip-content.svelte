@@ -28,7 +28,7 @@
     {...restProps}
   >
     {@render children?.()}
-    <TooltipPrimitive.Arrow>
+    <!-- <TooltipPrimitive.Arrow>
       {#snippet child({ props })}
         <div
           class={cn(
@@ -42,6 +42,6 @@
           {...props}
         ></div>
       {/snippet}
-    </TooltipPrimitive.Arrow>
+    </TooltipPrimitive.Arrow> -->
   </TooltipPrimitive.Content>
 </TooltipPrimitive.Portal>
