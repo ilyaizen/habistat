@@ -3,6 +3,7 @@
 │   └── config.toml
 ├── .cursor
 │   ├── rules
+│   │   ├── add-comments.mdc
 │   │   └── cursor-rules.mdc
 │   └── environment.json
 ├── .github
