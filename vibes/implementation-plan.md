@@ -199,9 +199,12 @@ This document outlines the phased implementation plan for Habistat, evolving it 
     - [x] If >0 completions: Show `[ - <count> + ]` buttons.
     - [x] `+` action: Logs a new completion for today, increments count.
     - [x] `-` action: Deletes the most recent completion for today for that habit, decrements count.
-- **4.3. Gamification - Point System**:
-  - [ ] When a habit with `pointsValue` is completed, update user's total points (locally and sync to a `userStats` table or aggregate on `users` in Convex).
-  - [ ] Display total points on Dashboard.
+- **4.3. Gamification - Point System (v1)**:
+  - [x] Created a `gamification` store to calculate points.
+  - [x] Total points are calculated from habit completions (positive/negative) and daily app activity (active/inactive days).
+  - [x] Weekly points are calculated for the last 7 days.
+  - [x] Display total and weekly points in the app header using badges.
+  - [ ] Sync user's total points to a `userStats` table or aggregate on `users` in Convex.
 - **4.4. Gamification - Streak System**:
   - [ ] Implement logic (local and Convex query/function) to calculate current and longest streaks for each habit based on `completions` data.
   - [ ] Display current streak on `HabitListItem` and Dashboard.

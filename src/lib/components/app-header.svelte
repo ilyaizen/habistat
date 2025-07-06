@@ -7,6 +7,9 @@
   import { goto } from "$app/navigation";
   import { _ } from "svelte-i18n";
   import type { UserResource } from "@clerk/types";
+  import { Badge } from "$lib/components/ui/badge";
+  import { gamification } from "$lib/stores/gamification";
+  import { Skeleton } from "$lib/components/ui/skeleton";
 
   import Avatar from "./avatar.svelte";
 
@@ -95,7 +98,19 @@
     </nav>
 
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
-      <!-- Removed sync status - now in settings page -->
+      {#if $gamification.loading}
+        <div class="flex items-center gap-2">
+          <Skeleton class="h-6 w-16 rounded-md" />
+          <Skeleton class="h-6 w-16 rounded-md" />
+        </div>
+      {:else}
+        <Badge variant="outline" class="hidden sm:flex">
+          Total: {$gamification.totalPoints}
+        </Badge>
+        <Badge variant="secondary" class="hidden sm:flex">
+          Weekly: {$gamification.weeklyPoints}
+        </Badge>
+      {/if}
       <Avatar />
     </div>
   </div>
