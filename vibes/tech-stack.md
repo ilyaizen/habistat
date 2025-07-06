@@ -19,3 +19,4 @@
 | **Animated Numbers**     | [@number-flow/svelte](https://github.com/barvian/number-flow)           | `Latest`                  |
 | **Confetti Effects**     | [svelte-confetti](https://github.com/mitcheljager/svelte-confetti)      | `v2.0.x`                  |
 | **Fireworks Effects**    | [crazy-fireworks](https://codepen.io/matt-cannon/pen/YPKGBGm)           |                           |
+| **Graphics/Animation**   | [p5.js](https://p5js.org/)                                              | `Latest`                  |

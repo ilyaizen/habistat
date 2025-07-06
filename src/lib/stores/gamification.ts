@@ -11,6 +11,7 @@ const POINTS_FOR_INACTIVE_DAY = -10;
 export interface GamificationState {
   totalPoints: number;
   weeklyPointsDelta: number;
+  level: number;
   loading: boolean;
 }
 
@@ -22,6 +23,7 @@ function createGamificationStore(): Readable<GamificationState> {
   const initialState: GamificationState = {
     totalPoints: 0,
     weeklyPointsDelta: 0,
+    level: 1,
     loading: true
   };
 
@@ -105,12 +107,15 @@ function createGamificationStore(): Readable<GamificationState> {
           }
         }
 
+        const totalPoints = totalHabitPoints + totalActivityPoints;
+
         set({
-          totalPoints: totalHabitPoints + totalActivityPoints,
+          totalPoints,
           weeklyPointsDelta:
             thisWeekHabitPoints +
             thisWeekActivityPoints -
             (lastWeekHabitPoints + lastWeekActivityPoints),
+          level: Math.max(1, Math.floor(totalPoints / 1000)),
           loading: false
         });
       };

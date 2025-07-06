@@ -208,9 +208,11 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 - **4.4. Gamification - Streak System**:
   - [ ] Implement logic (local and Convex query/function) to calculate current and longest streaks for each habit based on `completions` data.
   - [ ] Display current streak on `HabitListItem` and Dashboard.
-- **4.5. "Virtual Garden" as a Chart**:
-  - [ ] Integrate a charting library (`shadcn-svelte` charts).
-  - [ ] Display a chart on the dashboard representing overall progress (e.g., total completions per week for past N weeks, habit consistency score, or active streak lengths).
+- **4.5. Gamification - "Virtual Garden" Visualization (Alpha)**:
+  - [x] Implemented an initial, alpha version of a "Virtual Garden" using p5.js to visually represent user progress.
+  - [x] The garden's appearance (plant count, growth, colors, health) is dynamically tied to the `gamification` store's total points and weekly delta.
+  - [x] Features a day/night cycle and procedurally generated plants with unique, randomized "DNA" for variety.
+  - [ ] **Note:** This is a temporary, alpha implementation. It may be refined or replaced with a different visualization (e.g., a more traditional chart) in the future. The core logic is in `src/lib/p5/virtual-garden.ts`.
 
 ---
 

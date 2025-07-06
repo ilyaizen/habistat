@@ -2,19 +2,21 @@
   import ActivityMonitor from "$lib/components/activity-monitor.svelte";
   import { Switch } from "$lib/components/ui/switch";
   import { ArrowUpDown } from "@lucide/svelte";
+  import VirtualGarden from "$lib/components/virtual-garden.svelte";
 
   let { isReorderMode = $bindable() }: { isReorderMode: boolean } = $props();
 </script>
 
-<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-  <div class="flex flex-col">
+<div class="mb-6 flex w-full flex-row items-start justify-between">
+  <div class="flex flex-col items-start justify-center">
     <h1 class="mb-4 text-2xl font-bold">Habits</h1>
     <p class="text-muted-foreground mb-8">
       This is the main dashboard for user calendars and habits.
     </p>
   </div>
-  <div class="flex items-center gap-4">
+  <div class="flex flex-col items-end justify-center gap-4">
     <ActivityMonitor />
+    <VirtualGarden />
   </div>
 </div>
 

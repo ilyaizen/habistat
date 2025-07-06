@@ -68,7 +68,8 @@
 │   │   │   ├── store-sync.svelte
 │   │   │   ├── sync-status.svelte
 │   │   │   ├── tab-motion-wrapper.svelte
-│   │   │   └── theme-toggle.svelte
+│   │   │   ├── theme-toggle.svelte
+│   │   │   └── virtual-garden.svelte
 │   │   ├── db
 │   │   │   ├── client.ts
 │   │   │   ├── schema.ts
@@ -80,6 +81,8 @@
 │   │   │   ├── use-dashboard-data.svelte.ts
 │   │   │   ├── use-navigation.svelte.ts
 │   │   │   └── use-theme.svelte.ts
+│   │   ├── p5
+│   │   │   └── virtual-garden.ts
 │   │   ├── services
 │   │   │   ├── local-data.ts
 │   │   │   ├── migration.ts
@@ -193,6 +196,7 @@
 │   ├── llms-convex.txt
 │   ├── llms-small-svelte.txt
 │   ├── rules.md
+│   ├── sample-data.md
 │   └── tech-stack.md
 ├── .env.example
 ├── .env.local

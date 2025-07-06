@@ -59,6 +59,7 @@ Habistat is built with a modern and robust technology stack:
   - [@number-flow/svelte](https://github.com/barvian/number-flow) (Animated Number Transitions)
   - [svelte-confetti](https://github.com/mitcheljager/svelte-confetti) (Confetti Effects)
   - [crazy-fireworks](https://codepen.io/matt-cannon/pen/YPKGBGm) (Fireworks Effects)
+  - [p5.js](https://p5js.org/) (Creative Coding & Visualization for the Virtual Garden)
 
 ---
 

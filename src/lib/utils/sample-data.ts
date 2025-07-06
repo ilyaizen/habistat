@@ -54,9 +54,7 @@ export const SAMPLE_DATA_CONFIG = {
       pointsValue: 30,
       position: 2
     },
-
     // Productivity habits
-
     {
       calendarName: "🧠 Productivity",
       name: "🎯 Code",
@@ -86,7 +84,8 @@ export const SAMPLE_DATA_CONFIG = {
       targetDurationMinutes: 25,
       pointsValue: 5,
       position: 2
-    }, // Bad Habits (negative habits)
+    },
+    // Bad Habits (negative habits)
     {
       calendarName: "🚫 Bad Habits",
       name: "🌽 Corn",

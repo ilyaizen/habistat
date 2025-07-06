@@ -20,6 +20,7 @@
   import { toast } from "svelte-sonner";
   import { slide } from "svelte/transition";
   import ThemeToggle from "$lib/components/theme-toggle.svelte";
+  import VirtualGarden from "$lib/components/virtual-garden.svelte";
 
   // --- Drawer Controller ---
   // Get the singleton drawer controller from the root layout context.
@@ -203,6 +204,3 @@
     </Button>
   </div>
 {/if}
-
-<style>
-</style>

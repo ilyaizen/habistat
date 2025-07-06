@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { Minus, Plus, Check, X } from "@lucide/svelte";
+  import { Minus, Check, X } from "@lucide/svelte";
   import { Button } from "$lib/components/ui/button";
   import { completionsStore } from "$lib/stores/completions";
-  import { triggerConfetti } from "$lib/stores/ui";
+  // import { triggerConfetti } from "$lib/stores/ui";
   import { calendarsStore } from "$lib/stores/calendars";
   import { getContext } from "svelte";
   import type { Habit } from "$lib/stores/habits";
@@ -70,12 +70,12 @@
     await completionsStore.logCompletion(habit.id, userId);
 
     // Trigger confetti with calendar color, habit points, and button position
-    triggerConfetti.set({
-      color: calendarColor(),
-      points: habit.pointsValue ?? 1,
-      originX: addButtonPosition.x,
-      originY: addButtonPosition.y
-    });
+    // triggerConfetti.set({
+    //   color: calendarColor(),
+    //   points: habit.pointsValue ?? 1,
+    //   originX: addButtonPosition.x,
+    //   originY: addButtonPosition.y
+    // });
   }
 
   async function handleRemove() {
