@@ -43,10 +43,12 @@ Tired of bloated apps and shaky privacy policies? Habistat keeps it simple. Insp
 
 Habistat is built with a modern and robust technology stack:
 
+- **Package Manager:** [pnpm](https://pnpm.io/)
 - **Core Framework:** [Tauri v2](https://v2.tauri.app/) (Rust backend, web frontend)
 - **Frontend:** [SvelteKit](https://svelte.dev/)
 - **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **UI Components:** [shadcn-svelte](https://next.shadcn-svelte.com/)
+- **Icons** [@lucide/svelte](https://github.com/lucide-icons/lucide)
 - **Local Database:** [SQLite](https://www.sqlite.org/) via [Drizzle ORM](https://orm.drizzle.team/)
 - **Cloud Sync & Backend:** [Convex](https://convex.dev/)
 - **Authentication:** [Clerk](https://clerk.com/) (OAuth with Google, etc.) via [svelte-clerk](https://svelte-clerk.netlify.app)
@@ -54,7 +56,7 @@ Habistat is built with a modern and robust technology stack:
 - **Utilities:**
   - [uuid](https://github.com/uuidjs/uuid) (Unique Identifiers)
   - [date-fns](https://date-fns.org/) (Date Manipulation and Formatting)
-- **Package Manager:** [pnpm](https://pnpm.io/)
+  - [@number-flow/svelte](https://github.com/barvian/number-flow) (Animated Number Transitions)
 
 ---
 

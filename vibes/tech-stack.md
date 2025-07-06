@@ -7,6 +7,7 @@
 | **Frontend Framework**   | [SvelteKit](https://svelte.dev/docs/kit/introduction)                   | `Latest` (Uses Svelte v5) |
 | **Styling**              | [Tailwind CSS](https://tailwindcss.com/docs/installation/using-vite)    | `v4.1`                    |
 | **UI Components**        | [shadcn-svelte](https://next.shadcn-svelte.com/docs)                    | `v1.0.0-next.9`           |
+| **Icons**                | [@lucide/svelte](https://github.com/lucide-icons/lucide)                | `Latest`                  |
 | **Data (ORM)**           | [Drizzle ORM](https://orm.drizzle.team/docs/overview)                   | `Latest`                  |
 | **Data (Local)**         | [SQLite](https://www.sqlite.org/docs.html)                              | `Bundled/System`          |
 | **Cloud**                | [Convex](https://docs.convex.dev/home)                                  | `Cloud Service`           |
@@ -15,3 +16,4 @@
 | **Internationalization** | [svelte-i18n](https://github.com/kaisermann/svelte-i18n)                | `v0.11.x`                 |
 | **Unique Identifiers**   | [uuid](https://github.com/uuidjs/uuid)                                  | `v11.1.x`                 |
 | **Dates**                | [date-fns](https://date-fns.org/)                                       | `v4.1.x`                  |
+| **Animated Numbers**     | [@number-flow/svelte](https://github.com/barvian/number-flow)           | `Latest`                  |
