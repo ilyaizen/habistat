@@ -94,14 +94,14 @@ habistat/
 
 ### Key Directories
 
-- **`/src/lib/components/`** - Reusable Svelte components including UI elements, forms, and feature-specific components
-- **`/src/lib/stores/`** - Svelte stores managing application state (habits, calendars, sync, settings, etc.)
-- **`/src/lib/services/`** - Business logic for local data management, sync operations, and database migrations
-- **`/src/convex/`** - Cloud backend functions for data synchronization and user management
-- **`/src/routes/`** - SvelteKit file-based routing with pages for dashboard, settings, and API endpoints
-- **`/src-tauri/`** - Rust backend providing native desktop capabilities and system integration
+- **`/src/lib/components/`** - Reusable Svelte components including UI elements, forms, and feature-specific components.
+- **`/src/lib/stores/`** - Svelte stores managing application state (habits, calendars, sync, settings, etc.).
+- **`/src/lib/services/`** - Business logic for local data management, sync operations, and database migrations.
+- **`/src/convex/`** - Cloud backend functions for data synchronization and user management.
+- **`/src/routes/`** - SvelteKit file-based routing with pages for dashboard, settings, and API endpoints.
+- **`/src-tauri/`** - Rust backend providing native desktop capabilities and system integration.
 
-For more information, read: [file-structure.txt](file-structure.txt)
+For more information, see full [file-structure.txt](file-structure.txt).
 
 ---
 
