@@ -29,7 +29,7 @@
   </Drawer.Trigger>
 
   <Drawer.Content
-    class="z-[150] mx-auto flex max-h-[95vh] max-w-[90vw] flex-col sm:max-h-[90vh] sm:max-w-2xl md:max-w-3xl lg:max-w-5xl"
+    class="z-[150] mx-auto max-w-[90vw] flex-col sm:max-w-2xl md:max-w-3xl lg:max-w-5xl"
   >
     <!--
       Sticky header (close button) stays at the top and full width
