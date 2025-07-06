@@ -60,6 +60,51 @@ Habistat is built with a modern and robust technology stack:
 
 ---
 
+## Project Structure
+
+```txt
+habistat/
+├── src/                          # Main SvelteKit application
+│   ├── convex/                   # Convex backend functions & schema
+│   ├── i18n/                     # Internationalization files
+│   ├── lib/
+│   │   ├── components/           # Svelte UI components
+│   │   ├── db/                   # Database client & schema
+│   │   ├── hooks/                # Custom Svelte hooks
+│   │   ├── services/             # Business logic & data services
+│   │   ├── stores/               # Svelte stores for state management
+│   │   └── utils/                # Utility functions
+│   ├── params/                   # SvelteKit parameter matchers
+│   ├── routes/                   # SvelteKit pages & API routes
+│   │   ├── dashboard/            # Main dashboard pages
+│   │   ├── settings/             # Settings page
+│   │   ├── stats/                # Statistics page
+│   │   └── premium/              # Premium features page
+│   ├── app.html                  # Main HTML template
+│   └── hooks.{client,server}.ts  # SvelteKit hooks
+├── src-tauri/                    # Tauri Rust backend
+│   ├── src/                      # Rust source code
+│   ├── capabilities/             # Tauri capabilities configuration
+│   └── Cargo.toml                # Rust dependencies
+├── static/                       # Static assets (icons, images, etc.)
+├── migrations/                   # SQLite database migrations
+├── scripts/                      # Build and utility scripts
+└── vibes/                        # Documentation & development guides
+```
+
+### Key Directories
+
+- **`/src/lib/components/`** - Reusable Svelte components including UI elements, forms, and feature-specific components
+- **`/src/lib/stores/`** - Svelte stores managing application state (habits, calendars, sync, settings, etc.)
+- **`/src/lib/services/`** - Business logic for local data management, sync operations, and database migrations
+- **`/src/convex/`** - Cloud backend functions for data synchronization and user management
+- **`/src/routes/`** - SvelteKit file-based routing with pages for dashboard, settings, and API endpoints
+- **`/src-tauri/`** - Rust backend providing native desktop capabilities and system integration
+
+For more information, read: [file-structure.txt](file-structure.txt)
+
+---
+
 ## Useful Links
 
 - **Website:** [https://habistat.vercel.app](https://habistat.vercel.app)
