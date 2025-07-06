@@ -45,7 +45,6 @@
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
 │   │   │   ├── avatar.svelte
-│   │   │   ├── dashboard-empty-state.svelte
 │   │   │   ├── dashboard-header.svelte
 │   │   │   ├── environment-indicator-old.svelte
 │   │   │   ├── error-boundary.svelte
@@ -58,7 +57,10 @@
 │   │   │   ├── quote-of-the-day.svelte
 │   │   │   ├── sample-data-generator.svelte
 │   │   │   ├── session-info.svelte
+│   │   │   ├── settings-account-tab.svelte
+│   │   │   ├── settings-customization-tab.svelte
 │   │   │   ├── settings-data-tab.svelte
+│   │   │   ├── settings-sync-tab.svelte
 │   │   │   ├── social-links.svelte
 │   │   │   ├── store-sync.svelte
 │   │   │   ├── sync-status.svelte
