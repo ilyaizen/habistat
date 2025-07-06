@@ -57,6 +57,8 @@ Habistat is built with a modern and robust technology stack:
   - [uuid](https://github.com/uuidjs/uuid) (Unique Identifiers)
   - [date-fns](https://date-fns.org/) (Date Manipulation and Formatting)
   - [@number-flow/svelte](https://github.com/barvian/number-flow) (Animated Number Transitions)
+  - [svelte-confetti](https://github.com/mitcheljager/svelte-confetti) (Confetti Effects)
+  - [crazy-fireworks](https://codepen.io/matt-cannon/pen/YPKGBGm) (Fireworks Effects)
 
 ---
 

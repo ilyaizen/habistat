@@ -2,7 +2,8 @@
   import { Minus, Plus, Check, X } from "@lucide/svelte";
   import { Button } from "$lib/components/ui/button";
   import { completionsStore } from "$lib/stores/completions";
-  import { triggerFireworks } from "$lib/stores/ui";
+  import { triggerConfetti } from "$lib/stores/ui";
+  import { calendarsStore } from "$lib/stores/calendars";
   import { getContext } from "svelte";
   import type { Habit } from "$lib/stores/habits";
   import type { UserResource } from "@clerk/types";
@@ -19,6 +20,42 @@
   // Determine if this is a negative habit
   const isNegativeHabit = $derived(habit.type === "negative");
 
+  // Get calendar color for confetti
+  const calendarColor = $derived(() => {
+    const calendars = $calendarsStore;
+    const calendar = calendars.find((c) => c.id === habit.calendarId);
+    return calendar?.colorTheme || "#3b82f6"; // Default to blue if calendar not found
+  });
+
+  // Store the position of the add button for confetti origin
+  let addButtonPosition = { x: 0, y: 0 };
+
+  /**
+   * Action to capture and track the position of the add button
+   * @param node - The HTML element wrapping the button
+   */
+  function trackButtonPosition(node: HTMLElement) {
+    function updatePosition() {
+      const rect = node.getBoundingClientRect();
+      addButtonPosition = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    }
+
+    // Update position initially and on resize
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition);
+
+    return {
+      destroy() {
+        window.removeEventListener("resize", updatePosition);
+        window.removeEventListener("scroll", updatePosition);
+      }
+    };
+  }
+
   async function handleAdd() {
     let userId: string | null = null;
 
@@ -31,7 +68,14 @@
     }
 
     await completionsStore.logCompletion(habit.id, userId);
-    triggerFireworks.set(habit.pointsValue ?? 1);
+
+    // Trigger confetti with calendar color, habit points, and button position
+    triggerConfetti.set({
+      color: calendarColor(),
+      points: habit.pointsValue ?? 1,
+      originX: addButtonPosition.x,
+      originY: addButtonPosition.y
+    });
   }
 
   async function handleRemove() {
@@ -40,21 +84,23 @@
 </script>
 
 {#if completionsToday === 0}
-  <Button
-    size="icon"
-    variant="outline"
-    class="h-6 w-6 rounded-full border-dashed {isNegativeHabit
-      ? 'border-destructive/50 text-destructive'
-      : ''}"
-    onclick={handleAdd}
-    aria-label="Complete habit for the first time today"
-  >
-    {#if isNegativeHabit}
-      <X class="h-4 w-4" />
-    {:else}
-      <Check class="text-primary h-4 w-4" />
-    {/if}
-  </Button>
+  <div use:trackButtonPosition>
+    <Button
+      size="icon"
+      variant="outline"
+      class="h-6 w-6 rounded-full border-dashed {isNegativeHabit
+        ? 'border-destructive/50 text-destructive'
+        : ''}"
+      onclick={handleAdd}
+      aria-label="Complete habit for the first time today"
+    >
+      {#if isNegativeHabit}
+        <X class="h-4 w-4" />
+      {:else}
+        <Check class="text-primary h-4 w-4" />
+      {/if}
+    </Button>
+  </div>
 {:else}
   <div
     class="{isNegativeHabit
@@ -71,18 +117,20 @@
       <Minus class="h-4 w-4" />
     </Button>
     <span class="min-w-5 text-center text-xs font-bold tabular-nums">{completionsToday}</span>
-    <Button
-      size="icon"
-      variant="ghost"
-      class="h-6 w-6 rounded-full"
-      onclick={handleAdd}
-      aria-label="Add one completion"
-    >
-      {#if isNegativeHabit}
-        <X class="h-4 w-4" />
-      {:else}
-        <Check class="h-4 w-4" />
-      {/if}
-    </Button>
+    <div use:trackButtonPosition>
+      <Button
+        size="icon"
+        variant="ghost"
+        class="h-6 w-6 rounded-full"
+        onclick={handleAdd}
+        aria-label="Add one completion"
+      >
+        {#if isNegativeHabit}
+          <X class="h-4 w-4" />
+        {:else}
+          <Check class="h-4 w-4" />
+        {/if}
+      </Button>
+    </div>
   </div>
 {/if}

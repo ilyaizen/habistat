@@ -30,6 +30,7 @@
   import AboutDrawer from "$lib/components/about-drawer.svelte";
   import { setupConvex } from "convex-svelte";
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
+  import ConfettiEffect from "$lib/components/confetti-effect.svelte";
   import { Toaster } from "$lib/components/ui/sonner";
   import * as ContextMenu from "$lib/components/ui/context-menu";
 
@@ -207,6 +208,7 @@
       {/if}
 
       <FireworksEffect />
+      <ConfettiEffect />
       <Toaster />
       <StoreSync />
 

@@ -16,6 +16,7 @@
   import { getContext } from "svelte";
   import { get, type Writable } from "svelte/store";
   import { triggerFireworks } from "$lib/stores/ui";
+  import { triggerConfetti } from "$lib/stores/ui";
   import { toast } from "svelte-sonner";
   import { slide } from "svelte/transition";
   import ThemeToggle from "$lib/components/theme-toggle.svelte";
@@ -62,6 +63,7 @@
 
       if (session?.id) {
         triggerFireworks.set(true);
+        triggerConfetti.set(true);
         toast.success("Session created!", {
           description: "Welcome to Habistat!"
         });
