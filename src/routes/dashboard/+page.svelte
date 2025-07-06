@@ -234,8 +234,8 @@
               </div>
               <a
                 href={isCalendarDisabled ? undefined : `/dashboard/${cal.id}`}
-                class="mb-2 inline-block text-xl font-semibold transition-opacity hover:opacity-80 {isCalendarDisabled
-                  ? 'text-muted-foreground/60 pointer-events-none line-through opacity-60'
+                class="nunito-header mb-2 inline-block text-xl font-semibold transition-opacity hover:opacity-80 {isCalendarDisabled
+                  ? 'text-muted-foreground/60 pointer-events-none opacity-60'
                   : ''}"
                 aria-disabled={isCalendarDisabled}
                 tabindex={isCalendarDisabled ? -1 : 0}
@@ -300,7 +300,7 @@
                         </div>
                         <div
                           class="min-w-0 flex-1 truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
-                            ? 'text-muted-foreground/70 line-through'
+                            ? 'text-muted-foreground/70'
                             : ''}"
                           role="button"
                           tabindex={isHabitDisabled ? -1 : 0}

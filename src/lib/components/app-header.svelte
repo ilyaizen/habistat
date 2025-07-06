@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Menu, X } from "@lucide/svelte";
   import { page } from "$app/state";
-  import { getContext, onMount } from "svelte";
+  import { getContext } from "svelte";
   import { Button } from "$lib/components/ui/button";
   import { type Writable, type Readable } from "svelte/store";
   import { goto } from "$app/navigation";
@@ -9,15 +9,8 @@
   import type { UserResource } from "@clerk/types";
 
   import Avatar from "./avatar.svelte";
-  import ThemeToggle from "./theme-toggle.svelte";
-  import { UserButton } from "svelte-clerk";
+
   let isMobileMenuOpen = $state(false);
-
-  // Get Clerk user state from context
-  const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");
-
-  // Get auth mode from context (still useful for offline indication)
-  const authMode = getContext<Writable<"offline" | "online">>("authMode");
 
   function toggleMobileMenu() {
     isMobileMenuOpen = !isMobileMenuOpen;
