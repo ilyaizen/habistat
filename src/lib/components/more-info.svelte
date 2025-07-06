@@ -7,6 +7,7 @@
 
   import EnvironmentIndicator from "./environment-indicator-old.svelte";
   import SocialLinks from "./social-links.svelte";
+  import QuoteOfTheDay from "./quote-of-the-day.svelte";
   // Svelte 5: Use callback props instead of createEventDispatcher for events
   let {
     handleStart,
@@ -93,14 +94,14 @@
   <!-- <div class="mb-2 flex justify-center">
     <EnvironmentIndicator />
   </div> -->
+
+  <!-- Center: Quote of the Day -->
+  <div class="flex justify-center">
+    <QuoteOfTheDay />
+  </div>
+
   <!-- Social links reused from footer -->
   <div class="mt-6 flex justify-center">
     <SocialLinks />
   </div>
 </div>
-
-<style>
-  a {
-    text-decoration: underline !important;
-  }
-</style>

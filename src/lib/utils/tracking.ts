@@ -294,3 +294,103 @@ export async function getAppOpenHistory(sinceTimestamp?: number): Promise<number
 export function getSessionId(): string | null {
   return get(anonymousUserId);
 }
+
+/**
+ * Clears all app open history from the database.
+ * Used when generating sample data to start fresh.
+ */
+export async function clearAppOpenHistory(): Promise<void> {
+  const db = await getDb();
+  try {
+    await db.delete(appOpens).execute();
+    await persistBrowserDb();
+
+    // Also clear localStorage tracking
+    if (browser) {
+      localStorage.removeItem(LAST_LOGGED_OPEN_KEY);
+      localStorage.removeItem(APP_OPEN_HISTORY_KEY);
+    }
+  } catch (error) {
+    console.error("Failed to clear app open history:", error);
+  }
+}
+
+/**
+ * Generates fake app open history for testing/demo purposes.
+ * Creates one app open per day for the specified number of days.
+ *
+ * @param numDays Number of days of history to generate (default: 7)
+ * @returns Promise that resolves when fake history is generated
+ */
+export async function generateFakeAppOpenHistory(numDays: number = 7): Promise<void> {
+  const db = await getDb();
+  const today = new Date();
+
+  try {
+    // Clear existing history first
+    await clearAppOpenHistory();
+
+    // Generate app open records for the past numDays
+    for (let i = numDays - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+
+      // Set time to a random hour between 8 AM and 10 PM for variety
+      const randomHour = Math.floor(Math.random() * 14) + 8;
+      const randomMinute = Math.floor(Math.random() * 60);
+      date.setHours(randomHour, randomMinute, 0, 0);
+
+      await db
+        .insert(appOpens)
+        .values({
+          id: uuidv4(),
+          timestamp: date.getTime()
+        })
+        .execute();
+    }
+
+    await persistBrowserDb();
+
+    // Update the last logged date to today to prevent duplicate logging
+    const todayStr = formatLocalDate(today);
+    if (browser) {
+      localStorage.setItem(LAST_LOGGED_OPEN_KEY, todayStr);
+    }
+
+    console.log(`Generated ${numDays} days of fake app open history`);
+  } catch (error) {
+    console.error("Failed to generate fake app open history:", error);
+    throw error;
+  }
+}
+
+/**
+ * Updates the session creation date to simulate the user starting earlier.
+ * This affects the "pre-registration" display in the activity monitor.
+ *
+ * @param daysAgo Number of days ago the session should appear to have started
+ */
+export function updateSessionStartDate(daysAgo: number): void {
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() - daysAgo);
+  targetDate.setHours(8, 0, 0, 0); // Set to 8 AM for consistency
+
+  sessionStore.update((session) => {
+    if (!session) {
+      // Create a new session if none exists
+      const newSession = {
+        id: uuidv4(),
+        createdAt: targetDate.getTime(),
+        lastModified: Date.now(),
+        state: "anonymous" as const
+      };
+      return newSession;
+    }
+
+    return {
+      ...session,
+      createdAt: targetDate.getTime(),
+      lastModified: Date.now()
+    };
+  });
+}

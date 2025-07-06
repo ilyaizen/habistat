@@ -1,14 +1,24 @@
 <script lang="ts">
   import { calendarsStore, type Calendar } from "$lib/stores/calendars";
   import { habits as habitsStore } from "$lib/stores/habits";
+  import { completionsStore } from "$lib/stores/completions";
   import Button from "$lib/components/ui/button/button.svelte";
+  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import { WandSparkles } from "@lucide/svelte";
   import { get } from "svelte/store";
   import { createEventDispatcher } from "svelte";
+  import * as localData from "$lib/services/local-data";
+  import {
+    sessionStore,
+    generateFakeAppOpenHistory,
+    updateSessionStartDate
+  } from "$lib/utils/tracking";
+  import { v4 as uuid } from "uuid";
 
   const dispatch = createEventDispatcher();
 
   let isGenerating = $state(false);
+  let showDialog = $state(false);
 
   // Color palette for consistent styling
   const COLOR_PALETTE = [
@@ -148,12 +158,98 @@
   };
 
   /**
-   * Generates sample calendars and habits to populate the dashboard
-   * with meaningful examples for users to explore the application.
+   * Generates fake app usage history for the past 7 days.
+   * This simulates that the user has been opening the app daily.
+   */
+  async function generateFakeUsageHistory() {
+    // Generate 7 days of fake app open history
+    await generateFakeAppOpenHistory(7);
+
+    // Update session start date to 7 days ago (6 days before today)
+    updateSessionStartDate(6);
+  }
+
+  /**
+   * Generates 7 days of completion data for all habits.
+   * Each habit gets 0-3 random completions per day.
+   */
+  async function generateCompletionsHistory(
+    habits: Array<{ id: string; name: string; type: string }>
+  ) {
+    const today = new Date();
+    const currentUserId = get(sessionStore)?.id;
+
+    // Generate completions for the past 7 days
+    for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - dayOffset);
+
+      for (const habit of habits) {
+        // Random number of completions per habit per day (0-3)
+        const numCompletions = Math.floor(Math.random() * 4);
+
+        for (let i = 0; i < numCompletions; i++) {
+          // Random time throughout the day
+          const randomHour = Math.floor(Math.random() * 16) + 6; // Between 6 AM and 10 PM
+          const randomMinute = Math.floor(Math.random() * 60);
+          const completionTime = new Date(date);
+          completionTime.setHours(randomHour, randomMinute, 0, 0);
+
+          // Generate random duration for timed habits (5-30 minutes)
+          const durationSeconds =
+            habit.type === "positive" && Math.random() > 0.3
+              ? (Math.floor(Math.random() * 25) + 5) * 60
+              : null;
+
+          // Create completion record directly in the database
+          await localData.createCompletion({
+            id: uuid(),
+            habitId: habit.id,
+            completedAt: completionTime.getTime(),
+            notes: Math.random() > 0.8 ? getRandomNote() : null,
+            durationSpentSeconds: durationSeconds,
+            isDeleted: 0,
+            userId: currentUserId,
+            createdAt: completionTime.getTime(),
+            updatedAt: completionTime.getTime()
+          });
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns a random completion note for variety.
+   */
+  function getRandomNote(): string {
+    const notes = [
+      "Great session!",
+      "Feeling motivated",
+      "Could be better",
+      "Really enjoyed this",
+      "Quick but effective",
+      "Challenging today",
+      "Perfect timing",
+      "Very relaxing"
+    ];
+    return notes[Math.floor(Math.random() * notes.length)];
+  }
+
+  /**
+   * Generates sample calendars, habits, completions, and usage history
+   * to populate the dashboard with meaningful examples for users to explore.
    */
   async function generateSampleData() {
     isGenerating = true;
+    showDialog = false;
+
     try {
+      // Ensure we have a session before starting
+      sessionStore.ensure();
+
+      // Generate fake usage history first
+      await generateFakeUsageHistory();
+
       // Create calendars first
       const createdCalendars = [];
       for (const calendarConfig of SAMPLE_DATA_CONFIG.calendars) {
@@ -190,12 +286,16 @@
       }
 
       // Create habits based on configuration
+      const createdHabits = [];
       for (const habitConfig of SAMPLE_DATA_CONFIG.habits) {
         const calendarId = calendarIdMap.get(habitConfig.calendarName);
         if (!calendarId) {
           console.warn(`Calendar not found: ${habitConfig.calendarName}`);
           continue;
         }
+
+        // Generate a unique ID for the habit
+        const habitId = uuid();
 
         await habitsStore.add({
           name: habitConfig.name,
@@ -210,12 +310,41 @@
           position: habitConfig.position,
           isEnabled: 1
         });
+
+        createdHabits.push({
+          id: habitId,
+          name: habitConfig.name,
+          type: habitConfig.type
+        });
       }
 
-      // Refresh all stores to ensure UI updates
-      await Promise.all([calendarsStore.refresh(), habitsStore.refresh()]);
+      // Wait for habits to be created and get the actual IDs
+      await habitsStore.refresh();
+      const allHabits = get(habitsStore);
 
-      console.log("Sample data generated successfully!");
+      // Update the createdHabits array with actual IDs from the store
+      const actualCreatedHabits = SAMPLE_DATA_CONFIG.habits
+        .map((habitConfig) => {
+          const actualHabit = allHabits.find((h) => h.name === habitConfig.name);
+          return {
+            id: actualHabit?.id || "",
+            name: habitConfig.name,
+            type: habitConfig.type
+          };
+        })
+        .filter((h) => h.id); // Filter out any habits that weren't found
+
+      // Generate 7 days of completion history
+      await generateCompletionsHistory(actualCreatedHabits);
+
+      // Refresh all stores to ensure UI updates
+      await Promise.all([
+        calendarsStore.refresh(),
+        habitsStore.refresh(),
+        completionsStore.refresh()
+      ]);
+
+      console.log("Sample data with 7-day history generated successfully!");
 
       // Dispatch event to notify parent component
       dispatch("dataGenerated");
@@ -225,15 +354,40 @@
       isGenerating = false;
     }
   }
+
+  function openDialog() {
+    showDialog = true;
+  }
 </script>
 
-<Button
-  size="sm"
-  variant="outline"
-  onclick={generateSampleData}
-  disabled={isGenerating}
-  class="text-muted-foreground hover:text-foreground"
->
-  <WandSparkles class="mr-2 h-4 w-4" />
-  {isGenerating ? "Generating..." : "Generate Sample Data"}
-</Button>
+<AlertDialog.Root bind:open={showDialog}>
+  <AlertDialog.Trigger>
+    <Button
+      size="sm"
+      variant="outline"
+      onclick={openDialog}
+      disabled={isGenerating}
+      class="text-muted-foreground hover:text-foreground"
+    >
+      <WandSparkles class="mr-2 h-4 w-4" />
+      {isGenerating ? "Generating..." : "Generate Sample Data"}
+    </Button>
+  </AlertDialog.Trigger>
+
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>Generate Sample Data</AlertDialog.Title>
+      <AlertDialog.Description>
+        This will create sample calendars, habits, and 7 days of completion history to help you
+        explore the app. It will also simulate 7 days of app usage history.
+        <br /><br />
+        <strong>Note:</strong> This action will add data to your current workspace and cannot be easily
+        undone.
+      </AlertDialog.Description>
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+      <AlertDialog.Action onclick={generateSampleData}>Generate Sample Data</AlertDialog.Action>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>

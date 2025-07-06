@@ -36,6 +36,43 @@
     isToday: boolean;
   }
 
+  /**
+   * Loads activity data from the database and updates the component state.
+   * This function can be called to refresh the data after changes.
+   */
+  async function loadActivityData() {
+    loadingHistory = true;
+
+    try {
+      const session = get(sessionStore);
+      if (session?.createdAt) {
+        const created = new Date(session.createdAt);
+        sessionStartDate = formatLocalDate(created);
+      }
+
+      // Get all app open history as dates
+      const history = await getAppOpenHistory();
+      const newActiveDates = new Set((history ?? []).map((ts) => formatLocalDate(new Date(ts))));
+
+      // Safeguard: Always ensure today is marked as active after a load.
+      newActiveDates.add(formatLocalDate(new Date()));
+
+      activeDates = newActiveDates;
+    } catch (error) {
+      console.error("Failed to load activity data:", error);
+    } finally {
+      loadingHistory = false;
+    }
+  }
+
+  /**
+   * Public refresh function that can be called to reload activity data.
+   * Useful when sample data is generated or when the user wants to refresh manually.
+   */
+  export function refresh() {
+    return loadActivityData();
+  }
+
   onMount(async () => {
     // Ensure a session exists before logging app open
     sessionStore.ensure();
@@ -47,21 +84,8 @@
       triggerFireworks.set(true);
     }
 
-    const session = get(sessionStore);
-    if (session?.createdAt) {
-      const created = new Date(session.createdAt);
-      sessionStartDate = formatLocalDate(created);
-    }
-
-    // Get all app open history as dates
-    const history = await getAppOpenHistory();
-    const newActiveDates = new Set((history ?? []).map((ts) => formatLocalDate(new Date(ts))));
-
-    // Safeguard: Always ensure today is marked as active after a load.
-    newActiveDates.add(formatLocalDate(new Date()));
-
-    activeDates = newActiveDates;
-    loadingHistory = false;
+    // Load the initial activity data
+    await loadActivityData();
   });
 
   /**
@@ -98,6 +122,21 @@
   $effect(() => {
     if (!loadingHistory) {
       generateActivityData();
+    }
+  });
+
+  // Watch for changes in the session store and refresh when session changes
+  $effect(() => {
+    const session = get(sessionStore);
+    if (session && !loadingHistory) {
+      // Update session start date if it changed
+      if (session.createdAt) {
+        const newSessionStartDate = formatLocalDate(new Date(session.createdAt));
+        if (newSessionStartDate !== sessionStartDate) {
+          sessionStartDate = newSessionStartDate;
+          generateActivityData();
+        }
+      }
     }
   });
 </script>
