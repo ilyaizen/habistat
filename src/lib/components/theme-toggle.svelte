@@ -2,7 +2,6 @@
   import { Moon, Sun } from "@lucide/svelte";
   import { theme } from "$lib/stores/settings";
   import type { ThemeMode } from "$lib/stores/settings";
-  import { setMode, resetMode } from "mode-watcher";
   import { Button } from "./ui/button";
   import * as DropdownMenu from "./ui/dropdown-menu";
 </script>
@@ -21,19 +20,16 @@
     <DropdownMenu.Item
       onclick={() => {
         theme.set("light");
-        setMode("light");
       }}>Light</DropdownMenu.Item
     >
     <DropdownMenu.Item
       onclick={() => {
         theme.set("dark");
-        setMode("dark");
       }}>Dark</DropdownMenu.Item
     >
     <DropdownMenu.Item
       onclick={() => {
         theme.set("system");
-        resetMode();
       }}>System</DropdownMenu.Item
     >
   </DropdownMenu.Content>

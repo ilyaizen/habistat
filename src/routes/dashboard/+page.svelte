@@ -1,31 +1,35 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { goto } from "$app/navigation";
+  import { useDashboardData } from "$lib/hooks/use-dashboard-data.svelte.ts";
+  import DashboardHeader from "$lib/components/dashboard-header.svelte";
+
+  // Store imports
   import { calendarsStore, type Calendar } from "$lib/stores/calendars";
   import { habits as habitsStore, type Habit } from "$lib/stores/habits";
   import { completionsStore, completionsByHabit } from "$lib/stores/completions";
+
+  // Component imports for existing functionality
   import Button from "$lib/components/ui/button/button.svelte";
-  import { goto } from "$app/navigation";
   import ActivityMonitor from "$lib/components/activity-monitor.svelte";
   import { dndzone, type DndEvent } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
   import { GripVertical, ArrowUpDown } from "@lucide/svelte";
-
   import HabitCompletionControl from "$lib/components/habit-completion-control.svelte";
   import HabitHistoryGrid from "$lib/components/habit-history-grid.svelte";
   import { formatDate } from "$lib/utils/date";
   import { IsMobile } from "$lib/hooks/is-mobile.svelte.ts";
-  import { Card, CardContent } from "$lib/components/ui/card";
+  import { Card } from "$lib/components/ui/card";
   import { Switch } from "$lib/components/ui/switch";
   import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
-  // import { Label } from "$lib/components/ui/label";
 
-  /**
-   * Represents a reactive instance of the IsMobile class.
-   * This is used to dynamically adjust the UI based on the screen size.
-   */
+  // Initialize hook
+  const { loading, initialize, refreshData } = useDashboardData();
+
+  // Mobile detection
   const isMobile = new IsMobile();
 
-  let loading = $state(true);
+  // State variables
   let localCalendars = $state<Calendar[]>([]);
   let localHabitsByCalendar = $state(new Map<string, Habit[]>());
   let isHabitZoneActive = $state(false);
@@ -33,6 +37,7 @@
   let activeHabitCalendarId = $state<string | null>(null);
   let isReorderMode = $state(false);
 
+  // Derived values using stores directly
   const calendars = $derived(
     [...($calendarsStore ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
   );
@@ -59,7 +64,7 @@
   const completionsTodayByHabit = $derived.by(() => {
     const todayStr = formatDate(new Date());
     const newMap = new Map<string, number>();
-    const allCompletions = $completionsByHabit; // this is a map
+    const allCompletions = $completionsByHabit;
 
     for (const [habitId, completions] of allCompletions.entries()) {
       const todayCount = completions.filter(
@@ -70,10 +75,10 @@
     return newMap;
   });
 
+  // Effects for initialization and syncing
   $effect(() => {
-    if (!loading && !initialized && calendars.length > 0) {
+    if (!loading() && !initialized && calendars.length > 0) {
       localCalendars = [...calendars];
-      // Deep copy the habits map to avoid reactivity issues
       const newHabitsMap = new Map();
       for (const [key, value] of habitsByCalendar.entries()) {
         newHabitsMap.set(key, [...value]);
@@ -83,7 +88,6 @@
     }
   });
 
-  // Update local state when habits change (but not during drag operations)
   $effect(() => {
     if (initialized && !isHabitZoneActive && !activeHabitCalendarId) {
       const newHabitsMap = new Map();
@@ -94,7 +98,6 @@
     }
   });
 
-  // Reset active states when calendars change
   $effect(() => {
     if (calendars.length === 0) {
       isHabitZoneActive = false;
@@ -102,30 +105,20 @@
     }
   });
 
-  onMount(async () => {
-    try {
-      /**
-       * Fetches all necessary data for the dashboard when the component mounts.
-       * This includes calendars, habits, and completions.
-       */
-      await Promise.all([
-        calendarsStore.refresh(),
-        habitsStore.refresh(),
-        completionsStore.refresh()
-      ]);
-    } catch (error) {
-      console.error("Dashboard mount error:", error);
-    } finally {
-      loading = false;
+  $effect(() => {
+    if (!isReorderMode) {
+      isHabitZoneActive = false;
+      activeHabitCalendarId = null;
     }
   });
 
-  function handleCalendarDnd(e: CustomEvent<DndEvent<Calendar>>) {
-    // Only handle if we're not in a habit zone
-    if (isHabitZoneActive || activeHabitCalendarId) {
-      return;
-    }
+  // Mount and event handlers
+  onMount(async () => {
+    await initialize();
+  });
 
+  function handleCalendarDnd(e: CustomEvent<DndEvent<Calendar>>) {
+    if (isHabitZoneActive || activeHabitCalendarId) return;
     localCalendars = e.detail.items;
     const updatePromises = localCalendars.map((cal, index) =>
       calendarsStore.update(cal.id, { position: index })
@@ -134,21 +127,13 @@
   }
 
   function handleHabitDnd(e: CustomEvent<DndEvent<Habit>>, calendarId: string) {
-    // Stop event from bubbling to parent calendar zone
     e.stopPropagation();
-
     const reorderedHabits = e.detail.items;
-
-    // Create a new map to trigger reactivity
     const newMap = new Map(localHabitsByCalendar);
-    newMap.set(calendarId, [...reorderedHabits]); // Ensure new array reference
+    newMap.set(calendarId, [...reorderedHabits]);
     localHabitsByCalendar = newMap;
 
-    // Only update positions on finalize (actual drop)
     if (e.type === "finalize") {
-      console.log(
-        `Finalizing habit reorder in calendar ${calendarId}: ${reorderedHabits.map((h) => h.name).join(", ")}`
-      );
       const updatePromises = reorderedHabits.map((habit, index) =>
         habitsStore.update(habit.id, { position: index })
       );
@@ -164,7 +149,6 @@
 
   function handleHabitZoneLeave() {
     if (!isReorderMode) return;
-    // Use a small delay to prevent flickering when moving between elements
     setTimeout(() => {
       isHabitZoneActive = false;
       activeHabitCalendarId = null;
@@ -187,58 +171,23 @@
     goto("/dashboard/new");
   }
 
-  /**
-   * Handles the data generation event from the sample data generator.
-   * Forces a refresh of all stores to ensure the UI displays the new data.
-   */
   async function handleDataGenerated() {
     try {
-      // Force refresh all stores to ensure UI updates with new data
-      await Promise.all([
-        calendarsStore.refresh(),
-        habitsStore.refresh(),
-        completionsStore.refresh()
-      ]);
-
-      // Reset initialization state to trigger UI updates
+      await refreshData();
       initialized = false;
-
       console.log("Dashboard refreshed after sample data generation");
     } catch (error) {
       console.error("Error refreshing dashboard after data generation:", error);
     }
   }
-
-  // Reset zone states when reorder mode is turned off
-  $effect(() => {
-    if (!isReorderMode) {
-      isHabitZoneActive = false;
-      activeHabitCalendarId = null;
-    }
-  });
 </script>
 
 <div class="container mx-auto max-w-6xl p-8">
-  <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-    <div class="flex flex-col">
-      <h1 class="mb-4 text-2xl font-bold">Habits</h1>
-      <p class="text-muted-foreground mb-8">
-        This is the main dashboard for user calendars and habits.
-      </p>
-    </div>
-    <div class="flex items-center gap-4">
-      <ActivityMonitor />
-    </div>
-  </div>
-  <div class="mb-4 flex justify-end gap-2">
-    <ArrowUpDown class="text-muted-foreground h-4 w-4" />
-    <Switch id="reorder-mode" bind:checked={isReorderMode} aria-label="Toggle reorder mode" />
-  </div>
+  <DashboardHeader bind:isReorderMode />
 
-  {#if loading}
+  {#if loading()}
     <div class="text-center">
       <p class="text-muted-foreground">Loading dashboard...</p>
-      <!-- You could put a spinner or skeleton loader here -->
     </div>
   {:else if calendars.length === 0}
     <div class="text-center">
@@ -266,11 +215,10 @@
     >
       {#each localCalendars as cal (cal.id)}
         {@const calHabits = localHabitsByCalendar.get(cal.id) ?? []}
-        {@const isThisCalendarActive = activeHabitCalendarId === cal.id}
         {@const isCalendarDisabled = cal.isEnabled === 0}
         <div animate:flip={{ duration: 200 }} data-calendar-id={cal.id}>
           <div class="flex flex-col">
-            <!-- Calendar Title with Colored Underline -->
+            <!-- Calendar Title -->
             <div class="flex items-center justify-center">
               <div
                 class="overflow-hidden transition-all duration-200 {isReorderMode
@@ -304,7 +252,7 @@
               </a>
             </div>
 
-            <!-- Habits List (2025-07-05: Card wrapper removed) -->
+            <!-- Habits List -->
             <div
               class="flex flex-col gap-1"
               role="group"

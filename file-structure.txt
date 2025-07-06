@@ -45,6 +45,8 @@
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
 │   │   │   ├── avatar.svelte
+│   │   │   ├── dashboard-empty-state.svelte
+│   │   │   ├── dashboard-header.svelte
 │   │   │   ├── environment-indicator-old.svelte
 │   │   │   ├── error-boundary.svelte
 │   │   │   ├── fireworks-effect.svelte
@@ -67,7 +69,12 @@
 │   │   │   ├── schema.ts
 │   │   │   └── server.ts
 │   │   ├── hooks
-│   │   │   └── is-mobile.svelte.ts
+│   │   │   ├── is-mobile.svelte.ts
+│   │   │   ├── use-app-init.svelte.ts
+│   │   │   ├── use-clerk.svelte.ts
+│   │   │   ├── use-dashboard-data.svelte.ts
+│   │   │   ├── use-navigation.svelte.ts
+│   │   │   └── use-theme.svelte.ts
 │   │   ├── services
 │   │   │   ├── local-data.ts
 │   │   │   ├── migration.ts
@@ -86,6 +93,7 @@
 │   │   ├── utils
 │   │   │   ├── auth.ts
 │   │   │   ├── colors.ts
+│   │   │   ├── context-menu.ts
 │   │   │   ├── convex.ts
 │   │   │   ├── date.ts
 │   │   │   ├── environment.ts

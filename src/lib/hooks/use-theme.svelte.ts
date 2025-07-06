@@ -12,6 +12,15 @@ export function useTheme() {
   let systemListener: (() => void) | null = $state(null);
   let lastAppliedTheme: "system" | "light" | "dark" | null = $state(null);
 
+  // Make theme reactive by subscribing to it
+  let currentTheme = $state(get(theme));
+
+  if (browser) {
+    theme.subscribe((value) => {
+      currentTheme = value;
+    });
+  }
+
   /**
    * Applies the system theme (dark/light) based on the user's OS preference.
    */
@@ -76,7 +85,6 @@ export function useTheme() {
   function initializeTheme() {
     if (!browser) return;
 
-    const currentTheme = get(theme);
     selectTheme(currentTheme);
     lastAppliedTheme = currentTheme;
   }
@@ -87,7 +95,6 @@ export function useTheme() {
   $effect(() => {
     if (!browser) return;
 
-    const currentTheme = get(theme);
     if (currentTheme !== lastAppliedTheme) {
       selectTheme(currentTheme);
       lastAppliedTheme = currentTheme;
