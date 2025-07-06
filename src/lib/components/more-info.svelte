@@ -90,9 +90,9 @@
     <p class="text-muted-foreground/80 text-xs italic">No sign-up required.</p>
   </div>
   <Separator class="my-8" />
-  <div class="mb-2 flex justify-center">
+  <!-- <div class="mb-2 flex justify-center">
     <EnvironmentIndicator />
-  </div>
+  </div> -->
   <!-- Social links reused from footer -->
   <div class="mt-6 flex justify-center">
     <SocialLinks />
