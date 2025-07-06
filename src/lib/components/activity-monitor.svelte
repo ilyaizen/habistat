@@ -114,15 +114,10 @@
 
     {#if loadingHistory}
       <div class="space-y-3">
-        <div class="flex space-x-0.5 p-0.5">
+        <div class="flex space-x-0.5 p-0.5 pb-6">
           {#each Array(numDays) as _, i}
             <Skeleton class="h-6 w-[10px] rounded-lg" />
           {/each}
-        </div>
-        <div class="flex justify-between">
-          <Skeleton class="h-4 w-16" />
-          <Skeleton class="h-4 w-16" />
-          <Skeleton class="h-4 w-24" />
         </div>
       </div>
     {:else}
