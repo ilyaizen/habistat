@@ -1,12 +1,8 @@
 <script lang="ts">
-  // import EnvironmentIndicator from "./environment-indicator-old.svelte";
   import { Button, buttonVariants } from "$lib/components/ui/button";
   import SocialLinks from "./social-links.svelte";
   import QuoteOfTheDay from "./quote-of-the-day.svelte";
   let { onMoreInfo = () => {} }: { onMoreInfo?: () => void } = $props();
-  // Get the current year for copyright
-  // const currentYear = new Date().getFullYear();
-  // Version number (hardcoded for now)
 </script>
 
 <footer class="border-border/40 border-t">

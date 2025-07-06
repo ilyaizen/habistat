@@ -36,7 +36,7 @@ export const SAMPLE_DATA_CONFIG = {
     },
     {
       calendarName: "🏋️ Fitness & Mindfulness",
-      name: "🚶 8,000 steps",
+      name: "🚶 Steps ≥ 8,000",
       description: "Daily step goal for maintaining activity levels.",
       type: "positive" as const,
       timerEnabled: false,

@@ -31,7 +31,7 @@ This document outlines the sample data used in the Habistat application for demo
 - **Points**: 15
 - **Position**: 0
 
-#### 🚶 8,000 steps
+#### 🚶 Steps ≥ 8,000
 
 - **Description**: Daily step goal for maintaining activity levels.
 - **Type**: positive

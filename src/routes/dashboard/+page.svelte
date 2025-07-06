@@ -24,6 +24,7 @@
   // --- Component Imports ---
   // UI components for drag-and-drop, habit controls, and visualization
   import Button from "$lib/components/ui/button/button.svelte";
+  import * as Tooltip from "$lib/components/ui/tooltip";
   import { dndzone, type DndEvent } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
   import { GripVertical } from "@lucide/svelte";
@@ -279,194 +280,241 @@
 </script>
 
 <!-- Main dashboard container with responsive padding -->
-<div class="container mx-auto max-w-6xl p-8">
-  <!-- Header with reorder mode toggle -->
-  <DashboardHeader bind:isReorderMode />
+<Tooltip.Provider>
+  <div class="container mx-auto max-w-6xl p-8">
+    <!-- Header with reorder mode toggle -->
+    <DashboardHeader bind:isReorderMode />
 
-  {#if loading()}
-    <!-- Loading state -->
-    <div class="text-center">
-      <p class="text-muted-foreground">Loading dashboard...</p>
-    </div>
-  {:else if calendars.length === 0}
-    <!-- Empty state with action buttons -->
-    <div class="text-center">
-      <p class="text-muted-foreground mb-4">No calendars yet. Create one to get started!</p>
-      <div class="mt-4 flex justify-center gap-2">
-        <Button size="sm" onclick={openCreateDialog}>New Calendar</Button>
-        <SampleDataGenerator ondatagenerated={handleDataGenerated} />
+    {#if loading()}
+      <!-- Loading state -->
+      <div class="text-center">
+        <p class="text-muted-foreground">Loading dashboard...</p>
       </div>
-    </div>
-  {:else}
-    <!-- Main calendars and habits list -->
-    <!-- Drag-and-drop zone for calendar reordering with visual feedback -->
-    <div
-      class="flex flex-col gap-5 transition-all duration-200 ease-in-out {isReorderMode
-        ? 'border-primary/30 bg-primary/10 rounded-lg border-2 border-dashed p-2'
-        : 'border-2 border-transparent p-0'}"
-      data-dnd-zone="calendar"
-      use:dndzone={{
-        items: localCalendars,
-        flipDurationMs: 200,
-        dragDisabled: !isReorderMode || isHabitZoneActive,
-        dropTargetStyle: {},
-        type: "calendar"
-      }}
-      onconsider={handleCalendarDnd}
-      onfinalize={handleCalendarDnd}
-    >
-      {#each localCalendars as cal (cal.id)}
-        {@const calHabits = localHabitsByCalendar.get(cal.id) ?? []}
-        {@const isCalendarDisabled = cal.isEnabled === 0}
+    {:else if calendars.length === 0}
+      <!-- Empty state with action buttons -->
+      <div class="text-center">
+        <p class="text-muted-foreground mb-4">No calendars yet. Create one to get started!</p>
+        <div class="mt-4 flex justify-center gap-2">
+          <Button size="sm" onclick={openCreateDialog}>New Calendar</Button>
+          <SampleDataGenerator ondatagenerated={handleDataGenerated} />
+        </div>
+      </div>
+    {:else}
+      <!-- Main calendars and habits list -->
+      <!-- Drag-and-drop zone for calendar reordering with visual feedback -->
+      <div
+        class="flex flex-col gap-5 transition-all duration-200 ease-in-out {isReorderMode
+          ? 'border-primary/30 bg-primary/10 rounded-lg border-2 border-dashed p-2'
+          : 'border-2 border-transparent p-0'}"
+        data-dnd-zone="calendar"
+        use:dndzone={{
+          items: localCalendars,
+          flipDurationMs: 200,
+          dragDisabled: !isReorderMode || isHabitZoneActive,
+          dropTargetStyle: {},
+          type: "calendar"
+        }}
+        onconsider={handleCalendarDnd}
+        onfinalize={handleCalendarDnd}
+      >
+        {#each localCalendars as cal (cal.id)}
+          {@const calHabits = localHabitsByCalendar.get(cal.id) ?? []}
+          {@const isCalendarDisabled = cal.isEnabled === 0}
 
-        <!-- Individual calendar container with flip animation -->
-        <div animate:flip={{ duration: 200 }} data-calendar-id={cal.id}>
-          <div class="flex flex-col">
-            <!-- Calendar Title Section -->
-            <div class="flex items-center justify-center">
-              <!-- Drag handle for calendar reordering (shows only in reorder mode) -->
-              <div
-                class="overflow-hidden transition-all duration-200 {isReorderMode
-                  ? 'w-5 opacity-100'
-                  : 'w-0 opacity-0'}"
-              >
-                <GripVertical
-                  class="text-muted-foreground h-5 w-5 cursor-grab hover:opacity-70 active:cursor-grabbing {isReorderMode
-                    ? 'pointer-events-auto'
-                    : 'pointer-events-none'}"
-                  data-drag-handle="calendar"
-                />
+          <!-- Individual calendar container with flip animation -->
+          <div animate:flip={{ duration: 200 }} data-calendar-id={cal.id}>
+            <div class="flex flex-col">
+              <!-- Calendar Title Section -->
+              <div class="flex items-center justify-center">
+                <!-- Drag handle for calendar reordering (shows only in reorder mode) -->
+                <div
+                  class="overflow-hidden transition-all duration-200 {isReorderMode
+                    ? 'w-5 opacity-100'
+                    : 'w-0 opacity-0'}"
+                >
+                  <GripVertical
+                    class="text-muted-foreground h-5 w-5 cursor-grab hover:opacity-70 active:cursor-grabbing {isReorderMode
+                      ? 'pointer-events-auto'
+                      : 'pointer-events-none'}"
+                    data-drag-handle="calendar"
+                  />
+                </div>
+
+                <!-- Calendar name link with disabled state handling -->
+                <a
+                  href={isCalendarDisabled ? undefined : `/dashboard/${cal.id}`}
+                  class="nunito-header mb-2 inline-block text-xl font-semibold transition-opacity hover:opacity-80 {isCalendarDisabled
+                    ? 'text-muted-foreground/60 pointer-events-none opacity-60'
+                    : ''}"
+                  aria-disabled={isCalendarDisabled}
+                  tabindex={isCalendarDisabled ? -1 : 0}
+                  onclick={() => {
+                    if (!isCalendarDisabled) goto(`/dashboard/${cal.id}`);
+                  }}
+                  onkeydown={(e: KeyboardEvent) => {
+                    if (!isCalendarDisabled && (e.key === "Enter" || e.key === " ")) {
+                      goto(`/dashboard/${cal.id}`);
+                    }
+                  }}
+                >
+                  {cal.name}
+                </a>
               </div>
 
-              <!-- Calendar name link with disabled state handling -->
-              <a
-                href={isCalendarDisabled ? undefined : `/dashboard/${cal.id}`}
-                class="nunito-header mb-2 inline-block text-xl font-semibold transition-opacity hover:opacity-80 {isCalendarDisabled
-                  ? 'text-muted-foreground/60 pointer-events-none opacity-60'
-                  : ''}"
-                aria-disabled={isCalendarDisabled}
-                tabindex={isCalendarDisabled ? -1 : 0}
-                onclick={() => {
-                  if (!isCalendarDisabled) goto(`/dashboard/${cal.id}`);
+              <!-- Habits List Section -->
+              <!-- Drag-and-drop zone for habit reordering within calendar -->
+              <div
+                class="flex flex-col gap-1"
+                role="group"
+                data-dnd-zone="habit"
+                data-calendar-id={cal.id}
+                use:dndzone={{
+                  items: calHabits,
+                  flipDurationMs: 200,
+                  dropTargetStyle: {},
+                  type: "habit",
+                  morphDisabled: true,
+                  dragDisabled: !isReorderMode
                 }}
-                onkeydown={(e) => {
-                  if (!isCalendarDisabled && (e.key === "Enter" || e.key === " ")) {
-                    goto(`/dashboard/${cal.id}`);
-                  }
-                }}
+                onconsider={(e) => handleHabitDnd(e, cal.id)}
+                onfinalize={(e) => handleHabitDnd(e, cal.id)}
+                onmouseenter={() => handleHabitZoneEnter(cal.id)}
+                onmouseleave={handleHabitZoneLeave}
+                ondragstart={() => handleHabitDragStart(cal.id)}
+                ondragend={handleHabitDragEnd}
               >
-                {cal.name}
-              </a>
-            </div>
+                {#if calHabits.length > 0}
+                  {#each calHabits as habit (habit.id)}
+                    {@const habitCompletions = $completionsByHabit.get(habit.id) ?? []}
+                    {@const completionsToday = completionsTodayByHabit.get(habit.id) ?? 0}
+                    {@const isHabitDisabled = habit.isEnabled === 0 || isCalendarDisabled}
 
-            <!-- Habits List Section -->
-            <!-- Drag-and-drop zone for habit reordering within calendar -->
-            <div
-              class="flex flex-col gap-1"
-              role="group"
-              data-dnd-zone="habit"
-              data-calendar-id={cal.id}
-              use:dndzone={{
-                items: calHabits,
-                flipDurationMs: 200,
-                dropTargetStyle: {},
-                type: "habit",
-                morphDisabled: true,
-                dragDisabled: !isReorderMode
-              }}
-              onconsider={(e) => handleHabitDnd(e, cal.id)}
-              onfinalize={(e) => handleHabitDnd(e, cal.id)}
-              onmouseenter={() => handleHabitZoneEnter(cal.id)}
-              onmouseleave={handleHabitZoneLeave}
-              ondragstart={() => handleHabitDragStart(cal.id)}
-              ondragend={handleHabitDragEnd}
-            >
-              {#if calHabits.length > 0}
-                {#each calHabits as habit (habit.id)}
-                  {@const habitCompletions = $completionsByHabit.get(habit.id) ?? []}
-                  {@const completionsToday = completionsTodayByHabit.get(habit.id) ?? 0}
-                  {@const isHabitDisabled = habit.isEnabled === 0 || isCalendarDisabled}
+                    <!-- Individual habit card with flip animation -->
+                    <div animate:flip={{ duration: 200 }} data-habit-id={habit.id}>
+                      <Card
+                        class="bg-card flex flex-row flex-nowrap items-center justify-between gap-2 rounded-3xl border p-1 shadow-xs transition-all {isHabitDisabled
+                          ? 'pointer-events-none opacity-50 grayscale'
+                          : ''} {habit.isEnabled === 0 ? 'border-dashed' : 'hover:bg-card/90'}"
+                        aria-disabled={isHabitDisabled}
+                      >
+                        <!-- Left side: Drag handle and habit name -->
+                        <div class="flex min-w-0 flex-1 items-center">
+                          <!-- Drag handle for habit reordering (shows only in reorder mode) -->
+                          <div
+                            class="overflow-hidden transition-all duration-200 {isReorderMode
+                              ? 'w-5 opacity-100'
+                              : 'w-0 opacity-0'}"
+                          >
+                            <GripVertical
+                              class="text-muted-foreground/50 hover:text-muted-foreground h-5 w-5 flex-shrink-0 cursor-grab active:cursor-grabbing {isReorderMode
+                                ? 'pointer-events-auto'
+                                : 'pointer-events-none'}"
+                              data-drag-handle="habit"
+                            />
+                          </div>
 
-                  <!-- Individual habit card with flip animation -->
-                  <div animate:flip={{ duration: 200 }} data-habit-id={habit.id}>
-                    <Card
-                      class="bg-card flex flex-row flex-nowrap items-center justify-between gap-2 rounded-3xl border p-1 shadow-xs transition-all {isHabitDisabled
-                        ? 'pointer-events-none opacity-50 grayscale'
-                        : ''} {habit.isEnabled === 0 ? 'border-dashed' : 'hover:bg-card/90'}"
-                      aria-disabled={isHabitDisabled}
-                    >
-                      <!-- Left side: Drag handle and habit name -->
-                      <div class="flex min-w-0 flex-1 items-center">
-                        <!-- Drag handle for habit reordering (shows only in reorder mode) -->
-                        <div
-                          class="overflow-hidden transition-all duration-200 {isReorderMode
-                            ? 'w-5 opacity-100'
-                            : 'w-0 opacity-0'}"
-                        >
-                          <GripVertical
-                            class="text-muted-foreground/50 hover:text-muted-foreground h-5 w-5 flex-shrink-0 cursor-grab active:cursor-grabbing {isReorderMode
-                              ? 'pointer-events-auto'
-                              : 'pointer-events-none'}"
-                            data-drag-handle="habit"
-                          />
-                        </div>
-
-                        <!-- Habit name with navigation functionality -->
-                        <div
-                          class="min-w-0 flex-1 truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
-                            ? 'text-muted-foreground/70'
-                            : ''}"
-                          role="button"
-                          tabindex={isHabitDisabled ? -1 : 0}
-                          onclick={() => {
-                            if (!isHabitDisabled) goto(`/dashboard/${cal.id}/${habit.id}`);
-                          }}
-                          onkeydown={(e) => {
-                            if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
-                              goto(`/dashboard/${cal.id}/${habit.id}`);
-                            }
-                          }}
-                          aria-disabled={isHabitDisabled}
-                        >
-                          {habit.name}
-                        </div>
-                      </div>
-
-                      <!-- Right side: History grid and completion control -->
-                      <div class="flex shrink-0 flex-row items-center gap-4">
-                        <!-- Visual history grid with responsive day count -->
-                        <HabitHistoryGrid
-                          completions={habitCompletions}
-                          calendarColor={cal.colorTheme || "#3b82f6"}
-                          numDays={isMobile.current ? 14 : 30}
-                        />
-
-                        <!-- Completion control button (fixed width for alignment) -->
-                        <div class="flex w-16 items-center justify-end">
-                          {#if !isHabitDisabled}
-                            <HabitCompletionControl {habit} {completionsToday} />
+                          <!-- Habit name with navigation functionality -->
+                          {#if habit.description}
+                            <Tooltip.Root>
+                              <Tooltip.Trigger>
+                                {#snippet child({ props })}
+                                  <div
+                                    {...props}
+                                    class="min-w-0 flex-1 truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
+                                      ? 'text-muted-foreground/70'
+                                      : ''}"
+                                    role="button"
+                                    tabindex={isHabitDisabled ? -1 : 0}
+                                    onclick={() => {
+                                      if (!isHabitDisabled)
+                                        goto(`/dashboard/${cal.id}/${habit.id}`);
+                                    }}
+                                    onkeydown={(e: KeyboardEvent) => {
+                                      if (
+                                        !isHabitDisabled &&
+                                        (e.key === "Enter" || e.key === " ")
+                                      ) {
+                                        goto(`/dashboard/${cal.id}/${habit.id}`);
+                                      }
+                                    }}
+                                    aria-disabled={isHabitDisabled}
+                                  >
+                                    {habit.name}
+                                    {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
+                                      <span class="text-muted-foreground/80 ml-1"
+                                        >({Math.round(habit.targetDurationSeconds / 60)}m)</span
+                                      >
+                                    {/if}
+                                  </div>
+                                {/snippet}
+                              </Tooltip.Trigger>
+                              <Tooltip.Content>
+                                <p>{habit.description}</p>
+                              </Tooltip.Content>
+                            </Tooltip.Root>
+                          {:else}
+                            <div
+                              class="min-w-0 flex-1 truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
+                                ? 'text-muted-foreground/70'
+                                : ''}"
+                              role="button"
+                              tabindex={isHabitDisabled ? -1 : 0}
+                              onclick={() => {
+                                if (!isHabitDisabled) goto(`/dashboard/${cal.id}/${habit.id}`);
+                              }}
+                              onkeydown={(e: KeyboardEvent) => {
+                                if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
+                                  goto(`/dashboard/${cal.id}/${habit.id}`);
+                                }
+                              }}
+                              aria-disabled={isHabitDisabled}
+                            >
+                              {habit.name}
+                              {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
+                                <span class="text-muted-foreground/80 ml-1"
+                                  >({Math.round(habit.targetDurationSeconds / 60)}m)</span
+                                >
+                              {/if}
+                            </div>
                           {/if}
                         </div>
-                      </div>
-                    </Card>
+
+                        <!-- Right side: History grid and completion control -->
+                        <div class="flex shrink-0 flex-row items-center gap-4">
+                          <!-- Visual history grid with responsive day count -->
+                          <HabitHistoryGrid
+                            completions={habitCompletions}
+                            calendarColor={cal.colorTheme || "#3b82f6"}
+                            numDays={isMobile.current ? 14 : 30}
+                          />
+
+                          <!-- Completion control button (fixed width for alignment) -->
+                          <div class="flex w-16 items-center justify-end">
+                            {#if !isHabitDisabled}
+                              <HabitCompletionControl {habit} {completionsToday} />
+                            {/if}
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+                  {/each}
+                {:else}
+                  <!-- Empty habits state with call-to-action -->
+                  <div class="text-muted-foreground p-4 text-center text-sm">
+                    No habits in this calendar.
+                    <Button
+                      variant="link"
+                      class="h-auto p-0 pl-1"
+                      onclick={() => goto(`/dashboard/${cal.id}/new`)}
+                      disabled={isCalendarDisabled}>Add one!</Button
+                    >
                   </div>
-                {/each}
-              {:else}
-                <!-- Empty habits state with call-to-action -->
-                <div class="text-muted-foreground p-4 text-center text-sm">
-                  No habits in this calendar.
-                  <Button
-                    variant="link"
-                    class="h-auto p-0 pl-1"
-                    onclick={() => goto(`/dashboard/${cal.id}/new`)}
-                    disabled={isCalendarDisabled}>Add one!</Button
-                  >
-                </div>
-              {/if}
+                {/if}
+              </div>
             </div>
           </div>
-        </div>
-      {/each}
-    </div>
-  {/if}
-</div>
+        {/each}
+      </div>
+    {/if}
+  </div>
+</Tooltip.Provider>

@@ -26,20 +26,21 @@
   let showDialog = $state(false);
 
   /**
-   * Generates fake app usage history for the past 14 days.
+   * Generates fake app usage history for the past 28 days.
    * This simulates that the user has been opening the app daily.
    */
   async function generateFakeUsageHistory() {
-    // Generate 14 days of fake app open history
-    await generateFakeAppOpenHistory(14);
+    // Generate 28 days of fake app open history
+    await generateFakeAppOpenHistory(28);
 
-    // Update session start date to 14 days ago (6 days before today)
-    updateSessionStartDate(13);
+    // Update session start date to 28 days ago (6 days before today)
+    updateSessionStartDate(27);
   }
 
   /**
-   * Generates 14 days of completion data for all habits.
-   * Each habit gets 0-3 random completions per day.
+   * Generates 28 days of completion data for all habits.
+   * Each positive habit gets 0-3 random completions per day, while negative habits
+   * get significantly fewer to simulate successful avoidance.
    */
   async function generateCompletionsHistory(
     habits: Array<{ id: string; name: string; type: string }>
@@ -47,14 +48,17 @@
     const today = new Date();
     const currentUserId = get(sessionStore)?.id;
 
-    // Generate completions for the past 14 days
-    for (let dayOffset = 13; dayOffset >= 0; dayOffset--) {
+    // Generate completions for the past 28 days
+    for (let dayOffset = 27; dayOffset >= 0; dayOffset--) {
       const date = new Date(today);
       date.setDate(today.getDate() - dayOffset);
 
       for (const habit of habits) {
-        // Random number of completions per habit per day (0-3)
-        const numCompletions = Math.floor(Math.random() * 4);
+        // For negative habits, generate at least 3 times fewer completions on average
+        // to simulate success in avoiding them. Positive habits get 0-3 completions,
+        // while negative habits get 0-1, making them appear ~3x less often.
+        const maxCompletions = habit.type === "negative" ? 2 : 4;
+        const numCompletions = Math.floor(Math.random() * maxCompletions);
 
         for (let i = 0; i < numCompletions; i++) {
           // Random time throughout the day
@@ -174,7 +178,7 @@
         })
         .filter((h) => h.id); // Filter out any habits that weren't found
 
-      // Generate 14 days of completion history
+      // Generate 28 days of completion history
       await generateCompletionsHistory(actualCreatedHabits);
 
       // Refresh all stores to ensure UI updates
@@ -184,7 +188,7 @@
         completionsStore.refresh()
       ]);
 
-      console.log("Sample data with 14-day history generated successfully!");
+      console.log("Sample data with 28-day history generated successfully!");
 
       // Call callback to notify parent component
       ondatagenerated?.();
@@ -218,8 +222,8 @@
     <AlertDialog.Header>
       <AlertDialog.Title>Generate Sample Data</AlertDialog.Title>
       <AlertDialog.Description>
-        This will create sample calendars, habits, and 14 days of completion history to help you
-        explore the app. It will also simulate 14 days of app usage history.
+        This will create sample calendars, habits, and 28 days of completion history to help you
+        explore the app. It will also simulate 28 days of app usage history.
         <br /><br />
         <strong>Note:</strong> This action will add data to your current workspace and cannot be easily
         undone.
