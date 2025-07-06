@@ -448,7 +448,7 @@
                                   </div>
                                 {/snippet}
                               </Tooltip.Trigger>
-                              <Tooltip.Content>
+                              <Tooltip.Content align="start">
                                 <p>{habit.description}</p>
                               </Tooltip.Content>
                             </Tooltip.Root>

@@ -4,12 +4,12 @@ This document outlines the sample data used in the Habistat application for demo
 
 ## Calendars
 
-### 🏋️ Fitness & Mindfulness
+### 🏋️ Fitness
 
 - **Color Theme**: Green
 - **Position**: 0
 
-### 🧠 Mind & Productivity
+### 🧠 Productivity
 
 - **Color Theme**: Blue
 - **Position**: 1
@@ -21,23 +21,7 @@ This document outlines the sample data used in the Habistat application for demo
 
 ## Habits
 
-### 🏋️ Fitness & Health
-
-#### 🤸 Workout/Stretch
-
-- **Description**: Start the day with light exercise and stretching.
-- **Type**: positive
-- **Timer**: Enabled (15 minutes)
-- **Points**: 15
-- **Position**: 0
-
-#### 🚶 Steps ≥ 8,000
-
-- **Description**: Daily step goal for maintaining activity levels.
-- **Type**: positive
-- **Timer**: Disabled
-- **Points**: 30
-- **Position**: 1
+### 🏋️ Fitness (Calendar)
 
 #### 🛌 Sleep ≥ 6H
 
@@ -45,35 +29,51 @@ This document outlines the sample data used in the Habistat application for demo
 - **Type**: positive
 - **Timer**: Disabled
 - **Points**: 10
-- **Position**: 2
+- **Position**: 0
 
-### 🧠 Mind & Productivity
+#### 🤸 Workout/Stretch
 
-#### 📖 Read
-
-- **Description**: Daily reading for knowledge and mental stimulation.
+- **Description**: Start the day with light exercise and stretching.
 - **Type**: positive
 - **Timer**: Enabled (15 minutes)
-- **Points**: 5
+- **Points**: 15
+- **Position**: 1
+
+#### 🚶 Steps ≥ 8,000
+
+- **Description**: Daily step goal for maintaining activity levels.
+- **Type**: positive
+- **Timer**: Disabled
+- **Points**: 30
+- **Position**: 2
+
+### 🧠 Productivity (Calendar)
+
+#### 🎯 Code
+
+- **Description**: Practice coding skills.
+- **Type**: positive
+- **Timer**: Enabled (25 minutes)
+- **Points**: 8
 - **Position**: 0
 
 #### 📝 Write
 
 - **Description**: Write a focused 3-item to-do list for the day.
 - **Type**: positive
-- **Timer**: Disabled
+- **Timer**: Enabled (25 minutes)
 - **Points**: 3
 - **Position**: 1
 
-#### 🎯 Code
+#### 📖 Read
 
-- **Description**: Practice coding skills.
+- **Description**: Daily reading for knowledge and mental stimulation.
 - **Type**: positive
-- **Timer**: Enabled (20 minutes)
-- **Points**: 8
+- **Timer**: Enabled (25 minutes)
+- **Points**: 5
 - **Position**: 2
 
-### 🚫 Bad Habits
+### 🚫 Bad Habits (Calendar)
 
 #### 🌽 Corn
 

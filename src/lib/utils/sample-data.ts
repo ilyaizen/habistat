@@ -7,12 +7,12 @@
 export const SAMPLE_DATA_CONFIG = {
   calendars: [
     {
-      name: "🏋️ Fitness & Mindfulness",
+      name: "🏋️ Fitness",
       colorTheme: "Green",
       position: 0
     },
     {
-      name: "🧠 Mind & Productivity",
+      name: "🧠 Productivity",
       colorTheme: "Blue",
       position: 1
     },
@@ -23,69 +23,70 @@ export const SAMPLE_DATA_CONFIG = {
     }
   ],
   habits: [
-    // Fitness & Mindfulness habits
+    // Fitness habits
     {
-      calendarName: "🏋️ Fitness & Mindfulness",
-      name: "🤸 Workout/Stretch",
-      description: "Start the day with light exercise and stretching.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 15,
-      pointsValue: 15,
-      position: 0
-    },
-    {
-      calendarName: "🏋️ Fitness & Mindfulness",
-      name: "🚶 Steps ≥ 8,000",
-      description: "Daily step goal for maintaining activity levels.",
-      type: "positive" as const,
-      timerEnabled: false,
-      targetDurationMinutes: null,
-      pointsValue: 30,
-      position: 1
-    },
-    {
-      calendarName: "🏋️ Fitness & Mindfulness",
+      calendarName: "🏋️ Fitness",
       name: "🛌 Sleep ≥ 6H",
       description: "Sleep at least 6 hours in the past 24 hours.",
       type: "positive" as const,
       timerEnabled: false,
       targetDurationMinutes: null,
       pointsValue: 10,
-      position: 2
-    },
-    // Mind & Productivity habits
-    {
-      calendarName: "🧠 Mind & Productivity",
-      name: "📖 Read",
-      description: "Daily reading for knowledge and mental stimulation.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 15,
-      pointsValue: 5,
       position: 0
     },
     {
-      calendarName: "🧠 Mind & Productivity",
-      name: "📝 Write",
-      description: "Write a focused 3-item to-do list for the day.",
+      calendarName: "🏋️ Fitness",
+      name: "🤸 Workout",
+      description: "Start the day with light exercise and stretching.",
       type: "positive" as const,
-      timerEnabled: false,
-      targetDurationMinutes: null,
-      pointsValue: 3,
+      timerEnabled: true,
+      targetDurationMinutes: 15,
+      pointsValue: 15,
       position: 1
     },
     {
-      calendarName: "🧠 Mind & Productivity",
+      calendarName: "🏋️ Fitness",
+      name: "🚶 Steps ≥ 8,000",
+      description: "Daily step goal for maintaining activity levels.",
+      type: "positive" as const,
+      timerEnabled: false,
+      targetDurationMinutes: null,
+      pointsValue: 30,
+      position: 2
+    },
+
+    // Productivity habits
+
+    {
+      calendarName: "🧠 Productivity",
       name: "🎯 Code",
       description: "Practice coding skills.",
       type: "positive" as const,
       timerEnabled: true,
-      targetDurationMinutes: 20,
+      targetDurationMinutes: 25,
       pointsValue: 8,
-      position: 2
+      position: 0
     },
-    // Bad Habits (negative habits)
+    {
+      calendarName: "🧠 Productivity",
+      name: "📝 Write",
+      description: "Write a focused 3-item to-do list for the day.",
+      type: "positive" as const,
+      timerEnabled: true,
+      targetDurationMinutes: 25,
+      pointsValue: 3,
+      position: 1
+    },
+    {
+      calendarName: "🧠 Productivity",
+      name: "📖 Read",
+      description: "Daily reading for knowledge and mental stimulation.",
+      type: "positive" as const,
+      timerEnabled: true,
+      targetDurationMinutes: 25,
+      pointsValue: 5,
+      position: 2
+    }, // Bad Habits (negative habits)
     {
       calendarName: "🚫 Bad Habits",
       name: "🌽 Corn",
@@ -100,6 +101,21 @@ export const SAMPLE_DATA_CONFIG = {
 } as const;
 
 // Type definitions for sample data structure
+
+/**
+ * Represents the entire structure of the sample data configuration.
+ * Derived from the `SAMPLE_DATA_CONFIG` constant to ensure type safety.
+ */
 export type SampleDataConfig = typeof SAMPLE_DATA_CONFIG;
+
+/**
+ * Represents a single sample calendar object within the `calendars` array.
+ * This type is inferred from the first element of the `calendars` array.
+ */
 export type SampleCalendar = (typeof SAMPLE_DATA_CONFIG.calendars)[0];
+
+/**
+ * Represents a single sample habit object within the `habits` array.
+ * This type is inferred from the first element of the `habits` array.
+ */
 export type SampleHabit = (typeof SAMPLE_DATA_CONFIG.habits)[0];
