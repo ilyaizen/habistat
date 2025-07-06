@@ -48,21 +48,17 @@ export default defineSchema({
     .index("by_user_id_and_pos", ["userId", "position"]) // For sorted fetching by user
     .index("by_user_local_uuid", ["userId", "localUuid"]), // For finding/updating specific item by its local ID
 
+  // Completions table - ultra-simplified for basic habit tracking
   completions: defineTable({
     userId: v.string(), // Clerk User ID (from identity.subject)
     localUuid: v.string(), // Maps to local completion.id
     habitId: v.string(), // Maps to the Convex habit ID
-    completedAt: v.number(), // Timestamp when habit was completed
-    notes: v.optional(v.string()),
-    durationSpentSeconds: v.optional(v.number()),
-    isDeleted: v.boolean(),
-    clientCreatedAt: v.number(), // Timestamp from client for LWW
-    clientUpdatedAt: v.number() // Timestamp from client for LWW
+    completedAt: v.number() // The only timestamp we need - when habit was completed
   })
     .index("by_user_habit", ["userId", "habitId"])
     .index("by_user_date", ["userId", "completedAt"])
     .index("by_local_uuid", ["userId", "localUuid"])
-    .index("by_user_updated_at", ["userId", "clientUpdatedAt"]),
+    .index("by_user_completed_at", ["userId", "completedAt"]), // For sync conflict resolution
 
   activeTimers: defineTable({
     userId: v.string(), // Clerk User ID (from identity.subject)

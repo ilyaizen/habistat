@@ -4,6 +4,7 @@ import * as localData from "./local-data";
 import { v4 as uuid } from "uuid";
 import { completions as completionsSchema } from "../db/schema";
 import type { InferModel } from "drizzle-orm";
+import { completionsStore } from "../stores/completions";
 
 type Completion = InferModel<typeof completionsSchema>;
 
@@ -21,25 +22,26 @@ export class SyncService {
    */
   setUserId(userId: string | null) {
     this.userId = userId;
+    console.log(`[Sync] User ID set to: ${userId}`);
   }
 
   /**
-   * Get last sync timestamp for a specific table
+   * Get the last sync timestamp for a table
    */
   private async getLastSyncTimestamp(tableName: string): Promise<number> {
     const metadata = await localData.getSyncMetadata(tableName);
-    return metadata?.lastSyncTimestamp || 0;
+    return metadata?.lastSyncTimestamp ?? 0;
   }
 
   /**
-   * Update last sync timestamp for a specific table
+   * Update the last sync timestamp for a table
    */
   private async updateLastSyncTimestamp(tableName: string, timestamp: number) {
     await localData.setSyncMetadata(tableName, timestamp);
   }
 
   /**
-   * Sync completions between local and cloud
+   * Sync completions bidirectionally
    */
   async syncCompletions(): Promise<{ success: boolean; error?: string }> {
     if (!this.userId || this.isSyncing) {
@@ -95,19 +97,12 @@ export class SyncService {
       const localCompletion = await localData.getCompletionByLocalUuid(serverCompletion.localUuid);
 
       if (localCompletion) {
-        // Local completion exists - apply Last Write Wins
-        if (serverCompletion.clientUpdatedAt > localCompletion.updatedAt) {
+        // Local completion exists - apply Last Write Wins using completedAt
+        if (serverCompletion.completedAt > localCompletion.completedAt) {
           // Server version is newer - update local
           await localData.updateCompletion(localCompletion.id, {
             habitId: serverCompletion.habitId,
-            completedAt: serverCompletion.completedAt,
-            notes: serverCompletion.notes === undefined ? null : serverCompletion.notes,
-            durationSpentSeconds:
-              serverCompletion.durationSpentSeconds === undefined
-                ? null
-                : serverCompletion.durationSpentSeconds,
-            isDeleted: serverCompletion.isDeleted ? 1 : 0,
-            updatedAt: serverCompletion.clientUpdatedAt
+            completedAt: serverCompletion.completedAt
           });
           console.log(`📥 Updated local completion ${localCompletion.id} from server`);
         }
@@ -118,23 +113,15 @@ export class SyncService {
           id: serverCompletion.localUuid, // Use server's localUuid as our local ID
           userId: this.userId,
           habitId: serverCompletion.habitId,
-          completedAt: serverCompletion.completedAt,
-          notes: serverCompletion.notes === undefined ? null : serverCompletion.notes,
-          durationSpentSeconds:
-            serverCompletion.durationSpentSeconds === undefined
-              ? null
-              : serverCompletion.durationSpentSeconds,
-          isDeleted: serverCompletion.isDeleted ? 1 : 0,
-          createdAt: serverCompletion.clientCreatedAt,
-          updatedAt: serverCompletion.clientUpdatedAt
+          completedAt: serverCompletion.completedAt
         };
 
         await localData.createCompletion(newCompletion);
         console.log(`📥 Created new local completion ${newCompletion.id} from server`);
       }
 
-      // Track latest timestamp
-      latestServerTimestamp = Math.max(latestServerTimestamp, serverCompletion.clientUpdatedAt);
+      // Track latest timestamp using completedAt
+      latestServerTimestamp = Math.max(latestServerTimestamp, serverCompletion.completedAt);
     }
 
     // Update sync timestamp
@@ -162,13 +149,7 @@ export class SyncService {
     const completionsForServer = completionsToSync.map((completion) => ({
       localUuid: completion.id,
       habitId: completion.habitId,
-      completedAt: completion.completedAt,
-      notes: completion.notes === null ? undefined : completion.notes,
-      durationSpentSeconds:
-        completion.durationSpentSeconds === null ? undefined : completion.durationSpentSeconds,
-      isDeleted: completion.isDeleted === 1,
-      clientCreatedAt: completion.createdAt,
-      clientUpdatedAt: completion.updatedAt
+      completedAt: completion.completedAt
     }));
 
     // Batch upsert to server
@@ -207,8 +188,7 @@ export class SyncService {
       // Update local records to associate with user
       for (const completion of anonymousCompletions) {
         await localData.updateCompletion(completion.id, {
-          userId: this.userId,
-          updatedAt: Date.now() // Mark as recently updated for sync
+          userId: this.userId
         });
       }
 
@@ -232,6 +212,12 @@ export class SyncService {
    */
   async fullSync(): Promise<{ success: boolean; error?: string }> {
     const result = await this.syncCompletions();
+
+    // Refresh completions store after successful sync
+    if (result.success) {
+      await completionsStore.refresh();
+    }
+
     return result;
   }
 

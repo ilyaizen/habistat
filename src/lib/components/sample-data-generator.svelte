@@ -195,44 +195,16 @@
           const completionTime = new Date(date);
           completionTime.setHours(randomHour, randomMinute, 0, 0);
 
-          // Generate random duration for timed habits (5-30 minutes)
-          const durationSeconds =
-            habit.type === "positive" && Math.random() > 0.3
-              ? (Math.floor(Math.random() * 25) + 5) * 60
-              : null;
-
           // Create completion record directly in the database
           await localData.createCompletion({
             id: uuid(),
             habitId: habit.id,
             completedAt: completionTime.getTime(),
-            notes: Math.random() > 0.8 ? getRandomNote() : null,
-            durationSpentSeconds: durationSeconds,
-            isDeleted: 0,
-            userId: currentUserId,
-            createdAt: completionTime.getTime(),
-            updatedAt: completionTime.getTime()
+            userId: currentUserId
           });
         }
       }
     }
-  }
-
-  /**
-   * Returns a random completion note for variety.
-   */
-  function getRandomNote(): string {
-    const notes = [
-      "Great session!",
-      "Feeling motivated",
-      "Could be better",
-      "Really enjoyed this",
-      "Quick but effective",
-      "Challenging today",
-      "Perfect timing",
-      "Very relaxing"
-    ];
-    return notes[Math.floor(Math.random() * notes.length)];
   }
 
   /**

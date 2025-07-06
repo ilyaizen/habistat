@@ -23,12 +23,7 @@ function createCompletionsStore() {
         id: uuid(),
         habitId,
         completedAt: now,
-        notes: null,
-        durationSpentSeconds: null,
-        isDeleted: 0,
-        userId: userId || null, // Associate with user if provided
-        createdAt: now,
-        updatedAt: now
+        userId: userId || null // Associate with user if provided
       };
       await localData.createCompletion(newCompletion);
       update((completions) => [...completions, newCompletion]);
@@ -46,8 +41,7 @@ function createCompletionsStore() {
       const completions = await localData.getAnonymousCompletions();
       for (const completion of completions) {
         await localData.updateCompletion(completion.id, {
-          userId,
-          updatedAt: Date.now()
+          userId
         });
       }
       // Refresh the store to reflect changes
@@ -65,7 +59,6 @@ export const completionsStore = createCompletionsStore();
 export const completionsByHabit = derived(completionsStore, ($completions) => {
   const map = new Map<string, Completion[]>();
   for (const completion of $completions) {
-    if (completion.isDeleted === 1) continue;
     if (!completion.habitId) continue;
     if (!map.has(completion.habitId)) {
       map.set(completion.habitId, []);

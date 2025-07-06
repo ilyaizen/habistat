@@ -117,8 +117,7 @@ export async function deleteLatestCompletionForToday(habitId: string) {
     .where(
       and(
         eq(schema.completions.habitId, habitId),
-        gte(schema.completions.completedAt, today.getTime()),
-        eq(schema.completions.isDeleted, 0) // Only get non-deleted completions
+        gte(schema.completions.completedAt, today.getTime())
       )
     )
     .orderBy(desc(schema.completions.completedAt))

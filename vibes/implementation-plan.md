@@ -121,7 +121,7 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 - **2.1. Define Local Database Schemas (Drizzle ORM - `src/lib/db/schema.ts`)**:
   - [x] **`calendars`**: `id` (uuid, primary key), `userId` (string, nullable for local-only anonymous data initially), `name` (string), `colorTheme` (string), `position` (integer), `isEnabled` (boolean, default true), `createdAt` (timestamp), `updatedAt` (timestamp).
   - [x] **`habits`**: `id` (uuid, primary key), `userId` (string, nullable), `calendarId` (uuid, references `calendars.id`), `name` (string), `description` (text, optional), `type` (enum: 'positive', 'negative'), `timerEnabled` (boolean, default false), `targetDurationSeconds` (integer, optional), `pointsValue` (integer, optional, default 0), `position` (integer), `createdAt` (timestamp), `updatedAt` (timestamp).
-  - [x] **`completions`**: `id` (uuid, primary key), `userId` (string, nullable), `habitId` (uuid, references `habits.id`), `completedAt` (timestamp), `notes` (text, optional), `durationSpentSeconds` (integer, optional), `isDeleted` (boolean, default false, for soft deletes).
+  - [x] **`completions`**: `id` (uuid, primary key), `userId` (string, nullable), `habitId` (uuid, references `habits.id`), `completedAt` (timestamp). Ultra-simplified for basic habit tracking - only essential fields kept.
   - [x] **`activeTimers`**: `id` (uuid, primary key), `userId` (string, nullable), `habitId` (uuid, references `habits.id`), `startTime` (timestamp), `pausedTime` (timestamp, nullable), `totalPausedDurationSeconds` (integer, default 0), `status` (enum: 'running', 'paused'), `createdAt` (timestamp), `updatedAt` (timestamp).
 - **2.2. Local Data Service (`src/lib/services/local-data.ts` or similar)**:
   - [x] Implement functions using Drizzle ORM to perform CRUD operations on local SQLite tables.
@@ -142,7 +142,7 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 - **2.6. Completion Logging (Local - Multiple per day)**:
   - [x] "Complete" button/control implemented in new dashboard UI.
   - [x] Logic to add a new `Completion` record to local DB (via stores/service). Each click = new record.
-  - [x] Implemented soft-delete for completions for the current day via the new UI.
+  - [x] ~~Implemented soft-delete for completions for the current day via the new UI.~~ **UPDATED:** Completions ultra-simplified - removed notes, durationSpentSeconds, isDeleted, createdAt, updatedAt. Now only tracks: id, userId, habitId, completedAt. Uses hard deletes for simplicity.
 - ~~**2.7. Basic Timer UI (Local)**~~: (Deferred)
   - [ ] If `timerEnabled` for a habit, show "Start Timer" button.
   - [ ] UI to reflect timer state (running, paused) based on `activeTimers` store.
@@ -164,7 +164,7 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [ ] **Initial Sync (Pull):** On app load for an authenticated user (or after login), fetch all data from Convex. Merge with local data (server authoritative for first pull, or more complex merge later).
   - [ ] **Ongoing Sync (Push):** After any local CUD operation, if user is authenticated, queue and call the corresponding Convex mutation. Use optimistic updates in UI.
   - [ ] **Ongoing Sync (Pull):** Subscribe to Convex queries to receive real-time updates from the server and update local stores/DB.
-  - [ ] **Conflict Resolution (Basic):** Start with "last write wins" based on `updatedAt` timestamp. Server timestamp preferred.
+  - [ ] **Conflict Resolution (Basic):** ~~Start with "last write wins" based on `updatedAt` timestamp. Server timestamp preferred.~~ **UPDATED:** For completions, use `completedAt` timestamp for conflict resolution since completions are ultra-simplified. Other entities still use createdAt/updatedAt.
 - **3.3. Anonymous Data Migration to Cloud**:
   - [ ] On first sign-in/sign-up for a user with existing local anonymous data:
     - Prompt to sync local data.

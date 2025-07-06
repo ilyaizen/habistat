@@ -29,17 +29,12 @@ export const habits = sqliteTable("habits", {
   updatedAt: integer("updatedAt").notNull()
 });
 
-// Completions table
+// Completions table - ultra-simplified for basic habit tracking
 export const completions = sqliteTable("completions", {
   id: text("id").primaryKey(),
-  userId: text("userId"),
+  userId: text("userId"), // nullable for anonymous/local
   habitId: text("habitId").notNull(),
-  completedAt: integer("completedAt").notNull(),
-  notes: text("notes"),
-  durationSpentSeconds: integer("durationSpentSeconds"),
-  isDeleted: integer("isDeleted").notNull().default(0), // 0/1 boolean
-  createdAt: integer("createdAt").notNull(),
-  updatedAt: integer("updatedAt").notNull()
+  completedAt: integer("completedAt").notNull() // The only timestamp we need
 });
 
 // ActiveTimers table

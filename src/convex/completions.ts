@@ -10,12 +10,7 @@ export const createCompletion = mutation({
   args: {
     localUuid: v.string(),
     habitId: v.string(), // This should be the Convex habit ID, not local UUID
-    completedAt: v.number(),
-    notes: v.optional(v.string()),
-    durationSpentSeconds: v.optional(v.number()),
-    isDeleted: v.boolean(),
-    clientCreatedAt: v.number(),
-    clientUpdatedAt: v.number()
+    completedAt: v.number()
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -30,15 +25,12 @@ export const createCompletion = mutation({
       .first();
 
     if (existing) {
-      // Update existing record if client version is newer
-      if (args.clientUpdatedAt > existing.clientUpdatedAt) {
+      // For ultra-simple completions, just update the completedAt time
+      // (use completedAt as the conflict resolution timestamp)
+      if (args.completedAt > existing.completedAt) {
         await ctx.db.patch(existing._id, {
           habitId: args.habitId,
-          completedAt: args.completedAt,
-          notes: args.notes,
-          durationSpentSeconds: args.durationSpentSeconds,
-          isDeleted: args.isDeleted,
-          clientUpdatedAt: args.clientUpdatedAt
+          completedAt: args.completedAt
         });
         return existing._id;
       }
@@ -50,12 +42,7 @@ export const createCompletion = mutation({
       userId: identity.subject,
       localUuid: args.localUuid,
       habitId: args.habitId,
-      completedAt: args.completedAt,
-      notes: args.notes,
-      durationSpentSeconds: args.durationSpentSeconds,
-      isDeleted: args.isDeleted,
-      clientCreatedAt: args.clientCreatedAt,
-      clientUpdatedAt: args.clientUpdatedAt
+      completedAt: args.completedAt
     });
 
     return completionId;
@@ -64,15 +51,12 @@ export const createCompletion = mutation({
 
 /**
  * Update an existing completion record.
- * Used primarily for soft deletes and note updates.
+ * Used primarily for timestamp updates.
  */
 export const updateCompletion = mutation({
   args: {
     localUuid: v.string(),
-    notes: v.optional(v.string()),
-    durationSpentSeconds: v.optional(v.number()),
-    isDeleted: v.boolean(),
-    clientUpdatedAt: v.number()
+    completedAt: v.number()
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -89,13 +73,10 @@ export const updateCompletion = mutation({
       throw new Error("Completion not found");
     }
 
-    // Only update if client version is newer (Last Write Wins)
-    if (args.clientUpdatedAt > completion.clientUpdatedAt) {
+    // Only update if new completedAt is different (Last Write Wins using completedAt)
+    if (args.completedAt !== completion.completedAt) {
       await ctx.db.patch(completion._id, {
-        notes: args.notes,
-        durationSpentSeconds: args.durationSpentSeconds,
-        isDeleted: args.isDeleted,
-        clientUpdatedAt: args.clientUpdatedAt
+        completedAt: args.completedAt
       });
     }
 
@@ -125,7 +106,7 @@ export const getUserCompletions = query({
     }
 
     if (args.since) {
-      query = query.filter((q) => q.gt(q.field("clientUpdatedAt"), args.since!));
+      query = query.filter((q) => q.gt(q.field("completedAt"), args.since!));
     }
 
     const completions = await query.collect();
@@ -134,12 +115,7 @@ export const getUserCompletions = query({
       _id: completion._id,
       localUuid: completion.localUuid,
       habitId: completion.habitId,
-      completedAt: completion.completedAt,
-      notes: completion.notes,
-      durationSpentSeconds: completion.durationSpentSeconds,
-      isDeleted: completion.isDeleted,
-      clientCreatedAt: completion.clientCreatedAt,
-      clientUpdatedAt: completion.clientUpdatedAt
+      completedAt: completion.completedAt
     }));
   }
 });
@@ -158,20 +134,15 @@ export const getCompletionsSince = query({
 
     const completions = await ctx.db
       .query("completions")
-      .withIndex("by_user_updated_at", (q) => q.eq("userId", identity.subject))
-      .filter((q) => q.gt(q.field("clientUpdatedAt"), args.timestamp))
+      .withIndex("by_user_completed_at", (q) => q.eq("userId", identity.subject))
+      .filter((q) => q.gt(q.field("completedAt"), args.timestamp))
       .collect();
 
     return completions.map((completion) => ({
       _id: completion._id,
       localUuid: completion.localUuid,
       habitId: completion.habitId,
-      completedAt: completion.completedAt,
-      notes: completion.notes,
-      durationSpentSeconds: completion.durationSpentSeconds,
-      isDeleted: completion.isDeleted,
-      clientCreatedAt: completion.clientCreatedAt,
-      clientUpdatedAt: completion.clientUpdatedAt
+      completedAt: completion.completedAt
     }));
   }
 });
@@ -186,12 +157,7 @@ export const batchUpsertCompletions = mutation({
       v.object({
         localUuid: v.string(),
         habitId: v.string(),
-        completedAt: v.number(),
-        notes: v.optional(v.string()),
-        durationSpentSeconds: v.optional(v.number()),
-        isDeleted: v.boolean(),
-        clientCreatedAt: v.number(),
-        clientUpdatedAt: v.number()
+        completedAt: v.number()
       })
     )
   },
@@ -211,15 +177,11 @@ export const batchUpsertCompletions = mutation({
         .first();
 
       if (existing) {
-        // Update if client version is newer
-        if (completion.clientUpdatedAt > existing.clientUpdatedAt) {
+        // Update if new completedAt is different
+        if (completion.completedAt !== existing.completedAt) {
           await ctx.db.patch(existing._id, {
             habitId: completion.habitId,
-            completedAt: completion.completedAt,
-            notes: completion.notes,
-            durationSpentSeconds: completion.durationSpentSeconds,
-            isDeleted: completion.isDeleted,
-            clientUpdatedAt: completion.clientUpdatedAt
+            completedAt: completion.completedAt
           });
         }
         results.push(existing._id);
@@ -229,12 +191,7 @@ export const batchUpsertCompletions = mutation({
           userId: identity.subject,
           localUuid: completion.localUuid,
           habitId: completion.habitId,
-          completedAt: completion.completedAt,
-          notes: completion.notes,
-          durationSpentSeconds: completion.durationSpentSeconds,
-          isDeleted: completion.isDeleted,
-          clientCreatedAt: completion.clientCreatedAt,
-          clientUpdatedAt: completion.clientUpdatedAt
+          completedAt: completion.completedAt
         });
         results.push(completionId);
       }

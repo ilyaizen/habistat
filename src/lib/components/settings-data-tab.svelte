@@ -132,10 +132,6 @@
                 <li>
                   <span class="font-mono text-xs">{new Date(c.completedAt).toLocaleString()}</span>
                   {" "}- Habit: <span class="font-semibold">{c.habitId}</span>
-                  {#if c.notes}
-                    - Notes: {c.notes}{/if}
-                  {#if c.durationSpentSeconds}
-                    - Duration: {c.durationSpentSeconds}s{/if}
                   {#if c.userId}
                     - User: {c.userId}{/if}
                 </li>
