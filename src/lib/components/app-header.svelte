@@ -104,11 +104,14 @@
           <Skeleton class="h-6 w-16 rounded-md" />
         </div>
       {:else}
-        <Badge variant="outline" class="hidden sm:flex">
+        <!-- <Badge variant="outline" class="hidden sm:flex">
           Total: {$gamification.totalPoints}
-        </Badge>
-        <Badge variant="secondary" class="hidden sm:flex">
-          Weekly: {$gamification.weeklyPoints}
+        </Badge> -->
+        <Badge
+          variant={$gamification.weeklyPointsDelta >= 0 ? "default" : "destructive"}
+          class="hidden sm:flex"
+        >
+          XP {$gamification.weeklyPointsDelta >= 0 ? "+" : ""}{$gamification.weeklyPointsDelta}
         </Badge>
       {/if}
       <Avatar />

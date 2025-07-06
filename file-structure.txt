@@ -47,6 +47,7 @@
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
 │   │   │   ├── avatar.svelte
+│   │   │   ├── confetti-effect.svelte
 │   │   │   ├── dashboard-header.svelte
 │   │   │   ├── environment-indicator-old.svelte
 │   │   │   ├── error-boundary.svelte
@@ -87,6 +88,7 @@
 │   │   │   ├── active-timers.ts
 │   │   │   ├── calendars.ts
 │   │   │   ├── completions.ts
+│   │   │   ├── gamification.ts
 │   │   │   ├── habits.ts
 │   │   │   ├── network.ts
 │   │   │   ├── platform.ts

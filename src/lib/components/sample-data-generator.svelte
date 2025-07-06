@@ -26,19 +26,19 @@
   let showDialog = $state(false);
 
   /**
-   * Generates fake app usage history for the past 7 days.
+   * Generates fake app usage history for the past 14 days.
    * This simulates that the user has been opening the app daily.
    */
   async function generateFakeUsageHistory() {
-    // Generate 7 days of fake app open history
-    await generateFakeAppOpenHistory(7);
+    // Generate 14 days of fake app open history
+    await generateFakeAppOpenHistory(14);
 
-    // Update session start date to 7 days ago (6 days before today)
-    updateSessionStartDate(6);
+    // Update session start date to 14 days ago (6 days before today)
+    updateSessionStartDate(13);
   }
 
   /**
-   * Generates 7 days of completion data for all habits.
+   * Generates 14 days of completion data for all habits.
    * Each habit gets 0-3 random completions per day.
    */
   async function generateCompletionsHistory(
@@ -47,8 +47,8 @@
     const today = new Date();
     const currentUserId = get(sessionStore)?.id;
 
-    // Generate completions for the past 7 days
-    for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
+    // Generate completions for the past 14 days
+    for (let dayOffset = 13; dayOffset >= 0; dayOffset--) {
       const date = new Date(today);
       date.setDate(today.getDate() - dayOffset);
 
@@ -174,7 +174,7 @@
         })
         .filter((h) => h.id); // Filter out any habits that weren't found
 
-      // Generate 7 days of completion history
+      // Generate 14 days of completion history
       await generateCompletionsHistory(actualCreatedHabits);
 
       // Refresh all stores to ensure UI updates
@@ -184,7 +184,7 @@
         completionsStore.refresh()
       ]);
 
-      console.log("Sample data with 7-day history generated successfully!");
+      console.log("Sample data with 14-day history generated successfully!");
 
       // Call callback to notify parent component
       ondatagenerated?.();
@@ -218,8 +218,8 @@
     <AlertDialog.Header>
       <AlertDialog.Title>Generate Sample Data</AlertDialog.Title>
       <AlertDialog.Description>
-        This will create sample calendars, habits, and 7 days of completion history to help you
-        explore the app. It will also simulate 7 days of app usage history.
+        This will create sample calendars, habits, and 14 days of completion history to help you
+        explore the app. It will also simulate 14 days of app usage history.
         <br /><br />
         <strong>Note:</strong> This action will add data to your current workspace and cannot be easily
         undone.

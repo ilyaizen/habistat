@@ -10,7 +10,7 @@ const POINTS_FOR_INACTIVE_DAY = -10;
 
 export interface GamificationState {
   totalPoints: number;
-  weeklyPoints: number;
+  weeklyPointsDelta: number;
   loading: boolean;
 }
 
@@ -21,7 +21,7 @@ export interface GamificationState {
 function createGamificationStore(): Readable<GamificationState> {
   const initialState: GamificationState = {
     totalPoints: 0,
-    weeklyPoints: 0,
+    weeklyPointsDelta: 0,
     loading: true
   };
 
@@ -44,12 +44,16 @@ function createGamificationStore(): Readable<GamificationState> {
         };
 
         const today = formatLocalDate(new Date());
-        const oneWeekAgo = new Date(today);
-        oneWeekAgo.setDate(today.getDate() - 7);
+        const thisWeekStart = new Date(today);
+        thisWeekStart.setDate(today.getDate() - 7);
+
+        const lastWeekStart = new Date(today);
+        lastWeekStart.setDate(today.getDate() - 14);
 
         // --- Calculate Habit Points ---
         let totalHabitPoints = 0;
-        let weeklyHabitPoints = 0;
+        let thisWeekHabitPoints = 0;
+        let lastWeekHabitPoints = 0;
 
         for (const completion of allCompletions) {
           const habit = allHabits.find((h) => h.id === completion.habitId);
@@ -62,14 +66,17 @@ function createGamificationStore(): Readable<GamificationState> {
           totalHabitPoints += completionPoints;
 
           const completionDate = new Date(completion.completedAt);
-          if (completionDate >= oneWeekAgo) {
-            weeklyHabitPoints += completionPoints;
+          if (completionDate >= thisWeekStart) {
+            thisWeekHabitPoints += completionPoints;
+          } else if (completionDate >= lastWeekStart) {
+            lastWeekHabitPoints += completionPoints;
           }
         }
 
         // --- Calculate Activity Points ---
         let totalActivityPoints = 0;
-        let weeklyActivityPoints = 0;
+        let thisWeekActivityPoints = 0;
+        let lastWeekActivityPoints = 0;
 
         if (sessionCreatedAt) {
           const startDate = formatLocalDate(new Date(sessionCreatedAt));
@@ -82,23 +89,28 @@ function createGamificationStore(): Readable<GamificationState> {
 
           for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
             const currentDate = formatLocalDate(d);
+            let points = 0;
             if (activeDates.has(currentDate.getTime())) {
-              totalActivityPoints += POINTS_FOR_ACTIVE_DAY;
-              if (currentDate >= oneWeekAgo) {
-                weeklyActivityPoints += POINTS_FOR_ACTIVE_DAY;
-              }
+              points = POINTS_FOR_ACTIVE_DAY;
             } else {
-              totalActivityPoints += POINTS_FOR_INACTIVE_DAY;
-              if (currentDate >= oneWeekAgo) {
-                weeklyActivityPoints += POINTS_FOR_INACTIVE_DAY;
-              }
+              points = POINTS_FOR_INACTIVE_DAY;
+            }
+
+            totalActivityPoints += points;
+            if (currentDate >= thisWeekStart) {
+              thisWeekActivityPoints += points;
+            } else if (currentDate >= lastWeekStart) {
+              lastWeekActivityPoints += points;
             }
           }
         }
 
         set({
           totalPoints: totalHabitPoints + totalActivityPoints,
-          weeklyPoints: weeklyHabitPoints + weeklyActivityPoints,
+          weeklyPointsDelta:
+            thisWeekHabitPoints +
+            thisWeekActivityPoints -
+            (lastWeekHabitPoints + lastWeekActivityPoints),
           loading: false
         });
       };
