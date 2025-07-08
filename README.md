@@ -8,8 +8,6 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 
-## **Get Started: [habistat.app](https://habistat.app)** 👈
-
 **Habistat** is a free and open-source **habit tracker** focused on privacy and simplicity. It helps you build good habits, break bad ones, and track daily activity, with your data fully under your control. Features include time-based habit tracking and optional gamification: streaks, points, and a virtual garden that grows – ideally, like you. 🌱
 
 An alternative to apps like **[Everyday](https://everyday.app/)**, **[Habitify](https://www.habitify.me/)**, and **[Habitica](https://habitica.com/)**, it is built with the lightweight **[Tauri](https://v2.tauri.app/)** framework and runs smoothly on Android, iOS, Windows, macOS, and in any modern browser.
@@ -20,7 +18,7 @@ An alternative to apps like **[Everyday](https://everyday.app/)**, **[Habitify](
 > [!NOTE]
 > This app is currently in its alpha development stage and may not be stable until future versions.
 
----
+## **Get Started: [habistat.app](https://habistat.app)** 👈
 
 ## Why Habistat?
 
