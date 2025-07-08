@@ -52,6 +52,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build frontend
+        env:
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         run: pnpm build
 
       - name: Build and release Tauri app
@@ -117,6 +119,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build frontend for Android
+        env:
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         run: pnpm build
 
       - name: Setup Android environment
