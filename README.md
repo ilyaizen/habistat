@@ -12,6 +12,10 @@
 
 An alternative to apps like **[Everyday](https://everyday.app/)**, **[Habitify](https://www.habitify.me/)**, and **[Habitica](https://habitica.com/)**, it is built with the lightweight **[Tauri](https://v2.tauri.app/)** framework and runs smoothly on Android, iOS, Windows, macOS, and in any modern browser.
 
+## Why Habistat?
+
+Tired of bloated apps and shaky privacy policies? Habistat keeps it simple. Inspired by "Don't Break the Chain," it turns habit tracking into a daily checkmark ritual. Each completed habit advances your streak, grows a virtual plant, and earns points.
+
 > [!NOTE]
 > The currently available versions are Windows and web, with other versions coming soon.
 
@@ -19,12 +23,6 @@ An alternative to apps like **[Everyday](https://everyday.app/)**, **[Habitify](
 > This app is currently in its alpha development stage and may not be stable until future versions.
 
 ## **Get Started: [habistat.app](https://habistat.app)** 👈
-
-## Why Habistat?
-
-Tired of bloated apps and shaky privacy policies? Habistat keeps it simple. Inspired by "Don't Break the Chain," it turns habit tracking into a daily checkmark ritual. Each completed habit advances your streak, grows a virtual plant, and earns points.
-
----
 
 ## Features
 
