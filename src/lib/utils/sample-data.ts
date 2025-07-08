@@ -15,11 +15,6 @@ export const SAMPLE_DATA_CONFIG = {
       name: "🧠 Productivity",
       colorTheme: "Blue",
       position: 1
-    },
-    {
-      name: "🚫 Bad Habits",
-      colorTheme: "Red",
-      position: 2
     }
   ],
   habits: [
@@ -68,7 +63,7 @@ export const SAMPLE_DATA_CONFIG = {
     {
       calendarName: "🧠 Productivity",
       name: "📝 Write",
-      description: "Write a focused 3-item to-do list for the day.",
+      description: "Write.",
       type: "positive" as const,
       timerEnabled: true,
       targetDurationMinutes: 25,
@@ -84,17 +79,6 @@ export const SAMPLE_DATA_CONFIG = {
       targetDurationMinutes: 25,
       pointsValue: 5,
       position: 2
-    },
-    // Bad Habits (negative habits)
-    {
-      calendarName: "🚫 Bad Habits",
-      name: "🌽 Corn",
-      description: "Avoid eating corn.",
-      type: "negative" as const,
-      timerEnabled: false,
-      targetDurationMinutes: null,
-      pointsValue: 15,
-      position: 0
     }
   ]
 } as const;

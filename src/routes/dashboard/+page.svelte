@@ -48,6 +48,9 @@
   let localCalendars = $state<Calendar[]>([]);
   let localHabitsByCalendar = $state(new Map<string, Habit[]>());
 
+  // Add key for ActivityMonitor remount
+  let activityMonitorKey = $state(0);
+
   // Drag-and-drop state tracking
   let isHabitZoneActive = $state(false); // Prevents calendar reordering when dragging habits
   let activeHabitCalendarId = $state<string | null>(null); // Tracks which calendar's habits are being dragged
@@ -283,7 +286,7 @@
 <Tooltip.Provider>
   <div class="container mx-auto max-w-6xl p-8">
     <!-- Header with reorder mode toggle -->
-    <DashboardHeader bind:isReorderMode />
+    <DashboardHeader bind:isReorderMode {activityMonitorKey} />
 
     {#if loading()}
       <!-- Loading state -->
@@ -296,7 +299,11 @@
         <p class="text-muted-foreground mb-4">No calendars yet. Create one to get started!</p>
         <div class="mt-4 flex justify-center gap-2">
           <Button size="sm" onclick={openCreateDialog}>New Calendar</Button>
-          <SampleDataGenerator ondatagenerated={handleDataGenerated} />
+          <SampleDataGenerator
+            ondatagenerated={() => {
+              activityMonitorKey++;
+            }}
+          />
         </div>
       </div>
     {:else}

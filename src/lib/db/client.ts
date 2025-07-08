@@ -178,6 +178,8 @@ async function loadSqlJsDb(SQL: any): Promise<any> {
 }
 
 async function saveSqlJsDb(db: any) {
+  // Always vacuum to minimize file size before export
+  db.run("VACUUM");
   const idb = await openIndexedDB();
   return new Promise<void>((resolve, reject) => {
     const data = db.export();

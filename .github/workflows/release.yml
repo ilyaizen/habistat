@@ -52,6 +52,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build frontend
+        env:
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         run: pnpm build
 
       - name: Build and release Tauri app
@@ -59,6 +61,7 @@ jobs:
         id: tauri_action
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         with:
           tagName: ${{ steps.version.outputs.tag_name }}
           releaseName: "Habistat ${{ steps.version.outputs.tag_name }}"
@@ -117,6 +120,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build frontend for Android
+        env:
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         run: pnpm build
 
       - name: Setup Android environment

@@ -4,7 +4,10 @@
   import { ArrowUpDown } from "@lucide/svelte";
   import VirtualGarden from "$lib/components/virtual-garden.svelte";
 
-  let { isReorderMode = $bindable() }: { isReorderMode: boolean } = $props();
+  let {
+    isReorderMode = $bindable(),
+    activityMonitorKey = 0
+  }: { isReorderMode: boolean; activityMonitorKey?: number } = $props();
 </script>
 
 <div class="mb-6 flex w-full flex-row items-start justify-between">
@@ -15,7 +18,9 @@
     </p>
   </div>
   <div class="flex flex-col items-end justify-center gap-4">
-    <ActivityMonitor />
+    {#key activityMonitorKey}
+      <ActivityMonitor />
+    {/key}
     <!-- TODO: 2025-07-07 - Add virtual garden back in when we have a better way to handle the canvas -->
     <!-- <VirtualGarden /> -->
   </div>

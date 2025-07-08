@@ -76,7 +76,7 @@
 │   │   ├── db
 │   │   │   ├── client.ts
 │   │   │   ├── schema.ts
-│   │   │   └── server.ts
+│   │   │   └── server.server.ts
 │   │   ├── hooks
 │   │   │   ├── is-mobile.svelte.ts
 │   │   │   ├── use-app-init.svelte.ts
@@ -191,7 +191,8 @@
 │   ├── logo.svg
 │   ├── maskable-icon-512x512.png
 │   ├── offline.html
-│   └── site.webmanifest
+│   ├── site.webmanifest
+│   └── sql-wasm.wasm
 ├── vibes
 │   ├── add-comments.md
 │   ├── contribution-guide.md

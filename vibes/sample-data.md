@@ -59,7 +59,7 @@ This document outlines the sample data used in the Habistat application for demo
 
 #### 📝 Write
 
-- **Description**: Write a focused 3-item to-do list for the day.
+- **Description**: Write.
 - **Type**: positive
 - **Timer**: Enabled (25 minutes)
 - **Points**: 3
@@ -72,13 +72,3 @@ This document outlines the sample data used in the Habistat application for demo
 - **Timer**: Enabled (25 minutes)
 - **Points**: 5
 - **Position**: 2
-
-### 🚫 Bad Habits (Calendar)
-
-#### 🌽 Corn
-
-- **Description**: Avoid eating corn.
-- **Type**: negative
-- **Timer**: Disabled
-- **Points**: 15
-- **Position**: 0
