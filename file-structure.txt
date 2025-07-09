@@ -105,6 +105,7 @@
 │   │   ├── utils
 │   │   │   ├── auth.ts
 │   │   │   ├── colors.ts
+│   │   │   ├── completions.ts
 │   │   │   ├── context-menu.ts
 │   │   │   ├── convex.ts
 │   │   │   ├── date.ts
@@ -203,6 +204,7 @@
 │   ├── rules.md
 │   ├── sample-data.md
 │   └── tech-stack.md
+├── .cursorignore
 ├── .env.example
 ├── .env.local
 ├── .eslintrc.cjs

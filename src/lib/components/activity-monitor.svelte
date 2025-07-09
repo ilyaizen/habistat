@@ -2,7 +2,8 @@
   import { onMount } from "svelte";
   import { triggerFireworks } from "$lib/stores/ui";
   import { sessionStore, getAppOpenHistory, logAppOpenIfNeeded } from "$lib/utils/tracking";
-  import { get } from "svelte/store";
+  import { completionsStore, getCompletionCountForDate } from "$lib/stores/completions";
+  import { formatLocalDate } from "$lib/utils/date";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import {
     Tooltip,
@@ -10,14 +11,6 @@
     TooltipTrigger,
     TooltipProvider
   } from "$lib/components/ui/tooltip";
-
-  // Helper to format a date as YYYY-MM-DD in the local timezone.
-  function formatLocalDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  }
 
   // State for the component
   let sessionStartDate: string | null = $state(null);
@@ -34,6 +27,7 @@
     date: string; // YYYY-MM-DD
     status: "active" | "inactive" | "pre-registration";
     isToday: boolean;
+    completionCount: number; // Number of completions for this day
   }
 
   /**
@@ -44,7 +38,7 @@
     loadingHistory = true;
 
     try {
-      const session = get(sessionStore);
+      const session = $sessionStore;
       if (session?.createdAt) {
         const created = new Date(session.createdAt);
         sessionStartDate = formatLocalDate(created);
@@ -77,6 +71,9 @@
     // Ensure a session exists before logging app open
     sessionStore.ensure();
 
+    // Load completions data first
+    await completionsStore.refresh();
+
     // Log app open and check if it was the first for the day
     const wasJustLogged = await logAppOpenIfNeeded();
     if (wasJustLogged) {
@@ -99,6 +96,9 @@
     const sessionStart = sessionStartDate ? new Date(sessionStartDate + "T00:00:00") : null;
     if (sessionStart) sessionStart.setHours(0, 0, 0, 0);
 
+    // Get the completion count function from the derived store
+    const getCompletionCount = $getCompletionCountForDate;
+
     for (let i = numDays - 1; i >= 0; i--) {
       const currentDate = new Date();
       currentDate.setHours(0, 0, 0, 0);
@@ -106,6 +106,7 @@
       const currentDateStr = formatLocalDate(currentDate);
       let status: "active" | "inactive" | "pre-registration";
       const isToday = currentDateStr === todayStr;
+      const completionCount = getCompletionCount(currentDateStr);
 
       if (sessionStart && currentDate < sessionStart) {
         status = "pre-registration";
@@ -114,20 +115,25 @@
       } else {
         status = "inactive";
       }
-      days.push({ date: currentDateStr, status, isToday });
+      days.push({ date: currentDateStr, status, isToday, completionCount });
     }
     activityDays = days.reverse();
   }
 
+  // Reactive statement that regenerates activity data when dependencies change
   $effect(() => {
-    if (!loadingHistory) {
+    // Subscribe to all the dependencies that should trigger a refresh
+    const currentCompletionCountFn = $getCompletionCountForDate;
+    const currentSession = $sessionStore;
+
+    if (!loadingHistory && activeDates.size > 0) {
       generateActivityData();
     }
   });
 
   // Watch for changes in the session store and refresh when session changes
   $effect(() => {
-    const session = get(sessionStore);
+    const session = $sessionStore;
     if (session && !loadingHistory) {
       // Update session start date if it changed
       if (session.createdAt) {
@@ -166,15 +172,19 @@
             <TooltipTrigger>
               <div
                 class="h-6 w-[10px] rounded-lg"
-                class:activity-bar-green={day.status === "active"}
+                class:activity-bar-green={day.status === "active" && day.completionCount > 0}
+                class:activity-bar-green-half={day.status === "active" && day.completionCount === 0}
                 class:activity-bar-red={day.status === "inactive"}
                 class:bg-secondary={day.status === "pre-registration"}
-                aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""}`}
+                aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""} - ${day.completionCount} completions`}
               ></div>
             </TooltipTrigger>
             <TooltipContent>
               {#snippet children()}
-                {day.date}{day.isToday ? " (Today)" : ""} - {day.status}
+                <div class="text-center">
+                  <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
+                  <div>Completions: {day.completionCount}</div>
+                </div>
               {/snippet}
             </TooltipContent>
           </Tooltip>
@@ -212,6 +222,20 @@
     transition:
       transform 0.2s,
       background 0.2s;
+  }
+
+  .activity-bar-green-half {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary), white 20%) 0%,
+      var(--primary) 50%,
+      color-mix(in oklab, var(--primary), black 10%) 100%
+    );
+    opacity: 0.5;
+    transition:
+      transform 0.2s,
+      background 0.2s,
+      opacity 0.2s;
   }
 
   .activity-bar-red {

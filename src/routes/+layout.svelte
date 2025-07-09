@@ -114,14 +114,9 @@
   if (browser) {
     const convexUrl = import.meta.env.PUBLIC_CONVEX_URL || import.meta.env.VITE_CONVEX_URL;
     console.log("[DEBUG] Environment variables:", {
-      PUBLIC_CONVEX_URL: import.meta.env.PUBLIC_CONVEX_URL,
       VITE_CONVEX_URL: import.meta.env.VITE_CONVEX_URL,
-      convexUrl,
-      PUBLIC_CLERK_PUBLISHABLE_KEY: import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY
-        ? "✓ Set"
-        : "❌ Missing",
-      VITE_PUBLIC_CLERK_PUBLISHABLE_KEY: import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY
-        ? "✓ Set"
+      VITE_CLERK_PUBLISHABLE_KEY: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+        ? "✅ Set"
         : "❌ Missing"
     });
 
@@ -164,10 +159,7 @@
     >
       {#if $networkIsOnline}
         <!-- Online: Render ClerkProvider and main app content -->
-        <ClerkProvider
-          publishableKey={import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY ||
-            import.meta.env.VITE_PUBLIC_CLERK_PUBLISHABLE_KEY}
-        >
+        <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
           {#if page.url.pathname !== "/"}
             <!-- Header is hidden on the landing page ("/") -->
             <AppHeader />

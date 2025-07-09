@@ -3,6 +3,8 @@ import type { InferModel } from "drizzle-orm";
 import { completions as completionsSchema } from "../db/schema";
 import * as localData from "../services/local-data";
 import { v4 as uuid } from "uuid";
+import { groupCompletionsByDate } from "../utils/completions";
+import { formatLocalDate } from "../utils/date";
 
 export type Completion = InferModel<typeof completionsSchema>;
 
@@ -56,6 +58,9 @@ function createCompletionsStore() {
 
 export const completionsStore = createCompletionsStore();
 
+/**
+ * Derived store that groups completions by habit ID for efficient lookup.
+ */
 export const completionsByHabit = derived(completionsStore, ($completions) => {
   const map = new Map<string, Completion[]>();
   for (const completion of $completions) {
@@ -66,4 +71,30 @@ export const completionsByHabit = derived(completionsStore, ($completions) => {
     map.get(completion.habitId)!.push(completion);
   }
   return map;
+});
+
+/**
+ * Derived store that groups all completions by date for efficient daily queries.
+ * Returns a Map where keys are 'YYYY-MM-DD' strings and values are completion counts.
+ */
+export const completionsByDate = derived(completionsStore, ($completions) => {
+  return groupCompletionsByDate($completions);
+});
+
+/**
+ * Derived store that provides a function to get completion count for any date.
+ * This is optimized for reactive components that need date-based completion counts.
+ */
+export const getCompletionCountForDate = derived(completionsByDate, ($completionsByDate) => {
+  return (dateStr: string): number => {
+    return $completionsByDate.get(dateStr) || 0;
+  };
+});
+
+/**
+ * Derived store that provides today's total completion count.
+ */
+export const todaysCompletionCount = derived(completionsByDate, ($completionsByDate) => {
+  const today = formatLocalDate(new Date());
+  return $completionsByDate.get(today) || 0;
 });
