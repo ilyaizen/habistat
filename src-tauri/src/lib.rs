@@ -6,15 +6,14 @@ fn get_os() -> String {
 
 // Import the OS plugin and Manager trait
 use tauri_plugin_os;
-use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(|_app| {
             #[cfg(debug_assertions)] // Only open devtools in debug builds
             {
-                if let Some(window) = app.get_webview_window("main") {
+                if let Some(window) = _app.get_webview_window("main") {
                     window.open_devtools();
                     println!("Devtools opened successfully");
                 } else {

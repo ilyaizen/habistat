@@ -1,6 +1,4 @@
 .
-├── .cargo
-│   └── config.toml
 ├── .cursor
 │   ├── rules
 │   │   ├── add-comments.mdc
@@ -19,6 +17,7 @@
 │   ├── 0000_initial.sql
 │   └── 0001_simplify_completions.sql
 ├── scripts
+│   ├── generate-sample-data.mjs
 │   ├── prepare-dist.js
 │   └── version-bumper.mjs
 ├── src
@@ -47,11 +46,14 @@
 │   │   ├── components
 │   │   │   ├── about-drawer.svelte
 │   │   │   ├── activity-monitor.svelte
+│   │   │   ├── activity-trend.svelte
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
 │   │   │   ├── avatar.svelte
 │   │   │   ├── confetti-effect.svelte
-│   │   │   ├── dashboard-header.svelte
+│   │   │   ├── dashboard-calendars.svelte
+│   │   │   ├── dashboard-main-panel.svelte
+│   │   │   ├── dashboard-side-panel.svelte
 │   │   │   ├── environment-indicator-old.svelte
 │   │   │   ├── error-boundary.svelte
 │   │   │   ├── fireworks-effect.svelte
@@ -220,7 +222,6 @@
 ├── drizzle.config.ts
 ├── file-structure.txt
 ├── package.json
-├── pnpm-lock.yaml
 ├── postcss.config.cjs
 ├── svelte.config.js
 ├── tsconfig.json

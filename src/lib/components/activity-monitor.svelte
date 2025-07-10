@@ -212,8 +212,8 @@
     aria-label="Activity Monitor Overview"
   >
     <Button
-      variant="ghost"
-      class="group mb-2 flex h-auto w-full items-center justify-between bg-transparent p-0 hover:bg-transparent"
+      variant="default"
+      class="group mb-2 flex h-auto w-full items-center justify-between bg-transparent p-0 shadow-none hover:bg-transparent"
       onclick={() => (isExpanded = !isExpanded)}
     >
       <div class="flex items-center gap-2">
@@ -282,7 +282,7 @@
     <div class="expandable-content" class:expanded={isExpanded}>
       <div class="inner-content">
         <Separator class="my-3" />
-        <div class="h-[120px] w-full">
+        <div class="h-[230px] w-full">
           <ActivityTrend data={generateChartData()} />
         </div>
       </div>

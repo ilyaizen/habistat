@@ -40,7 +40,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -49,7 +48,7 @@ jobs:
           targets: ""
 
       - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Build frontend
         env:
@@ -100,7 +99,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -117,7 +115,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Build frontend for Android
         env:

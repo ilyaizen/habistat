@@ -434,11 +434,17 @@ h6,
 .expandable-content {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.4s cubic-bezier(0, 0.7, 0.1, 1);
+  transition: grid-template-rows 0.2s cubic-bezier(0, 0.7, 0.1, 1);
 }
 .expandable-content.expanded {
   grid-template-rows: 1fr;
 }
 .expandable-content > .inner-content {
   overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.expandable-content.expanded > .inner-content {
+  opacity: 1;
 }

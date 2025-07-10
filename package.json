@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3001",
-    "build": "vite build && pnpm run prepare-dist",
+    "build": "vite build",
+    "prepare-dist": "node scripts/prepare-dist.js",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -13,6 +14,7 @@
     "format": "prettier --write .",
     "tauri": "tauri",
     "db:generate": "drizzle-kit generate",
+    "generate:sample-data": "node scripts/generate-sample-data.mjs",
     "bump": "node scripts/version-bumper.mjs",
     "bump:patch": "pnpm run bump patch",
     "bump:minor": "pnpm run bump minor",

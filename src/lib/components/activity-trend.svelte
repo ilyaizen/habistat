@@ -29,16 +29,17 @@
 </script>
 
 <div class="space-y-2">
-  <span class="text-muted-foreground pb-2 text-xs font-medium"
-    >{title} (Last {filteredData.length} Days)</span
-  >
+  <span class="text-muted-foreground block w-full pb-4 text-right text-xs font-medium">
+    {title} - Last {filteredData.length} Days
+  </span>
 
   {#if filteredData.length === 0}
-    <div class="text-muted-foreground flex h-[150px] items-center justify-center text-sm">
+    <div class="text-muted-foreground flex h-[300px] items-center justify-center text-sm">
       No activity data available
     </div>
   {:else}
-    <div class="h-[150px]">
+    <div class="mt-4 h-48">
+      <!-- Changed height to h-48 (192px) for better visibility -->
       <Chart.Container config={chartConfig} class="h-full w-full">
         <BarChart
           data={filteredData}

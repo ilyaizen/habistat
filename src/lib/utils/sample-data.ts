@@ -1,84 +1,59 @@
 /**
  * Sample data configuration for generating demo content in the app.
  * This includes sample calendars and sample habits.
+ *
+ * ⚠️ THIS FILE IS AUTO-GENERATED. DO NOT EDIT.
+ * To edit sample data, modify `vibes/sample-data.md` and run `pnpm run generate:sample-data`.
  */
 
 // Sample data configuration - easily editable for demo purposes
 export const SAMPLE_DATA_CONFIG = {
   calendars: [
     {
-      name: "🏋️ Fitness",
-      colorTheme: "Green",
+      name: "🧘 Mind & Soul",
+      colorTheme: "Purple",
       position: 0
     },
     {
-      name: "🧠 Productivity",
-      colorTheme: "Blue",
+      name: "🌿 Eco-Wellness",
+      colorTheme: "Teal",
       position: 1
     }
   ],
   habits: [
-    // Fitness habits
     {
-      calendarName: "🏋️ Fitness",
-      name: "🛌 Sleep ≥ 6H",
-      description: "Sleep at least 6 hours in the past 24 hours.",
+      calendarName: "🧘 Mind & Soul",
+      name: "📵 Digital Detox",
+      description: "Spend intentional time away from screens to reduce digital fatigue.",
       type: "positive" as const,
-      timerEnabled: false,
-      targetDurationMinutes: null,
+      pointsValue: 20,
+      position: 0
+    },
+    {
+      calendarName: "🧘 Mind & Soul",
+      name: "✨ Gratitude Journaling",
+      description: "Write down three things you are grateful for to foster a positive mindset.",
+      type: "positive" as const,
       pointsValue: 10,
-      position: 0
+      position: 1
     },
     {
-      calendarName: "🏋️ Fitness",
-      name: "🤸 Workout",
-      description: "Start the day with light exercise and stretching.",
+      calendarName: "🌿 Eco-Wellness",
+      name: "♻️ Mindful Consumption",
+      description:
+        "Make a conscious choice to reduce waste, such as using a reusable bottle or avoiding single-use plastics.",
       type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 15,
       pointsValue: 15,
-      position: 1
-    },
-    {
-      calendarName: "🏋️ Fitness",
-      name: "🚶 Steps ≥ 8,000",
-      description: "Daily step goal for maintaining activity levels.",
-      type: "positive" as const,
-      timerEnabled: false,
-      targetDurationMinutes: null,
-      pointsValue: 30,
-      position: 2
-    },
-    // Productivity habits
-    {
-      calendarName: "🧠 Productivity",
-      name: "🎯 Code",
-      description: "Practice coding skills.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 25,
-      pointsValue: 8,
       position: 0
     },
     {
-      calendarName: "🧠 Productivity",
-      name: "📝 Write",
-      description: "Write.",
+      calendarName: "🌿 Eco-Wellness",
+      name: "🌳 Nature Bathing (Shinrin-yoku)",
+      description:
+        "Immerse yourself in nature for at least 15 minutes to de-stress and connect with the environment.",
       type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 25,
-      pointsValue: 3,
+      pointsValue: 25,
       position: 1
-    },
-    {
-      calendarName: "🧠 Productivity",
-      name: "📖 Read",
-      description: "Daily reading for knowledge and mental stimulation.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 25,
-      pointsValue: 5,
-      position: 2
     }
   ]
 } as const;
@@ -95,10 +70,10 @@ export type SampleDataConfig = typeof SAMPLE_DATA_CONFIG;
  * Represents a single sample calendar object within the `calendars` array.
  * This type is inferred from the first element of the `calendars` array.
  */
-export type SampleCalendar = (typeof SAMPLE_DATA_CONFIG.calendars)[0];
+export type SampleCalendar = (typeof SAMPLE_DATA_CONFIG.calendars)[number];
 
 /**
  * Represents a single sample habit object within the `habits` array.
  * This type is inferred from the first element of the `habits` array.
  */
-export type SampleHabit = (typeof SAMPLE_DATA_CONFIG.habits)[0];
+export type SampleHabit = (typeof SAMPLE_DATA_CONFIG.habits)[number];

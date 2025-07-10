@@ -4,71 +4,46 @@ This document outlines the sample data used in the Habistat application for demo
 
 ## Calendars
 
-### 🏋️ Fitness
+### 🧘 Mind & Soul
 
-- **Color Theme**: Green
+- **Color Theme**: Purple
 - **Position**: 0
 
-### 🧠 Productivity
+### 🌿 Eco-Wellness
 
-- **Color Theme**: Blue
+- **Color Theme**: Teal
 - **Position**: 1
-
-### 🚫 Bad Habits
-
-- **Color Theme**: Red
-- **Position**: 2
 
 ## Habits
 
-### 🏋️ Fitness (Calendar)
+### 🧘 Mind & Soul
 
-#### 🛌 Sleep ≥ 6H
+#### 📵 Digital Detox
 
-- **Description**: Sleep at least 6 hours in the past 24 hours.
+- **Description**: Spend intentional time away from screens to reduce digital fatigue.
 - **Type**: positive
-- **Timer**: Disabled
+- **Points**: 20
+- **Position**: 0
+
+#### ✨ Gratitude Journaling
+
+- **Description**: Write down three things you are grateful for to foster a positive mindset.
+- **Type**: positive
 - **Points**: 10
-- **Position**: 0
+- **Position**: 1
 
-#### 🤸 Workout/Stretch
+### 🌿 Eco-Wellness
 
-- **Description**: Start the day with light exercise and stretching.
+#### ♻️ Mindful Consumption
+
+- **Description**: Make a conscious choice to reduce waste, such as using a reusable bottle or avoiding single-use plastics.
 - **Type**: positive
-- **Timer**: Enabled (15 minutes)
 - **Points**: 15
-- **Position**: 1
-
-#### 🚶 Steps ≥ 8,000
-
-- **Description**: Daily step goal for maintaining activity levels.
-- **Type**: positive
-- **Timer**: Disabled
-- **Points**: 30
-- **Position**: 2
-
-### 🧠 Productivity (Calendar)
-
-#### 🎯 Code
-
-- **Description**: Practice coding skills.
-- **Type**: positive
-- **Timer**: Enabled (25 minutes)
-- **Points**: 8
 - **Position**: 0
 
-#### 📝 Write
+#### 🌳 Nature Bathing (Shinrin-yoku)
 
-- **Description**: Write.
+- **Description**: Immerse yourself in nature for at least 15 minutes to de-stress and connect with the environment.
 - **Type**: positive
-- **Timer**: Enabled (25 minutes)
-- **Points**: 3
+- **Points**: 25
 - **Position**: 1
-
-#### 📖 Read
-
-- **Description**: Daily reading for knowledge and mental stimulation.
-- **Type**: positive
-- **Timer**: Enabled (25 minutes)
-- **Points**: 5
-- **Position**: 2
