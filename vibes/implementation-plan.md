@@ -199,6 +199,14 @@ This document outlines the phased implementation plan for Habistat, evolving it 
     - [x] If >0 completions: Show `[ - <count> + ]` buttons.
     - [x] `+` action: Logs a new completion for today, increments count.
     - [x] `-` action: Deletes the most recent completion for today for that habit, decrements count.
+- **4.2.1. Enhanced Activity Monitor with Collapsible Chart**:
+  - [x] Converted Activity Overview header into a collapsible button with animated chevron icon.
+  - [x] Added expandable chart section with separator showing completion trend.
+  - [x] **SIMPLIFIED**: Replaced layerchart with recharts for simpler, more maintainable implementation.
+  - [x] Implemented proper shadcn-svelte chart pattern using recharts BarChart component.
+  - [x] Chart uses app theme colors (`var(--chart-1)`) and displays daily completion counts.
+  - [x] Shows up to 14 days of data (capped from numDays parameter).
+  - [x] Added recharts dependency and removed complex layerchart/d3-scale dependencies.
 - **4.3. Gamification - Point System (v1)**:
   - [x] Created a `gamification` store to calculate points.
   - [x] Total points are calculated from habit completions (positive/negative) and daily app activity (active/inactive days).

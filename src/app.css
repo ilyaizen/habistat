@@ -25,7 +25,7 @@
     --border: oklch(0.8666 0.0123 111.7891);
     --input: oklch(0.8666 0.0123 111.7891);
     --ring: oklch(0.5148 0.0417 91.8152);
-    --chart-1: oklch(0.5148 0.0417 91.8152);
+    --chart-1: oklch(0.4826 0.0652 143.0892);
     --chart-2: oklch(0.5514 0.003 106.499);
     --chart-3: oklch(0.4872 0.0451 103.0937);
     --chart-4: oklch(0.5514 0.003 106.499);
@@ -77,7 +77,7 @@
     --border: oklch(0.3721 0.0022 67.7576);
     --input: oklch(0.3721 0.0022 67.7576);
     --ring: oklch(0.6578 0.0509 86.953);
-    --chart-1: oklch(0.6578 0.0509 86.953);
+    --chart-1: oklch(0.6263 0.09 142.0875);
     --chart-2: oklch(0.5589 0.0501 259.8567);
     --chart-3: oklch(0.641 0.0684 112.1164);
     --chart-4: oklch(0.7128 0.0018 67.7933);
@@ -426,4 +426,19 @@ h6,
 [data-drag-handle]:active {
   @apply scale-95;
   transition: transform 0.1s ease;
+  cursor: grabbing;
+  background: hsl(var(--muted));
+}
+
+/* Animation for activity monitor expansion */
+.expandable-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0, 0.7, 0.1, 1);
+}
+.expandable-content.expanded {
+  grid-template-rows: 1fr;
+}
+.expandable-content > .inner-content {
+  overflow: hidden;
 }

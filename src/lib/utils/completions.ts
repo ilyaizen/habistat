@@ -27,7 +27,7 @@
  */
 
 import type { Completion } from "$lib/stores/completions";
-import { getLocalDayRange } from "./date";
+import { getLocalDayRange, formatLocalDate } from "./date";
 
 /**
  * Counts completions for a specific date using local timezone.
@@ -54,7 +54,8 @@ export function groupCompletionsByDate(completions: Completion[]): Map<string, n
 
   for (const completion of completions) {
     const date = new Date(completion.completedAt);
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    // Use consistent formatLocalDate function instead of inline formatting
+    const dateStr = formatLocalDate(date);
 
     groups.set(dateStr, (groups.get(dateStr) || 0) + 1);
   }

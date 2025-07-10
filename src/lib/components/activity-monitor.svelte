@@ -2,21 +2,30 @@
   import { onMount } from "svelte";
   import { triggerFireworks } from "$lib/stores/ui";
   import { sessionStore, getAppOpenHistory, logAppOpenIfNeeded } from "$lib/utils/tracking";
-  import { completionsStore, getCompletionCountForDate } from "$lib/stores/completions";
+  import {
+    completionsStore,
+    getCompletionCountForDate,
+    completionsByDate
+  } from "$lib/stores/completions";
   import { formatLocalDate } from "$lib/utils/date";
   import { Skeleton } from "$lib/components/ui/skeleton";
+  import { Separator } from "$lib/components/ui/separator";
+  import { Button } from "$lib/components/ui/button";
+  import { ChevronDown } from "@lucide/svelte";
   import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
     TooltipProvider
   } from "$lib/components/ui/tooltip";
+  import ActivityTrend from "./activity-trend.svelte";
 
   // State for the component
   let sessionStartDate: string | null = $state(null);
   let activeDates: Set<string> = $state(new Set());
   let loadingHistory = $state(true);
   let activityDays: DayStatus[] = $state([]);
+  let isExpanded = $state(false);
 
   const { numDays = 30 } = $props<{ numDays?: number }>();
 
@@ -28,6 +37,15 @@
     status: "active" | "inactive" | "pre-registration";
     isToday: boolean;
     completionCount: number; // Number of completions for this day
+  }
+
+  /**
+   * Chart data interface for activity visualization
+   */
+  interface TrendData {
+    date: string;
+    completions: number;
+    label: string; // For display in chart
   }
 
   /**
@@ -46,12 +64,26 @@
 
       // Get all app open history as dates
       const history = await getAppOpenHistory();
+      console.log("[ActivityMonitor] DEBUG - App open history raw:", history);
+
       const newActiveDates = new Set((history ?? []).map((ts) => formatLocalDate(new Date(ts))));
+      console.log(
+        "[ActivityMonitor] DEBUG - App open dates formatted:",
+        Array.from(newActiveDates)
+      );
 
       // Safeguard: Always ensure today is marked as active after a load.
-      newActiveDates.add(formatLocalDate(new Date()));
+      const todayFormatted = formatLocalDate(new Date());
+      newActiveDates.add(todayFormatted);
+      console.log("[ActivityMonitor] DEBUG - Today added:", todayFormatted);
 
       activeDates = newActiveDates;
+
+      // Debug completions store
+      console.log(
+        "[ActivityMonitor] DEBUG - Total completions in store:",
+        $completionsStore?.length || 0
+      );
     } catch (error) {
       console.error("Failed to load activity data:", error);
     } finally {
@@ -120,6 +152,33 @@
     activityDays = days.reverse();
   }
 
+  /**
+   * Generates chart data from activity days for the expanded view
+   */
+  function generateChartData(): TrendData[] {
+    // Take the most recent 15 days for the chart
+    const chartDays = Math.min(15, activityDays.length);
+
+    // activityDays is in reverse chronological order (newest first), so we take the first `chartDays`.
+    const recentDays = activityDays.slice(0, chartDays);
+
+    // The chart expects data from oldest to newest to display correctly, so we reverse the array.
+    const orderedDays = recentDays.reverse();
+
+    return orderedDays.map((day) => {
+      // Calculate total activity: completions + 1 if the app was opened
+      const appOpenBonus = day.status === "active" ? 1 : 0;
+      const totalActivity = day.completionCount + appOpenBonus;
+
+      return {
+        date: day.date,
+        completions: totalActivity,
+        // Use the actual date as the label for clarity in the chart and tooltips
+        label: day.date
+      };
+    });
+  }
+
   // Reactive statement that regenerates activity data when dependencies change
   $effect(() => {
     // Subscribe to all the dependencies that should trigger a refresh
@@ -152,10 +211,21 @@
     class="bg-card w-full max-w-[380px] rounded-md border p-2 shadow-xs sm:w-[380px]"
     aria-label="Activity Monitor Overview"
   >
-    <div class="mb-2 flex items-center justify-between">
-      <span class="text-base font-semibold">Activity Overview</span>
+    <Button
+      variant="ghost"
+      class="group mb-2 flex h-auto w-full items-center justify-between bg-transparent p-0 hover:bg-transparent"
+      onclick={() => (isExpanded = !isExpanded)}
+    >
+      <div class="flex items-center gap-2">
+        <h3 class="text-base font-semibold">Activity Overview</h3>
+        <ChevronDown
+          class="text-muted-foreground h-4 w-4 opacity-0 transition-all duration-200 group-hover:opacity-100 {isExpanded
+            ? 'rotate-180'
+            : ''}"
+        />
+      </div>
       <span class="text-muted-foreground text-xs">Last {numDays} days</span>
-    </div>
+    </Button>
 
     {#if loadingHistory}
       <div class="space-y-3">
@@ -208,6 +278,15 @@
         </div>
       </div>
     {/if}
+
+    <div class="expandable-content" class:expanded={isExpanded}>
+      <div class="inner-content">
+        <Separator class="my-3" />
+        <div class="h-[120px] w-full">
+          <ActivityTrend data={generateChartData()} />
+        </div>
+      </div>
+    </div>
   </div>
 </TooltipProvider>
 
