@@ -11,5 +11,5 @@
     <ActivityMonitor />
   {/key}
   <!-- TODO: 2025-07-12 - Add virtual garden back in when we have a better way to handle the canvas -->
-  <VirtualGarden />
+  <!-- <VirtualGarden /> -->
 </div>

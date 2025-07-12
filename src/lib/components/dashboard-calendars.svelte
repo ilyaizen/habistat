@@ -245,7 +245,7 @@
     <div animate:flip={{ duration: 200 }} data-calendar-id={cal.id}>
       <div class="flex flex-col">
         <!-- Calendar Title Section -->
-        <div class="flex items-center justify-center">
+        <div class="flex items-start">
           <!-- Drag handle for calendar reordering (shows only in reorder mode) -->
           <div
             class="overflow-hidden transition-all duration-200 {isReorderMode
