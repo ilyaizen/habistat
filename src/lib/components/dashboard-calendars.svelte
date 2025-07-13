@@ -233,6 +233,7 @@
   function closeEditDialog() {
     editingHabitId = null;
     editingCalendarId = null;
+    goto("/dashboard");
   }
 
   function openCalendarEditDialog(calendarId: string) {
@@ -242,6 +243,7 @@
 
   function closeCalendarEditDialog() {
     editingCalendarIdForDialog = null;
+    goto("/dashboard");
   }
 </script>
 
