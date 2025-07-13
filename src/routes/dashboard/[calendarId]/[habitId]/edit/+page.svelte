@@ -1,25 +1,28 @@
 <script lang="ts">
+  import { calendarsStore, type Calendar } from "$lib/stores/calendars";
   import { habits as habitsStore, type Habit } from "$lib/stores/habits";
-  import Input from "$lib/components/ui/input/input.svelte";
   import Button from "$lib/components/ui/button/button.svelte";
   import { goto } from "$app/navigation";
   import * as Select from "$lib/components/ui/select";
   import { page } from "$app/state";
-  import Label from "$lib/components/ui/label/label.svelte"; // Added for consistency if used
+  import Label from "$lib/components/ui/label/label.svelte";
   import { get } from "svelte/store";
   import Switch from "$lib/components/ui/switch/switch.svelte";
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+  import Textarea from "$lib/components/ui/textarea/textarea.svelte";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import { toast } from "svelte-sonner";
 
-  // Define habit types for the select component
   const habitTypeItems = [
     { value: "positive", label: "Positive", description: "Positive (Build good habits)" },
     { value: "negative", label: "Negative", description: "Negative (Reduce bad habits)" }
   ];
 
+  let calendars = $state<Calendar[]>([]);
   let habit = $state<Habit | undefined>(undefined);
   let name = $state("");
   let description = $state("");
-  let type = $state("positive"); // Default or load from habit
+  let type = $state("positive");
   const selectedLabel = $derived(habitTypeItems.find((item) => item.value === type)?.label);
   let timerEnabled = $state(false);
   let targetDurationSeconds = $state<number | null>(0);
@@ -27,13 +30,17 @@
   let position = $state(0);
   let isEnabled = $state(true);
   let saving = $state(false);
-  let deleteDialogOpen = $state(false); // Controls visibility of delete confirmation dialog
+  let deleteDialogOpen = $state(false);
+  let selectedCalendarId = $state("");
 
   const calendarId = $derived(page.params.calendarId);
   const habitId = $derived(page.params.habitId);
 
-  // Load habit data on mount
   $effect(() => {
+    calendarsStore.subscribe((value) => {
+      calendars = value;
+    });
+
     const allHabits = get(habitsStore);
     const found = allHabits.find((h) => h.id === habitId);
 
@@ -42,6 +49,7 @@
       name = h.name;
       description = h.description ?? "";
       type = h.type;
+      selectedCalendarId = h.calendarId;
       timerEnabled = h.timerEnabled === 1;
       targetDurationSeconds = h.targetDurationSeconds;
       pointsValue = h.pointsValue ?? 0;
@@ -72,7 +80,7 @@
     }
     saving = true;
     try {
-      await habitsStore.update(habit.id, {
+      const updatePayload: Partial<Omit<Habit, "id" | "userId" | "createdAt">> = {
         name,
         description,
         type,
@@ -81,31 +89,44 @@
         pointsValue: Number(pointsValue) || 0,
         position: Number(position) || 0,
         isEnabled: isEnabled ? 1 : 0
-      });
-      goto(`/dashboard/${calendarId}/${habitId}`);
+      };
+
+      if (selectedCalendarId !== habit.calendarId) {
+        updatePayload.calendarId = selectedCalendarId;
+        const allHabits = get(habitsStore);
+        const habitsInNewCalendar = allHabits.filter((h) => h.calendarId === selectedCalendarId);
+        const maxPosition =
+          habitsInNewCalendar.length > 0
+            ? Math.max(...habitsInNewCalendar.map((c) => c.position))
+            : -1;
+        updatePayload.position = maxPosition + 1;
+      }
+
+      await habitsStore.update(habit.id, updatePayload);
+      toast.success("Habit saved successfully!");
+      goto(`/dashboard/${selectedCalendarId}`);
     } catch (error) {
       console.error("Failed to save habit:", error);
+      toast.error("Failed to save habit. Please try again.");
     } finally {
       saving = false;
     }
   }
 
   function cancelEdit() {
-    goto(`/dashboard/${calendarId}/${habitId}`); // Redirect to the detail page
+    goto(`/dashboard/${calendarId}/${habitId}`);
   }
 
-  /**
-   * Handles deleting the current habit after user confirmation.
-   */
   async function deleteHabit() {
     if (!habit) return;
     saving = true;
     try {
       await habitsStore.remove(habit.id);
+      toast.success("Habit deleted.");
       goto(`/dashboard/${calendarId}`);
     } catch (error) {
       console.error("Failed to delete habit:", error);
-      // Optionally show a user-facing error message here.
+      toast.error("Failed to delete habit.");
     } finally {
       saving = false;
       deleteDialogOpen = false;
@@ -126,116 +147,133 @@
   {:else}
     <form onsubmit={saveHabit} class="flex flex-col gap-6">
       <div>
-        <Label class="text-foreground mb-2 block text-sm font-medium">
-          Name
-          <Input
-            id="habit-name"
-            name="name"
-            autocomplete="name"
-            bind:value={name}
-            required
-            placeholder="Habit name (e.g., Drink Water)"
-          />
-        </Label>
+        <Label for="habit-name" class="text-foreground mb-2 block text-sm font-medium">Name</Label>
+        <Input
+          id="habit-name"
+          name="name"
+          bind:value={name}
+          required
+          maxlength={30}
+          placeholder="Habit name (e.g., Drink Water)"
+        />
+        <div class="text-muted-foreground text-right text-xs">{name.length} / 30</div>
       </div>
       <div>
-        <Label class="text-foreground mb-2 block text-sm font-medium">
-          Description
-          <Input
-            id="habit-description"
-            name="description"
-            autocomplete="off"
-            bind:value={description}
-            placeholder="Optional: What, why, how?"
-          />
-        </Label>
+        <Label for="habit-description" class="text-foreground mb-2 block text-sm font-medium"
+          >Description</Label
+        >
+        <Textarea
+          id="habit-description"
+          name="description"
+          bind:value={description}
+          placeholder="Optional: What, why, how?"
+          rows={4}
+          maxlength={500}
+        />
+        <div class="text-muted-foreground text-right text-xs">{description.length} / 500</div>
       </div>
       <div>
-        <Label class="text-foreground mb-2 block text-sm font-medium">
-          Type
-          <Select.Root name="type" type="single" bind:value={type}>
-            <Select.Trigger class="w-full md:w-[200px]">
-              {#if selectedLabel}
-                {selectedLabel}
-              {:else}
-                <span class="text-muted-foreground">Select habit type</span>
-              {/if}
-            </Select.Trigger>
-            <Select.Content>
-              <Select.Group>
-                <Select.Label class="px-2 py-1.5 text-sm font-semibold">Habit Type</Select.Label>
-                {#each habitTypeItems as item (item.value)}
-                  <Select.Item value={item.value} label={item.label}>
-                    {item.description}
-                  </Select.Item>
-                {/each}
-              </Select.Group>
-            </Select.Content>
-          </Select.Root>
-        </Label>
+        <Label class="text-foreground mb-2 block text-sm font-medium">Type</Label>
+        <Select.Root name="type" bind:value={type} type="single">
+          <Select.Trigger class="w-full md:w-[200px]">
+            {#if selectedLabel}
+              {selectedLabel}
+            {:else}
+              <span class="text-muted-foreground">Select habit type</span>
+            {/if}
+          </Select.Trigger>
+          <Select.Content>
+            <Select.Group>
+              <Select.Label class="px-2 py-1.5 text-sm font-semibold">Habit Type</Select.Label>
+              {#each habitTypeItems as item (item.value)}
+                <Select.Item value={item.value} label={item.label}>
+                  {item.description}
+                </Select.Item>
+              {/each}
+            </Select.Group>
+          </Select.Content>
+        </Select.Root>
+      </div>
+      <div>
+        <Label class="text-foreground mb-2 block text-sm font-medium">Calendar</Label>
+        <Select.Root name="calendar" bind:value={selectedCalendarId} type="single">
+          <Select.Trigger class="w-full md:w-[200px]">
+            {calendars.find((c) => c.id === selectedCalendarId)?.name ?? "Select calendar"}
+          </Select.Trigger>
+          <Select.Content>
+            <Select.Group>
+              <Select.Label class="px-2 py-1.5 text-sm font-semibold">Calendars</Select.Label>
+              {#each calendars as cal (cal.id)}
+                <Select.Item value={cal.id} label={cal.name}>
+                  {cal.name}
+                </Select.Item>
+              {/each}
+            </Select.Group>
+          </Select.Content>
+        </Select.Root>
       </div>
       <div class="flex items-center gap-3 rounded-md border p-4">
-        <input
-          type="checkbox"
-          id="timerEnabled"
-          name="timerEnabled"
-          bind:checked={timerEnabled}
-          class="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
-          autocomplete="off"
-        />
+        <Switch id="timerEnabled" bind:checked={timerEnabled} />
         <Label for="timerEnabled" class="text-foreground text-sm font-medium">Enable Timer</Label>
       </div>
       {#if timerEnabled}
         <div class="ml-7">
-          <Label class="text-foreground mb-2 block text-sm font-medium">
+          <Label
+            for="habit-targetDurationSeconds"
+            class="text-foreground mb-2 block text-sm font-medium"
+          >
             Target Duration (seconds)
-            <Input
-              id="habit-targetDurationSeconds"
-              name="targetDurationSeconds"
-              autocomplete="off"
-              type="number"
-              min="1"
-              bind:value={targetDurationSeconds}
-              placeholder="e.g., 300 for 5 minutes"
-              class="w-full md:w-48"
-            />
           </Label>
+          <Input
+            id="habit-targetDurationSeconds"
+            name="targetDurationSeconds"
+            type="number"
+            min="1"
+            bind:value={targetDurationSeconds}
+            placeholder="e.g., 300 for 5 minutes"
+            class="w-full md:w-48"
+          />
         </div>
       {/if}
       <div>
-        <Label class="text-foreground mb-2 block text-sm font-medium">
-          Points Value
-          <Input
-            id="habit-pointsValue"
-            name="pointsValue"
-            autocomplete="off"
-            type="number"
-            min="0"
-            bind:value={pointsValue}
-            placeholder="Points for completion"
-            class="w-full md:w-32"
-          />
-        </Label>
+        <Label for="habit-pointsValue" class="text-foreground mb-2 block text-sm font-medium"
+          >Points Value</Label
+        >
+        <Input
+          id="habit-pointsValue"
+          name="pointsValue"
+          type="number"
+          min="0"
+          bind:value={pointsValue}
+          placeholder="Points for completion"
+          class="w-full md:w-32"
+        />
       </div>
       <div>
-        <Label class="text-foreground mb-2 block text-sm font-medium">
-          Position
-          <Input
-            id="habit-position"
-            name="position"
-            autocomplete="off"
-            type="number"
-            min="1"
-            bind:value={position}
-            placeholder="Order in list"
-            class="w-full md:w-32"
-          />
-        </Label>
+        <Label for="habit-position" class="text-foreground mb-2 block text-sm font-medium"
+          >Position</Label
+        >
+        <Input
+          id="habit-position"
+          name="position"
+          type="number"
+          min="0"
+          bind:value={position}
+          placeholder="Order in list"
+          class="w-full md:w-32"
+          disabled={selectedCalendarId !== habit?.calendarId}
+        />
+        {#if selectedCalendarId !== habit?.calendarId}
+          <p class="text-muted-foreground -mt-1 text-xs">
+            Position is set automatically when changing calendar.
+          </p>
+        {/if}
       </div>
       <div class="flex items-center space-x-2">
         <Switch id="enabled-mode" bind:checked={isEnabled} />
         <Label for="enabled-mode">Enabled</Label>
       </div>
+
       <div class="mt-6 flex justify-end gap-3 border-t pt-6">
         <Button type="button" variant="outline" onclick={cancelEdit} disabled={saving}
           >Cancel</Button

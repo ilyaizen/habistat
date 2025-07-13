@@ -28,6 +28,8 @@
   import { formatDate } from "$lib/utils/date";
   import { IsMobile } from "$lib/hooks/is-mobile.svelte.ts";
   import { Card } from "$lib/components/ui/card";
+  import HabitEditDialog from "$lib/components/habit-edit-dialog.svelte";
+  import CalendarEditDialog from "$lib/components/calendar-edit-dialog.svelte";
 
   // --- Component Props ---
   // isReorderMode is controlled by the parent component (DashboardHeader)
@@ -41,6 +43,9 @@
   // Local copies of store data for optimistic UI updates during drag operations
   let localCalendars = $state<Calendar[]>([]);
   let localHabitsByCalendar = $state(new Map<string, Habit[]>());
+  let editingHabitId = $state<string | null>(null);
+  let editingCalendarId = $state<string | null>(null);
+  let editingCalendarIdForDialog = $state<string | null>(null);
 
   // Drag-and-drop state tracking
   let isHabitZoneActive = $state(false); // Prevents calendar reordering when dragging habits
@@ -218,6 +223,26 @@
     isHabitZoneActive = false;
     activeHabitCalendarId = null;
   }
+
+  function openEditDialog(habit: Habit, calendarId: string) {
+    if (isReorderMode) return;
+    editingHabitId = habit.id;
+    editingCalendarId = calendarId;
+  }
+
+  function closeEditDialog() {
+    editingHabitId = null;
+    editingCalendarId = null;
+  }
+
+  function openCalendarEditDialog(calendarId: string) {
+    if (isReorderMode) return;
+    editingCalendarIdForDialog = calendarId;
+  }
+
+  function closeCalendarEditDialog() {
+    editingCalendarIdForDialog = null;
+  }
 </script>
 
 <!-- Main calendars and habits list -->
@@ -260,25 +285,15 @@
             />
           </div>
 
-          <!-- Calendar name link with disabled state handling -->
-          <a
-            href={isCalendarDisabled ? undefined : `/dashboard/${cal.id}`}
-            class="nunito-header mb-2 inline-block text-xl font-semibold transition-opacity hover:opacity-80 {isCalendarDisabled
-              ? 'text-muted-foreground/60 pointer-events-none opacity-60'
-              : ''}"
-            aria-disabled={isCalendarDisabled}
-            tabindex={isCalendarDisabled ? -1 : 0}
-            onclick={() => {
-              if (!isCalendarDisabled) goto(`/dashboard/${cal.id}`);
-            }}
-            onkeydown={(e: KeyboardEvent) => {
-              if (!isCalendarDisabled && (e.key === "Enter" || e.key === " ")) {
-                goto(`/dashboard/${cal.id}`);
-              }
-            }}
+          <!-- Calendar name, clickable to open edit dialog -->
+          <button
+            type="button"
+            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-block text-left text-xl font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            disabled={isCalendarDisabled || isReorderMode}
+            onclick={() => openCalendarEditDialog(cal.id)}
           >
             {cal.name}
-          </a>
+          </button>
         </div>
 
         <!-- Habits List Section -->
@@ -345,12 +360,10 @@
                                 : ''}"
                               role="button"
                               tabindex={isHabitDisabled ? -1 : 0}
-                              onclick={() => {
-                                if (!isHabitDisabled) goto(`/dashboard/${cal.id}/${habit.id}`);
-                              }}
+                              onclick={() => openEditDialog(habit, cal.id)}
                               onkeydown={(e: KeyboardEvent) => {
                                 if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
-                                  goto(`/dashboard/${cal.id}/${habit.id}`);
+                                  openEditDialog(habit, cal.id);
                                 }
                               }}
                               aria-disabled={isHabitDisabled}
@@ -365,7 +378,7 @@
                           {/snippet}
                         </Tooltip.Trigger>
                         <Tooltip.Content align="start">
-                          <p>{habit.description}</p>
+                          <p class="whitespace-pre-wrap">{habit.description}</p>
                         </Tooltip.Content>
                       </Tooltip.Root>
                     {:else}
@@ -375,12 +388,10 @@
                           : ''}"
                         role="button"
                         tabindex={isHabitDisabled ? -1 : 0}
-                        onclick={() => {
-                          if (!isHabitDisabled) goto(`/dashboard/${cal.id}/${habit.id}`);
-                        }}
+                        onclick={() => openEditDialog(habit, cal.id)}
                         onkeydown={(e: KeyboardEvent) => {
                           if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
-                            goto(`/dashboard/${cal.id}/${habit.id}`);
+                            openEditDialog(habit, cal.id);
                           }
                         }}
                         aria-disabled={isHabitDisabled}
@@ -431,3 +442,20 @@
     </div>
   {/each}
 </div>
+
+{#if editingHabitId && editingCalendarId}
+  <HabitEditDialog
+    habitId={editingHabitId}
+    calendarId={editingCalendarId}
+    open={true}
+    on:close={closeEditDialog}
+  />
+{/if}
+
+{#if editingCalendarIdForDialog}
+  <CalendarEditDialog
+    calendarId={editingCalendarIdForDialog}
+    open={true}
+    on:close={closeCalendarEditDialog}
+  />
+{/if}

@@ -207,8 +207,7 @@ function createHabitsStore() {
     async add(data: HabitInputData) {
       const allHabits = get(_habits);
       const habitsInCalendar = allHabits.filter((h) => h.calendarId === data.calendarId);
-      const maxPosition =
-        habitsInCalendar.length > 0 ? Math.max(...habitsInCalendar.map((c) => c.position ?? 0)) : 0;
+      const newPosition = habitsInCalendar.length;
 
       const localUuid = crypto.randomUUID();
       const now = Date.now();
@@ -224,7 +223,7 @@ function createHabitsStore() {
         timerEnabled: data.timerEnabled ? 1 : 0,
         targetDurationSeconds: data.targetDurationSeconds ?? null,
         pointsValue: data.pointsValue ?? 0,
-        position: data.position ?? maxPosition + 1,
+        position: data.position ?? newPosition,
         isEnabled: data.isEnabled ?? 1,
         createdAt: now,
         updatedAt: now
@@ -271,7 +270,10 @@ function createHabitsStore() {
       const itemToRemove = originalItems.find((h) => h.id === localUuid);
       if (!itemToRemove) return;
 
+      const calendarIdOfRemoved = itemToRemove.calendarId;
+
       _habits.update((items) => items.filter((h) => h.id !== localUuid));
+      this.updatePositions(calendarIdOfRemoved);
 
       try {
         await localData.deleteHabit(localUuid);
@@ -299,6 +301,9 @@ function createHabitsStore() {
       const itemToUpdate = originalItems.find((h) => h.id === localUuid);
       if (!itemToUpdate) return;
 
+      const oldCalendarId = itemToUpdate.calendarId;
+      const newCalendarId = data.calendarId;
+
       const now = Date.now();
       const updatedData = { ...data, updatedAt: now };
       const updatedHabit = { ...itemToUpdate, ...updatedData };
@@ -307,6 +312,10 @@ function createHabitsStore() {
 
       try {
         await localData.updateHabit(localUuid, updatedData);
+
+        if (newCalendarId && oldCalendarId !== newCalendarId) {
+          this.updatePositions(oldCalendarId);
+        }
 
         if (currentClerkUserId) {
           isSyncing.set(true);
@@ -331,6 +340,10 @@ function createHabitsStore() {
             if ("isEnabled" in data && data.isEnabled !== undefined)
               convexPayload.isEnabled = data.isEnabled === 1;
 
+            if ("calendarId" in data && data.calendarId !== undefined) {
+              convexPayload.calendarId = data.calendarId;
+            }
+
             await getConvexClient().mutation(api.habits.updateHabit, convexPayload as any);
 
             console.log(`Habit ${localUuid} updated in Convex.`);
@@ -344,6 +357,35 @@ function createHabitsStore() {
         console.error("Failed to update habit locally:", e);
         _habits.set(originalItems);
         throw e;
+      }
+    },
+
+    async updatePositions(calendarId: string) {
+      const allHabits = get(_habits);
+      const habitsInCalendar = allHabits
+        .filter((h) => h.calendarId === calendarId)
+        .sort((a, b) => a.position - b.position);
+
+      const updatePromises: Promise<any>[] = [];
+
+      const updatedHabits = allHabits.map((habit) => {
+        if (habit.calendarId === calendarId) {
+          const newPosition = habitsInCalendar.findIndex((h) => h.id === habit.id);
+          if (habit.position !== newPosition) {
+            updatePromises.push(this.update(habit.id, { position: newPosition }));
+            return { ...habit, position: newPosition };
+          }
+        }
+        return habit;
+      });
+
+      _habits.set(updatedHabits);
+
+      try {
+        await Promise.all(updatePromises);
+      } catch (error) {
+        console.error(`Failed to update positions for calendar ${calendarId}:`, error);
+        await this.refresh();
       }
     }
   };

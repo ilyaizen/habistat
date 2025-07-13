@@ -219,7 +219,7 @@ function createCalendarsStore() {
     async add(data: CalendarInputData) {
       const allCalendars = get(_calendars);
       const maxPosition =
-        allCalendars.length > 0 ? Math.max(...allCalendars.map((c) => c.position ?? 0)) : 0;
+        allCalendars.length > 0 ? Math.max(...allCalendars.map((c) => c.position ?? 0)) : -1;
 
       const localUuid = crypto.randomUUID();
       const now = Date.now();
@@ -298,13 +298,13 @@ function createCalendarsStore() {
 
         const updatedItem = { ...calendarToUpdate, ...data, updatedAt: now };
 
-        const targetIndex = Math.max(0, Math.min(data.position - 1, list.length));
+        const targetIndex = Math.max(0, Math.min(data.position, list.length));
 
         list.splice(targetIndex, 0, updatedItem);
 
         // Re-assign sequential positions and update timestamps for all affected calendars.
         finalCalendars = list.map((cal, index) => {
-          const newPosition = index + 1;
+          const newPosition = index;
           const wasUpdated = cal.id === updatedItem.id || cal.position !== newPosition;
           return {
             ...cal,

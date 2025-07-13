@@ -133,12 +133,12 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [x] **View (on `/dashboard`):** New compact UI displays list of calendars from local store, sorted by `position`.
   - [x] **CRUD (Create/Update/Delete):** Actions now link to `/dashboard-old` pages. A new integrated solution is needed.
   - [x] **Enable/Disable:** Add a mechanism (e.g., a switch or button) to enable or disable a calendar. Disabled calendars will be visually distinct (e.g., grayed out), and their habits will not appear in daily views.
-  - [ ] ~~**Reordering:** Reordering controls need to be added to the new dashboard UI.~~ (Deferred)
+  - [x] **Reordering:** Reordering controls need to be added to the new dashboard UI.
 - **2.5. Habit Management UI/UX (Local)**:
   - [x] **Store:** `src/lib/stores/habits.ts` with CRUD and Drizzle ORM persistence.
   - [x] **View (on `/dashboard`):** New compact UI displays list of habits for each calendar, sorted by `position`.
   - [x] **CRUD:** Actions link to `/dashboard-old` pages. A new integrated solution is needed.
-  - [ ] ~~**Reordering:** Reordering controls need to be added to the new dashboard UI.~~ (Deferred)
+  - [x] **Reassign Habits:** UI now supports reassigning a habit to a different calendar from the edit page. When a habit is moved, its position is automatically set to the end of the new calendar to avoid duplicate positions.
 - **2.6. Completion Logging (Local - Multiple per day)**:
   - [x] "Complete" button/control implemented in new dashboard UI.
   - [x] Logic to add a new `Completion` record to local DB (via stores/service). Each click = new record.
@@ -165,6 +165,7 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [ ] **Ongoing Sync (Push):** After any local CUD operation, if user is authenticated, queue and call the corresponding Convex mutation. Use optimistic updates in UI.
   - [ ] **Ongoing Sync (Pull):** Subscribe to Convex queries to receive real-time updates from the server and update local stores/DB.
   - [ ] **Conflict Resolution (Basic):** ~~Start with "last write wins" based on `updatedAt` timestamp. Server timestamp preferred.~~ **UPDATED:** For completions, use `completedAt` timestamp for conflict resolution since completions are ultra-simplified. Other entities still use createdAt/updatedAt.
+  - [x] **Habit Calendar Reassignment Sync:** Backend and store logic now support updating a habit's `calendarId` and syncing this change to Convex. Position is recalculated on reassignment to prevent conflicts.
 - **3.3. Anonymous Data Migration to Cloud**:
   - [ ] On first sign-in/sign-up for a user with existing local anonymous data:
     - Prompt to sync local data.
