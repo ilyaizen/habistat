@@ -48,6 +48,7 @@
   let editingCalendarIdForDialog = $state<string | null>(null);
 
   // Drag-and-drop state tracking
+  let isCalendarDragging = $state(false); // Tracks if a calendar is being dragged
   let isHabitZoneActive = $state(false); // Prevents calendar reordering when dragging habits
   let activeHabitCalendarId = $state<string | null>(null); // Tracks which calendar's habits are being dragged
 
@@ -145,63 +146,75 @@
   // --- Event Handlers ---
 
   /**
-   * Handles calendar drag-and-drop reordering
-   * Updates positions in the database for persistence
+   * Handles the 'finalize' event for calendar drag-and-drop.
+   * This is where we commit the new order to our local state and persist it.
    */
-  function handleCalendarDnd(e: CustomEvent<DndEvent<Calendar>>) {
+  function handleCalendarDndFinalize(e: CustomEvent<DndEvent<Calendar>>) {
     // Prevent calendar reordering when dragging habits
     if (isHabitZoneActive || activeHabitCalendarId) return;
 
+    // Additional guard against placeholder items from svelte-dnd-action
+    if (e.detail.items.some((item) => item.id.includes("dnd-shadow-placeholder"))) {
+      return;
+    }
+
+    // Update the local state to match the final dropped order
     localCalendars = e.detail.items;
 
-    // Update positions in database for persistence
-    const updatePromises = localCalendars.map((cal, index) =>
-      calendarsStore.update(cal.id, { position: index })
-    );
-    Promise.all(updatePromises);
+    // Persist the new order to the database via the store's dedicated method.
+    calendarsStore.updateOrder(e.detail.items);
   }
 
   /**
-   * Handles habit drag-and-drop reordering within a calendar
-   * Uses optimistic updates for smooth UX
+   * Handles the 'consider' event for calendar drag-and-drop.
+   * We update the local state here to reflect the visual reordering during the drag.
+   * This keeps Svelte's view of the data in sync with what svelte-dnd-action is doing
+   * in the DOM, which is crucial for preventing race conditions and crashes.
+   */
+  function handleCalendarDndConsider(e: CustomEvent<DndEvent<Calendar>>) {
+    // Update local state to show visual reordering during drag
+    localCalendars = e.detail.items;
+  }
+
+  /**
+   * Handles habit drag-and-drop reordering within and between calendars.
+   * Uses optimistic updates for smooth UX and persists changes on finalization.
    */
   function handleHabitDnd(e: CustomEvent<DndEvent<Habit>>, calendarId: string) {
     e.stopPropagation(); // Prevent calendar drag events
 
     const reorderedHabits = e.detail.items;
+
+    // Optimistic UI update: immediately reflect the new state in the local component state.
     const newMap = new Map(localHabitsByCalendar);
     newMap.set(calendarId, [...reorderedHabits]);
     localHabitsByCalendar = newMap;
 
-    // Only persist to database on finalize (drag end)
+    // Only persist changes to the database on the 'finalize' event (i.e., when the user drops the item).
     if (e.type === "finalize") {
-      const updatePromises = reorderedHabits.map((habit, index) =>
-        habitsStore.update(habit.id, { position: index })
-      );
-      Promise.all(updatePromises).catch(console.error);
+      const draggedHabitId = e.detail.info.id;
+
+      // This check determines if the current dnd-zone is the destination for the drop.
+      const isDestinationZone = reorderedHabits.some((h) => h.id === draggedHabitId);
+
+      if (isDestinationZone) {
+        // This is the destination calendar.
+        // We update all habits in this list with their new positions.
+        // If a habit was moved from another calendar, its calendarId is also updated.
+        const updatePromises = reorderedHabits.map((habit, index) => {
+          if (habit.id === draggedHabitId && habit.calendarId !== calendarId) {
+            // This is the dragged habit, and it has been moved to a new calendar.
+            // We update its calendarId and its new position in the list.
+            return habitsStore.update(habit.id, { calendarId: calendarId, position: index });
+          } else {
+            // This is a habit being reordered within the same calendar, or another habit in the
+            // destination list that needs its position updated due to the new item.
+            return habitsStore.update(habit.id, { position: index });
+          }
+        });
+        Promise.all(updatePromises).catch(console.error);
+      }
     }
-  }
-
-  /**
-   * Activates habit zone when mouse enters during reorder mode
-   * Prevents calendar reordering while over habit areas
-   */
-  function handleHabitZoneEnter(calendarId: string) {
-    if (!isReorderMode) return;
-    isHabitZoneActive = true;
-    activeHabitCalendarId = calendarId;
-  }
-
-  /**
-   * Deactivates habit zone with slight delay to prevent flickering
-   * Delay allows for smooth transitions between habit cards
-   */
-  function handleHabitZoneLeave() {
-    if (!isReorderMode) return;
-    setTimeout(() => {
-      isHabitZoneActive = false;
-      activeHabitCalendarId = null;
-    }, 50);
   }
 
   /**
@@ -254,6 +267,7 @@
     ? 'border-primary/30 bg-primary/10 rounded-lg border-2 border-dashed p-2'
     : 'border-2 border-transparent p-0'}"
   data-dnd-zone="calendar"
+  role="list"
   use:dndzone={{
     items: localCalendars,
     flipDurationMs: 200,
@@ -261,15 +275,17 @@
     dropTargetStyle: {},
     type: "calendar"
   }}
-  onconsider={handleCalendarDnd}
-  onfinalize={handleCalendarDnd}
+  onconsider={handleCalendarDndConsider}
+  onfinalize={handleCalendarDndFinalize}
+  ondragstart={() => (isCalendarDragging = true)}
+  ondragend={() => (isCalendarDragging = false)}
 >
   {#each localCalendars as cal (cal.id)}
     {@const calHabits = localHabitsByCalendar.get(cal.id) ?? []}
     {@const isCalendarDisabled = cal.isEnabled === 0}
 
     <!-- Individual calendar container with flip animation -->
-    <div animate:flip={{ duration: 200 }} data-calendar-id={cal.id}>
+    <div animate:flip={{ duration: 200 }} data-calendar-id={cal.id} role="listitem">
       <div class="flex flex-col">
         <!-- Calendar Title Section -->
         <div class="flex items-start">
@@ -302,7 +318,7 @@
         <!-- Drag-and-drop zone for habit reordering within calendar -->
         <div
           class="flex flex-col gap-1"
-          role="group"
+          role="list"
           data-dnd-zone="habit"
           data-calendar-id={cal.id}
           use:dndzone={{
@@ -311,12 +327,10 @@
             dropTargetStyle: {},
             type: "habit",
             morphDisabled: true,
-            dragDisabled: !isReorderMode
+            dragDisabled: !isReorderMode || isCalendarDragging
           }}
           onconsider={(e) => handleHabitDnd(e, cal.id)}
           onfinalize={(e) => handleHabitDnd(e, cal.id)}
-          onmouseenter={() => handleHabitZoneEnter(cal.id)}
-          onmouseleave={handleHabitZoneLeave}
           ondragstart={() => handleHabitDragStart(cal.id)}
           ondragend={handleHabitDragEnd}
         >
@@ -327,7 +341,7 @@
               {@const isHabitDisabled = habit.isEnabled === 0 || isCalendarDisabled}
 
               <!-- Individual habit card with flip animation -->
-              <div animate:flip={{ duration: 200 }} data-habit-id={habit.id}>
+              <div animate:flip={{ duration: 200 }} data-habit-id={habit.id} role="listitem">
                 <Card
                   class="bg-card flex flex-row flex-nowrap items-center justify-between gap-2 rounded-3xl border p-1 shadow-xs transition-all {isHabitDisabled
                     ? 'pointer-events-none opacity-50 grayscale'

@@ -385,6 +385,7 @@ function createCalendarsStore() {
     },
 
     async updateOrder(reorderedCalendars: Calendar[]) {
+      const originalCalendars = get(_calendars);
       const now = Date.now();
       const updatedCalendars = reorderedCalendars.map((cal, index) => ({
         ...cal,
@@ -392,8 +393,11 @@ function createCalendarsStore() {
         updatedAt: now
       }));
 
-      // Optimistic UI update
-      _calendars.set(updatedCalendars);
+      // Optimistic UI update. By deferring with setTimeout, we let svelte-dnd-action
+      // finish its DOM manipulations before Svelte rerenders the list, avoiding a race condition.
+      setTimeout(() => {
+        _calendars.set(updatedCalendars);
+      }, 0);
 
       try {
         // Batch update positions in the local database
@@ -406,7 +410,7 @@ function createCalendarsStore() {
         if (currentClerkUserId && getConvexClient()) {
           try {
             isSyncing.set(true);
-            // This mutation does not exist yet. It's for future implementation.
+            // Future implementation for Convex sync
             // await getConvexClient().mutation(api.calendars.updateCalendarOrder, {
             //   orderedIds: updatedCalendars.map((cal) => cal.id)
             // });
@@ -420,7 +424,7 @@ function createCalendarsStore() {
       } catch (error) {
         console.error("Failed to update calendar order:", error);
         // Revert on failure
-        await _loadFromLocalDB();
+        _calendars.set(originalCalendars);
       }
     },
 
