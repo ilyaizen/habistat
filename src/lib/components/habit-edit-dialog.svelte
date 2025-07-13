@@ -81,7 +81,6 @@
 
   function handleClose() {
     dispatch("close");
-    goto(`/dashboard`);
   }
 
   async function saveHabit() {
