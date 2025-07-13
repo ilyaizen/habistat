@@ -1,6 +1,4 @@
-<img src="static/logo.png" alt="Habistat Logo" width="100"/>
-
-# **Habistat**
+# [![Habistat](static/favicon-32x32.png)](https://habistat.app) **Habistat**
 
 > **Build habits. Track progress. Achieve goals.**
 
@@ -16,13 +14,10 @@ An alternative to apps like **[Everyday](https://everyday.app/)**, **[Habitify](
 
 Tired of bloated apps and shaky privacy policies? Habistat keeps it simple. Inspired by "Don't Break the Chain," it turns habit tracking into a daily checkmark ritual. Each completed habit advances your streak, grows a virtual plant, and earns points.
 
-## **Get Started: [habistat.app](https://habistat.app)** 👈
+## **Visit: [habistat.app](https://habistat.app)** 👈
 
 > [!NOTE]
-> The currently available versions are Windows and web, with other versions coming soon.
-
-> [!NOTE]
-> This app is currently in its alpha development stage and may not be stable until future versions.
+> This app is currently in its alpha development stage and may not be stable until future versions. The currently available versions are Windows and web, with other versions coming soon.
 
 ## Features
 
