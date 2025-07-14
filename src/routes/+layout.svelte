@@ -14,7 +14,6 @@
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
   import type { LayoutData } from "./$types";
   import { browser } from "$app/environment";
-  import { isOnline as networkIsOnline } from "$lib/stores/network";
   import { useTheme } from "$lib/hooks/use-theme.svelte";
   import { useClerk } from "$lib/hooks/use-clerk.svelte";
   import { useNavigation } from "$lib/hooks/use-navigation.svelte";
@@ -61,6 +60,7 @@
 
   // Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
   import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
+  import ThemeToggle from "$lib/components/theme-toggle.svelte";
 
   // Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
 
@@ -157,36 +157,18 @@
     <div
       class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
     >
-      {#if $networkIsOnline}
-        <!-- Online: Render ClerkProvider and main app content -->
-        <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-          {#if page.url.pathname !== "/"}
-            <!-- Header is hidden on the landing page ("/") -->
-            <AppHeader />
-          {/if}
-          <main class="flex-1">
-            <!-- Main content area -->
-            <MotionWrapper>
-              {#if appInit.i18nReady && appInit.trackingInitialized}
-                {@render children()}
-              {:else}
-                <div class="flex h-full items-center justify-center">
-                  <!-- Loading spinner or placeholder -->
-                  <div
-                    class="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"
-                  ></div>
-                </div>
-              {/if}
-            </MotionWrapper>
-          </main>
-          {#if page.url.pathname !== "/"}
-            <!-- Footer is hidden on the landing page ("/") -->
-            <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
-          {/if}
-        </ClerkProvider>
-      {:else}
-        <!-- Offline: Render offline content -->
+      <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+        {#if page.url.pathname !== "/"}
+          <!-- Header is hidden on the landing page ("/") -->
+          <AppHeader />
+        {/if}
         <main class="flex-1">
+          {#if page.url.pathname === "/"}
+            <div class="absolute top-4 right-4">
+              <ThemeToggle />
+            </div>
+          {/if}
+          <!-- Main content area -->
           <MotionWrapper>
             {#if appInit.i18nReady && appInit.trackingInitialized}
               {@render children()}
@@ -202,9 +184,9 @@
         </main>
         {#if page.url.pathname !== "/"}
           <!-- Footer is hidden on the landing page ("/") -->
-          <AppFooter />
+          <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
         {/if}
-      {/if}
+      </ClerkProvider>
 
       <FireworksEffect />
       <ConfettiEffect />
