@@ -64,26 +64,29 @@
 
       // Get all app open history as dates
       const history = await getAppOpenHistory();
-      console.log("[ActivityMonitor] DEBUG - App open history raw:", history);
+
+      // console.log("[ActivityMonitor] DEBUG - App open history raw:", history);
 
       const newActiveDates = new Set((history ?? []).map((ts) => formatLocalDate(new Date(ts))));
-      console.log(
-        "[ActivityMonitor] DEBUG - App open dates formatted:",
-        Array.from(newActiveDates)
-      );
+
+      // console.log(
+      //   "[ActivityMonitor] DEBUG - App open dates formatted:",
+      //   Array.from(newActiveDates)
+      // );
 
       // Safeguard: Always ensure today is marked as active after a load.
       const todayFormatted = formatLocalDate(new Date());
       newActiveDates.add(todayFormatted);
-      console.log("[ActivityMonitor] DEBUG - Today added:", todayFormatted);
+
+      // console.log("[ActivityMonitor] DEBUG - Today added:", todayFormatted);
 
       activeDates = newActiveDates;
 
       // Debug completions store
-      console.log(
-        "[ActivityMonitor] DEBUG - Total completions in store:",
-        $completionsStore?.length || 0
-      );
+      // console.log(
+      //   "[ActivityMonitor] DEBUG - Total completions in store:",
+      //   $completionsStore?.length || 0
+      // );
     } catch (error) {
       console.error("Failed to load activity data:", error);
     } finally {
@@ -181,10 +184,6 @@
 
   // Reactive statement that regenerates activity data when dependencies change
   $effect(() => {
-    // Subscribe to all the dependencies that should trigger a refresh
-    const currentCompletionCountFn = $getCompletionCountForDate;
-    const currentSession = $sessionStore;
-
     if (!loadingHistory && activeDates.size > 0) {
       generateActivityData();
     }

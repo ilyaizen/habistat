@@ -1,11 +1,12 @@
-import { waitLocale } from "svelte-i18n";
-import { browser } from "$app/environment";
-import { logAppOpenIfNeeded } from "$lib/utils/tracking";
-
 /**
  * Application initialization hook for Habistat.
  * Handles core app setup including i18n, tracking, and scheduled tasks.
  */
+
+import { waitLocale } from "svelte-i18n";
+import { browser } from "$app/environment";
+import { logAppOpenIfNeeded } from "$lib/utils/tracking";
+
 export function useAppInit() {
   let i18nReady = $state(false);
   let trackingInitialized = $state(true);
@@ -38,29 +39,29 @@ export function useAppInit() {
    */
   async function initializeAppCore() {
     if (!browser) {
-      console.log("[DEBUG] initializeAppCore: Not in browser, skipping");
+      // console.log("[DEBUG] initializeAppCore: Not in browser, skipping");
       return;
     }
 
-    console.log("[DEBUG] initializeAppCore: Starting initialization");
+    // console.log("[DEBUG] initializeAppCore: Starting initialization");
 
     try {
       // Tracking is initialized by the store itself now.
-      console.log("[DEBUG] initializeAppCore: Setting tracking as initialized");
+      // console.log("[DEBUG] initializeAppCore: Setting tracking as initialized");
       trackingInitialized = true;
 
       // Initialize i18n
-      console.log("[DEBUG] initializeAppCore: Initializing i18n");
+      // console.log("[DEBUG] initializeAppCore: Initializing i18n");
       try {
         await waitLocale();
         i18nReady = true;
-        console.log("[DEBUG] initializeAppCore: i18n ready");
+        // console.log("[DEBUG] initializeAppCore: i18n ready");
       } catch (error) {
         console.error("Error initializing i18n:", error);
         i18nReady = true;
       }
 
-      console.log("[DEBUG] initializeAppCore: Initialization completed successfully");
+      // console.log("[DEBUG] initializeAppCore: Initialization completed successfully");
     } catch (error) {
       console.error("Error during core initialization:", error);
       // Still mark as initialized to prevent getting stuck

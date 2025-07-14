@@ -31,7 +31,8 @@
   import ConfettiEffect from "$lib/components/confetti-effect.svelte";
   import { Toaster } from "$lib/components/ui/sonner";
   import * as ContextMenu from "$lib/components/ui/context-menu";
-  import { runDiagnostics } from "$lib/utils/tauri-debug";
+
+  // import { runDiagnostics } from "$lib/utils/tauri-debug";
 
   import StoreSync from "$lib/components/store-sync.svelte";
 
@@ -79,9 +80,10 @@
 
   onMount(() => {
     // Run diagnostics for Tauri builds
-    if (browser) {
-      runDiagnostics();
-    }
+    // if (browser) {
+    //   runDiagnostics();
+    // }
+
     // Initialize core functionalities when the component mounts in the browser.
     appInit.initializeAppCore();
     theme.initializeTheme();
@@ -113,17 +115,17 @@
   // Set up Convex client for Svelte context - only in browser
   if (browser) {
     const convexUrl = import.meta.env.PUBLIC_CONVEX_URL || import.meta.env.VITE_CONVEX_URL;
-    console.log("[DEBUG] Environment variables:", {
-      VITE_CONVEX_URL: import.meta.env.VITE_CONVEX_URL,
-      VITE_CLERK_PUBLISHABLE_KEY: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-        ? "✅ Set"
-        : "❌ Missing"
-    });
+    // console.log("[DEBUG] Environment variables:", {
+    //   VITE_CONVEX_URL: import.meta.env.VITE_CONVEX_URL,
+    //   VITE_CLERK_PUBLISHABLE_KEY: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+    //     ? "✅ Set"
+    //     : "❌ Missing"
+    // });
 
     if (convexUrl) {
       try {
         setupConvex(convexUrl);
-        console.log("[DEBUG] setupConvex completed successfully with URL:", convexUrl);
+        // console.log("[DEBUG] setupConvex completed successfully with URL:", convexUrl);
       } catch (error) {
         console.error("[ERROR] setupConvex failed:", error);
       }
@@ -146,7 +148,7 @@
   }
 
   function handleRefreshWithClose() {
-    console.log("Refreshing...");
+    // console.log("Refreshing...");
     contextMenuOpen = false;
     handleRefresh();
   }

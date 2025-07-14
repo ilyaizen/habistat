@@ -13,6 +13,10 @@
 ├── .vscode
 │   ├── extensions.json
 │   └── settings.json
+├── .windsurf
+│   └── rules
+│       ├── add-comments.md
+│       └── windsurf-rules.md
 ├── migrations
 │   ├── 0000_initial.sql
 │   └── 0001_simplify_completions.sql
@@ -50,14 +54,15 @@
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
 │   │   │   ├── avatar.svelte
+│   │   │   ├── calendar-edit-dialog.svelte
 │   │   │   ├── confetti-effect.svelte
 │   │   │   ├── dashboard-calendars.svelte
 │   │   │   ├── dashboard-main-panel.svelte
 │   │   │   ├── dashboard-side-panel.svelte
 │   │   │   ├── environment-indicator-old.svelte
-│   │   │   ├── error-boundary.svelte
 │   │   │   ├── fireworks-effect.svelte
 │   │   │   ├── habit-completion-control.svelte
+│   │   │   ├── habit-edit-dialog.svelte
 │   │   │   ├── habit-history-grid.svelte
 │   │   │   ├── language-switcher.svelte
 │   │   │   ├── more-info.svelte
@@ -222,6 +227,7 @@
 ├── drizzle.config.ts
 ├── file-structure.txt
 ├── package.json
+├── pnpm-lock.yaml
 ├── postcss.config.cjs
 ├── svelte.config.js
 ├── tsconfig.json

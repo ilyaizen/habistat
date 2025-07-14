@@ -72,8 +72,8 @@ export function useClerk() {
 
       if (window.Clerk) {
         const clerk = window.Clerk as unknown as LoadedClerk;
-        console.log("[DEBUG] Clerk loaded, setting context:", clerk);
-        console.log("[DEBUG] Clerk has signOut method:", typeof clerk.signOut === "function");
+        // console.log("[DEBUG] Clerk loaded, setting context:", clerk);
+        // console.log("[DEBUG] Clerk has signOut method:", typeof clerk.signOut === "function");
         clerkStore.set(clerk);
         clearInterval(interval);
       } else if (attempts >= maxAttempts) {

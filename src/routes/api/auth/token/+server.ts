@@ -25,14 +25,14 @@ export const GET: RequestHandler = async ({ cookies, request, locals }) => {
     }
 
     // Log for debugging
-    console.log("[API] Session token found:", !!sessionToken);
-    console.log("[API] Server session found:", !!serverSession);
+    // console.log("[API] Session token found:", !!sessionToken);
+    // console.log("[API] Server session found:", !!serverSession);
 
     // Debug: Log token format (first 50 chars to avoid logging full token)
-    if (sessionToken) {
-      console.log("[API] Token preview:", sessionToken.substring(0, 50) + "...");
-      console.log("[API] Token length:", sessionToken.length);
-    }
+    // if (sessionToken) {
+    //   console.log("[API] Token preview:", sessionToken.substring(0, 50) + "...");
+    //   console.log("[API] Token length:", sessionToken.length);
+    // }
 
     // Return the session token as plain text (Convex expects this format)
     return new Response(sessionToken || "", {
