@@ -170,7 +170,7 @@
 </div>
 
 <!--
-  The AboutDrawer is no longer here. It lives in the root layout.
+  The AboutDrawer is inside the root layout, triggered by the hidden More Info button.
   This page now communicates with it through the 'drawer-controller' context.
 -->
 {#if showMoreInfoButton}

@@ -2,48 +2,120 @@
 
 This document outlines the sample data used in the Habistat application for demonstration purposes. This data is defined in `src/lib/utils/sample-data.ts`.
 
+---
+
 ## Calendars
 
-### 🧘 Mind & Soul
+### 🎯 Foundational Actions
 
-- **Color Theme**: Purple
+- **Color Theme**: Yellow
 - **Position**: 0
 
-### 🌿 Eco-Wellness
+### 🧠 Mind Engagement
 
-- **Color Theme**: Teal
+- **Color Theme**: Blue
 - **Position**: 1
+
+### 📈 Skill Development
+
+- **Color Theme**: Indigo
+- **Position**: 2
+
+### 🏃 Physical Conditioning
+
+- **Color Theme**: Green
+- **Position**: 3
 
 ## Habits
 
-### 🧘 Mind & Soul
+### 🎯 Foundational Actions
 
-#### 📵 Digital Detox
+#### 🛏️ Make Bed
 
-- **Description**: Spend intentional time away from screens to reduce digital fatigue.
+- **Description**: Establish a keystone habit to bring order to the start of your day.
 - **Type**: positive
-- **Points**: 20
+- **Points**: 5
 - **Position**: 0
 
-#### ✨ Gratitude Journaling
+#### 🪥 Teeth
 
-- **Description**: Write down three things you are grateful for to foster a positive mindset.
+- **Description**: Maintain essential oral hygiene.
 - **Type**: positive
 - **Points**: 10
 - **Position**: 1
 
-### 🌿 Eco-Wellness
+#### 💧 Hydrate
 
-#### ♻️ Mindful Consumption
+- **Description**: Drink a full glass of water after waking up to start your metabolism.
+- **Type**: positive
+- **Points**: 10
+- **Position**: 2
 
-- **Description**: Make a conscious choice to reduce waste, such as using a reusable bottle or avoiding single-use plastics.
+### 🧠 Mind Engagement
+
+#### ♟️ Chess
+
+- **Description**: Sharpen strategic thinking and focus with a game of chess.
+- **Type**: positive
+- **Points**: 20
+- **Position**: 0
+
+#### 🧠 Brilliant
+
+- **Description**: Dedicate time for focused brainstorming, idea generation, or complex problem-solving.
+- **Type**: positive
+- **Points**: 25
+- **Position**: 1
+
+#### ✍️ Journal
+
+- **Description**: Reflect on your thoughts, goals, and feelings to improve mental clarity.
+- **Type**: positive
+- **Points**: 15
+- **Position**: 2
+
+### 📈 Skill Development
+
+#### 🎓 Watch Lecture
+
+- **Description**: Learn something new by watching an educational video, lecture, or documentary.
+- **Type**: positive
+- **Points**: 30
+- **Position**: 0
+
+#### 📚 Read Non-Fiction
+
+- **Description**: Actively read from a non-fiction book to acquire deep knowledge.
+- **Type**: positive
+- **Points**: 25
+- **Position**: 1
+
+#### 🗣️ Practice a Skill
+
+- **Description**: Engage in deliberate practice of a chosen skill (e.g., coding, language, instrument).
+- **Type**: positive
+- **Points**: 35
+- **Position**: 2
+
+### 🏃 Physical Conditioning
+
+#### 🤸 Morning Stretch
+
+- **Description**: Increase blood flow and flexibility to energize your body for the day.
 - **Type**: positive
 - **Points**: 15
 - **Position**: 0
 
-#### 🌳 Nature Bathing (Shinrin-yoku)
+#### 🚶 Daily Walk
 
-- **Description**: Immerse yourself in nature for at least 15 minutes to de-stress and connect with the environment.
+- **Description**: Go for a brisk walk to improve cardiovascular health and clear your mind.
 - **Type**: positive
 - **Points**: 25
 - **Position**: 1
+
+#### 💪 Strength Session
+
+- **Description**: Perform a short, focused workout (e.g., push-ups, squats, planks) to build muscle.
+- **Type**: positive
+- **Points**: 40
+- **Position**: 2

@@ -123,10 +123,8 @@
           name: habitConfig.name,
           description: habitConfig.description,
           type: habitConfig.type,
-          timerEnabled: habitConfig.timerEnabled ? 1 : 0,
-          targetDurationSeconds: habitConfig.targetDurationMinutes
-            ? habitConfig.targetDurationMinutes * 60
-            : null,
+          timerEnabled: 0,
+          targetDurationSeconds: null,
           pointsValue: habitConfig.pointsValue,
           calendarId,
           position: habitConfig.position,

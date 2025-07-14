@@ -10,50 +10,125 @@
 export const SAMPLE_DATA_CONFIG = {
   calendars: [
     {
-      name: "🧘 Mind & Soul",
-      colorTheme: "Purple",
+      name: "🎯 Foundational Actions",
+      colorTheme: "Yellow",
       position: 0
     },
     {
-      name: "🌿 Eco-Wellness",
-      colorTheme: "Teal",
+      name: "🧠 Mind Engagement",
+      colorTheme: "Blue",
       position: 1
+    },
+    {
+      name: "📈 Skill Development",
+      colorTheme: "Indigo",
+      position: 2
+    },
+    {
+      name: "🏃 Physical Conditioning",
+      colorTheme: "Green",
+      position: 3
     }
   ],
   habits: [
     {
-      calendarName: "🧘 Mind & Soul",
-      name: "📵 Digital Detox",
-      description: "Spend intentional time away from screens to reduce digital fatigue.",
+      calendarName: "🎯 Foundational Actions",
+      name: "🛏️ Make Bed",
+      description: "Establish a keystone habit to bring order to the start of your day.",
       type: "positive" as const,
-      pointsValue: 20,
+      pointsValue: 5,
       position: 0
     },
     {
-      calendarName: "🧘 Mind & Soul",
-      name: "✨ Gratitude Journaling",
-      description: "Write down three things you are grateful for to foster a positive mindset.",
+      calendarName: "🎯 Foundational Actions",
+      name: "🪥 Teeth",
+      description: "Maintain essential oral hygiene.",
       type: "positive" as const,
       pointsValue: 10,
       position: 1
     },
     {
-      calendarName: "🌿 Eco-Wellness",
-      name: "♻️ Mindful Consumption",
+      calendarName: "🎯 Foundational Actions",
+      name: "💧 Hydrate",
+      description: "Drink a full glass of water after waking up to start your metabolism.",
+      type: "positive" as const,
+      pointsValue: 10,
+      position: 2
+    },
+    {
+      calendarName: "🧠 Mind Engagement",
+      name: "♟️ Chess",
+      description: "Sharpen strategic thinking and focus with a game of chess.",
+      type: "positive" as const,
+      pointsValue: 20,
+      position: 0
+    },
+    {
+      calendarName: "🧠 Mind Engagement",
+      name: "🧠 Brilliant",
       description:
-        "Make a conscious choice to reduce waste, such as using a reusable bottle or avoiding single-use plastics.",
+        "Dedicate time for focused brainstorming, idea generation, or complex problem-solving.",
+      type: "positive" as const,
+      pointsValue: 25,
+      position: 1
+    },
+    {
+      calendarName: "🧠 Mind Engagement",
+      name: "✍️ Journal",
+      description: "Reflect on your thoughts, goals, and feelings to improve mental clarity.",
+      type: "positive" as const,
+      pointsValue: 15,
+      position: 2
+    },
+    {
+      calendarName: "📈 Skill Development",
+      name: "🎓 Watch Lecture",
+      description: "Learn something new by watching an educational video, lecture, or documentary.",
+      type: "positive" as const,
+      pointsValue: 30,
+      position: 0
+    },
+    {
+      calendarName: "📈 Skill Development",
+      name: "📚 Read Non-Fiction",
+      description: "Actively read from a non-fiction book to acquire deep knowledge.",
+      type: "positive" as const,
+      pointsValue: 25,
+      position: 1
+    },
+    {
+      calendarName: "📈 Skill Development",
+      name: "🗣️ Practice a Skill",
+      description:
+        "Engage in deliberate practice of a chosen skill (e.g., coding, language, instrument).",
+      type: "positive" as const,
+      pointsValue: 35,
+      position: 2
+    },
+    {
+      calendarName: "🏃 Physical Conditioning",
+      name: "🤸 Morning Stretch",
+      description: "Increase blood flow and flexibility to energize your body for the day.",
       type: "positive" as const,
       pointsValue: 15,
       position: 0
     },
     {
-      calendarName: "🌿 Eco-Wellness",
-      name: "🌳 Nature Bathing (Shinrin-yoku)",
-      description:
-        "Immerse yourself in nature for at least 15 minutes to de-stress and connect with the environment.",
+      calendarName: "🏃 Physical Conditioning",
+      name: "🚶 Daily Walk",
+      description: "Go for a brisk walk to improve cardiovascular health and clear your mind.",
       type: "positive" as const,
       pointsValue: 25,
       position: 1
+    },
+    {
+      calendarName: "🏃 Physical Conditioning",
+      name: "💪 Strength Session",
+      description:
+        "Perform a short, focused workout (e.g., push-ups, squats, planks) to build muscle.",
+      type: "positive" as const,
+      pointsValue: 40,
+      position: 2
     }
   ]
 } as const;
