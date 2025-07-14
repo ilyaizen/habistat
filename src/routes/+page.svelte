@@ -19,16 +19,10 @@
   import { triggerConfetti } from "$lib/stores/ui";
   import { toast } from "svelte-sonner";
   import { slide } from "svelte/transition";
-  import ThemeToggle from "$lib/components/theme-toggle.svelte";
-  import VirtualGarden from "$lib/components/virtual-garden.svelte";
 
   // --- Drawer Controller ---
   // Get the singleton drawer controller from the root layout context.
   const drawerController = getContext<any>("drawer-controller");
-
-  // Get online status from context
-  const isOnline = getContext<Writable<boolean>>("isOnline");
-  const authMode = getContext<Writable<"offline" | "online">>("authMode");
 
   // State management using Svelte 5 runes ($state)
   let showMoreInfoButton = $state(false);
@@ -148,10 +142,6 @@
   // The drawer will now cover the button, which is the intended behavior.
 </script>
 
-<div class="absolute top-4 right-4">
-  <ThemeToggle />
-</div>
-
 <!-- Main landing page layout -->
 <div class="flex min-h-screen flex-col items-center justify-center">
   <img
@@ -166,13 +156,6 @@
   >
     Build habits. Track progress. Achieve goals.
   </p>
-
-  {#if !$isOnline && $authMode === "online"}
-    <p class="text-muted-foreground mb-4">
-      You are currently offline. Your data will be stored locally.
-    </p>
-  {/if}
-
   {#if $anonymousUserId}
     <!-- Show Dashboard button for returning users -->
     <Button onclick={handleDashboardClick} size="lg" disabled={sessionStarting} class="btn-3d">
