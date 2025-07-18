@@ -174,7 +174,6 @@
 │   │   ├── lib.rs
 │   │   └── main.rs
 │   ├── .gitignore
-│   ├── Cargo.lock
 │   ├── Cargo.toml
 │   ├── GEMINI.md
 │   ├── build.rs
@@ -222,12 +221,12 @@
 ├── GEMINI.md
 ├── LICENSE
 ├── README.md
+├── bun.lockb
 ├── components.json
 ├── convex.json
 ├── drizzle.config.ts
 ├── file-structure.txt
 ├── package.json
-├── pnpm-lock.yaml
 ├── postcss.config.cjs
 ├── svelte.config.js
 ├── tsconfig.json

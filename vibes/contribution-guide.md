@@ -7,7 +7,7 @@ This guide provides step-by-step instructions for setting up your local developm
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) installed (version 20.x or later recommended).
-- [pnpm](https://pnpm.io/installation) installed.
+- [Bun](https://bun.com) installed.
 - A [GitHub account](https://github.com/join).
 - A [Clerk](https://clerk.com/) account (you can sign up for free).
 - A [Convex](https://www.convex.dev/) account (the free tier is sufficient).
@@ -27,7 +27,7 @@ cd habistat
 1. **Install dependencies**:
 
 ```bash
-pnpm install
+bun install
 ```
 
 ---
@@ -37,13 +37,13 @@ pnpm install
 1. **Log in to Convex CLI**: This will open a browser for you to authenticate.
 
 ```bash
-pnpm exec convex login
+bun exec convex login
 ```
 
 1. **Link your project**: Run the Convex development server. It will prompt you to either create a new project or link to an existing one. Since you've already created a "Habistat" project on your Convex dashboard, choose to **link to an existing project**.
 
 ```bash
-pnpm exec convex dev
+bun exec convex dev
 ```
 
 - When the command finishes, it will output your project's development URLs. You will see a **Deployment URL** (ending in `.convex.cloud`) and an **HTTP API URL** (ending in `.convex.site`). **Copy the Deployment URL** for now; you'll need the HTTP API URL later for webhooks.
@@ -101,15 +101,15 @@ Convex uses a JWT template from Clerk to authenticate users. This is what the `s
 - Add a new variable:
   - **Name**: `CLERK_JWT_ISSUER_DOMAIN`
   - **Value**: Paste the Issuer URL you copied from Clerk.
-- Push the new environment variable to your backend by running `pnpm exec convex deploy` in your terminal, or by restarting `pnpm exec convex dev`.
+- Push the new environment variable to your backend by running `bun exec convex deploy` in your terminal, or by restarting `bun exec convex dev`.
 
-> **Important:** If you skip this step, `pnpm exec convex dev` will fail with the error: `Environment variable CLERK_JWT_ISSUER_DOMAIN is used in auth config file but its value was not set.` This variable is crucial for Convex to verify users signed in with Clerk. You will need to set this for both your **development** and **production** environments in the Convex dashboard.
+> **Important:** If you skip this step, `bun exec convex dev` will fail with the error: `Environment variable CLERK_JWT_ISSUER_DOMAIN is used in auth config file but its value was not set.` This variable is crucial for Convex to verify users signed in with Clerk. You will need to set this for both your **development** and **production** environments in the Convex dashboard.
 
 ### 3. **Configure Clerk Webhook**
 
 - In your Clerk application dashboard, navigate to **Webhooks**.
 - Click **Add Endpoint**.
-- **Endpoint URL**: This URL is based on your Convex **HTTP API URL** (the one ending in `.convex.site`) that you saw when running `pnpm exec convex dev`. Construct the webhook URL by appending `/clerk`. It should look like this: `https://<your-project-name>.convex.site/clerk`.
+- **Endpoint URL**: This URL is based on your Convex **HTTP API URL** (the one ending in `.convex.site`) that you saw when running `bun exec convex dev`. Construct the webhook URL by appending `/clerk`. It should look like this: `https://<your-project-name>.convex.site/clerk`.
 - **Message filtering**: Under **Listen for events**, unselect "All Events" and choose the specific events needed: `user.created` and `user.updated`.
 - Click **Create**.
 - **Get the Signing Secret**: After creating the endpoint, click on it to view its details. Copy the **Signing secret**. It will start with `whsec_...`.
@@ -122,10 +122,10 @@ Convex uses a JWT template from Clerk to authenticate users. This is what the `s
 - Add a new variable:
   - **Name**: `CLERK_WEBHOOK_SECRET`
   - **Value**: Paste the signing secret you copied from the Clerk dashboard.
-- **Important**: After setting the variable, you must redeploy your backend for the change to take effect. In the terminal running `pnpm exec convex dev`, press `Ctrl+C` to stop it, then run it again. Alternatively, run:
+- **Important**: After setting the variable, you must redeploy your backend for the change to take effect. In the terminal running `bun exec convex dev`, press `Ctrl+C` to stop it, then run it again. Alternatively, run:
 
 ```bash
-pnpm exec convex deploy
+bun exec convex deploy
 ```
 
 > **Note:** You will need to set this secret for both your **development** and **production** environments in the Convex dashboard.
@@ -193,11 +193,11 @@ With these steps, your deployed application will now correctly use your own OAut
 
 Now that the backend and frontend are configured, you can run the app.
 
-1. Ensure your Convex dev server is running from Part 2 (`pnpm exec convex dev`).
+1. Ensure your Convex dev server is running from Part 2 (`bun exec convex dev`).
 2. In a **new terminal window**, start the SvelteKit development server:
 
 ```bash
-pnpm run dev
+bun run dev
 ```
 
 1. Open your browser to `http://localhost:5173`. You should now have a fully functional local version of Habistat. Try signing up to confirm the webhook is working.
@@ -213,7 +213,7 @@ If you want to deploy your own instance of the application for testing or demons
 ### 2. **Configure Production Environment in Convex**
 
 - Before deploying your frontend, you must configure your production backend.
-- Run `pnpm exec convex deploy` to push your latest backend code to production.
+- Run `bun exec convex deploy` to push your latest backend code to production.
 - This will give you a **production URL** for your Convex project (e.g., `https://<your-prod-project>.convex.cloud`).
 - Go to your Convex dashboard and switch to your **production** environment.
 - In **Settings** -> **Environment Variables**, add the same `CLERK_JWT_ISSUER_DOMAIN` and `CLERK_WEBHOOK_SECRET` that you added for your development environment.
@@ -228,9 +228,9 @@ If you want to deploy your own instance of the application for testing or demons
 
 - **Framework Preset**: Vercel should automatically detect `SvelteKit`.
 - **Build and Output Settings**: These should be detected automatically. If not, use:
-  - **Build Command**: `pnpm run build`
+  - **Build Command**: `bun run build`
   - **Output Directory**: `dist`
-  - **Install Command**: `pnpm install`
+  - **Install Command**: `bun install`
 - **Environment Variables**: Add the same variables from your `.env.local` file to the Vercel project settings. **Use your production Convex URL** that you got from the previous step.
   - `VITE_CONVEX_URL`
   - `VITE_CLERK_PUBLISHABLE_KEY`

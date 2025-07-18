@@ -2,7 +2,7 @@
 
 | Category                 | Technology                                                              | Version                   |
 | :----------------------- | :---------------------------------------------------------------------- | :------------------------ |
-| **Package Manager**      | [pnpm](https://pnpm.io/motivation)                                      | `v10.x` (Latest Stable)   |
+| **Package Manager**      | [Bun](https://bun.com)                                                  | `v1.2.x` (Latest Stable)  |
 | **Backend Framework**    | [Tauri](https://v2.tauri.app/start/)                                    | `v2.0` (Latest Stable)    |
 | **Frontend Framework**   | [SvelteKit](https://svelte.dev/docs/kit/introduction)                   | `Latest` (Uses Svelte v5) |
 | **Styling**              | [Tailwind CSS](https://tailwindcss.com/docs/installation/using-vite)    | `v4.1`                    |

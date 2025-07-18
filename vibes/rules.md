@@ -9,7 +9,7 @@
 ## Core Tech & Standards
 
 - **Stack**: Latest Tauri, Rust, Svelte 5, SvelteKit 2, TypeScript, TailwindCSS, ShadCN-UI.
-- **Package Manager**: Use `pnpm` exclusively.
+- **Package Manager**: Use `bun` exclusively.
 - **Svelte 5**: Adhere to modern Svelte 5 best practices (runes, `$props`, `$effect`). Avoid deprecated features like `export let`, `svelte:component`, or `beforeUpdate`/`afterUpdate`.
 - **Rune Scope**: Svelte Runes (`$effect`, `$state`, etc.) are only valid inside `.svelte` files. Do not use them in plain `.ts` or `.js` modules.
 - **Code Quality**: Write correct, modern, readable, type-safe, secure, and efficient code. Prioritize readability.
@@ -22,7 +22,7 @@
 - **Directness**: Provide code or detailed explanations immediately. Avoid high-level summaries.
 - **Honesty**: If you don't know something, say so. If you're speculating, flag it.
 - **Code Changes**: When modifying existing code, show only the relevant changed lines with a few lines of context.
-- **File System**: The terminal's default is Windows, but you can use `wsl` to access WSL2. Assume `pnpm tauri dev` is running in the background.
+- **File System**: The terminal's default is Windows, but you can use `wsl` to access WSL2. Assume `bun tauri dev` is running in the background.
 
 ## Project Context
 

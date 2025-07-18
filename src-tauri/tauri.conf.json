@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "identifier": "com.habistat.app",
   "build": {
-    "beforeDevCommand": "pnpm run dev",
-    "beforeBuildCommand": "pnpm run build && node scripts/prepare-dist.js",
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build && node scripts/prepare-dist.js",
     "devUrl": "http://localhost:3001",
     "frontendDist": "../dist-clean"
   },

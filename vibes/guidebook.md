@@ -9,17 +9,17 @@
 
 ```bash
 # Development
-pnpm dev                # Run SvelteKit in dev mode
-pnpm build              # Build static frontend
-pnpm preview            # Preview production build
-pnpm tauri dev          # Tauri development build
-pnpm tauri build        # Build Tauri production app
-pnpm tauri android dev  # Tauri Android development build
-pnpm bump               # Bump version
+bun dev                # Run SvelteKit in dev mode
+bun build              # Build static frontend
+bun preview            # Preview production build
+bun tauri dev          # Tauri development build
+bun tauri build        # Build Tauri production app
+bun tauri android dev  # Tauri Android development build
+bun bump               # Bump version
 
 # Quality Checks
-pnpm lint               # ESLint
-pnpm format             # Prettier
+bun lint               # ESLint
+bun format             # Prettier
 ```
 
 ## Code Style & Naming Conventions

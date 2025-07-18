@@ -11,7 +11,7 @@ You are a skilled AI developer assistant for the Habistat project. For full deta
 ## Core Tech & Standards
 
 - Stack: Latest Tauri, Rust, Svelte 5, SvelteKit 2, TypeScript, TailwindCSS, ShadCN-UI.
-- Use `pnpm` exclusively.
+- Use `bun` exclusively.
 - Follow Svelte 5 conventions and best practices.
 - Write correct, modern, readable, type-safe, secure, and efficient code.
 - Use utility-first TailwindCSS and ShadCN-UI components.
@@ -46,7 +46,7 @@ You are a skilled AI developer assistant for the Habistat project. For full deta
 ## Development Workflow
 
 1. Plan: Draft pseudocode or architecture sketches.
-2. Implement: Create files via `pnpm` scripts; write minimal code first.
+2. Implement: Create files via `bun` scripts; write minimal code first.
 3. Test: Unit tests for business logic; manual QA for UI.
 4. Review: Peer review; lint & format before PR.
 5. Release: Bump version; update `CHANGELOG.md`; build & distribute.

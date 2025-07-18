@@ -31,8 +31,8 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "tag_name=v$version" >> $GITHUB_OUTPUT
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup bun
+        uses: bun/action-setup@v4
         with:
           version: 9
 
@@ -48,12 +48,12 @@ jobs:
           targets: ""
 
       - name: Install frontend dependencies
-        run: pnpm install
+        run: bun install
 
       - name: Build frontend
         env:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-        run: pnpm build
+        run: bun build
 
       - name: Build and release Tauri app
         uses: tauri-apps/tauri-action@v0
@@ -90,8 +90,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup bun
+        uses: bun/action-setup@v4
         with:
           version: 9
 
@@ -115,12 +115,12 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install frontend dependencies
-        run: pnpm install
+        run: bun install
 
       - name: Build frontend for Android
         env:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-        run: pnpm build
+        run: bun build
 
       - name: Setup Android environment
         run: |
@@ -144,7 +144,7 @@ jobs:
           rm -rf src-tauri/gen/android
 
           # Initialize Android project
-          pnpm tauri android init
+          bun tauri android init
 
           # Verify required files exist
           if [ ! -f "src-tauri/gen/android/app/build.gradle.kts" ]; then
@@ -178,7 +178,7 @@ jobs:
           ORG_GRADLE_PROJECT_HABISTAT_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ORG_GRADLE_PROJECT_HABISTAT_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          pnpm tauri android build --target aarch64 --apk
+          bun tauri android build --target aarch64 --apk
 
       - name: Build Android APK (Debug - fallback)
         if: ${{ env.ANDROID_SIGNING_KEY == '' }}
@@ -186,7 +186,7 @@ jobs:
           ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
         run: |
           echo "⚠️ No signing keys provided, building debug APK"
-          pnpm tauri android build --target aarch64 --apk --debug
+          bun tauri android build --target aarch64 --apk --debug
 
       - name: Upload Android artifacts
         env:

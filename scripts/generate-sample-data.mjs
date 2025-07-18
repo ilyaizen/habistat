@@ -138,7 +138,7 @@ function generateTsContent(calendars, habits) {
  * This includes sample calendars and sample habits.
  *
  * ⚠️ THIS FILE IS AUTO-GENERATED. DO NOT EDIT.
- * To edit sample data, modify \`vibes/sample-data.md\` and run \`pnpm run generate:sample-data\`.
+ * To edit sample data, modify \`vibes/sample-data.md\` and run \`bun run generate:sample-data\`.
  */
 
 // Sample data configuration - easily editable for demo purposes

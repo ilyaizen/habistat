@@ -16,9 +16,9 @@
     "db:generate": "drizzle-kit generate",
     "generate:sample-data": "node scripts/generate-sample-data.mjs",
     "bump": "node scripts/version-bumper.mjs",
-    "bump:patch": "pnpm run bump patch",
-    "bump:minor": "pnpm run bump minor",
-    "bump:major": "pnpm run bump major"
+    "bump:patch": "bun run bump patch",
+    "bump:minor": "bun run bump minor",
+    "bump:major": "bun run bump major"
   },
   "license": "MIT",
   "dependencies": {
@@ -104,22 +104,12 @@
     "workbox-routing": "^7.3.0",
     "workbox-strategies": "^7.3.0"
   },
-  "module": "index.ts",
-  "pnpm": {
-    "overrides": {
-      "cookie@<0.7.0": ">=0.7.0"
-    },
-    "onlyBuiltDependencies": [
-      "sharp"
-    ],
-    "ignoredBuiltDependencies": [
-      "@clerk/shared",
-      "@tailwindcss/oxide",
-      "@vercel/speed-insights",
-      "browser-tabs-lock",
-      "core-js",
-      "es5-ext",
-      "esbuild"
-    ]
-  }
+  "trustedDependencies": [
+    "@clerk/shared",
+    "@tailwindcss/oxide",
+    "@vercel/speed-insights",
+    "browser-tabs-lock",
+    "core-js",
+    "es5-ext"
+  ]
 }

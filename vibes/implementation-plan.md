@@ -262,14 +262,14 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 
 - **6.1. Windows Build Validation**:
   - [ ] Configure `tauri.conf.json` for Windows build (icons, identifier, etc.).
-  - [ ] Run `pnpm tauri build` locally and confirm successful creation of the `.msi` installer.
+  - [ ] Run `bun tauri build` locally and confirm successful creation of the `.msi` installer.
   - [ ] Install and run the application on a Windows machine to verify core functionality.
   - [ ] Debug any platform-specific issues (e.g., white screen, file system access).
 - **6.2. Initial Android Build Setup**:
   - [ ] Set up the Android development environment (Android Studio, NDK, SDK).
   - [ ] Configure `tauri.conf.json` for Android (`bundle`, `minSdkVersion`, etc.).
-  - [ ] Run `pnpm tauri android init` to generate the Android project shell in `src-tauri/gen/android`.
-  - [ ] Run `pnpm tauri android dev` to test the app on an emulator or physical device.
+  - [ ] Run `bun tauri android init` to generate the Android project shell in `src-tauri/gen/android`.
+  - [ ] Run `bun tauri android dev` to test the app on an emulator or physical device.
   - [ ] Address initial build errors and configuration issues. The goal is a successful debug build, not a release-signed APK at this stage.
 
 ---
