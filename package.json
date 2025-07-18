@@ -49,16 +49,13 @@
     "prettier-plugin-svelte": "^3.4.0",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "sql.js": "^1.13.0",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7",
     "svelte-clerk": "^0.14.1",
     "svelte-dnd-action": "^0.9.63",
     "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.5",
     "svix": "^1.69.0",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss": "^4.1.11",
-    "wa-sqlite": "^1.0.0"
+    "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
     "@clerk/backend": "^2.4.2",

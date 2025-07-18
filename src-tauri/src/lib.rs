@@ -6,7 +6,7 @@ fn get_os() -> String {
 
 // Import the Manager trait and OS plugin
 
-use tauri::Manager;
+// use tauri::Manager;
 use tauri_plugin_os;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
