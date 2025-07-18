@@ -42,7 +42,7 @@ Tired of bloated apps and shaky privacy policies? Habistat keeps it simple. Insp
 
 Habistat is built with a modern and robust technology stack:
 
-- **Package Manager:** [Bun](https://bun.com/)
+- **Package Manager:** [Bun v1.2](https://bun.com/)
 - **Core Framework:** [Tauri v2](https://v2.tauri.app/) (Rust backend, web frontend)
 - **Frontend:** [SvelteKit](https://svelte.dev/)
 - **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
