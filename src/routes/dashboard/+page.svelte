@@ -114,5 +114,10 @@
         <DashboardSidePanel {activityMonitorKey} />
       </div>
     </div>
+
+    <!-- Create New Calendar Button at Bottom -->
+    <div class="flex justify-center pt-4">
+      <Button size="lg" onclick={openCreateDialog} class="btn-3d">New Calendar</Button>
+    </div>
   {/if}
 </Tooltip.Provider>

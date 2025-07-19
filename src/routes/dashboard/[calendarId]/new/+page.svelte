@@ -1,5 +1,6 @@
 <script lang="ts">
   import { habits as habitsStore, type HabitInputData } from "$lib/stores/habits";
+  import { calendarsStore, type Calendar } from "$lib/stores/calendars";
   import Input from "$lib/components/ui/input/input.svelte";
   import Button from "$lib/components/ui/button/button.svelte";
   import { goto } from "$app/navigation";
@@ -20,8 +21,17 @@
   let targetDurationSeconds = $state(0);
   let pointsValue = $state(0);
   let saving = $state(false);
+  let calendar = $state<Calendar | undefined>(undefined);
 
   const calendarId = $derived(page.params.calendarId);
+
+  // Effect to load calendar details
+  $effect(() => {
+    const unsubscribe = calendarsStore.subscribe((calendars) => {
+      calendar = calendars.find((c) => c.id === calendarId);
+    });
+    return unsubscribe;
+  });
 
   async function createHabit(event: SubmitEvent) {
     event.preventDefault();
@@ -52,7 +62,12 @@
 </script>
 
 <div class="mx-auto max-w-2xl p-6">
-  <h1 class="mb-6 text-3xl font-bold">Create New Habit</h1>
+  <h1 class="mb-2 text-3xl font-bold">Create New Habit</h1>
+  {#if calendar}
+    <p class="text-muted-foreground mb-6">
+      Adding to calendar: <span class="text-foreground font-medium">{calendar.name}</span>
+    </p>
+  {/if}
   <form onsubmit={createHabit} class="flex flex-col gap-6">
     <div>
       <Label class="text-foreground mb-2 block text-sm font-medium">

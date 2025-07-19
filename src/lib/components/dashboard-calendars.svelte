@@ -369,7 +369,8 @@
                           {#snippet child({ props })}
                             <div
                               {...props}
-                              class="min-w-0 flex-1 cursor-pointer truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
+                              class="min-w-0 flex-1 cursor-pointer truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled ||
+                              isReorderMode
                                 ? 'text-muted-foreground/70'
                                 : ''}"
                               role="button"
