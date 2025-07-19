@@ -300,7 +300,7 @@
           <button
             type="button"
             class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-block cursor-pointer text-left text-xl font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
-            disabled={isCalendarDisabled || isReorderMode}
+            disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
           >
             {cal.name}
@@ -366,7 +366,7 @@
                               {...props}
                               class="min-w-0 flex-1 cursor-pointer truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled ||
                               isReorderMode
-                                ? 'text-muted-foreground/70'
+                                ? '' // text-muted-foreground/70
                                 : ''}"
                               role="button"
                               tabindex={isHabitDisabled ? -1 : 0}
@@ -394,7 +394,7 @@
                     {:else}
                       <div
                         class="min-w-0 flex-1 truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
-                          ? 'text-muted-foreground/70'
+                          ? '' // text-muted-foreground/70
                           : ''}"
                         role="button"
                         tabindex={isHabitDisabled ? -1 : 0}

@@ -104,9 +104,11 @@
           (constrained by max-w-[380px] in its children)
       - `items-start` ensures panels align to the top of their grid areas.
     -->
-    <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-[1fr_auto]">
+    <div
+      class="container mx-auto grid max-w-7xl grid-cols-1 items-start gap-8 lg:grid-cols-[1fr_auto]"
+    >
       <!-- Main Content Panel: Stretches to fill available space -->
-      <div class="min-w-0">
+      <div class="">
         <DashboardMainPanel bind:isReorderMode />
       </div>
       <!-- Side Panel: Takes only the width it needs -->
