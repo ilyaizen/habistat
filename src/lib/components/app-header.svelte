@@ -7,6 +7,7 @@
   import { Badge } from "$lib/components/ui/badge";
   import { gamification } from "$lib/stores/gamification";
   import { Skeleton } from "$lib/components/ui/skeleton";
+  import { settings } from "$lib/stores/settings";
 
   import Avatar from "./avatar.svelte";
 
@@ -73,7 +74,7 @@
           class="text-muted-foreground hover:text-foreground transition-colors"
           class:font-medium={page.url.pathname.includes("/stats")}
         >
-          Statistics
+          Stats
         </a>
 
         <a
@@ -84,13 +85,15 @@
           Settings
         </a>
         <!-- Dev navigation item for developers -->
-        <!-- <a
-          href="/dev"
-          class="text-muted-foreground hover:text-foreground transition-colors"
-          class:font-medium={$page.url.pathname.includes("/dev")}
-        >
-          Dev
-        </a> -->
+        {#if $settings.developerMode}
+          <a
+            href="/dev"
+            class="text-muted-foreground hover:text-foreground transition-colors"
+            class:font-medium={page.url.pathname.includes("/dev")}
+          >
+            Dev
+          </a>
+        {/if}
       </div>
     </nav>
 
@@ -135,8 +138,16 @@
           class="text-muted-foreground hover:text-foreground text-left font-medium transition-colors"
           onclick={() => handleNavigation("/stats")}
         >
-          Statistics
+          Stats
         </button>
+        {#if $settings.developerMode}
+          <button
+            class="text-muted-foreground hover:text-foreground text-left font-medium"
+            onclick={() => handleNavigation("/dev")}
+          >
+            Dev
+          </button>
+        {/if}
         <!-- <button
           class="text-muted-foreground hover:text-foreground text-left font-medium"
           onclick={() => handleNavigation("/premium")}

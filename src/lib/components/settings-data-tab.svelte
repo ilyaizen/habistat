@@ -78,7 +78,7 @@
   <CardContent class="space-y-4">
     <!-- Developer Mode Toggle -->
     <div class="flex items-center justify-between">
-      <Label for="devmode">Developer Mode</Label>
+      <Label for="devmode">Dev Mode</Label>
       <Switch id="devmode" bind:checked={$settings.developerMode} />
     </div>
     {#if $settings.developerMode}

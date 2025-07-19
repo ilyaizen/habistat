@@ -304,7 +304,7 @@
           <!-- Calendar name, clickable to open edit dialog -->
           <button
             type="button"
-            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-block text-left text-xl font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-block cursor-pointer text-left text-xl font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
             disabled={isCalendarDisabled || isReorderMode}
             onclick={() => openCalendarEditDialog(cal.id)}
           >
@@ -355,7 +355,7 @@
                         : 'w-0 opacity-0'}"
                     >
                       <GripVertical
-                        class="text-muted-foreground/50 hover:text-muted-foreground h-5 w-5 flex-shrink-0 cursor-grab active:cursor-grabbing {isReorderMode
+                        class="text-muted-foreground h-5 w-5 cursor-grab hover:opacity-70 active:cursor-grabbing {isReorderMode
                           ? 'pointer-events-auto'
                           : 'pointer-events-none'}"
                         data-drag-handle="habit"
@@ -369,7 +369,7 @@
                           {#snippet child({ props })}
                             <div
                               {...props}
-                              class="min-w-0 flex-1 truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
+                              class="min-w-0 flex-1 cursor-pointer truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
                                 ? 'text-muted-foreground/70'
                                 : ''}"
                               role="button"
