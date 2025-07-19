@@ -38,6 +38,7 @@
       class={`${buttonVariants({ variant: "outline", size: "icon" })} absolute top-2 right-2`}
       aria-label="Close"
     >
+      <!-- TODO: 2025-07-20 - what is this? -->
       <X class="h-4 w-4" />
     </Drawer.Close>
     <!-- Main About/More Info content is now in a separate component for clarity and reusability -->

@@ -18,7 +18,7 @@
   import { useClerk } from "$lib/hooks/use-clerk.svelte";
   import { useNavigation } from "$lib/hooks/use-navigation.svelte";
   import { useAppInit } from "$lib/hooks/use-app-init.svelte";
-  import { handleRefresh } from "$lib/utils/context-menu";
+  // import { handleRefresh } from "$lib/utils/context-menu";
   import { injectAnalytics } from "@vercel/analytics/sveltekit";
   import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
   import "../app.css";
@@ -30,11 +30,11 @@
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
   import ConfettiEffect from "$lib/components/confetti-effect.svelte";
   import { Toaster } from "$lib/components/ui/sonner";
-  import * as ContextMenu from "$lib/components/ui/context-menu";
+  // import * as ContextMenu from "$lib/components/ui/context-menu";
 
   // import { runDiagnostics } from "$lib/utils/tauri-debug";
 
-  import StoreSync from "$lib/components/store-sync.svelte";
+  // import StoreSync from "$lib/components/store-sync.svelte";
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -134,71 +134,71 @@
     }
   }
 
-  let contextMenuOpen = $state(false);
+  // let contextMenuOpen = $state(false);
 
-  // Context menu actions
-  function goBack() {
-    navigation.goBack();
-    contextMenuOpen = false;
-  }
+  // // Context menu actions
+  // function goBack() {
+  //   navigation.goBack();
+  //   contextMenuOpen = false;
+  // }
 
-  function goForward() {
-    navigation.goForward();
-    contextMenuOpen = false;
-  }
+  // function goForward() {
+  //   navigation.goForward();
+  //   contextMenuOpen = false;
+  // }
 
-  function handleRefreshWithClose() {
-    // console.log("Refreshing...");
-    contextMenuOpen = false;
-    handleRefresh();
-  }
+  // function handleRefreshWithClose() {
+  //   // console.log("Refreshing...");
+  //   contextMenuOpen = false;
+  //   handleRefresh();
+  // }
 </script>
 
-<ContextMenu.Root bind:open={contextMenuOpen}>
-  <ContextMenu.Trigger>
-    <div
-      class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
-    >
-      <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-        {#if page.url.pathname !== "/"}
-          <!-- Header is hidden on the landing page ("/") -->
-          <AppHeader />
+<!-- <ContextMenu.Root bind:open={contextMenuOpen}>
+  <ContextMenu.Trigger> -->
+<div
+  class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
+>
+  <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+    {#if page.url.pathname !== "/"}
+      <!-- Header is hidden on the landing page ("/") -->
+      <AppHeader />
+    {/if}
+    <main class="flex-1">
+      {#if page.url.pathname === "/"}
+        <div class="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+      {/if}
+      <!-- Main content area -->
+      <MotionWrapper>
+        {#if appInit.i18nReady && appInit.trackingInitialized}
+          {@render children()}
+        {:else}
+          <div class="flex h-full items-center justify-center">
+            <!-- Loading spinner or placeholder -->
+            <div
+              class="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"
+            ></div>
+          </div>
         {/if}
-        <main class="flex-1">
-          {#if page.url.pathname === "/"}
-            <div class="absolute top-4 right-4">
-              <ThemeToggle />
-            </div>
-          {/if}
-          <!-- Main content area -->
-          <MotionWrapper>
-            {#if appInit.i18nReady && appInit.trackingInitialized}
-              {@render children()}
-            {:else}
-              <div class="flex h-full items-center justify-center">
-                <!-- Loading spinner or placeholder -->
-                <div
-                  class="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"
-                ></div>
-              </div>
-            {/if}
-          </MotionWrapper>
-        </main>
-        {#if page.url.pathname !== "/"}
-          <!-- Footer is hidden on the landing page ("/") -->
-          <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
-        {/if}
-      </ClerkProvider>
+      </MotionWrapper>
+    </main>
+    {#if page.url.pathname !== "/"}
+      <!-- Footer is hidden on the landing page ("/") -->
+      <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
+    {/if}
+  </ClerkProvider>
 
-      <FireworksEffect />
-      <ConfettiEffect />
-      <Toaster />
-      <StoreSync />
+  <FireworksEffect />
+  <ConfettiEffect />
+  <Toaster />
+  <!-- <StoreSync /> -->
 
-      <!-- The AboutDrawer is now a singleton here, its lifecycle is not tied to page navigation. -->
-      <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
-    </div>
-  </ContextMenu.Trigger>
+  <!-- The AboutDrawer is now a singleton here, its lifecycle is not tied to page navigation. -->
+  <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
+</div>
+<!-- </ContextMenu.Trigger>
   <ContextMenu.Content class="w-52">
     <ContextMenu.Item inset onclick={goBack}>
       Back
@@ -214,4 +214,4 @@
       <ContextMenu.Shortcut>Ctrl+R</ContextMenu.Shortcut>
     </ContextMenu.Item>
   </ContextMenu.Content>
-</ContextMenu.Root>
+</ContextMenu.Root> -->

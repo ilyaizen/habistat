@@ -25,14 +25,8 @@
     isToday: boolean;
   }
 
-  let shades = $state(generateColorShades(calendarColor, 5, 8));
-  let days = $state<DaySquare[]>([]);
-
-  $effect(() => {
-    shades = generateColorShades(calendarColor, 5, 8);
-  });
-
-  $effect(() => {
+  const days = $derived(() => {
+    const shades = generateColorShades(calendarColor, 5, 8);
     const today = new Date();
     const todayStr = formatDate(today);
     const squares: DaySquare[] = [];
@@ -61,7 +55,7 @@
         isToday: dateStr === todayStr
       });
     }
-    days = squares;
+    return squares;
   });
 </script>
 
@@ -69,7 +63,7 @@
   <div class="flex items-center gap-0.5">
     <!-- TODO: 2025-07-05 - Add title="Last {numDays} days of activity" if needed -->
     <!-- <div class="flex items-center gap-0.5" title="Last {numDays} days of activity"> -->
-    {#each days as day (day.date)}
+    {#each days() as day (day.date)}
       <Tooltip>
         <TooltipTrigger>
           <div
