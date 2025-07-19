@@ -36,7 +36,7 @@
   let timerEnabled = $state(false);
   let targetDurationSeconds = $state<number | null>(0);
   let pointsValue = $state(0);
-  let position = $state(0);
+  // let position = $state(0);
   let isEnabled = $state(true);
   let saving = $state(false);
   let deleteDialogOpen = $state(false);
@@ -59,7 +59,7 @@
       timerEnabled = h.timerEnabled === 1;
       targetDurationSeconds = h.targetDurationSeconds;
       pointsValue = h.pointsValue ?? 0;
-      position = h.position;
+      // position = h.position;
       isEnabled = h.isEnabled === 1;
     }
 
@@ -97,7 +97,7 @@
         timerEnabled: timerEnabled ? 1 : 0,
         targetDurationSeconds: timerEnabled ? Number(targetDurationSeconds) || null : null,
         pointsValue: Number(pointsValue) || 0,
-        position: Number(position) || 0,
+        // position: Number(position) || 0,
         isEnabled: isEnabled ? 1 : 0
       };
 
@@ -158,6 +158,24 @@
       {:else}
         <form onsubmit={saveHabit} class="flex flex-col gap-6">
           <div>
+            <Label class="text-foreground mb-2 block text-sm font-medium">Calendar</Label>
+            <Select.Root name="calendar" bind:value={selectedCalendarId} type="single">
+              <Select.Trigger class="w-full md:w-[200px]">
+                {calendars.find((c) => c.id === selectedCalendarId)?.name ?? "Select calendar"}
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Group>
+                  <Select.Label class="px-2 py-1.5 text-sm font-semibold">Calendars</Select.Label>
+                  {#each calendars as cal (cal.id)}
+                    <Select.Item value={cal.id} label={cal.name}>
+                      {cal.name}
+                    </Select.Item>
+                  {/each}
+                </Select.Group>
+              </Select.Content>
+            </Select.Root>
+          </div>
+          <div>
             <Label for="habit-name" class="text-foreground mb-2 block text-sm font-medium"
               >Name</Label
             >
@@ -182,6 +200,7 @@
               placeholder="Optional: What, why, how?"
               rows={4}
               maxlength={500}
+              class="resize-none"
             />
             <div class="text-muted-foreground text-right text-xs">{description.length} / 500</div>
           </div>
@@ -207,24 +226,7 @@
               </Select.Content>
             </Select.Root>
           </div>
-          <div>
-            <Label class="text-foreground mb-2 block text-sm font-medium">Calendar</Label>
-            <Select.Root name="calendar" bind:value={selectedCalendarId} type="single">
-              <Select.Trigger class="w-full md:w-[200px]">
-                {calendars.find((c) => c.id === selectedCalendarId)?.name ?? "Select calendar"}
-              </Select.Trigger>
-              <Select.Content>
-                <Select.Group>
-                  <Select.Label class="px-2 py-1.5 text-sm font-semibold">Calendars</Select.Label>
-                  {#each calendars as cal (cal.id)}
-                    <Select.Item value={cal.id} label={cal.name}>
-                      {cal.name}
-                    </Select.Item>
-                  {/each}
-                </Select.Group>
-              </Select.Content>
-            </Select.Root>
-          </div>
+
           <div class="flex items-center gap-3 rounded-md border p-4">
             <Switch id="timerEnabled" bind:checked={timerEnabled} />
             <Label for="timerEnabled" class="text-foreground text-sm font-medium"
@@ -264,26 +266,26 @@
               class="w-full md:w-32"
             />
           </div>
-          <div>
-            <Label for="habit-position" class="text-foreground mb-2 block text-sm font-medium"
-              >Position</Label
-            >
-            <Input
-              id="habit-position"
-              name="position"
-              type="number"
-              min="0"
-              bind:value={position}
-              placeholder="Order in list"
-              class="w-full md:w-32"
-              disabled={selectedCalendarId !== habit?.calendarId}
-            />
-            {#if selectedCalendarId !== habit?.calendarId}
-              <p class="text-muted-foreground -mt-1 text-xs">
-                Position is set automatically when changing calendar.
-              </p>
-            {/if}
-          </div>
+          <!-- <div>
+              <Label for="habit-position" class="text-foreground mb-2 block text-sm font-medium"
+                >Position</Label
+              >
+              <Input
+                id="habit-position"
+                name="position"
+                type="number"
+                min="0"
+                bind:value={position}
+                placeholder="Order in list"
+                class="w-full md:w-32"
+                disabled={selectedCalendarId !== habit?.calendarId}
+              />
+              {#if selectedCalendarId !== habit?.calendarId}
+                <p class="text-muted-foreground -mt-1 text-xs">
+                  Position is set automatically when changing calendar.
+                </p>
+              {/if}
+            </div> -->
           <div class="flex items-center space-x-2">
             <Switch id="enabled-mode" bind:checked={isEnabled} />
             <Label for="enabled-mode">Enabled</Label>

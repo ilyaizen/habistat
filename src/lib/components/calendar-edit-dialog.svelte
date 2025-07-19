@@ -21,7 +21,9 @@
   let calendar = $state<Calendar | null>(null);
   let name = $state("");
   let colorTheme = $state("");
-  let position = $state(0);
+
+  // TODO: 2025-07-19 - position is not used in the dialog UI, but it's still in the database
+  // let position = $state(0);
   let isEnabled = $state(true);
   let saving = $state(false);
   let deleteDialogOpen = $state(false);
@@ -34,7 +36,7 @@
       calendar = cal;
       name = cal.name;
       colorTheme = cal.colorTheme;
-      position = cal.position;
+      // position = cal.position;
       isEnabled = cal.isEnabled === 1;
     }
 
@@ -67,7 +69,7 @@
       await calendarsStore.update(calendar.id, {
         name,
         colorTheme,
-        position,
+        // position,
         isEnabled: isEnabled ? 1 : 0
       });
       toast.success("Calendar updated successfully!");
@@ -161,7 +163,7 @@
             </Select.Root>
           </div>
 
-          <div>
+          <!-- <div>
             <Label for="calendar-position" class="mb-1 block font-medium">Position</Label>
             <Input
               id="calendar-position"
@@ -171,7 +173,7 @@
               required
               min={0}
             />
-          </div>
+          </div> -->
 
           <div class="flex items-center space-x-2">
             <Switch id="enabled-mode" name="isEnabled" bind:checked={isEnabled} />
