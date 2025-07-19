@@ -12,15 +12,17 @@
   import Input from "$lib/components/ui/input/input.svelte";
   import { toast } from "svelte-sonner";
   import * as Dialog from "$lib/components/ui/dialog/index.js";
-  import { createEventDispatcher } from "svelte";
+  // Using $bindable for two-way binding of the open prop in Svelte 5
 
-  let { habitId, calendarId, open } = $props<{
+  let {
+    habitId,
+    calendarId,
+    open = $bindable()
+  } = $props<{
     habitId: string;
     calendarId: string;
     open: boolean;
   }>();
-
-  const dispatch = createEventDispatcher();
 
   const habitTypeItems = [
     { value: "positive", label: "Positive", description: "Positive (Build good habits)" },
@@ -79,8 +81,12 @@
     }
   });
 
+  /**
+   * Handles dialog closing by setting the bindable open prop to false.
+   * This automatically updates the parent component's state through two-way binding.
+   */
   function handleClose() {
-    dispatch("close");
+    open = false;
   }
 
   async function saveHabit() {
@@ -140,7 +146,7 @@
   }
 </script>
 
-<Dialog.Root bind:open onOpenChange={(v) => !v && handleClose()}>
+<Dialog.Root {open} onOpenChange={(v) => !v && handleClose()}>
   <Dialog.Content class="max-h-[90vh] overflow-y-auto">
     <Dialog.Header>
       <Dialog.Title>Edit Habit</Dialog.Title>

@@ -46,6 +46,8 @@
   let editingHabitId = $state<string | null>(null);
   let editingCalendarId = $state<string | null>(null);
   let editingCalendarIdForDialog = $state<string | null>(null);
+  let habitDialogOpen = $state(false);
+  let calendarDialogOpen = $state(false);
 
   // Drag-and-drop state tracking
   let isCalendarDragging = $state(false); // Tracks if a calendar is being dragged
@@ -241,20 +243,13 @@
     if (isReorderMode) return;
     editingHabitId = habit.id;
     editingCalendarId = calendarId;
-  }
-
-  function closeEditDialog() {
-    editingHabitId = null;
-    editingCalendarId = null;
+    habitDialogOpen = true;
   }
 
   function openCalendarEditDialog(calendarId: string) {
     if (isReorderMode) return;
     editingCalendarIdForDialog = calendarId;
-  }
-
-  function closeCalendarEditDialog() {
-    editingCalendarIdForDialog = null;
+    calendarDialogOpen = true;
   }
 </script>
 
@@ -462,15 +457,10 @@
   <HabitEditDialog
     habitId={editingHabitId}
     calendarId={editingCalendarId}
-    open={true}
-    on:close={closeEditDialog}
+    bind:open={habitDialogOpen}
   />
 {/if}
 
 {#if editingCalendarIdForDialog}
-  <CalendarEditDialog
-    calendarId={editingCalendarIdForDialog}
-    open={true}
-    on:close={closeCalendarEditDialog}
-  />
+  <CalendarEditDialog calendarId={editingCalendarIdForDialog} bind:open={calendarDialogOpen} />
 {/if}

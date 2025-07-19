@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation";
   import { calendarsStore, type Calendar } from "$lib/stores/calendars";
   import { get } from "svelte/store";
-  import { createEventDispatcher } from "svelte";
+  // Using $bindable for two-way binding of the open prop in Svelte 5
 
   import Button from "$lib/components/ui/button/button.svelte";
   import Input from "$lib/components/ui/input/input.svelte";
@@ -14,9 +14,7 @@
   import { COLOR_PALETTE } from "$lib/utils/colors";
   import { toast } from "svelte-sonner";
 
-  let { calendarId, open } = $props<{ calendarId: string; open: boolean }>();
-
-  const dispatch = createEventDispatcher();
+  let { calendarId, open = $bindable() } = $props<{ calendarId: string; open: boolean }>();
 
   let calendar = $state<Calendar | null>(null);
   let name = $state("");
@@ -57,8 +55,12 @@
     }
   });
 
+  /**
+   * Handles dialog closing by setting the bindable open prop to false.
+   * This automatically updates the parent component's state through two-way binding.
+   */
   function handleClose() {
-    dispatch("close");
+    open = false;
   }
 
   async function saveChanges() {
@@ -100,7 +102,7 @@
   }
 </script>
 
-<Dialog.Root bind:open onOpenChange={(v) => !v && handleClose()}>
+<Dialog.Root {open} onOpenChange={(v) => !v && handleClose()}>
   <Dialog.Content>
     <Dialog.Header>
       <Dialog.Title>Edit Calendar</Dialog.Title>
