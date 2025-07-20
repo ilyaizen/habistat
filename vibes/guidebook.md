@@ -29,6 +29,7 @@ bun format             # Prettier
 - **Svelte**: Use Svelte 5 syntax. Components are `kebab-case.svelte`.
   - **Rune Scope**: Runes (`$effect`, `$state`, etc.) are only valid inside `.svelte` files. For reactive logic in stores, expose methods that can be called from a component's `$effect`.
   - **Avoiding Reactive Loops**: To prevent `effect_update_depth_exceeded` errors, use `$derived` for computing new state from existing signals. Avoid chains of `$effect`s that write to signals read by other effects. Remember that derived signals are functions and must be called (e.g., `myDerived()`) in templates to resolve their value, especially for TypeScript.
+  - **Performance in Loops**: Avoid rendering many complex components (e.g., `Tooltip` from a UI library) inside an `#each` loop. The overhead from numerous component instances can cause performance bottlenecks and reactive crashes. When possible, use lightweight, native HTML alternatives like the `title` attribute for tooltips.
 - **File Names**: `kebab-case` (e.g., `user-profile.ts`).
 - **Variables/Functions**: `camelCase` (e.g., `getUserData`).
 - **Constants**: `UPPER_SNAKE_CASE` (e.g., `MAX_RETRIES`).
