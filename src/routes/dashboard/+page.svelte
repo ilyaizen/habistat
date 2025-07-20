@@ -24,6 +24,7 @@
   import Button from "$lib/components/ui/button/button.svelte";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
+  import TierLimitGuard from "$lib/components/subscription/tier-limit-guard.svelte";
 
   // --- Data Initialization Hook ---
   // Custom hook for loading and refreshing dashboard data from stores
@@ -90,7 +91,11 @@
     <div class="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
       <p class="text-muted-foreground">No calendars yet. Create one to get started!</p>
       <div class="mt-4 flex justify-center gap-2">
-        <Button size="sm" onclick={openCreateDialog}>New Calendar</Button>
+        <TierLimitGuard type="calendars">
+          {#snippet children()}
+            <Button size="sm" onclick={openCreateDialog}>New Calendar</Button>
+          {/snippet}
+        </TierLimitGuard>
         <SampleDataGenerator ondatagenerated={handleDataGenerated} />
       </div>
     </div>
@@ -117,7 +122,11 @@
 
     <!-- Create New Calendar Button at Bottom -->
     <div class="flex justify-center pt-4">
-      <Button size="lg" onclick={openCreateDialog} class="btn-3d">New Calendar</Button>
+      <TierLimitGuard type="calendars">
+        {#snippet children()}
+          <Button size="lg" onclick={openCreateDialog} class="btn-3d">New Calendar</Button>
+        {/snippet}
+      </TierLimitGuard>
     </div>
   {/if}
 </Tooltip.Provider>

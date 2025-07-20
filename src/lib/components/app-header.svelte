@@ -8,6 +8,8 @@
   import { gamification } from "$lib/stores/gamification";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { settings } from "$lib/stores/settings";
+  import SyncIndicator from "$lib/components/ui/sync-indicator.svelte";
+  import SubscriptionBadge from "$lib/components/subscription/subscription-badge.svelte";
 
   import Avatar from "./avatar.svelte";
 
@@ -84,6 +86,13 @@
         >
           Settings
         </a>
+        <a
+          href="/premium"
+          class="text-muted-foreground hover:text-foreground transition-colors"
+          class:font-medium={page.url.pathname.includes("/premium")}
+        >
+          Upgrade
+        </a>
         <!-- Dev navigation item for developers -->
         {#if $settings.developerMode}
           <a
@@ -98,6 +107,8 @@
     </nav>
 
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
+      <SyncIndicator />
+      <SubscriptionBadge />
       {#if $gamification.loading}
         <div class="flex items-center gap-2">
           <Skeleton class="h-6 w-16 rounded-md" />
@@ -148,12 +159,12 @@
             Dev
           </button>
         {/if}
-        <!-- <button
+        <button
           class="text-muted-foreground hover:text-foreground text-left font-medium"
           onclick={() => handleNavigation("/premium")}
         >
           Premium
-        </button> -->
+        </button>
       </div>
     </div>
   {/if}

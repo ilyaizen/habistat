@@ -29,8 +29,10 @@ export async function initializeNodeDb() {
     // Use an absolute path for migrations to ensure it works in built Tauri apps
     const migrationsPath = process.env.TAURI_DEBUG ? "./migrations" : process.cwd() + "/migrations";
     migrate(globalThis.dbInstance, { migrationsFolder: migrationsPath });
+    return globalThis.dbInstance;
   } catch (error) {
     console.error("Failed to initialize Node.js database:", error);
     globalThis.dbInstance = null;
+    throw error;
   }
 }

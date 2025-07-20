@@ -1,7 +1,6 @@
 import { api } from "../../convex/_generated/api";
 import type { ConvexClient } from "convex/browser";
 import * as localData from "./local-data";
-import { v4 as uuid } from "uuid";
 import { completions as completionsSchema } from "../db/schema";
 import type { InferModel } from "drizzle-orm";
 import { completionsStore } from "../stores/completions";

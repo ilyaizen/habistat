@@ -1,6 +1,6 @@
 name: "Phase 3: SaaS Subscription Management & UI Limits - Habistat"
 description: |
-  Implement subscription-aware UI logic, tier limitations, and sync feedback for the Habistat SaaS model. Based on Phase 3 requirements from implementation-plan.md.
+Implement subscription-aware UI logic, tier limitations, and sync feedback for the Habistat SaaS model. Based on Phase 3 requirements from implementation-plan.md.
 
 ## Core Principles
 
@@ -25,6 +25,7 @@ Implement the subscription store, UI logic for free tier limits, sync status fee
 ## What
 
 Subscription-aware UI that:
+
 1. Displays current subscription tier and limits
 2. Prevents creation beyond free tier limits (3 calendars, 7 habits per calendar)
 3. Shows sync status indicators (Offline, Syncing, Synced)
@@ -34,7 +35,7 @@ Subscription-aware UI that:
 ### Success Criteria
 
 - [ ] Free tier limits enforced in UI (creation disabled when limits reached)
-- [ ] Subscription status visible in settings and relevant UI components  
+- [ ] Subscription status visible in settings and relevant UI components
 - [ ] Over-limit items visually disabled but not deleted
 - [ ] Sync status indicators working across all data operations
 - [ ] Upgrade prompts contextual and non-intrusive
@@ -129,7 +130,7 @@ src/lib/utils/
 // src/lib/utils/subscription-limits.ts
 export const FREE_TIER_LIMITS = {
   maxCalendars: 3,
-  maxHabitsPerCalendar: 7,
+  maxHabitsPerCalendar: 7
 } as const;
 
 export type SubscriptionTier = "free" | "premium_monthly" | "premium_lifetime";
@@ -146,8 +147,8 @@ export interface SubscriptionStatus {
 export interface SubscriptionStore {
   subscribe: (callback: (value: SubscriptionStatus | null) => void) => () => void;
   refresh: () => Promise<void>;
-  checkLimit: (type: 'calendars' | 'habits', calendarId?: string) => boolean;
-  getUpgradeMessage: (type: 'calendars' | 'habits') => string;
+  checkLimit: (type: "calendars" | "habits", calendarId?: string) => boolean;
+  getUpgradeMessage: (type: "calendars" | "habits") => string;
 }
 ```
 
@@ -161,7 +162,7 @@ Task 1:
     - IMPLEMENT limit checking utility functions
     - ADD upgrade message generation logic
 
-Task 2: 
+Task 2:
   CREATE src/lib/stores/subscription.ts:
     - IMPLEMENT writable store for subscription status
     - ADD refresh() method calling convex.users.getCurrentUser
@@ -211,11 +212,11 @@ Task 7:
 ```typescript
 // FILE: src/lib/stores/subscription.ts
 // Pseudocode with CRITICAL details
-import { writable, derived } from 'svelte/store';
-import { getConvexClient } from '$lib/utils/convex';
-import { api } from '../convex/_generated/api';
-import { user } from './user'; // Existing user store
-import { FREE_TIER_LIMITS, type SubscriptionStatus } from '$lib/utils/subscription-limits';
+import { writable, derived } from "svelte/store";
+import { getConvexClient } from "$lib/utils/convex";
+import { api } from "../convex/_generated/api";
+import { user } from "./user"; // Existing user store
+import { FREE_TIER_LIMITS, type SubscriptionStatus } from "$lib/utils/subscription-limits";
 
 // PATTERN: Writable store with custom methods like existing stores
 function createSubscriptionStore() {
@@ -223,36 +224,41 @@ function createSubscriptionStore() {
 
   return {
     subscribe,
-    
+
     async refresh() {
       const convex = getConvexClient();
       if (!convex) return;
-      
+
       try {
         // PATTERN: Use existing getCurrentUser query from convex/users.ts
         const userData = await convex.query(api.users.getCurrentUser, {});
         if (userData) {
           const status: SubscriptionStatus = {
-            tier: userData.subscriptionTier || 'free',
-            isActive: userData.subscriptionTier !== 'free' && 
-                     (!userData.subscriptionExpiresAt || userData.subscriptionExpiresAt > Date.now()),
+            tier: userData.subscriptionTier || "free",
+            isActive:
+              userData.subscriptionTier !== "free" &&
+              (!userData.subscriptionExpiresAt || userData.subscriptionExpiresAt > Date.now()),
             expiresAt: userData.subscriptionExpiresAt,
-            maxCalendars: userData.subscriptionTier === 'free' ? FREE_TIER_LIMITS.maxCalendars : Infinity,
-            maxHabitsPerCalendar: userData.subscriptionTier === 'free' ? FREE_TIER_LIMITS.maxHabitsPerCalendar : Infinity
+            maxCalendars:
+              userData.subscriptionTier === "free" ? FREE_TIER_LIMITS.maxCalendars : Infinity,
+            maxHabitsPerCalendar:
+              userData.subscriptionTier === "free"
+                ? FREE_TIER_LIMITS.maxHabitsPerCalendar
+                : Infinity
           };
           set(status);
         }
       } catch (error) {
-        console.error('Failed to refresh subscription status:', error);
+        console.error("Failed to refresh subscription status:", error);
       }
     },
 
-    checkLimit(type: 'calendars' | 'habits', calendarId?: string): boolean {
+    checkLimit(type: "calendars" | "habits", calendarId?: string): boolean {
       // PATTERN: Access store value synchronously with get() helper
       const status = get(subscriptionStore);
-      if (!status || status.tier !== 'free') return true; // Premium has no limits
-      
-      if (type === 'calendars') {
+      if (!status || status.tier !== "free") return true; // Premium has no limits
+
+      if (type === "calendars") {
         // Check current calendar count against limit
         // Use existing calendars store to get current count
       } else {
@@ -277,17 +283,17 @@ user.subscribe(($user) => {
 <!-- FILE: src/lib/components/subscription/tier-limit-guard.svelte -->
 <!-- Pseudocode with CRITICAL details -->
 <script lang="ts">
-  import { subscriptionStore } from '$lib/stores/subscription';
-  import UpgradePrompt from './upgrade-prompt.svelte';
-  
+  import { subscriptionStore } from "$lib/stores/subscription";
+  import UpgradePrompt from "./upgrade-prompt.svelte";
+
   // PATTERN: Use Svelte 5 $props rune for component props
-  let { 
-    type, 
-    calendarId, 
+  let {
+    type,
+    calendarId,
     children,
-    showUpgradePrompt = true 
+    showUpgradePrompt = true
   }: {
-    type: 'calendars' | 'habits';
+    type: "calendars" | "habits";
     calendarId?: string;
     children: any;
     showUpgradePrompt?: boolean;
@@ -323,7 +329,7 @@ CONFIG:
 
 ROUTES:
   - modify: src/routes/dashboard/+page.svelte
-  - modify: src/routes/settings/account/+page.svelte  
+  - modify: src/routes/settings/account/+page.svelte
   - pattern: "Add subscription awareness to creation flows"
 
 STORES:
@@ -338,7 +344,7 @@ STORES:
 ```bash
 # Run these FIRST - fix any errors before proceeding
 bun lint                    # ESLint checks
-bunx tsc --noEmit           # TypeScript type checking  
+bunx tsc --noEmit           # TypeScript type checking
 bun format                  # Prettier formatting
 
 # Expected: No errors. If errors, READ the error and fix.
@@ -348,36 +354,36 @@ bun format                  # Prettier formatting
 
 ```typescript
 // CREATE tests/subscription.test.ts with these test cases:
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { get } from 'svelte/store';
-import { subscriptionStore } from '$lib/stores/subscription';
-import { FREE_TIER_LIMITS } from '$lib/utils/subscription-limits';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { get } from "svelte/store";
+import { subscriptionStore } from "$lib/stores/subscription";
+import { FREE_TIER_LIMITS } from "$lib/utils/subscription-limits";
 
-describe('Subscription Store', () => {
+describe("Subscription Store", () => {
   beforeEach(() => {
     // Mock Convex client
-    vi.mock('$lib/utils/convex', () => ({
+    vi.mock("$lib/utils/convex", () => ({
       getConvexClient: () => ({
         query: vi.fn().mockResolvedValue({
-          subscriptionTier: 'free',
+          subscriptionTier: "free",
           subscriptionExpiresAt: null
         })
       })
     }));
   });
 
-  it('initializes with null status', () => {
+  it("initializes with null status", () => {
     const status = get(subscriptionStore);
     expect(status).toBeNull();
   });
 
-  it('enforces free tier calendar limits', async () => {
+  it("enforces free tier calendar limits", async () => {
     await subscriptionStore.refresh();
-    const canCreateCalendar = subscriptionStore.checkLimit('calendars');
+    const canCreateCalendar = subscriptionStore.checkLimit("calendars");
     // Test logic based on current calendar count
   });
 
-  it('allows unlimited creation for premium tiers', async () => {
+  it("allows unlimited creation for premium tiers", async () => {
     // Mock premium subscription response
     // Test that limits are bypassed
   });
@@ -426,7 +432,7 @@ bun tauri build
 # E2E test scenarios:
 # 1. Anonymous user sees free tier limits
 # 2. Authenticated user sees subscription status
-# 3. Free tier user cannot exceed limits  
+# 3. Free tier user cannot exceed limits
 # 4. Premium user has no creation restrictions
 # 5. Sync indicators update during network changes
 ```
@@ -434,7 +440,7 @@ bun tauri build
 ## Final Validation Checklist
 
 - [ ] All tests pass: `bun test`
-- [ ] No linting errors: `bun lint`  
+- [ ] No linting errors: `bun lint`
 - [ ] No type errors: `bunx tsc --noEmit`
 - [ ] Free tier limits enforced in UI (manual test with 3+ calendars)
 - [ ] Subscription status displays correctly in settings
@@ -456,3 +462,48 @@ bun tauri build
 - ❌ Don't make upgrade prompts aggressive or block core functionality
 
 **Confidence Score: 9/10** - Comprehensive context with existing patterns, clear validation gates, and progressive implementation approach.
+
+---
+
+Implementation Complete! 🎉
+
+I've successfully implemented the Phase 3: SaaS Subscription Management & UI Limits features for Habistat. Here's what was delivered:
+
+✅ Core Components Created:
+
+1. src/lib/utils/subscription-limits.ts - Tier limits and utility functions
+2. src/lib/stores/subscription.ts - Subscription status management store
+3. src/lib/components/ui/sync-indicator.svelte - Network/sync status feedback
+4. src/lib/components/subscription/subscription-badge.svelte - Current tier display
+5. src/lib/components/subscription/tier-limit-guard.svelte - Creation limit enforcement
+6. src/lib/components/subscription/upgrade-prompt.svelte - Contextual upgrade messaging
+
+✅ Key Features Implemented:
+
+- Free Tier Limits: 3 calendars max, 7 habits per calendar max
+- Subscription Status: Real-time display in header and settings
+- Limit Enforcement: "New Calendar" buttons replaced with upgrade prompts when limits reached
+- Sync Indicators: Shows "Offline/Syncing/Synced" status for authenticated users
+- Settings Integration: Complete subscription info display in Account tab
+- Reactive Updates: All components refresh subscription data when user authentication changes
+
+✅ Integration Points:
+
+- Dashboard: New Calendar buttons wrapped in TierLimitGuard
+- App Header: Added sync indicator and subscription badge
+- Settings: Enhanced account tab with detailed subscription information
+- Convex Backend: Updated getCurrentUser query to use auth context properly
+
+✅ Architecture Benefits:
+
+- Local-First Compatible: Works with existing offline-first approach
+- Type-Safe: Full TypeScript integration with proper type definitions
+- Performance Optimized: Uses Svelte 5 runes and derived state correctly
+- Context-Aware: Integrates with existing Clerk authentication patterns
+- Modular: Clean separation of concerns with reusable components
+
+The implementation follows all the established patterns from the vibes/guidebook.md and integrates seamlessly with the existing codebase. The subscription
+management is now ready to support the SaaS business model with clear user feedback and proper tier enforcement.
+
+Next Steps: This sets up the foundation for Phase 5 (Stripe Integration) where the actual payment processing and premium subscription management will be
+implemented.
