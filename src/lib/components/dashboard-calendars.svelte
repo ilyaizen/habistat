@@ -19,7 +19,6 @@
   // --- Component Imports ---
   // UI components for drag-and-drop, habit controls, and visualization
   import Button from "$lib/components/ui/button/button.svelte";
-  import * as Tooltip from "$lib/components/ui/tooltip";
   import { dndzone, type DndEvent } from "svelte-dnd-action";
   import { flip } from "svelte/animate";
   import { GripVertical } from "@lucide/svelte";
@@ -358,62 +357,29 @@
                     </div>
 
                     <!-- Habit name with navigation functionality -->
-                    {#if habit.description}
-                      <Tooltip.Root>
-                        <Tooltip.Trigger>
-                          {#snippet child({ props })}
-                            <div
-                              {...props}
-                              class="min-w-0 flex-1 cursor-pointer truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled ||
-                              isReorderMode
-                                ? '' // text-muted-foreground/70
-                                : ''}"
-                              role="button"
-                              tabindex={isHabitDisabled ? -1 : 0}
-                              onclick={() => openEditDialog(habit, cal.id)}
-                              onkeydown={(e: KeyboardEvent) => {
-                                if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
-                                  openEditDialog(habit, cal.id);
-                                }
-                              }}
-                              aria-disabled={isHabitDisabled}
-                            >
-                              {habit.name}
-                              {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
-                                <span class="text-muted-foreground/80 ml-1"
-                                  >({Math.round(habit.targetDurationSeconds / 60)}m)</span
-                                >
-                              {/if}
-                            </div>
-                          {/snippet}
-                        </Tooltip.Trigger>
-                        <Tooltip.Content align="start">
-                          <p class="whitespace-pre-wrap">{habit.description}</p>
-                        </Tooltip.Content>
-                      </Tooltip.Root>
-                    {:else}
-                      <div
-                        class="min-w-0 flex-1 truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled
-                          ? '' // text-muted-foreground/70
-                          : ''}"
-                        role="button"
-                        tabindex={isHabitDisabled ? -1 : 0}
-                        onclick={() => openEditDialog(habit, cal.id)}
-                        onkeydown={(e: KeyboardEvent) => {
-                          if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
-                            openEditDialog(habit, cal.id);
-                          }
-                        }}
-                        aria-disabled={isHabitDisabled}
-                      >
-                        {habit.name}
-                        {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
-                          <span class="text-muted-foreground/80 ml-1"
-                            >({Math.round(habit.targetDurationSeconds / 60)}m)</span
-                          >
-                        {/if}
-                      </div>
-                    {/if}
+                    <div
+                      class="min-w-0 flex-1 cursor-pointer truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled ||
+                      isReorderMode
+                        ? '' // text-muted-foreground/70
+                        : ''}"
+                      role="button"
+                      tabindex={isHabitDisabled ? -1 : 0}
+                      onclick={() => openEditDialog(habit, cal.id)}
+                      onkeydown={(e: KeyboardEvent) => {
+                        if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
+                          openEditDialog(habit, cal.id);
+                        }
+                      }}
+                      aria-disabled={isHabitDisabled}
+                      title={habit.description ?? undefined}
+                    >
+                      {habit.name}
+                      {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
+                        <span class="text-muted-foreground/80 ml-1"
+                          >({Math.round(habit.targetDurationSeconds / 60)}m)</span
+                        >
+                      {/if}
+                    </div>
                   </div>
 
                   <!-- Right side: History grid and completion control -->
