@@ -28,6 +28,7 @@ bun format             # Prettier
 - **TypeScript**: Strict mode; no unused vars/params. Use `PascalCase` for types/interfaces.
 - **Svelte**: Use Svelte 5 syntax. Components are `kebab-case.svelte`.
   - **Rune Scope**: Runes (`$effect`, `$state`, etc.) are only valid inside `.svelte` files. For reactive logic in stores, expose methods that can be called from a component's `$effect`.
+  - **Avoiding Reactive Loops**: To prevent `effect_update_depth_exceeded` errors, use `$derived` for computing new state from existing signals. Avoid chains of `$effect`s that write to signals read by other effects. Remember that derived signals are functions and must be called (e.g., `myDerived()`) in templates to resolve their value, especially for TypeScript.
 - **File Names**: `kebab-case` (e.g., `user-profile.ts`).
 - **Variables/Functions**: `camelCase` (e.g., `getUserData`).
 - **Constants**: `UPPER_SNAKE_CASE` (e.g., `MAX_RETRIES`).
@@ -75,7 +76,7 @@ bun format             # Prettier
 See [tech-stack.md](tech-stack.md) or check the project's `package.json` for a fuller list.
 
 **Cross-Platform Data Layer Warning**:
-Never use Node-only SQLite drivers (like `better-sqlite3`) in code that might run in the browser. Use a cross-platform solution like `wa-sqlite` or `sql.js`.
+The project uses `better-sqlite3` in Node.js/Tauri environments and `sql.js` in the browser. Never import Node-only drivers like `better-sqlite3` in browser-facing code. The current setup correctly handles this by conditionally importing the right driver based on the environment.
 
 ## Testing Guidelines
 
