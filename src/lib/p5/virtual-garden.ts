@@ -6,6 +6,20 @@
 import type p5 from "p5";
 import { getSessionId } from "$lib/utils/tracking";
 
+interface PlantColorPalette {
+  stem: number[];
+  leaf: number[];
+  petal1: number[];
+  petal2: number[];
+  center: number[];
+}
+
+interface GardenConfig {
+  completions: { habitId: string; date: string }[];
+  habits: { _id: string; name: string; color: string }[];
+  weeklyDelta: number;
+}
+
 /**
  * This function converts a non-numeric session ID into a stable numeric seed.
  * This ensures that the generated garden is visually consistent and reproducible
@@ -29,7 +43,7 @@ function sessionIdToSeed(sessionId: string | null): number {
  * and cohesive look for the plants. Each palette defines colors for the stem,
  * leaves, petals (primary and secondary for layered flowers), and the flower's center.
  */
-const plantColors = [
+const plantColors: PlantColorPalette[] = [
   {
     stem: [140, 40, 70],
     leaf: [120, 45, 60],
@@ -76,7 +90,7 @@ class Plant {
 
   // --- Plant DNA ---
   // These properties are randomized once at creation to give each plant a unique appearance.
-  colors: any; // The color palette selected from plantColors.
+  colors: PlantColorPalette; // The color palette selected from plantColors.
   leafCount: number; // The number of leaves on the stem.
   stemWidth: number; // The base width of the stem.
   stemNoiseSeed: number; // A seed for Perlin noise to create a unique, organic curve for the stem.
@@ -117,7 +131,7 @@ class Plant {
       newColor[2] = p.constrain(newColor[2], 20, 100); // Brightness
       return newColor;
     };
-    const baseColors = plantColors[Math.floor(p.random(plantColors.length))];
+    const baseColors = p.random(plantColors);
     this.colors = {
       stem: randomizeColor(baseColors.stem, 5, 10, 10),
       leaf: randomizeColor(baseColors.leaf, 5, 15, 15),
@@ -361,20 +375,24 @@ class Plant {
  */
 export class VirtualGardenSketch {
   public p: p5;
-  private gardenConfig: any;
+  private gardenConfig: GardenConfig;
   private plants: Plant[] = [];
   private sceneProperties: { fogColor: p5.Color; fogNear: number; fogFar: number } | null = null;
   private gardenDepth: number = 0;
+  private camera: p5.Camera; // Use the p5.Camera type for the camera object.
 
-  constructor(p: p5, initialGardenConfig: any) {
+  constructor(p: p5, initialGardenConfig: GardenConfig) {
     this.p = p;
-    this.gardenConfig = initialGardenConfig || {};
+    this.gardenConfig = initialGardenConfig;
+    // The default p5 camera can be accessed but might not be a full `p5.Camera` instance
+    // until it's explicitly created. Let's create it to be safe.
+    this.camera = p.createCamera();
   }
 
-  public updateData(newConfig: any) {
-    const oldConfig = this.gardenConfig;
-    this.gardenConfig = newConfig || {};
-    if ((oldConfig.plantCount || 3) !== (this.gardenConfig.plantCount || 3)) {
+  public updateData(newConfig: GardenConfig) {
+    // If the data is meaningfully different, regenerate the garden.
+    if (JSON.stringify(this.gardenConfig) !== JSON.stringify(newConfig)) {
+      this.gardenConfig = newConfig;
       this.generateGarden();
     }
   }
@@ -394,7 +412,7 @@ export class VirtualGardenSketch {
 
     // Draw the 3D scene and get properties needed for fog.
     this.sceneProperties = this.drawScene();
-    const weeklyDelta = this.gardenConfig.weeklyPointsDelta || 0;
+    const weeklyDelta = this.gardenConfig.weeklyDelta || 0;
 
     // Update and draw each plant, passing the fog properties.
     for (const plant of this.plants) {
@@ -415,9 +433,9 @@ export class VirtualGardenSketch {
     this.plants = [];
     p.randomSeed(sessionIdToSeed(getSessionId()));
 
-    const plantCount = Math.max(1, Math.min(15, this.gardenConfig.plantCount || 3));
-    const baseGrowth = Math.max(0, Math.min(1, this.gardenConfig.baseGrowth || 0.5));
-    const weeklyDelta = this.gardenConfig.weeklyPointsDelta || 0;
+    const plantCount = Math.max(1, Math.min(15, this.gardenConfig.completions.length));
+    const baseGrowth = Math.max(0, Math.min(1, this.gardenConfig.completions.length / 10));
+    const weeklyDelta = this.gardenConfig.weeklyDelta || 0;
     const weeklyGrowth = Math.max(0, Math.min(1, (weeklyDelta + 50) / 100));
 
     const gardenWidth = p.width * 0.9;
@@ -438,23 +456,15 @@ export class VirtualGardenSketch {
 
   private drawScene() {
     const p = this.p;
-    const timeOfDay = this.gardenConfig.timeOfDay || "day";
-    const weeklyDelta = this.gardenConfig.weeklyPointsDelta || 0;
+    const timeOfDay = this.gardenConfig.completions.length > 0 ? "night" : "day";
+    const weeklyDelta = this.gardenConfig.weeklyDelta || 0;
     const isNegative = weeklyDelta < 0;
 
-    let skyTop: number[],
-      skyBottom: number[],
-      sunColor: number[],
-      groundNear: number[],
-      groundFar: number[];
+    let skyTop: number[], skyBottom: number[], sunColor: number[];
     if (timeOfDay === "night") {
       skyTop = [240, 70, 10];
       skyBottom = [240, 60, 35];
       sunColor = [60, 20, 100];
-    } else if (timeOfDay === "twilight") {
-      skyTop = [270, 60, 30];
-      skyBottom = [30, 60, 80];
-      sunColor = [30, 80, 90];
     } else {
       skyTop = [210, 80, 95];
       skyBottom = [200, 50, 100];
@@ -462,8 +472,8 @@ export class VirtualGardenSketch {
     }
 
     const hillHue = isNegative ? 45 : 120;
-    groundNear = [hillHue, isNegative ? 40 : 30, 90];
-    groundFar = [hillHue, isNegative ? 60 : 50, 60];
+    const groundNearColor: number[] = [hillHue, isNegative ? 40 : 30, 90];
+    const groundFarColor: number[] = [hillHue, isNegative ? 60 : 50, 60];
 
     p.background(skyBottom[0], skyBottom[1], skyBottom[2]);
     p.noStroke();
@@ -499,19 +509,40 @@ export class VirtualGardenSketch {
     p.sphere(p.width * 0.1);
     p.pop();
 
+    // Draw ground plane
     p.push();
-    const groundY = p.height / 4;
-    p.translate(0, groundY, 0);
+    p.noStroke();
+    p.translate(0, 0, -this.gardenDepth / 2); // Center ground plane
     p.rotateX(p.HALF_PI);
-    const groundSize = p.width * 2;
-    p.beginShape();
-    p.fill(groundFar[0], groundFar[1], groundFar[2]);
-    p.vertex(-groundSize, -groundSize);
-    p.vertex(groundSize, -groundSize);
-    p.fill(groundNear[0], groundNear[1], groundNear[2]);
-    p.vertex(groundSize, groundSize);
-    p.vertex(-groundSize, groundSize);
-    p.endShape(p.CLOSE);
+
+    // Gradient from back to front
+    const nearDist = this.gardenDepth / 2;
+    const farDist = -this.gardenDepth / 2;
+    const segments = 30;
+    for (let i = 0; i < segments; i++) {
+      const z1 = p.map(i, 0, segments, farDist, nearDist);
+      const z2 = p.map(i + 1, 0, segments, farDist, nearDist);
+      p.beginShape(p.QUAD_STRIP);
+
+      const c1 = p.lerpColor(
+        p.color(groundFarColor[0], groundFarColor[1], groundFarColor[2]),
+        p.color(groundNearColor[0], groundNearColor[1], groundNearColor[2]),
+        i / segments
+      );
+      p.fill(c1);
+      p.vertex(-p.width * 2, z1);
+      p.vertex(p.width * 2, z1);
+
+      const c2 = p.lerpColor(
+        p.color(groundFarColor[0], groundFarColor[1], groundFarColor[2]),
+        p.color(groundNearColor[0], groundNearColor[1], groundNearColor[2]),
+        (i + 1) / segments
+      );
+      p.fill(c2);
+      p.vertex(-p.width * 2, z2);
+      p.vertex(p.width * 2, z2);
+      p.endShape();
+    }
     p.pop();
 
     // NEW: Define fog properties to be used by the plants.

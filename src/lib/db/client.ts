@@ -3,8 +3,11 @@
 // - Tauri/Node: better-sqlite3 (via server.ts)
 
 import * as schema from "$lib/db/schema";
-import initSqlJs from "sql.js";
+import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
 import wasmUrl from "sql.js/dist/sql-wasm.wasm?url";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import type { LibSQLDatabase } from "drizzle-orm/libsql";
+import type { SQLJsDatabase } from "drizzle-orm/sql-js";
 
 // This is a dynamic import that Vite will handle.
 // It imports the content of all migration files as raw strings.
@@ -29,8 +32,16 @@ export const migrationQueries = Object.entries(migrationModules)
 // Use a global variable to hold the db instance, which will be set by
 // the platform-specific initialization code.
 declare global {
-  var dbInstance: any;
-  var dbPromise: Promise<any> | null;
+  var dbInstance:
+    | LibSQLDatabase<typeof schema>
+    | BetterSQLite3Database<typeof schema>
+    | SQLJsDatabase<typeof schema>
+    | null;
+  var dbPromise: Promise<
+    | LibSQLDatabase<typeof schema>
+    | BetterSQLite3Database<typeof schema>
+    | SQLJsDatabase<typeof schema>
+  > | null;
 }
 
 globalThis.dbInstance = globalThis.dbInstance ?? null;
@@ -47,7 +58,11 @@ globalThis.dbPromise = globalThis.dbPromise ?? null;
  *
  * @returns {Promise<any>} A promise that resolves with the database instance.
  */
-export async function getDb(): Promise<any> {
+export async function getDb(): Promise<
+  | LibSQLDatabase<typeof schema>
+  | BetterSQLite3Database<typeof schema>
+  | SQLJsDatabase<typeof schema>
+> {
   if (globalThis.dbInstance) {
     return globalThis.dbInstance;
   }
@@ -100,10 +115,10 @@ function openIndexedDB(): Promise<IDBDatabase> {
   });
 }
 
-async function loadSqlJsDb(SQL: any): Promise<any> {
+async function loadSqlJsDb(SQL: SqlJsStatic): Promise<SqlJsDatabase> {
   const idb = await openIndexedDB();
 
-  const processDb = (db: any) => {
+  const processDb = (db: SqlJsDatabase) => {
     try {
       // Create migrations table if it doesn't exist
       db.run("CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY)");
@@ -129,10 +144,13 @@ async function loadSqlJsDb(SQL: any): Promise<any> {
             stmt.bind([migration.name]);
             stmt.step();
             stmt.free();
-          } catch (migrationError: any) {
+          } catch (migrationError: unknown) {
             // For development, we'll continue with other migrations instead of failing completely
             // This helps with migration conflicts during development
-            if (migrationError.message.includes("already exists")) {
+            if (
+              migrationError instanceof Error &&
+              migrationError.message.includes("already exists")
+            ) {
               // Still mark it as applied to prevent future attempts
               const stmt = db.prepare("INSERT OR IGNORE INTO _migrations (name) VALUES (?)");
               stmt.bind([migration.name]);
@@ -144,14 +162,14 @@ async function loadSqlJsDb(SQL: any): Promise<any> {
           }
         }
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("A critical error occurred during migration:", e);
       throw new Error("Migration failed, database might be corrupt.");
     }
     return db;
   };
 
-  return new Promise<any>((resolve, reject) => {
+  return new Promise<SqlJsDatabase>((resolve, reject) => {
     const tx = idb.transaction(DB_STORE, "readonly");
     const store = tx.objectStore(DB_STORE);
     const getReq = store.get(DB_KEY);
@@ -159,7 +177,7 @@ async function loadSqlJsDb(SQL: any): Promise<any> {
     getReq.onsuccess = () => {
       try {
         const db = getReq.result
-          ? new SQL.Database(new Uint8Array(getReq.result))
+          ? new SQL.Database(new Uint8Array(getReq.result as ArrayBuffer))
           : new SQL.Database();
         resolve(processDb(db));
       } catch (e) {
@@ -177,7 +195,7 @@ async function loadSqlJsDb(SQL: any): Promise<any> {
   });
 }
 
-async function saveSqlJsDb(db: any) {
+async function saveSqlJsDb(db: SqlJsDatabase) {
   // Always vacuum to minimize file size before export
   db.run("VACUUM");
   const idb = await openIndexedDB();
@@ -191,7 +209,7 @@ async function saveSqlJsDb(db: any) {
   });
 }
 
-let browserSqliteInstance: any = null;
+let browserSqliteInstance: SqlJsDatabase | null = null;
 
 export async function persistBrowserDb() {
   if (browserSqliteInstance) {
@@ -224,6 +242,7 @@ async function initializeBrowserDb() {
     } catch (migrationError) {
       console.warn("Custom migrations failed, continuing:", migrationError);
     }
+    return globalThis.dbInstance;
   } catch (error) {
     console.error("Failed to initialize browser database:", error);
     globalThis.dbInstance = null;

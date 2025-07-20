@@ -59,15 +59,21 @@ export const createOrUpdate = internalMutation({
 // });
 
 /**
- * Query to fetch the current user's data, including subscription status, by Clerk ID.
- * Returns null if no user is found.
+ * Query to fetch the current user's data, including subscription status.
+ * Uses authentication context to identify the user.
+ * Returns null if no user is found or not authenticated.
  */
 export const getCurrentUser = query({
-  args: { clerkId: v.string() },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return null;
+    }
+    const clerkId = identity.subject;
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .unique();
     return user || null;
   }

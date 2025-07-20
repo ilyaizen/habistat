@@ -1,6 +1,7 @@
 <script lang="ts">
+  import { Github, Twitter } from "@lucide/svelte";
+  import { Button } from "$lib/components/ui/button";
   import * as Tooltip from "$lib/components/ui/tooltip";
-  import { VERSION } from "../version";
 </script>
 
 <!-- SocialLinks: Centralized social links for reuse in footer and info drawer -->
