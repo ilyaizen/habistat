@@ -2,10 +2,10 @@
   import { Button } from "$lib/components/ui/button";
   import {
     Card,
-    CardContent,
-    CardDescription,
     CardHeader,
-    CardTitle
+    CardTitle,
+    CardContent,
+    CardDescription
   } from "$lib/components/ui/card";
   import { Badge } from "$lib/components/ui/badge";
 

@@ -2,7 +2,7 @@
   import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
   import { Button } from "$lib/components/ui/button";
   import SessionInfo from "$lib/components/session-info.svelte";
-  import SubscriptionBadge from "$lib/components/subscription/subscription-badge.svelte";
+  import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
   import { subscriptionStore } from "$lib/stores/subscription";
   import { getContext } from "svelte";
   import type { Readable } from "svelte/store";

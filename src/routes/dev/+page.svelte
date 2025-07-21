@@ -4,15 +4,15 @@
   import { goto } from "$app/navigation";
 
   // Import custom tab components
-  import DevSettingsTab from "$lib/components/dev-settings-tab.svelte";
+  import DevSettingsTab from "$lib/components/settings-dev-tab.svelte";
 
   // Import tracking utilities
-  import { anonymousUserId, logAppOpenIfNeeded } from "$lib/utils/tracking";
+  // import { anonymousUserId, logAppOpenIfNeeded } from "$lib/utils/tracking";
   // Import Svelte lifecycle hooks
   import { onMount } from "svelte";
 
   import { browser } from "$app/environment";
-  import { get } from "svelte/store";
+  // import { get } from "svelte/store";
 
   // Import tab bar UI components
   import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
@@ -25,7 +25,7 @@
 
   // On component mount, perform initial setup
   onMount(() => {
-    logAppOpenIfNeeded(); // Log application opening for tracking
+    // logAppOpenIfNeeded(); // Log application opening for tracking
     // Redirect to home if not in dev mode
     if (!$settings.developerMode) {
       console.log("Not in developer mode, redirecting to home");

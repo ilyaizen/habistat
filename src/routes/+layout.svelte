@@ -30,6 +30,7 @@
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
   import ConfettiEffect from "$lib/components/confetti-effect.svelte";
   import { Toaster } from "$lib/components/ui/sonner";
+
   // import * as ContextMenu from "$lib/components/ui/context-menu";
 
   // import { runDiagnostics } from "$lib/utils/tauri-debug";

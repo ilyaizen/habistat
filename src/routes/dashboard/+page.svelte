@@ -24,7 +24,7 @@
   import Button from "$lib/components/ui/button/button.svelte";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
-  import TierLimitGuard from "$lib/components/subscription/tier-limit-guard.svelte";
+  import TierLimitGuard from "$lib/components/tier-limit-guard.svelte";
 
   // --- Data Initialization Hook ---
   // Custom hook for loading and refreshing dashboard data from stores

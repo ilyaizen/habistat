@@ -8,10 +8,10 @@
   import { gamification } from "$lib/stores/gamification";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import { settings } from "$lib/stores/settings";
-  import SyncIndicator from "$lib/components/ui/sync-indicator.svelte";
-  import SubscriptionBadge from "$lib/components/subscription/subscription-badge.svelte";
+  import SyncIndicator from "$lib/components/sync-indicator.svelte";
+  import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
 
-  import Avatar from "./avatar.svelte";
+  import Avatar from "$lib/components/avatar.svelte";
 
   let isMobileMenuOpen = $state(false);
 
