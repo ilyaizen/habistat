@@ -1,26 +1,26 @@
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button";
-  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-  import { locale } from "svelte-i18n";
-  import { browser } from "$app/environment";
+import { locale } from "svelte-i18n";
+import { browser } from "$app/environment";
+import { Button } from "$lib/components/ui/button";
+import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 
-  // Language switcher
-  const locales = ["en", "he", "es"] as const;
-  const languageMap = {
-    en: { name: "English", flagSrc: "/flag-us.png" },
-    he: { name: "Hebrew", flagSrc: "/flag-il.png" },
-    es: { name: "Spanish", flagSrc: "/flag-es.png" }
-  } as const;
+// Language switcher
+const locales = ["en", "he", "es"] as const;
+const languageMap = {
+  en: { name: "English", flagSrc: "/flag-us.png" },
+  he: { name: "Hebrew", flagSrc: "/flag-il.png" },
+  es: { name: "Spanish", flagSrc: "/flag-es.png" }
+} as const;
 
-  function handleLanguageChange(newLocale: string) {
-    locale.set(newLocale);
-    if (browser) {
-      localStorage.setItem("locale", newLocale);
-      const dir = newLocale === "he" ? "rtl" : "ltr";
-      document.documentElement.setAttribute("dir", dir);
-      document.documentElement.setAttribute("lang", newLocale);
-    }
+function handleLanguageChange(newLocale: string) {
+  locale.set(newLocale);
+  if (browser) {
+    localStorage.setItem("locale", newLocale);
+    const dir = newLocale === "he" ? "rtl" : "ltr";
+    document.documentElement.setAttribute("dir", dir);
+    document.documentElement.setAttribute("lang", newLocale);
   }
+}
 </script>
 
 <DropdownMenu.Root>
@@ -46,7 +46,7 @@
     </Button>
   </DropdownMenu.Trigger>
   <DropdownMenu.Content align="end">
-    {#each locales as loc}
+    {#each locales as loc (loc)}
       <DropdownMenu.Item onclick={() => handleLanguageChange(loc)} class="flex items-center gap-2">
         <img
           src={languageMap[loc].flagSrc}

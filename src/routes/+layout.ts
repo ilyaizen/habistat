@@ -9,13 +9,15 @@ export const ssr = false; // Disable SSR for static builds
 export const csr = true; // Enable client-side rendering
 
 import "../app.css";
-import { browser, dev } from "$app/environment";
+import { browser } from "$app/environment";
+
+// import { dev } from "$app/environment";
 // import { inject } from "@vercel/analytics";
 
+import { waitLocale } from "svelte-i18n";
 import { logAppOpenIfNeeded } from "$lib/utils/tracking";
 // import { runDiagnostics } from "$lib/utils/tauri-debug";
 import type { LayoutLoad } from "./$types";
-import { waitLocale } from "svelte-i18n";
 import "../i18n"; // Import to ensure i18n is initialized
 import { getDb } from "$lib/db/client";
 

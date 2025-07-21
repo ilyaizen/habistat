@@ -2,19 +2,19 @@
  * Subscription store for managing user subscription status and tier limits
  */
 
-import { writable, get } from "svelte/store";
+import { get, writable } from "svelte/store";
 import { getConvexClient } from "$lib/utils/convex";
+import {
+  FREE_TIER_LIMITS,
+  getLimitsForTier,
+  getUpgradeMessage,
+  isSubscriptionActive,
+  type SubscriptionStatus,
+  type SubscriptionTier
+} from "$lib/utils/subscription-limits";
 import { api } from "../../convex/_generated/api";
 import { calendarsStore } from "./calendars";
 import { habits } from "./habits";
-import {
-  FREE_TIER_LIMITS,
-  type SubscriptionStatus,
-  type SubscriptionTier,
-  getLimitsForTier,
-  getUpgradeMessage,
-  isSubscriptionActive
-} from "$lib/utils/subscription-limits";
 
 export interface SubscriptionStore {
   subscribe: (callback: (value: SubscriptionStatus | null) => void) => () => void;

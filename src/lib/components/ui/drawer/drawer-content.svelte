@@ -1,17 +1,17 @@
 <script lang="ts">
-  import { Drawer as DrawerPrimitive } from "vaul-svelte";
-  import DrawerOverlay from "./drawer-overlay.svelte";
-  import { cn } from "$lib/utils.js";
+import { Drawer as DrawerPrimitive } from "vaul-svelte";
+import { cn } from "$lib/utils.js";
+import DrawerOverlay from "./drawer-overlay.svelte";
 
-  let {
-    ref = $bindable(null),
-    class: className,
-    portalProps,
-    children,
-    ...restProps
-  }: DrawerPrimitive.ContentProps & {
-    portalProps?: DrawerPrimitive.PortalProps;
-  } = $props();
+let {
+  ref = $bindable(null),
+  class: className,
+  portalProps,
+  children,
+  ...restProps
+}: DrawerPrimitive.ContentProps & {
+  portalProps?: DrawerPrimitive.PortalProps;
+} = $props();
 </script>
 
 <DrawerPrimitive.Portal {...portalProps}>

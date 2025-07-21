@@ -2,18 +2,20 @@
 // - All CRUD operations are persisted to SQLite (via Drizzle ORM)
 // - Store is reactive: UI updates automatically on changes
 // - Used throughout dashboard and calendar pages
-import { writable, get } from "svelte/store";
-import type { InferModel } from "drizzle-orm";
-import { eq } from "drizzle-orm";
 
-import { calendars as calendarsSchema } from "../db/schema";
-// All data operations are now done through the local-data service,
-// which handles DB connection and persistence.
-import * as localData from "../services/local-data";
+// TODO: 2025-07-21 - InferModel is deprecated, we need to find a replacement
+import type { InferModel } from "drizzle-orm";
+import { get, writable } from "svelte/store";
+
+// import { eq } from "drizzle-orm";
 
 import { ConvexClient } from "convex/browser";
 // Path to Convex API
 import { api } from "../../convex/_generated/api";
+import type { calendars as calendarsSchema } from "../db/schema";
+// All data operations are now done through the local-data service,
+// which handles DB connection and persistence.
+import * as localData from "../services/local-data";
 
 // Lazy initialization of Convex client to avoid undefined deployment address during static build
 let convex: ConvexClient | null = null;
@@ -152,9 +154,11 @@ function createCalendarsStore() {
             const localCalendarsMap = new Map(localUserCalendars.map((c) => [c.id, c]));
 
             for (const convexCal of convexCalendarsFromServer) {
+              if (!currentClerkUserId) return;
+
               const localCalendar = localCalendarsMap.get(convexCal.localUuid);
               const serverDataForLocal: Omit<Calendar, "id"> = {
-                userId: currentClerkUserId!,
+                userId: currentClerkUserId,
                 name: convexCal.name,
                 colorTheme: convexCal.colorTheme,
                 position: convexCal.position,

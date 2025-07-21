@@ -62,7 +62,7 @@ async function bumpVersion() {
     for (const [filePath, updater] of Object.entries(filesToUpdate)) {
       const fullPath = path.join(projectRoot, filePath);
       try {
-        let content = await fs.readFile(fullPath, "utf-8");
+        const content = await fs.readFile(fullPath, "utf-8");
         const newContent = updater(content, newVersion);
         if (content !== newContent) {
           await fs.writeFile(fullPath, newContent);

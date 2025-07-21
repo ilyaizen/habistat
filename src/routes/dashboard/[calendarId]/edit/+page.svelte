@@ -1,104 +1,104 @@
 <script lang="ts">
-  // Import necessary Svelte and SvelteKit modules for page functionality.
-  import { page } from "$app/state";
-  import { goto } from "$app/navigation";
-  // Import stores and types for managing calendar data.
-  import { calendarsStore, type Calendar } from "$lib/stores/calendars";
-  import { get } from "svelte/store";
+// Import necessary Svelte and SvelteKit modules for page functionality.
 
-  // Import UI components from the library.
-  import Button from "$lib/components/ui/button/button.svelte";
-  import Input from "$lib/components/ui/input/input.svelte";
-  import Label from "$lib/components/ui/label/label.svelte";
-  import * as Select from "$lib/components/ui/select";
-  import Switch from "$lib/components/ui/switch/switch.svelte";
-  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-  import { COLOR_PALETTE } from "$lib/utils/colors";
-  import { toast } from "svelte-sonner";
+import { get } from "svelte/store";
+import { toast } from "svelte-sonner";
+import { goto } from "$app/navigation";
+import { page } from "$app/state";
+import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+// Import UI components from the library.
+import Button from "$lib/components/ui/button/button.svelte";
+import Input from "$lib/components/ui/input/input.svelte";
+import Label from "$lib/components/ui/label/label.svelte";
+import * as Select from "$lib/components/ui/select";
+import Switch from "$lib/components/ui/switch/switch.svelte";
+// Import stores and types for managing calendar data.
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+import { COLOR_PALETTE } from "$lib/utils/colors";
 
-  /**
-   * Extracts the calendar ID from the page parameters using Svelte 5 runes.
-   * This value is reactive and will update if the page URL changes.
-   */
-  const calendarId = $derived(page.params.calendarId);
+/**
+ * Extracts the calendar ID from the page parameters using Svelte 5 runes.
+ * This value is reactive and will update if the page URL changes.
+ */
+const calendarId = $derived(page.params.calendarId);
 
-  // Component state using Svelte 5 runes for reactivity.
-  let calendar = $state<Calendar | null>(null);
-  let name = $state("");
-  let colorTheme = $state("");
-  let position = $state(0);
-  let isEnabled = $state(true);
-  let saving = $state(false);
-  let deleteDialogOpen = $state(false);
+// Component state using Svelte 5 runes for reactivity.
+let calendar = $state<Calendar | null>(null);
+let name = $state("");
+let colorTheme = $state("");
+let position = $state(0);
+let isEnabled = $state(true);
+let saving = $state(false);
+let deleteDialogOpen = $state(false);
 
-  $effect(() => {
-    const allCalendars = get(calendarsStore);
-    const found = allCalendars.find((c) => c.id === calendarId);
+$effect(() => {
+  const allCalendars = get(calendarsStore);
+  const found = allCalendars.find((c) => c.id === calendarId);
 
-    function populateForm(cal: Calendar) {
-      calendar = cal;
-      name = cal.name;
-      colorTheme = cal.colorTheme;
-      position = cal.position;
-      isEnabled = cal.isEnabled === 1;
-    }
-
-    if (found) {
-      populateForm(found);
-    } else {
-      calendarsStore.refresh().then(() => {
-        const freshCalendars = get(calendarsStore);
-        const freshFound = freshCalendars.find((c) => c.id === calendarId);
-        if (freshFound) {
-          populateForm(freshFound);
-        } else {
-          console.error("Calendar not found, redirecting.");
-          goto("/dashboard");
-        }
-      });
-    }
-  });
-
-  async function saveChanges() {
-    if (!calendar) return;
-
-    saving = true;
-    try {
-      await calendarsStore.update(calendar.id, {
-        name,
-        colorTheme,
-        position,
-        isEnabled: isEnabled ? 1 : 0
-      });
-      toast.success("Calendar updated successfully!");
-      goto("/dashboard");
-    } catch (error) {
-      console.error("Failed to update calendar:", error);
-      toast.error("Failed to update calendar. Please try again.");
-    } finally {
-      saving = false;
-    }
+  function populateForm(cal: Calendar) {
+    calendar = cal;
+    name = cal.name;
+    colorTheme = cal.colorTheme;
+    position = cal.position;
+    isEnabled = cal.isEnabled === 1;
   }
 
-  function cancel() {
+  if (found) {
+    populateForm(found);
+  } else {
+    calendarsStore.refresh().then(() => {
+      const freshCalendars = get(calendarsStore);
+      const freshFound = freshCalendars.find((c) => c.id === calendarId);
+      if (freshFound) {
+        populateForm(freshFound);
+      } else {
+        console.error("Calendar not found, redirecting.");
+        goto("/dashboard");
+      }
+    });
+  }
+});
+
+async function saveChanges() {
+  if (!calendar) return;
+
+  saving = true;
+  try {
+    await calendarsStore.update(calendar.id, {
+      name,
+      colorTheme,
+      position,
+      isEnabled: isEnabled ? 1 : 0
+    });
+    toast.success("Calendar updated successfully!");
     goto("/dashboard");
+  } catch (error) {
+    console.error("Failed to update calendar:", error);
+    toast.error("Failed to update calendar. Please try again.");
+  } finally {
+    saving = false;
   }
+}
 
-  async function deleteCalendar() {
-    if (!calendar) return;
-    saving = true;
-    try {
-      await calendarsStore.remove(calendar.id);
-      toast.success("Calendar deleted.");
-      goto("/dashboard");
-    } catch (error) {
-      console.error("Failed to delete calendar:", error);
-      toast.error("Failed to delete calendar.");
-    } finally {
-      saving = false;
-      deleteDialogOpen = false;
-    }
+function cancel() {
+  goto("/dashboard");
+}
+
+async function deleteCalendar() {
+  if (!calendar) return;
+  saving = true;
+  try {
+    await calendarsStore.remove(calendar.id);
+    toast.success("Calendar deleted.");
+    goto("/dashboard");
+  } catch (error) {
+    console.error("Failed to delete calendar:", error);
+    toast.error("Failed to delete calendar.");
+  } finally {
+    saving = false;
+    deleteDialogOpen = false;
   }
+}
 </script>
 
 <!--

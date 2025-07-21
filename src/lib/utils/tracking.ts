@@ -7,12 +7,13 @@
  * - Marking the transition from anonymous to associated state
  */
 
-import { browser } from "$app/environment";
-import { writable, get, derived } from "svelte/store";
+import { desc } from "drizzle-orm";
+import { derived, get, writable } from "svelte/store";
 import { v4 as uuidv4 } from "uuid";
+import { browser } from "$app/environment";
 import { getDb, persistBrowserDb } from "$lib/db/client";
 import { appOpens } from "$lib/db/schema";
-import { desc } from "drizzle-orm";
+
 // import { formatDate } from "./date"; // No longer using the UTC-based formatter
 
 /**
@@ -235,7 +236,7 @@ export function getAssociatedSessionDetails(): {
 
 // --- Debugging and History (unchanged from original) ---
 // Type for appOpens row
-type AppOpenRow = { id: string; timestamp: number };
+// type AppOpenRow = { id: string; timestamp: number };
 
 /**
  * Logs an app open event to the database.
@@ -271,15 +272,12 @@ export async function logAppOpenIfNeeded(): Promise<boolean> {
  * @param sinceTimestamp Optional timestamp to limit history to recent opens.
  * @returns An array of timestamps.
  */
-export async function getAppOpenHistory(sinceTimestamp?: number): Promise<number[]> {
+export async function getAppOpenHistory(): Promise<number[]> {
   const db = await getDb();
   try {
-    const query = db
-      .select({ timestamp: appOpens.timestamp })
-      .from(appOpens)
-      .orderBy(desc(appOpens.timestamp));
+    const query = db.select().from(appOpens).orderBy(desc(appOpens.timestamp));
     const results = await query.execute();
-    const timestamps = results.map((row: { timestamp: number | null }) => row.timestamp);
+    const timestamps = results.map((row: { timestamp: number }) => row.timestamp);
     return timestamps;
   } catch (error) {
     console.error("Failed to retrieve app open history:", error);

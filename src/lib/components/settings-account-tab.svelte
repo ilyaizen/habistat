@@ -1,36 +1,36 @@
 <script lang="ts">
-  import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
-  import { Button } from "$lib/components/ui/button";
-  import SessionInfo from "$lib/components/session-info.svelte";
-  import SubscriptionBadge from "$lib/components/subscription/subscription-badge.svelte";
-  import { subscriptionStore } from "$lib/stores/subscription";
-  import { getContext } from "svelte";
-  import type { Readable } from "svelte/store";
-  import type { UserResource } from "@clerk/types";
+import type { UserResource } from "@clerk/types";
+import { getContext } from "svelte";
+import type { Readable } from "svelte/store";
+import SessionInfo from "$lib/components/session-info.svelte";
+import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
+import { Button } from "$lib/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
+import { subscriptionStore } from "$lib/stores/subscription";
 
-  // Get user from context
-  const clerkUserStore = getContext<Readable<UserResource | null> | undefined>("clerkUser");
+// Get user from context
+const clerkUserStore = getContext<Readable<UserResource | null> | undefined>("clerkUser");
 
-  // Derived reactive values
-  const subscription = $derived.by(() => $subscriptionStore);
-  const currentUser = $derived.by(() => (clerkUserStore ? $clerkUserStore : null));
+// Derived reactive values
+const subscription = $derived.by(() => $subscriptionStore);
+const currentUser = $derived.by(() => (clerkUserStore ? $clerkUserStore : null));
 
-  // Refresh subscription when user is available
-  $effect(() => {
-    if (currentUser) {
-      subscriptionStore.refresh();
-    }
-  });
-
-  function handleUpgrade() {
-    // Navigate to premium/pricing page (will be implemented in Phase 5)
-    window.location.href = "/premium";
+// Refresh subscription when user is available
+$effect(() => {
+  if (currentUser) {
+    subscriptionStore.refresh();
   }
+});
 
-  function handleManageSubscription() {
-    // Navigate to Stripe billing portal (will be implemented in Phase 5)
-    alert("Manage subscription functionality will be implemented in Phase 5");
-  }
+function handleUpgrade() {
+  // Navigate to premium/pricing page (will be implemented in Phase 5)
+  window.location.href = "/premium";
+}
+
+function handleManageSubscription() {
+  // Navigate to Stripe billing portal (will be implemented in Phase 5)
+  alert("Manage subscription functionality will be implemented in Phase 5");
+}
 </script>
 
 <!-- Account Information Section -->

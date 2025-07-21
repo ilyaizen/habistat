@@ -1,7 +1,7 @@
-import { goto, pushState, replaceState } from "$app/navigation";
 import { browser } from "$app/environment";
-import { page } from "$app/state";
-import { get } from "svelte/store";
+import { goto, pushState, replaceState } from "$app/navigation";
+// import { page } from "$app/state";
+// import { get } from "svelte/store";
 
 /**
  * Enhanced navigation function that handles SPA routing correctly for Tauri builds.
@@ -11,7 +11,7 @@ import { get } from "svelte/store";
  */
 export async function navigate(
   url: string,
-  options?: { replaceState?: boolean; noscroll?: boolean; keepfocus?: boolean; state?: any }
+  options?: { replaceState?: boolean; noscroll?: boolean; keepfocus?: boolean; state?: unknown }
 ) {
   if (!browser) return;
 
@@ -52,7 +52,7 @@ export async function navigate(
  * @param url - The URL to navigate to (can be empty string to stay on current page)
  * @param state - Custom state object to attach to the history entry
  */
-export function navigatePushState(url: string, state: Record<string, any>) {
+export function navigatePushState(url: string, state: Record<string, unknown>) {
   if (!browser) return;
   try {
     pushState(url, state);
@@ -67,7 +67,7 @@ export function navigatePushState(url: string, state: Record<string, any>) {
  * @param url - The URL to replace with (can be empty string to stay on current page)
  * @param state - Custom state object to replace the current history entry
  */
-export function navigateReplaceState(url: string, state: Record<string, any>) {
+export function navigateReplaceState(url: string, state: Record<string, unknown>) {
   if (!browser) return;
   try {
     replaceState(url, state);
@@ -79,13 +79,23 @@ export function navigateReplaceState(url: string, state: Record<string, any>) {
 /**
  * Check if we're running in a Tauri environment
  */
-export function isTauri(): boolean {
-  return browser && typeof (window as any).__TAURI__ !== "undefined";
-}
 
 /**
- * Debug function to log current routing state
+ * Returns true if running inside a Tauri environment.
+ *
+ * Tauri injects a global __TAURI__ object into the window. We check for its presence.
+ * The 'browser' check ensures this code only runs client-side.
+ *
+ * Note: We must cast window to 'unknown' to avoid TypeScript errors, since __TAURI__ is not typed.
  */
-export function debugRouting() {
-  if (!browser) return;
+export function isTauri(): boolean {
+  // 'browser' is true only in the client; window['__TAURI__'] is injected by Tauri
+  return browser && typeof (window as Window & { __TAURI__?: unknown }).__TAURI__ !== "undefined";
 }
+
+// /**
+//  * Debug function to log current routing state
+//  */
+// export function debugRouting() {
+//   if (!browser) return;
+// }

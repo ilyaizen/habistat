@@ -1,6 +1,6 @@
+import * as os from "@tauri-apps/plugin-os"; // Import the OS plugin
 import { readable } from "svelte/store";
 import { browser } from "$app/environment";
-import * as os from "@tauri-apps/plugin-os"; // Import the OS plugin
 
 /**
  * A readable Svelte store that indicates the current platform (OS name or 'Web').
@@ -32,12 +32,13 @@ export const platform = readable<string>("Web", (set) => {
       // Capitalize first letter for display
       const formattedPlatform = osPlatform.charAt(0).toUpperCase() + osPlatform.slice(1);
       set(formattedPlatform);
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error("Failed to determine platform:", error);
       // If the os.platform() call fails, we are likely not in a Tauri environment
-      // console.log(
-      //   "Tauri OS plugin call failed (likely not in Tauri), assuming Web platform:",
-      //   error
-      // );
+      console.log(
+        "Tauri OS plugin call failed (likely not in Tauri), assuming Web platform:",
+        error
+      );
       set("Web");
     }
   }

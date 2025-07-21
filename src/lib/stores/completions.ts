@@ -1,8 +1,8 @@
-import { writable, derived } from "svelte/store";
 import type { InferModel } from "drizzle-orm";
-import { completions as completionsSchema } from "../db/schema";
-import * as localData from "../services/local-data";
+import { derived, writable } from "svelte/store";
 import { v4 as uuid } from "uuid";
+import type { completions as completionsSchema } from "../db/schema";
+import * as localData from "../services/local-data";
 import { groupCompletionsByDate } from "../utils/completions";
 import { formatLocalDate } from "../utils/date";
 
@@ -68,7 +68,7 @@ export const completionsByHabit = derived(completionsStore, ($completions) => {
     if (!map.has(completion.habitId)) {
       map.set(completion.habitId, []);
     }
-    map.get(completion.habitId)!.push(completion);
+    map.get(completion.habitId)?.push(completion);
   }
   return map;
 });

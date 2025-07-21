@@ -3,46 +3,70 @@
   Shows current sync status with visual indicators
 -->
 <script lang="ts">
-  import { syncStore, isSyncing, syncError, lastSyncTime, syncIsOnline } from "$lib/stores/sync";
-  import { Button } from "$lib/components/ui/button";
-  import { Badge } from "$lib/components/ui/badge";
-  import { Cloud, CloudOff, RefreshCw, Wifi, WifiOff, AlertCircle } from "@lucide/svelte";
-  import { getContext } from "svelte";
-  import type { UserResource } from "@clerk/types";
-  import type { Readable } from "svelte/store";
+import type { UserResource } from "@clerk/types";
+import { AlertCircle, Cloud, CloudOff, RefreshCw, Wifi, WifiOff } from "@lucide/svelte";
+import { getContext, onDestroy } from "svelte";
+import type { Readable } from "svelte/store";
+import { browser } from "$app/environment";
+import { Badge } from "$lib/components/ui/badge";
+import { Button } from "$lib/components/ui/button";
+import { isSyncing, lastSyncTime, syncError, syncIsOnline, syncStore } from "$lib/stores/sync";
 
-  // Get current user from context to only show sync for authenticated users
-  const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");
+// Get current user from context to only show sync for authenticated users
+const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");
 
-  let user = $state<UserResource | null>(null);
+let user = $state<UserResource | null>(null);
+let unsubscribe: (() => void) | undefined;
 
-  // Subscribe to user changes
-  $effect(() => {
-    const unsubscribe = clerkUserStore?.subscribe((u) => {
-      user = u;
-    });
-    return unsubscribe;
-  });
+// Subscribe to user changes with improved error handling
+$effect(() => {
+  if (!browser) return;
 
-  function formatLastSync(timestamp: number | null): string {
-    if (!timestamp) return "Never";
+  try {
+    // Clean up previous subscription if it exists
+    if (unsubscribe) unsubscribe();
 
-    const now = Date.now();
-    const diff = now - timestamp;
-
-    if (diff < 60000) return "Just now";
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return `${Math.floor(diff / 86400000)}d ago`;
+    // Only subscribe if clerkUserStore is available
+    if (clerkUserStore) {
+      unsubscribe = clerkUserStore.subscribe((u) => {
+        user = u;
+      });
+    } else {
+      console.warn("[SyncStatus] No clerkUserStore found in context");
+    }
+  } catch (error) {
+    console.error("[SyncStatus] Error subscribing to clerkUserStore:", error);
   }
 
-  function handleSyncClick() {
-    syncStore.triggerSync();
-  }
+  return () => {
+    if (unsubscribe) unsubscribe();
+  };
+});
 
-  function handleClearError() {
-    syncStore.clearError();
-  }
+// Cleanup on component destruction
+onDestroy(() => {
+  if (unsubscribe) unsubscribe();
+});
+
+function formatLastSync(timestamp: number | null): string {
+  if (!timestamp) return "Never";
+
+  const now = Date.now();
+  const diff = now - timestamp;
+
+  if (diff < 60000) return "Just now";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  return `${Math.floor(diff / 86400000)}d ago`;
+}
+
+function handleSyncClick() {
+  syncStore.triggerSync();
+}
+
+function handleClearError() {
+  syncStore.clearError();
+}
 </script>
 
 <!-- Only show sync status for authenticated users -->

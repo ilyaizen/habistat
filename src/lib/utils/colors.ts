@@ -46,7 +46,7 @@ function hslToHex(h: number, s: number, l: number): string {
   g = Math.round((g + m) * 255);
   b = Math.round((b + m) * 255);
 
-  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
 /**
@@ -62,12 +62,14 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
   let g = parseInt(result[2], 16);
   let b = parseInt(result[3], 16);
 
-  ((r /= 255), (g /= 255), (b /= 255));
-  const max = Math.max(r, g, b),
-    min = Math.min(r, g, b);
-  let h = 0,
-    s = 0,
-    l = (max + min) / 2;
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
 
   if (max !== min) {
     const d = max - min;

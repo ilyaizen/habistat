@@ -3,6 +3,7 @@
  * Handles core app setup including i18n, tracking, and scheduled tasks.
  */
 
+import { SvelteDate } from "svelte/reactivity";
 import { waitLocale } from "svelte-i18n";
 import { browser } from "$app/environment";
 import { logAppOpenIfNeeded } from "$lib/utils/tracking";
@@ -10,14 +11,14 @@ import { logAppOpenIfNeeded } from "$lib/utils/tracking";
 export function useAppInit() {
   let i18nReady = $state(false);
   let trackingInitialized = $state(true);
-  let midnightTimer: ReturnType<typeof setTimeout> | null = $state(null);
+  let midnightTimer = $state(null);
 
   /**
    * Calculates milliseconds until next midnight.
    */
   function msUntilNextMidnight() {
-    const now = new Date();
-    const next = new Date(now);
+    const now = new SvelteDate();
+    const next = new SvelteDate(now);
     next.setHours(24, 0, 0, 0);
     return next.getTime() - now.getTime();
   }
@@ -27,6 +28,7 @@ export function useAppInit() {
    */
   function scheduleMidnightCheck() {
     if (midnightTimer) clearTimeout(midnightTimer);
+    // @ts-expect-error - Svelte 5
     midnightTimer = setTimeout(async () => {
       await logAppOpenIfNeeded();
       scheduleMidnightCheck(); // Schedule for the next day
@@ -73,31 +75,32 @@ export function useAppInit() {
   /**
    * Sets up development mode utilities.
    */
-  function setupDevelopmentMode() {
-    if (!browser || !import.meta.env.DEV) return;
+  // function setupDevelopmentMode() {
+  //   if (!browser || !import.meta.env.DEV) return;
 
-    // Expose a debug function in development mode to test the midnight logic
-    (window as any).triggerMidnight = async () => {
-      console.log("[DEBUG] Manually triggering midnight app open log...");
-      await logAppOpenIfNeeded();
-      console.log("[DEBUG] Manual trigger complete. Check usage history.");
-    };
-  }
+  //   // Expose a debug function in development mode to test the midnight logic
+  //   // @ts-ignore
+  //   (window as any).triggerMidnight = async () => {
+  //     console.log("[DEBUG] Manually triggering midnight app open log...");
+  //     await logAppOpenIfNeeded();
+  //     console.log("[DEBUG] Manual trigger complete. Check usage history.");
+  //   };
+  // }
 
   /**
    * Cleans up timers and development utilities.
    */
-  function cleanup() {
-    if (midnightTimer) {
-      clearTimeout(midnightTimer);
-      midnightTimer = null;
-    }
+  // function cleanup() {
+  //   if (midnightTimer) {
+  //     clearTimeout(midnightTimer);
+  //     midnightTimer = null;
+  //   }
 
-    // Clean up the debug function in development mode
-    if (browser && import.meta.env.DEV) {
-      delete (window as any).triggerMidnight;
-    }
-  }
+  //   // Clean up the debug function in development mode
+  //   if (browser && import.meta.env.DEV) {
+  //     delete (window as any).triggerMidnight;
+  //   }
+  // }
 
   return {
     get i18nReady() {
@@ -107,8 +110,8 @@ export function useAppInit() {
       return trackingInitialized;
     },
     initializeAppCore,
-    scheduleMidnightCheck,
-    setupDevelopmentMode,
-    cleanup
+    scheduleMidnightCheck
+    // setupDevelopmentMode,
+    // cleanup
   };
 }

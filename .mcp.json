@@ -3,8 +3,27 @@
     "browser-tools": {
       "type": "stdio",
       "command": "cmd",
-      "args": ["/c", "npx @agentdeskai/browser-tools-mcp"],
-      "env": {}
+      "args": [
+        "/c",
+        "bunx @agentdeskai/browser-tools-mcp"
+      ]
+    },
+    "convex": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "convex@latest",
+        "mcp",
+        "start"
+      ]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "bunx -y @upstash/context7-mcp"
+      ]
     }
   }
 }

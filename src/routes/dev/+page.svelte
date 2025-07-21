@@ -1,47 +1,45 @@
 <script lang="ts">
-  // Import stores for settings management
-  import { settings } from "$lib/stores/settings";
-  import { goto } from "$app/navigation";
+// Import stores for settings management
 
-  // Import custom tab components
-  import DevSettingsTab from "$lib/components/dev-settings-tab.svelte";
+// Import tracking utilities
+// import { anonymousUserId, logAppOpenIfNeeded } from "$lib/utils/tracking";
+// Import Svelte lifecycle hooks
+import { onMount } from "svelte";
+import { browser } from "$app/environment";
+import { goto } from "$app/navigation";
+// Import custom tab components
+import DevSettingsTab from "$lib/components/settings-dev-tab.svelte";
+import { settings } from "$lib/stores/settings";
 
-  // Import tracking utilities
-  import { anonymousUserId, logAppOpenIfNeeded } from "$lib/utils/tracking";
-  // Import Svelte lifecycle hooks
-  import { onMount } from "svelte";
+// import { get } from "svelte/store";
 
-  import { browser } from "$app/environment";
-  import { get } from "svelte/store";
+// Import wrapper for tab content transitions
+import TabMotionWrapper from "$lib/components/tab-motion-wrapper.svelte";
+// Import tab bar UI components
+import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
 
-  // Import tab bar UI components
-  import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
+// State for the active settings tab, defaults to 'customization'
+let activeTab = $state("dev");
 
-  // Import wrapper for tab content transitions
-  import TabMotionWrapper from "$lib/components/tab-motion-wrapper.svelte";
+// On component mount, perform initial setup
+onMount(() => {
+  // logAppOpenIfNeeded(); // Log application opening for tracking
+  // Redirect to home if not in dev mode
+  if (!$settings.developerMode) {
+    console.log("Not in developer mode, redirecting to home");
+    goto("/", { replaceState: true });
+    return;
+  }
 
-  // State for the active settings tab, defaults to 'customization'
-  let activeTab = $state("dev");
-
-  // On component mount, perform initial setup
-  onMount(() => {
-    logAppOpenIfNeeded(); // Log application opening for tracking
-    // Redirect to home if not in dev mode
-    if (!$settings.developerMode) {
-      console.log("Not in developer mode, redirecting to home");
-      goto("/", { replaceState: true });
-      return;
+  // Check localStorage for a requested tab to open
+  if (browser) {
+    const tab = localStorage.getItem("devTab");
+    if (tab) {
+      activeTab = tab;
+      localStorage.removeItem("devTab"); // Clean up after use
     }
-
-    // Check localStorage for a requested tab to open
-    if (browser) {
-      const tab = localStorage.getItem("devTab");
-      if (tab) {
-        activeTab = tab;
-        localStorage.removeItem("devTab"); // Clean up after use
-      }
-    }
-  });
+  }
+});
 </script>
 
 <!-- Main container for the dev page -->

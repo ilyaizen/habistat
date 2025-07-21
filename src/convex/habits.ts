@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+// import type { Id } from "./_generated/dataModel";
 
 // --- Schema ---
 // This is defined in schema.ts, but we reference it here for type safety

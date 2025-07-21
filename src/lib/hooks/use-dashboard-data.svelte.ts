@@ -1,6 +1,6 @@
 import { calendarsStore } from "$lib/stores/calendars";
-import { habits as habitsStore } from "$lib/stores/habits";
 import { completionsStore } from "$lib/stores/completions";
+import { habits as habitsStore } from "$lib/stores/habits";
 
 /**
  * Simple hook that provides dashboard data refresh functionality.
@@ -14,6 +14,7 @@ export function useDashboardData() {
    */
   async function refreshData() {
     try {
+      loading = true;
       await Promise.all([
         calendarsStore.refresh(),
         habitsStore.refresh(),
@@ -22,6 +23,8 @@ export function useDashboardData() {
     } catch (error) {
       console.error("Dashboard data refresh error:", error);
       throw error;
+    } finally {
+      loading = false;
     }
   }
 
@@ -30,6 +33,7 @@ export function useDashboardData() {
    */
   async function initialize() {
     try {
+      loading = true;
       await refreshData();
     } catch (error) {
       console.error("Dashboard mount error:", error);

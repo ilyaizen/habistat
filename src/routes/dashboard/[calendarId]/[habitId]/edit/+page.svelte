@@ -1,137 +1,137 @@
 <script lang="ts">
-  import { calendarsStore, type Calendar } from "$lib/stores/calendars";
-  import { habits as habitsStore, type Habit } from "$lib/stores/habits";
-  import Button from "$lib/components/ui/button/button.svelte";
-  import { goto } from "$app/navigation";
-  import * as Select from "$lib/components/ui/select";
-  import { page } from "$app/state";
-  import Label from "$lib/components/ui/label/label.svelte";
-  import { get } from "svelte/store";
-  import Switch from "$lib/components/ui/switch/switch.svelte";
-  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-  import Textarea from "$lib/components/ui/textarea/textarea.svelte";
-  import Input from "$lib/components/ui/input/input.svelte";
-  import { toast } from "svelte-sonner";
+import { get } from "svelte/store";
+import { toast } from "svelte-sonner";
+import { goto } from "$app/navigation";
+import { page } from "$app/state";
+import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+import Button from "$lib/components/ui/button/button.svelte";
+import Input from "$lib/components/ui/input/input.svelte";
+import Label from "$lib/components/ui/label/label.svelte";
+import * as Select from "$lib/components/ui/select";
+import Switch from "$lib/components/ui/switch/switch.svelte";
+import Textarea from "$lib/components/ui/textarea/textarea.svelte";
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+import { type Habit, habits as habitsStore } from "$lib/stores/habits";
 
-  const habitTypeItems = [
-    { value: "positive", label: "Positive", description: "Positive (Build good habits)" },
-    { value: "negative", label: "Negative", description: "Negative (Reduce bad habits)" }
-  ];
+const habitTypeItems = [
+  { value: "positive", label: "Positive", description: "Positive (Build good habits)" },
+  { value: "negative", label: "Negative", description: "Negative (Reduce bad habits)" }
+];
 
-  let calendars = $state<Calendar[]>([]);
-  let habit = $state<Habit | undefined>(undefined);
-  let name = $state("");
-  let description = $state("");
-  let type = $state("positive");
-  const selectedLabel = $derived(habitTypeItems.find((item) => item.value === type)?.label);
-  let timerEnabled = $state(false);
-  let targetDurationSeconds = $state<number | null>(0);
-  let pointsValue = $state(0);
-  let position = $state(0);
-  let isEnabled = $state(true);
-  let saving = $state(false);
-  let deleteDialogOpen = $state(false);
-  let selectedCalendarId = $state("");
+let calendars = $state<Calendar[]>([]);
+let habit = $state<Habit | undefined>(undefined);
+let name = $state("");
+let description = $state("");
+let type = $state("positive");
+const selectedLabel = $derived(habitTypeItems.find((item) => item.value === type)?.label);
+let timerEnabled = $state(false);
+let targetDurationSeconds = $state<number | null>(0);
+let pointsValue = $state(0);
+let position = $state(0);
+let isEnabled = $state(true);
+let saving = $state(false);
+let deleteDialogOpen = $state(false);
+let selectedCalendarId = $state("");
 
-  const calendarId = $derived(page.params.calendarId);
-  const habitId = $derived(page.params.habitId);
+const calendarId = $derived(page.params.calendarId);
+const habitId = $derived(page.params.habitId);
 
-  $effect(() => {
-    calendarsStore.subscribe((value) => {
-      calendars = value;
-    });
-
-    const allHabits = get(habitsStore);
-    const found = allHabits.find((h) => h.id === habitId);
-
-    function populateState(h: Habit) {
-      habit = h;
-      name = h.name;
-      description = h.description ?? "";
-      type = h.type;
-      selectedCalendarId = h.calendarId;
-      timerEnabled = h.timerEnabled === 1;
-      targetDurationSeconds = h.targetDurationSeconds;
-      pointsValue = h.pointsValue ?? 0;
-      position = h.position;
-      isEnabled = h.isEnabled === 1;
-    }
-
-    if (found) {
-      populateState(found);
-    } else {
-      habitsStore.refresh().then(() => {
-        const freshHabits = get(habitsStore);
-        const freshFound = freshHabits.find((h) => h.id === habitId);
-        if (freshFound) {
-          populateState(freshFound);
-        } else {
-          console.error("Habit not found, redirecting.");
-          goto(`/dashboard/${calendarId}`);
-        }
-      });
-    }
+$effect(() => {
+  calendarsStore.subscribe((value) => {
+    calendars = value;
   });
 
-  async function saveHabit() {
-    if (!habit) {
-      console.error("Attempted to save a non-existent habit.");
-      return;
-    }
-    saving = true;
-    try {
-      const updatePayload: Partial<Omit<Habit, "id" | "userId" | "createdAt">> = {
-        name,
-        description,
-        type,
-        timerEnabled: timerEnabled ? 1 : 0,
-        targetDurationSeconds: timerEnabled ? Number(targetDurationSeconds) || null : null,
-        pointsValue: Number(pointsValue) || 0,
-        position: Number(position) || 0,
-        isEnabled: isEnabled ? 1 : 0
-      };
+  const allHabits = get(habitsStore);
+  const found = allHabits.find((h) => h.id === habitId);
 
-      if (selectedCalendarId !== habit.calendarId) {
-        updatePayload.calendarId = selectedCalendarId;
-        const allHabits = get(habitsStore);
-        const habitsInNewCalendar = allHabits.filter((h) => h.calendarId === selectedCalendarId);
-        const maxPosition =
-          habitsInNewCalendar.length > 0
-            ? Math.max(...habitsInNewCalendar.map((c) => c.position))
-            : -1;
-        updatePayload.position = maxPosition + 1;
+  function populateState(h: Habit) {
+    habit = h;
+    name = h.name;
+    description = h.description ?? "";
+    type = h.type;
+    selectedCalendarId = h.calendarId;
+    timerEnabled = h.timerEnabled === 1;
+    targetDurationSeconds = h.targetDurationSeconds;
+    pointsValue = h.pointsValue ?? 0;
+    position = h.position;
+    isEnabled = h.isEnabled === 1;
+  }
+
+  if (found) {
+    populateState(found);
+  } else {
+    habitsStore.refresh().then(() => {
+      const freshHabits = get(habitsStore);
+      const freshFound = freshHabits.find((h) => h.id === habitId);
+      if (freshFound) {
+        populateState(freshFound);
+      } else {
+        console.error("Habit not found, redirecting.");
+        goto(`/dashboard/${calendarId}`);
       }
+    });
+  }
+});
 
-      await habitsStore.update(habit.id, updatePayload);
-      toast.success("Habit saved successfully!");
-      goto(`/dashboard/${selectedCalendarId}`);
-    } catch (error) {
-      console.error("Failed to save habit:", error);
-      toast.error("Failed to save habit. Please try again.");
-    } finally {
-      saving = false;
+async function saveHabit() {
+  if (!habit) {
+    console.error("Attempted to save a non-existent habit.");
+    return;
+  }
+  saving = true;
+  try {
+    const updatePayload: Partial<Omit<Habit, "id" | "userId" | "createdAt">> = {
+      name,
+      description,
+      type,
+      timerEnabled: timerEnabled ? 1 : 0,
+      targetDurationSeconds: timerEnabled ? Number(targetDurationSeconds) || null : null,
+      pointsValue: Number(pointsValue) || 0,
+      position: Number(position) || 0,
+      isEnabled: isEnabled ? 1 : 0
+    };
+
+    if (selectedCalendarId !== habit.calendarId) {
+      updatePayload.calendarId = selectedCalendarId;
+      const allHabits = get(habitsStore);
+      const habitsInNewCalendar = allHabits.filter((h) => h.calendarId === selectedCalendarId);
+      const maxPosition =
+        habitsInNewCalendar.length > 0
+          ? Math.max(...habitsInNewCalendar.map((c) => c.position))
+          : -1;
+      updatePayload.position = maxPosition + 1;
     }
-  }
 
-  function cancelEdit() {
-    goto(`/dashboard/${calendarId}/${habitId}`);
+    await habitsStore.update(habit.id, updatePayload);
+    toast.success("Habit saved successfully!");
+    goto(`/dashboard/${selectedCalendarId}`);
+  } catch (error) {
+    console.error("Failed to save habit:", error);
+    toast.error("Failed to save habit. Please try again.");
+  } finally {
+    saving = false;
   }
+}
 
-  async function deleteHabit() {
-    if (!habit) return;
-    saving = true;
-    try {
-      await habitsStore.remove(habit.id);
-      toast.success("Habit deleted.");
-      goto(`/dashboard/${calendarId}`);
-    } catch (error) {
-      console.error("Failed to delete habit:", error);
-      toast.error("Failed to delete habit.");
-    } finally {
-      saving = false;
-      deleteDialogOpen = false;
-    }
+function cancelEdit() {
+  goto(`/dashboard/${calendarId}/${habitId}`);
+}
+
+async function deleteHabit() {
+  if (!habit) return;
+  saving = true;
+  try {
+    await habitsStore.remove(habit.id);
+    toast.success("Habit deleted.");
+    goto(`/dashboard/${calendarId}`);
+  } catch (error) {
+    console.error("Failed to delete habit:", error);
+    toast.error("Failed to delete habit.");
+  } finally {
+    saving = false;
+    deleteDialogOpen = false;
   }
+}
 </script>
 
 <div class="mx-auto max-w-2xl p-6">

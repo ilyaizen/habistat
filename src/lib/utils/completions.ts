@@ -27,7 +27,7 @@
  */
 
 import type { Completion } from "$lib/stores/completions";
-import { getLocalDayRange, formatLocalDate } from "./date";
+import { formatLocalDate, getLocalDayRange } from "./date";
 
 /**
  * Counts completions for a specific date using local timezone.

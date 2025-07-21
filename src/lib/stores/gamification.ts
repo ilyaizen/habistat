@@ -1,8 +1,7 @@
 import { derived, type Readable } from "svelte/store";
-import { habits as habitsStore, type Habit } from "$lib/stores/habits";
-import { completionsStore, type Completion } from "$lib/stores/completions";
-import { sessionStore } from "$lib/utils/tracking";
-import { getAppOpenHistory } from "$lib/utils/tracking";
+import { type Completion, completionsStore } from "$lib/stores/completions";
+import { type Habit, habits as habitsStore } from "$lib/stores/habits";
+import { getAppOpenHistory, sessionStore } from "$lib/utils/tracking";
 
 // Points constants
 const POINTS_FOR_ACTIVE_DAY = 15;

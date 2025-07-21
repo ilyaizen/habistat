@@ -1,6 +1,7 @@
 {
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "browser-tools"
-  ],
-  "enableAllProjectMcpServers": true
+    "browser-tools",
+    "convex"
+  ]
 }

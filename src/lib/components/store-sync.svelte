@@ -4,28 +4,40 @@
   Uses Svelte 5 $effect to react to page data changes and Clerk auth state.
 -->
 <script lang="ts">
-  import { page } from "$app/state";
-  import { getContext } from "svelte";
-  import { calendarsStore } from "$lib/stores/calendars";
-  import { habits } from "$lib/stores/habits";
-  import { completionsStore } from "$lib/stores/completions";
-  import { syncStore } from "$lib/stores/sync";
-  import { browser } from "$app/environment";
-  import { toast } from "svelte-sonner";
-  import type { UserResource } from "@clerk/types";
-  import type { Readable } from "svelte/store";
+import type { UserResource } from "@clerk/types";
+import { getContext, onDestroy, onMount } from "svelte";
+import type { Readable } from "svelte/store";
+import { get } from "svelte/store";
+import { toast } from "svelte-sonner";
+import { browser } from "$app/environment";
+// For page data
+import { page } from "$app/stores";
+import { calendarsStore } from "$lib/stores/calendars";
+import { habits } from "$lib/stores/habits";
+import { syncStore } from "$lib/stores/sync";
 
-  // Get Clerk user from context
-  const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");
+// Get Clerk user from context with safe fallback
+const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser") || undefined;
 
-  let currentUserId: string | null = null;
-  let hasShownMigrationToast = false;
+let currentUserId: string | null = null;
+let hasShownMigrationToast = false;
 
-  // React to Clerk authentication changes and sync stores
-  $effect(() => {
-    if (!browser) return;
+// Variables for subscription cleanup
+let clerkUnsubscribe: (() => void) | undefined;
+let pageUnsubscribe: (() => void) | undefined;
 
-    const unsubscribe = clerkUserStore.subscribe(async (user) => {
+// React to Clerk authentication changes and sync stores
+$effect(() => {
+  if (!browser) return;
+
+  // Safety check to avoid TypeErrors
+  if (!clerkUserStore) {
+    console.warn("[StoreSync] No clerkUserStore found in context");
+    return;
+  }
+
+  try {
+    clerkUnsubscribe = clerkUserStore.subscribe(async (user) => {
       const newUserId = user?.id || null;
 
       // Only react to actual changes in user ID
@@ -72,23 +84,48 @@
         hasShownMigrationToast = false;
       }
     });
+  } catch (error) {
+    console.error("[StoreSync] Error subscribing to clerkUserStore:", error);
+  }
 
-    return unsubscribe;
-  });
+  // Return cleanup function
+  return () => {
+    if (clerkUnsubscribe) clerkUnsubscribe();
+  };
+});
 
-  // Also handle page data changes (for SSR/initial load)
-  $effect(() => {
-    if (!browser) return;
+// Handle page data changes (for SSR/initial load) safely using onMount
+onMount(() => {
+  if (!browser) return;
 
-    const pageUserId = page.data?.session?.user?.id || null;
+  try {
+    // Subscribe to page store directly (this is a proper svelte store)
+    pageUnsubscribe = page.subscribe((p) => {
+      if (!p || !p.data) return;
 
-    // Update stores with page data user (backup mechanism)
-    if (pageUserId && pageUserId !== currentUserId) {
-      console.log("[StoreSync] Page data user detected:", pageUserId);
-      calendarsStore.setUser(pageUserId);
-      habits.setUser(pageUserId);
-    }
-  });
+      try {
+        const pageUserId = p.data?.session?.user?.id || null;
+
+        // Update stores with page data user (backup mechanism)
+        if (pageUserId && pageUserId !== currentUserId) {
+          console.log("[StoreSync] Page data user detected:", pageUserId);
+          calendarsStore.setUser(pageUserId);
+          habits.setUser(pageUserId);
+        }
+      } catch (pageError) {
+        console.error("[StoreSync] Error processing page data:", pageError);
+      }
+    });
+  } catch (error) {
+    console.error("[StoreSync] Error subscribing to page store:", error);
+  }
+});
+
+// Cleanup all subscriptions on component destruction
+onDestroy(() => {
+  if (clerkUnsubscribe) clerkUnsubscribe();
+  if (pageUnsubscribe) pageUnsubscribe();
+});
 </script>
 
 <!-- This component has no visual output, it only handles store synchronization -->

@@ -5,69 +5,154 @@ import type { RequestHandler } from "./$types";
  * API endpoint to provide Clerk JWT token for Convex authentication.
  * This endpoint is called by the Convex client to authenticate API requests.
  */
-export const GET: RequestHandler = async ({ cookies, request, locals }) => {
+
+// Debug function to decode JWT without verification
+function decodeJwt(token: string) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`)
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error("Failed to decode JWT", e);
+    return null;
+  }
+}
+
+export const GET: RequestHandler = async ({ locals }) => {
   try {
     // First check if we have session from server-side (via hooks.server.ts)
     const serverSession = locals.session;
 
-    // Get the Clerk session token from cookies
-    // Clerk typically stores the session token in a cookie named '__session'
-    const sessionToken =
-      cookies.get("__session") ||
-      cookies.get("__clerk_db_jwt") ||
-      cookies.get("__Secure-clerk-db-jwt") ||
-      cookies.get("__Host-clerk-db-jwt");
-
-    if (!sessionToken && !serverSession) {
-      // No session token found - user is not authenticated
-      console.log("[API] No session token or server session found");
+    if (!serverSession) {
+      console.log("[API] No server session found - user not authenticated");
       return new Response(null, { status: 401 });
     }
 
-    // Log for debugging
-    // console.log("[API] Session token found:", !!sessionToken);
-    // console.log("[API] Server session found:", !!serverSession);
+    // Check if this is a valid authenticated session
+    if (!serverSession.isSignedIn) {
+      console.log("[API] Session exists but user not signed in");
+      return new Response(null, { status: 401 });
+    }
 
-    // Debug: Log token format (first 50 chars to avoid logging full token)
-    // if (sessionToken) {
-    //   console.log("[API] Token preview:", sessionToken.substring(0, 50) + "...");
-    //   console.log("[API] Token length:", sessionToken.length);
-    // }
+    try {
+      // Get auth context to access token methods
+      const auth = serverSession.toAuth();
 
-    // Return the session token as plain text (Convex expects this format)
-    return new Response(sessionToken || "", {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-        Expires: "0"
+      if (!auth || !auth.userId) {
+        console.log("[API] No auth context or user ID available");
+        return new Response(null, { status: 401 });
       }
-    });
+
+      console.log("[API] Getting token for user:", auth.userId);
+
+      // Try to get a token with Convex template first
+      let convexToken = null;
+      try {
+        if (auth.getToken) {
+          convexToken = await auth.getToken({ template: "convex" });
+        }
+      } catch (templateError) {
+        console.log("[API] Convex template not available:", templateError);
+      }
+
+      // If we got a Convex token, validate and return it
+      if (convexToken) {
+        const decodedToken = decodeJwt(convexToken);
+        console.log("[API] ✅ Using Convex template token");
+        console.log("[API] Token issuer:", decodedToken?.iss);
+        console.log("[API] Token audience:", decodedToken?.aud);
+        console.log("[API] Token subject:", decodedToken?.sub);
+
+        // Validate the token has correct audience
+        const hasConvexAudience =
+          decodedToken?.aud &&
+          (Array.isArray(decodedToken.aud)
+            ? decodedToken.aud.includes("convex")
+            : decodedToken.aud === "convex");
+
+        if (!hasConvexAudience) {
+          console.warn('[API] ⚠️ JWT token missing "convex" audience claim');
+        }
+
+        return new Response(convexToken, {
+          status: 200,
+          headers: {
+            "Content-Type": "text/plain",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0"
+          }
+        });
+      }
+
+      // Fallback: try to get default token
+      let defaultToken = null;
+      try {
+        if (auth.getToken) {
+          defaultToken = await auth.getToken();
+        }
+      } catch (defaultError) {
+        console.error("[API] Failed to get default token:", defaultError);
+      }
+
+      if (defaultToken) {
+        const decodedToken = decodeJwt(defaultToken);
+        console.log("[API] ⚠️ Using default token (may not work with Convex)");
+        console.log("[API] Default token issuer:", decodedToken?.iss);
+        console.log("[API] Default token audience:", decodedToken?.aud);
+
+        return new Response(defaultToken, {
+          status: 200,
+          headers: {
+            "Content-Type": "text/plain",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+            Expires: "0"
+          }
+        });
+      }
+
+      console.error("[API] ❌ Failed to get any token from session");
+      return new Response("Failed to get authentication token", { status: 401 });
+    } catch (tokenError) {
+      console.error("[API] Error getting token from session:", tokenError);
+      return new Response("Token generation failed", { status: 500 });
+    }
   } catch (error) {
-    console.error("[API] Error retrieving auth token:", error);
-    return new Response(null, { status: 500 });
+    console.error("[API] ❌ Error retrieving auth token:", error);
+    return new Response("Internal server error", { status: 500 });
   }
 };
 
 /**
  * Handle POST requests for token refresh (if needed)
  */
-export const POST: RequestHandler = async ({ cookies }) => {
+export const POST: RequestHandler = async ({ locals }) => {
   try {
-    // For POST, we also return the current session token
-    // This can be used for token refresh scenarios
-    const sessionToken =
-      cookies.get("__session") ||
-      cookies.get("__clerk_db_jwt") ||
-      cookies.get("__Secure-clerk-db-jwt") ||
-      cookies.get("__Host-clerk-db-jwt");
+    const serverSession = locals.session;
 
-    if (!sessionToken) {
-      return json({ error: "No session token" }, { status: 401 });
+    if (!serverSession || !serverSession.isSignedIn) {
+      return json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    return json({ token: sessionToken });
+    const auth = serverSession.toAuth();
+    if (!auth?.getToken) {
+      return json({ error: "Token method not available" }, { status: 401 });
+    }
+
+    try {
+      const token = await auth.getToken({ template: "convex" });
+      return json({ token });
+    } catch (error) {
+      console.error("[API] Error in POST auth token:", error);
+      return json({ error: "Failed to refresh token" }, { status: 500 });
+    }
   } catch (error) {
     console.error("[API] Error in POST auth token:", error);
     return json({ error: "Internal server error" }, { status: 500 });

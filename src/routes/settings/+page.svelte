@@ -1,50 +1,47 @@
 <script lang="ts">
-  // Import stores for settings management
-  import { settings } from "$lib/stores/settings";
-  import { goto } from "$app/navigation";
+// Import stores for settings management
+// import { settings } from "$lib/stores/settings";
 
-  // Import custom tab components
-  import SettingsAccountTab from "$lib/components/settings-account-tab.svelte";
-  import SettingsCustomizationTab from "$lib/components/settings-customization-tab.svelte";
-  import SettingsSyncTab from "$lib/components/settings-sync-tab.svelte";
-  import SettingsDataTab from "$lib/components/settings-data-tab.svelte";
+// Import Svelte lifecycle hooks
+import { onMount } from "svelte";
+import { get } from "svelte/store";
+import { browser } from "$app/environment";
+import { goto } from "$app/navigation";
+// Import custom tab components
+import SettingsAccountTab from "$lib/components/settings-account-tab.svelte";
+import SettingsCustomizationTab from "$lib/components/settings-customization-tab.svelte";
+import SettingsDataTab from "$lib/components/settings-data-tab.svelte";
+import SettingsSyncTab from "$lib/components/settings-sync-tab.svelte";
+// Import wrapper for tab content transitions
+import TabMotionWrapper from "$lib/components/tab-motion-wrapper.svelte";
 
-  // Import tracking utilities
-  import { anonymousUserId, logAppOpenIfNeeded } from "$lib/utils/tracking";
-  // Import Svelte lifecycle hooks
-  import { onMount } from "svelte";
+// Import tab bar UI components
+import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
+// Import tracking utilities
+import { anonymousUserId, logAppOpenIfNeeded } from "$lib/utils/tracking";
 
-  import { browser } from "$app/environment";
-  import { get } from "svelte/store";
+// State for the active settings tab, defaults to 'customization'
+let activeTab = $state("customization");
 
-  // Import tab bar UI components
-  import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
+// On component mount, perform initial setup
+onMount(() => {
+  logAppOpenIfNeeded(); // Log application opening for tracking
+  // Redirect to home if no anonymous user ID is found (ensures user is identified)
+  if (!get(anonymousUserId)) {
+    console.log("No user ID found in settings, redirecting to home");
+    goto("/", { replaceState: true });
+    return;
+  }
 
-  // Import wrapper for tab content transitions
-  import TabMotionWrapper from "$lib/components/tab-motion-wrapper.svelte";
-
-  // State for the active settings tab, defaults to 'customization'
-  let activeTab = $state("customization");
-
-  // On component mount, perform initial setup
-  onMount(() => {
-    logAppOpenIfNeeded(); // Log application opening for tracking
-    // Redirect to home if no anonymous user ID is found (ensures user is identified)
-    if (!get(anonymousUserId)) {
-      console.log("No user ID found in settings, redirecting to home");
-      goto("/", { replaceState: true });
-      return;
+  // Check localStorage for a requested tab to open
+  if (browser) {
+    const tab = localStorage.getItem("settingsTab");
+    if (tab) {
+      activeTab = tab;
+      localStorage.removeItem("settingsTab"); // Clean up after use
     }
-
-    // Check localStorage for a requested tab to open
-    if (browser) {
-      const tab = localStorage.getItem("settingsTab");
-      if (tab) {
-        activeTab = tab;
-        localStorage.removeItem("settingsTab"); // Clean up after use
-      }
-    }
-  });
+  }
+});
 </script>
 
 <!-- Main container for the settings page -->

@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
-import { httpAction } from "./_generated/server";
 import { Webhook } from "svix";
 import { internal } from "./_generated/api";
+import { httpAction } from "./_generated/server";
 
 // The Clerk webhook secret, stored in an environment variable
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;

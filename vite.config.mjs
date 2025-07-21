@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
+import { defineConfig } from "vite";
 import devtoolsJson from "vite-plugin-devtools-json";
 
 // @ts-expect-error process is a nodejs global
@@ -37,7 +37,7 @@ export default defineConfig(async ({ mode }) => {
         : undefined,
       watch: {
         // 3. tell vite to ignore watching `src-tauri` and `implementation-plan.md`
-        ignored: ["**/src-tauri/**", "**/vibes/**"]
+        ignored: ["**/src-tauri/**", "**/Docs/**"]
       },
       // 4. Allow serving files from the workspace root and specific directories
       fs: {

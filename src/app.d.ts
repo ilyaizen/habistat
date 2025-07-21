@@ -20,8 +20,8 @@ declare module "$app/navigation" {
       invalidateAll?: boolean;
     }
   ): Promise<void>;
-  export function pushState(url: string | URL, state: Record<string, any>): void;
-  export function replaceState(url: string | URL, state: Record<string, any>): void;
+  export function pushState(url: string | URL, state: Record<string, unknown>): void;
+  export function replaceState(url: string | URL, state: Record<string, unknown>): void;
   export function invalidate(resource: string): Promise<void>;
   export function invalidateAll(): Promise<void>;
   export function preloadData(url: string | URL): Promise<boolean>;
@@ -35,16 +35,18 @@ declare module "$app/navigation" {
 }
 
 // Ensure import.meta.env is available in TypeScript
-interface ImportMetaEnv {
-  DEV?: boolean;
-  PROD?: boolean;
-}
+// interface ImportMetaEnv {
+//   DEV?: boolean;
+//   PROD?: boolean;
+// }
 
-interface ImportMeta {
-  env?: ImportMetaEnv;
-}
+// interface ImportMeta {
+//   env?: ImportMetaEnv;
+// }
 
-import type { ClerkAPIResponseError, SessionClaims, RequestState } from "@clerk/backend";
+// import type { ClerkAPIResponseError, SessionClaims, RequestState } from "@clerk/backend";
+
+import type { RequestState } from "@clerk/backend";
 
 // See https://svelte.dev/docs/kit/types#app.locals for information about these interfaces
 declare global {
@@ -58,15 +60,3 @@ declare global {
     // interface Platform {}
   }
 }
-
-// Tauri window type declarations
-interface Window {
-  __TAURI__?: {
-    tauri?: {
-      invoke: <T>(cmd: string, args?: Record<string, unknown>) => Promise<T>;
-      // Additional Tauri API methods would be defined here
-    };
-  };
-}
-
-export {};

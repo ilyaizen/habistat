@@ -40,8 +40,8 @@ export function monitorWhiteScreen(): void {
   const monitor = setInterval(() => {
     checks++;
 
-    const body = document.body;
-    const hasContent = body && body.children.length > 0;
+    // const body = document.body;
+    // const hasContent = body && body.children.length > 0;
     const appRoot = document.querySelector("[data-sveltekit-preload-data]");
     const appHasContent = appRoot && appRoot.children.length > 0;
 
@@ -77,7 +77,7 @@ export async function testSqlJsLoading(): Promise<void> {
     // Note: We don't initialize sql.js here to avoid duplicate initialization
     // The main database client in src/lib/db/client.ts handles proper initialization
     // with SvelteKit's fetch function to prevent warnings
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("SQL.js WASM accessibility test failed:", error);
   }
 }
@@ -94,7 +94,7 @@ export async function runDiagnostics(): Promise<void> {
   // Test async operations that commonly cause issues
   try {
     await testSqlJsLoading();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("SQL.js test failed:", error);
   }
 
@@ -102,7 +102,7 @@ export async function runDiagnostics(): Promise<void> {
   try {
     const { waitLocale } = await import("svelte-i18n");
     await waitLocale();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("i18n loading failed:", error);
   }
 }

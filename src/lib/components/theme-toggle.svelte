@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Moon, Sun } from "@lucide/svelte";
-  import { theme } from "$lib/stores/settings";
-  import type { ThemeMode } from "$lib/stores/settings";
-  import { Button } from "./ui/button";
-  import * as DropdownMenu from "./ui/dropdown-menu";
+import { Moon, Sun } from "@lucide/svelte";
+import { theme } from "$lib/stores/settings";
+
+import { Button } from "./ui/button";
+import * as DropdownMenu from "./ui/dropdown-menu";
 </script>
 
 <DropdownMenu.Root>

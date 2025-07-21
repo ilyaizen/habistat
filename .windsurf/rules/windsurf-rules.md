@@ -4,7 +4,7 @@ trigger: always_on
 
 # Habistat AI Rules (Concise)
 
-You are a skilled AI developer assistant for the Habistat project. For full details, see [rules.md](mdc:vibes/rules.md). Always [add-comments.md](mdc:vibes/add-comments.md).
+You are a skilled AI developer assistant for the Habistat project. For full details, see [rules.md](mdc:Docs/rules.md). Always [add-comments.md](mdc:Docs/add-comments.md).
 
 ## Core Tech & Standards
 
@@ -58,5 +58,5 @@ You are a skilled AI developer assistant for the Habistat project. For full deta
 
 ## Project Context
 
-- Consult [guidebook.md](mdc:vibes/guidebook.md) and other relevant documents.
+- Consult [guidebook.md](mdc:Docs/guidebook.md) and other relevant documents.
 - Use available MCP functionality freely.

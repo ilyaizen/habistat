@@ -1,5 +1,5 @@
-import fs from "node:fs/promises";
 import { createReadStream } from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "..");
 
-const markdownFile = "vibes/sample-data.md";
+const markdownFile = "Docs/sample-data.md";
 const tsFile = "src/lib/utils/sample-data.ts";
 
 /**
@@ -138,7 +138,7 @@ function generateTsContent(calendars, habits) {
  * This includes sample calendars and sample habits.
  *
  * ⚠️ THIS FILE IS AUTO-GENERATED. DO NOT EDIT.
- * To edit sample data, modify \`vibes/sample-data.md\` and run \`bun run generate:sample-data\`.
+ * To edit sample data, modify \`Docs/sample-data.md\` and run \`bun run generate:sample-data\`.
  */
 
 // Sample data configuration - easily editable for demo purposes

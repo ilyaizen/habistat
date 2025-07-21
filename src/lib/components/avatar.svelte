@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-  import { getContext } from "svelte";
-  import { goto } from "$app/navigation";
-  import type { UserResource } from "@clerk/types";
-  import { type Readable } from "svelte/store";
+import type { UserResource } from "@clerk/types";
+import { getContext } from "svelte";
+import { type Readable } from "svelte/store";
+import { goto } from "$app/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
-  // Get Clerk user context for authentication state
-  const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");
+// Get Clerk user context for authentication state
+const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");
 
-  // Handle click: go to settings and set account tab
-  function goToAccountSettings() {
-    // Store tab in localStorage so settings page can pick it up
-    localStorage.setItem("settingsTab", "account");
-    goto("/settings");
-  }
+// Handle click: go to settings and set account tab
+function goToAccountSettings() {
+  // Store tab in localStorage so settings page can pick it up
+  localStorage.setItem("settingsTab", "account");
+  goto("/settings");
+}
 </script>
 
 <!-- Avatar button: shows user avatar if available, fallback to initial or anonymous icon -->

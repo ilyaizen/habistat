@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { api } from "./_generated/api";
+// import { api } from "./_generated/api";
 
 /**
  * Create a new completion record on the server.
@@ -85,21 +85,25 @@ export const updateCompletion = mutation({
 });
 
 /**
- * Get all completions for the current user, with optional filter by habit.
+ * Get completions for the current user with pagination, with optional filter by habit.
  * Used for initial sync and fetching completion history.
  */
 export const getUserCompletions = query({
   args: {
     habitId: v.optional(v.string()),
-    since: v.optional(v.number()) // Timestamp for incremental sync
+    since: v.optional(v.number()), // Timestamp for incremental sync
+    limit: v.optional(v.number()), // Pagination limit (default 100)
+    cursor: v.optional(v.string()) // Pagination cursor
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
 
+    const limit = args.limit || 100; // Default to 100 items per page
+
     let query = ctx.db
       .query("completions")
-      .withIndex("by_user_habit", (q) => q.eq("userId", identity.subject));
+      .withIndex("by_user_completed_at", (q) => q.eq("userId", identity.subject));
 
     if (args.habitId) {
       query = query.filter((q) => q.eq(q.field("habitId"), args.habitId));
@@ -109,41 +113,62 @@ export const getUserCompletions = query({
       query = query.filter((q) => q.gt(q.field("completedAt"), args.since!));
     }
 
-    const completions = await query.collect();
+    // Apply pagination
+    const results = await query.paginate({ 
+      cursor: args.cursor || null, 
+      numItems: limit 
+    });
 
-    return completions.map((completion) => ({
-      _id: completion._id,
-      localUuid: completion.localUuid,
-      habitId: completion.habitId,
-      completedAt: completion.completedAt
-    }));
+    return {
+      completions: results.page.map((completion) => ({
+        _id: completion._id,
+        localUuid: completion.localUuid,
+        habitId: completion.habitId,
+        completedAt: completion.completedAt
+      })),
+      nextCursor: results.continueCursor,
+      isDone: results.isDone
+    };
   }
 });
 
 /**
- * Get completions updated since a specific timestamp.
+ * Get completions updated since a specific timestamp with pagination.
  * Used for incremental sync - only fetch changes since last sync.
  */
 export const getCompletionsSince = query({
   args: {
-    timestamp: v.number()
+    timestamp: v.number(),
+    limit: v.optional(v.number()), // Pagination limit (default 100)
+    cursor: v.optional(v.string()) // Pagination cursor
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
 
-    const completions = await ctx.db
+    const limit = args.limit || 100; // Default to 100 items per page
+
+    let query = ctx.db
       .query("completions")
       .withIndex("by_user_completed_at", (q) => q.eq("userId", identity.subject))
-      .filter((q) => q.gt(q.field("completedAt"), args.timestamp))
-      .collect();
+      .filter((q) => q.gt(q.field("completedAt"), args.timestamp));
 
-    return completions.map((completion) => ({
-      _id: completion._id,
-      localUuid: completion.localUuid,
-      habitId: completion.habitId,
-      completedAt: completion.completedAt
-    }));
+    // Apply pagination
+    const results = await query.paginate({ 
+      cursor: args.cursor || null, 
+      numItems: limit 
+    });
+
+    return {
+      completions: results.page.map((completion) => ({
+        _id: completion._id,
+        localUuid: completion.localUuid,
+        habitId: completion.habitId,
+        completedAt: completion.completedAt
+      })),
+      nextCursor: results.continueCursor,
+      isDone: results.isDone
+    };
   }
 });
 

@@ -1,7 +1,8 @@
-import { writable, derived, get } from "svelte/store";
-import { SyncService } from "../services/sync";
+import { derived, get, writable } from "svelte/store";
 import { browser } from "$app/environment";
+import { SyncService } from "../services/sync";
 import { convex } from "../utils/convex";
+import { authStateStore } from "./auth-state";
 import { completionsStore } from "./completions";
 
 // Sync status types
@@ -15,7 +16,9 @@ interface SyncState {
 }
 
 function createSyncStore() {
-  const { subscribe, set, update } = writable<SyncState>({
+  // TODO: 2025-07-21 - Add set to the store when we have a way to test it
+  // const { subscribe, set, update } = writable<SyncState>({
+  const { subscribe, update } = writable<SyncState>({
     status: "idle",
     lastSyncTime: null,
     error: null,
@@ -25,10 +28,19 @@ function createSyncStore() {
   let syncService: SyncService | null = null;
   let currentUserId: string | null = null;
 
-  // Initialize sync service when in browser
-  if (browser && convex) {
-    syncService = new SyncService(convex);
-  }
+  // Function to get or create sync service
+  const getSyncService = () => {
+    if (!syncService && browser) {
+      const convexClient = convex;
+      if (convexClient) {
+        syncService = new SyncService(convexClient);
+        if (currentUserId) {
+          syncService.setUserId(currentUserId);
+        }
+      }
+    }
+    return syncService;
+  };
 
   // Monitor online status
   if (browser) {
@@ -48,14 +60,35 @@ function createSyncStore() {
      */
     setUserId: (userId: string | null) => {
       currentUserId = userId;
-      syncService?.setUserId(userId);
+      const service = getSyncService();
+      service?.setUserId(userId);
+
+      // Update auth state
+      authStateStore.setClerkState(userId, true);
 
       if (userId) {
-        // Automatically trigger sync when user is set
-        setTimeout(() => {
-          // Delay slightly to let auth state settle
-          store.triggerSync();
-        }, 1000);
+        // Wait for authentication to be fully ready before syncing
+        const attemptSyncWhenReady = async () => {
+          console.log("[Sync] Waiting for authentication to be ready...");
+
+          const authReady = await authStateStore.waitForAuthReady(15000); // 15 second timeout
+
+          if (authReady) {
+            console.log("[Sync] Authentication ready, triggering sync");
+            const state = get({ subscribe });
+            if (state.status !== "syncing") {
+              await store.triggerSync();
+            }
+          } else {
+            console.warn("[Sync] Authentication not ready after timeout, skipping initial sync");
+            update((state) => ({
+              ...state,
+              error: "Authentication timeout - sync will retry when auth is ready"
+            }));
+          }
+        };
+
+        attemptSyncWhenReady();
       }
     },
 
@@ -63,12 +96,27 @@ function createSyncStore() {
      * Trigger a full sync operation
      */
     triggerSync: async () => {
-      if (!syncService || !currentUserId) {
+      const service = getSyncService();
+      if (!service || !currentUserId) {
         update((state) => ({
           ...state,
           error: "Not authenticated or sync service unavailable"
         }));
         return;
+      }
+
+      // Check if authentication is ready
+      if (!authStateStore.isAuthReady()) {
+        console.log("[Sync] Authentication not ready, checking auth status...");
+        await authStateStore.checkConvexAuth();
+
+        if (!authStateStore.isAuthReady()) {
+          update((state) => ({
+            ...state,
+            error: "Authentication not ready - please wait and try again"
+          }));
+          return;
+        }
       }
 
       const currentState = get({ subscribe });
@@ -87,7 +135,7 @@ function createSyncStore() {
       }));
 
       try {
-        const result = await syncService.fullSync();
+        const result = await service.fullSync();
 
         if (result.success) {
           // Refresh completions store after successful sync
@@ -125,7 +173,8 @@ function createSyncStore() {
      * Migrate anonymous data to authenticated user
      */
     migrateAnonymousData: async () => {
-      if (!syncService || !currentUserId) {
+      const service = getSyncService();
+      if (!service || !currentUserId) {
         return { success: false, migratedCount: 0, error: "Not authenticated" };
       }
 
@@ -136,7 +185,7 @@ function createSyncStore() {
       }));
 
       try {
-        const result = await syncService.migrateAnonymousData();
+        const result = await service.migrateAnonymousData();
 
         if (result.success) {
           // Update completions store to associate with user
@@ -177,7 +226,7 @@ function createSyncStore() {
     /**
      * Get sync service instance (for advanced operations)
      */
-    getSyncService: () => syncService
+    getSyncService: () => getSyncService()
   };
 
   return store;

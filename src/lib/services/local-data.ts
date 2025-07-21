@@ -1,8 +1,8 @@
+import type { InferModel } from "drizzle-orm";
+import { and, desc, eq, gte, isNull } from "drizzle-orm";
 import { getDb as getDrizzleDb, persistBrowserDb } from "../db/client";
 import * as schema from "../db/schema";
-import { eq, and, gte, desc, isNull } from "drizzle-orm";
 import type { Calendar } from "../stores/calendars";
-import type { InferModel } from "drizzle-orm";
 
 // --- Types ---
 type Habit = InferModel<typeof schema.habits>;
@@ -146,6 +146,15 @@ export async function getCompletionByLocalUuid(localUuid: string): Promise<Compl
 export async function getAnonymousCompletions(): Promise<Completion[]> {
   const db = await getDrizzleDb();
   return db.select().from(schema.completions).where(isNull(schema.completions.userId)).all();
+}
+
+/**
+ * Get completions for a specific user
+ * Used for sync operations to filter completions by user ID
+ */
+export async function getUserCompletions(userId: string): Promise<Completion[]> {
+  const db = await getDrizzleDb();
+  return db.select().from(schema.completions).where(eq(schema.completions.userId, userId)).all();
 }
 
 // ActiveTimers

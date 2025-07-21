@@ -12,195 +12,178 @@
  */ -->
 
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button/index.js";
-  import { Input } from "./ui/input";
-  import { Label } from "./ui/label";
-  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-  import { Trash2 } from "@lucide/svelte";
-  import { sessionStore, anonymousUserId } from "$lib/utils/tracking";
-  import { settings } from "$lib/stores/settings";
-  import { derived, get, type Readable } from "svelte/store";
-  import { getContext } from "svelte";
-  import type { UserResource, LoadedClerk } from "@clerk/types";
-  import { SignInButton, SignUpButton, UserButton } from "svelte-clerk";
+import type { LoadedClerk, UserResource } from "@clerk/types";
+import { Trash2 } from "@lucide/svelte";
+import { getContext } from "svelte";
+// import { settings } from "$lib/stores/settings";
+import { derived, get, type Readable } from "svelte/store";
+import { SignInButton, SignUpButton, UserButton } from "svelte-clerk";
+import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+import { Button } from "$lib/components/ui/button/index.js";
+import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
-  // Derive anonymous ID from the store for reactive updates
-  const anonymousId = derived(anonymousUserId, ($id) => $id);
+// Derive anonymous ID from the store for reactive updates
+const anonymousId = derived(anonymousUserId, ($id) => $id);
 
-  // Get Clerk user context for authentication state
-  const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");
+// Get Clerk user context for authentication state
+const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");
 
-  // Get Clerk instance from Svelte context (properly typed now)
-  const clerkStore = getContext<Readable<LoadedClerk | null>>("clerk");
-  const clerk = derived(clerkStore, ($clerk) => $clerk);
+// Get Clerk instance from Svelte context (properly typed now)
+const clerkStore = getContext<Readable<LoadedClerk | null>>("clerk");
+const clerk = derived(clerkStore, ($clerk) => $clerk);
 
-  // Derive session details for display and state management
-  const sessionDetails = derived(sessionStore, ($session) => {
-    return {
-      state: $session?.state ?? "unknown",
-      associatedClerkUserId: $session?.clerkUserId ?? null,
-      associatedClerkEmail: $session?.clerkUserEmail ?? null,
-      rawSessionState: $session?.state ?? null
-    };
-  });
+// Derive session details for display and state management
+const sessionDetails = derived(sessionStore, ($session) => {
+  return {
+    state: $session?.state ?? "unknown",
+    associatedClerkUserId: $session?.clerkUserId ?? null,
+    associatedClerkEmail: $session?.clerkUserEmail ?? null,
+    rawSessionState: $session?.state ?? null
+  };
+});
 
-  // Control visibility of usage history section
-  const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
+// Local state management
+let deleting = $state(false); // Tracks ongoing deletion process
+// let usageHistoryTimestamps = $state<number[]>([]); // Stores app open timestamps
+let confirmDialogOpen = $state(false); // Controls visibility of confirmation dialog
+let signOutDialogOpen = $state(false); // Controls visibility of sign out confirmation dialog
 
-  // Local state management
-  let deleting = $state(false); // Tracks ongoing deletion process
-  // let usageHistoryTimestamps = $state<number[]>([]); // Stores app open timestamps
-  let confirmDialogOpen = $state(false); // Controls visibility of confirmation dialog
-  let signOutDialogOpen = $state(false); // Controls visibility of sign out confirmation dialog
+// Usage history state for display (if re-enabled)
+// let usageHistory: number[] = [];
+// let loadingUsageHistory = false;
 
-  // Usage history state for display (if re-enabled)
-  // let usageHistory: number[] = [];
-  // let loadingUsageHistory = false;
-
-  /**
-   * Clears all IndexedDB databases for the app.
-   * This is necessary to fully remove all client-side data.
-   */
-  async function clearAllIndexedDB() {
-    if (!window.indexedDB) return;
-    // List all databases (supported in modern browsers)
-    if (indexedDB.databases) {
-      const dbs = await indexedDB.databases();
-      for (const db of dbs) {
-        if (db.name) indexedDB.deleteDatabase(db.name);
-      }
-    } else {
-      // Fallback: try to delete known DBs (if any are hardcoded)
-      indexedDB.deleteDatabase("habistat-sqljs-db");
+/**
+ * Clears all IndexedDB databases for the app.
+ * This is necessary to fully remove all client-side data.
+ */
+async function clearAllIndexedDB() {
+  if (!window.indexedDB) return;
+  // List all databases (supported in modern browsers)
+  if (indexedDB.databases) {
+    const dbs = await indexedDB.databases();
+    for (const db of dbs) {
+      if (db.name) indexedDB.deleteDatabase(db.name);
     }
+  } else {
+    // Fallback: try to delete known DBs (if any are hardcoded)
+    indexedDB.deleteDatabase("habistat-sqljs-db");
   }
+}
 
-  /**
-   * Clears all app-specific session data from Svelte stores and localStorage.
-   * This includes sessionStore, anonymousUserId, and any other relevant keys.
-   */
-  function clearAppSessionData() {
-    try {
-      // Reset Svelte stores (if they have reset methods)
-      if (sessionStore?.set) sessionStore.set(null);
-      // Remove from localStorage (if used)
-      localStorage.removeItem("anonymousUserId");
-      localStorage.removeItem("sessionStore");
-      // Add more keys as needed
-    } catch (e) {
-      // Ignore errors
-    }
-  }
+/**
+ * Handles user session deletion with confirmation
+ * - Disassociates the session
+ * - Logs out Clerk and clears cookies
+ * - Deletes all app data (localStorage, sessionStorage, IndexedDB)
+ * - Redirects to the frontpage for reinitiation
+ */
+async function deleteUserSessionWithConfirm() {
+  if (deleting) return;
+  deleting = true;
+  try {
+    console.log("[DEBUG] Starting session deletion...");
 
-  /**
-   * Handles user session deletion with confirmation
-   * - Disassociates the session
-   * - Logs out Clerk and clears cookies
-   * - Deletes all app data (localStorage, sessionStorage, IndexedDB)
-   * - Redirects to the frontpage for reinitiation
-   */
-  async function deleteUserSessionWithConfirm() {
-    if (deleting) return;
-    deleting = true;
-    try {
-      console.log("[DEBUG] Starting session deletion...");
+    // 1. Clear all app data and session state first
+    console.log("[DEBUG] Clearing app data...");
+    sessionStore.set(null);
+    localStorage.clear();
+    sessionStorage.clear();
+    await clearAllIndexedDB();
 
-      // 1. Clear all app data and session state first
-      console.log("[DEBUG] Clearing app data...");
-      sessionStore.set(null);
-      localStorage.clear();
-      sessionStorage.clear();
-      await clearAllIndexedDB();
+    // 2. Try to sign out from Clerk using the proper context
+    console.log("[DEBUG] Attempting Clerk sign out...");
+    const clerkInstance = get(clerk);
+    console.log("[DEBUG] Clerk instance from context:", clerkInstance);
+    console.log(
+      "[DEBUG] Has signOut method:",
+      clerkInstance && typeof clerkInstance.signOut === "function"
+    );
 
-      // 2. Try to sign out from Clerk using the proper context
-      console.log("[DEBUG] Attempting Clerk sign out...");
-      const clerkInstance = get(clerk);
-      console.log("[DEBUG] Clerk instance from context:", clerkInstance);
-      console.log(
-        "[DEBUG] Has signOut method:",
-        clerkInstance && typeof clerkInstance.signOut === "function"
-      );
+    if (clerkInstance && typeof clerkInstance.signOut === "function") {
+      try {
+        console.log("[DEBUG] Calling clerkInstance.signOut()...");
+        await clerkInstance.signOut();
+        console.log("[DEBUG] Clerk sign out completed successfully");
+      } catch (signOutError) {
+        console.warn("[DEBUG] Clerk sign out failed:", signOutError);
 
-      if (clerkInstance && typeof clerkInstance.signOut === "function") {
-        try {
-          console.log("[DEBUG] Calling clerkInstance.signOut()...");
-          await clerkInstance.signOut();
-          console.log("[DEBUG] Clerk sign out completed successfully");
-        } catch (signOutError) {
-          console.warn("[DEBUG] Clerk sign out failed:", signOutError);
-
-          // Fallback: try window.Clerk if available
-          if (
-            typeof window !== "undefined" &&
-            window.Clerk &&
-            typeof window.Clerk.signOut === "function"
-          ) {
-            try {
-              console.log("[DEBUG] Trying fallback window.Clerk.signOut()...");
-              await window.Clerk.signOut();
-              console.log("[DEBUG] Fallback sign out completed successfully");
-            } catch (fallbackError) {
-              console.warn("[DEBUG] Fallback sign out failed:", fallbackError);
-            }
-          }
-        }
-      } else {
-        console.warn("[DEBUG] No valid Clerk instance available, attempting fallback methods...");
-
-        // Try window.Clerk as fallback
+        // Fallback: try window.Clerk if available
         if (
           typeof window !== "undefined" &&
           window.Clerk &&
           typeof window.Clerk.signOut === "function"
         ) {
           try {
-            console.log("[DEBUG] Trying window.Clerk.signOut() as fallback...");
+            console.log("[DEBUG] Trying fallback window.Clerk.signOut()...");
             await window.Clerk.signOut();
-            console.log("[DEBUG] Window.Clerk sign out completed successfully");
-          } catch (windowError) {
-            console.warn("[DEBUG] Window.Clerk sign out failed:", windowError);
+            console.log("[DEBUG] Fallback sign out completed successfully");
+          } catch (fallbackError) {
+            console.warn("[DEBUG] Fallback sign out failed:", fallbackError);
           }
         }
       }
+    } else {
+      console.warn("[DEBUG] No valid Clerk instance available, attempting fallback methods...");
 
-      // 3. Manual cookie cleanup as final fallback
-      console.log("[DEBUG] Performing manual cookie cleanup...");
-      const cookiesToClear = [
-        "__session",
-        "__clerk_db_jwt",
-        "__clerk_db_jwt_refresh",
-        "__client_uat",
-        "__clerk_handshake",
-        "__clerk_redirect_count",
-        "__clerk_clerk_js_version",
-        "__Secure-clerk-db-jwt",
-        "__Host-clerk-db-jwt"
-      ];
-
-      cookiesToClear.forEach((cookieName) => {
-        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
-        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
-        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-      });
-
-      // 4. Force a hard refresh to ensure a clean state
-      console.log("[DEBUG] Forcing page refresh...");
-      // Add a small delay to ensure all cleanup operations complete
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Failed to delete session:", error);
-      // Still attempt a refresh as a fallback
-      window.location.href = "/";
-    } finally {
-      deleting = false;
-      confirmDialogOpen = false;
-      signOutDialogOpen = false;
+      // Try window.Clerk as fallback
+      if (
+        typeof window !== "undefined" &&
+        window.Clerk &&
+        typeof window.Clerk.signOut === "function"
+      ) {
+        try {
+          console.log("[DEBUG] Trying window.Clerk.signOut() as fallback...");
+          await window.Clerk.signOut();
+          console.log("[DEBUG] Window.Clerk sign out completed successfully");
+        } catch (windowError) {
+          console.warn("[DEBUG] Window.Clerk sign out failed:", windowError);
+        }
+      }
     }
-  }
 
-  // Example: load usage history on mount (if you want to show it)
-  /*
+    // 3. Manual cookie cleanup as final fallback
+    console.log("[DEBUG] Performing manual cookie cleanup...");
+    const cookiesToClear = [
+      "__session",
+      "__clerk_db_jwt",
+      "__clerk_db_jwt_refresh",
+      "__client_uat",
+      "__clerk_handshake",
+      "__clerk_redirect_count",
+      "__clerk_clerk_js_version",
+      "__Secure-clerk-db-jwt",
+      "__Host-clerk-db-jwt"
+    ];
+
+    cookiesToClear.forEach((cookieName) => {
+      // biome-ignore lint/suspicious/noDocumentCookie: This is a deliberate fallback for cookie clearing.
+      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+      // biome-ignore lint/suspicious/noDocumentCookie: This is a deliberate fallback for cookie clearing.
+      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
+      // biome-ignore lint/suspicious/noDocumentCookie: This is a deliberate fallback for cookie clearing.
+      document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    });
+
+    // 4. Force a hard refresh to ensure a clean state
+    console.log("[DEBUG] Forcing page refresh...");
+    // Add a small delay to ensure all cleanup operations complete
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    window.location.href = "/";
+  } catch (error) {
+    console.error("Failed to delete session:", error);
+    // Still attempt a refresh as a fallback
+    window.location.href = "/";
+  } finally {
+    deleting = false;
+    confirmDialogOpen = false;
+    signOutDialogOpen = false;
+  }
+}
+
+// Example: load usage history on mount (if you want to show it)
+/*
   import { onMount } from "svelte";
   onMount(async () => {
     loadingUsageHistory = true;

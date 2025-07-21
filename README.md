@@ -66,6 +66,7 @@ Habistat is built with a modern and robust technology stack:
 
 ```txt
 habistat/
+├── Docs/                         # Documentation & development guides
 ├── src/                          # Main SvelteKit application
 │   ├── convex/                   # Convex backend functions & schema
 │   ├── i18n/                     # Internationalization files
@@ -90,8 +91,7 @@ habistat/
 │   └── Cargo.toml                # Rust dependencies
 ├── static/                       # Static assets (icons, images, etc.)
 ├── migrations/                   # SQLite database migrations
-├── scripts/                      # Build and utility scripts
-└── vibes/                        # Documentation & development guides
+└── scripts/                      # Build and utility scripts
 ```
 
 To view the complete file structure, refer to [file-structure.txt](file-structure.txt).

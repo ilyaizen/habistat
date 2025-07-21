@@ -9,137 +9,143 @@
  */ -->
 
 <script lang="ts">
-  import { Button, buttonVariants } from "$lib/components/ui/button";
-  import { goto } from "$app/navigation";
-  import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
-  import { browser } from "$app/environment";
-  import { getContext } from "svelte";
-  import { get, type Writable } from "svelte/store";
-  import { triggerFireworks } from "$lib/stores/ui";
-  import { triggerConfetti } from "$lib/stores/ui";
-  import { toast } from "svelte-sonner";
-  import { slide } from "svelte/transition";
+import { getContext } from "svelte";
+import { get } from "svelte/store";
+import { slide } from "svelte/transition";
+import { toast } from "svelte-sonner";
+import { browser } from "$app/environment";
+import { goto } from "$app/navigation";
+import { Button, buttonVariants } from "$lib/components/ui/button";
+import { triggerConfetti, triggerFireworks } from "$lib/stores/ui";
 
-  // --- Drawer Controller ---
-  // Get the singleton drawer controller from the root layout context.
-  const drawerController = getContext<any>("drawer-controller");
+import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
 
-  // State management using Svelte 5 runes ($state)
-  let showMoreInfoButton = $state(false);
-  let sessionStarting = $state(false);
+// --- Drawer Controller ---
+// Get the singleton drawer controller from the root layout context.
+const drawerController = getContext<{
+  registerHandleStart: (fn: () => void) => void;
+  open: () => void;
+  close: () => void;
+}>("drawer-controller");
 
-  // When the component mounts, check if a session exists.
-  // If not, open the singleton drawer and register this page's `handleStart` function.
-  $effect(() => {
-    if (browser) {
-      const session = get(sessionStore);
-      if (!session) {
-        drawerController.registerHandleStart(handleStart);
-        drawerController.open();
-      }
-    }
-  });
+// State management using Svelte 5 runes ($state)
+let showMoreInfoButton = $state(false);
+let sessionStarting = $state(false);
 
-  /**
-   * Handles the START button click action.
-   * This now communicates with the singleton drawer in the layout.
-   */
-  async function handleStart() {
-    if (sessionStarting) return;
-
-    try {
-      sessionStarting = true;
-
-      // Close the singleton drawer and wait for its animation.
-      drawerController.close();
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      const session = sessionStore.ensure();
-
-      if (session?.id) {
-        triggerFireworks.set(true);
-        triggerConfetti.set(true);
-        toast.success("Session created!", {
-          description: "Welcome to Habistat!"
-        });
-        await goto("/dashboard");
-      } else {
-        throw new Error("Failed to ensure session");
-      }
-    } catch (error) {
-      console.error("+page.svelte: Error during session ensuring:", error);
-    } finally {
-      sessionStarting = false;
+// When the component mounts, check if a session exists.
+// If not, open the singleton drawer and register this page's `handleStart` function.
+$effect(() => {
+  if (browser) {
+    const session = get(sessionStore);
+    if (!session) {
+      drawerController.registerHandleStart(handleStart);
+      drawerController.open();
     }
   }
+});
 
-  /**
-   * Clean navigation handler for the dashboard button.
-   */
-  function handleDashboardClick() {
-    // Use SvelteKit's goto for client-side navigation
-    goto("/dashboard").catch((error) => {
-      console.error("Navigation to dashboard failed:", error);
-      toast.error("Navigation failed", {
-        description: `Error: ${error.message || error}`
+/**
+ * Handles the START button click action.
+ * This now communicates with the singleton drawer in the layout.
+ */
+async function handleStart() {
+  if (sessionStarting) return;
+
+  try {
+    sessionStarting = true;
+
+    // Close the singleton drawer and wait for its animation.
+    drawerController.close();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const session = sessionStore.ensure();
+
+    if (session?.id) {
+      triggerFireworks.set(true);
+      triggerConfetti.set(true);
+      toast.success("Session created!", {
+        description: "Welcome to Habistat!"
       });
+      await goto("/dashboard");
+    } else {
+      throw new Error("Failed to ensure session");
+    }
+  } catch (error) {
+    console.error("+page.svelte: Error during session ensuring:", error);
+  } finally {
+    sessionStarting = false;
+  }
+}
+
+/**
+ * Clean navigation handler for the dashboard button.
+ */
+function handleDashboardClick() {
+  // Use SvelteKit's goto for client-side navigation
+  goto("/dashboard").catch((error) => {
+    console.error("Navigation to dashboard failed:", error);
+    toast.error("Navigation failed", {
+      description: `Error: ${error.message || error}`
     });
-  }
-
-  // Scroll detection state
-  let shown = false;
-
-  function handleWheel(e: WheelEvent) {
-    // We only want to show the "More Info" button if the drawer is NOT open.
-    const drawerIsOpen = document.querySelector('[data-vaul-drawer-visible="true"]');
-    if (!drawerIsOpen) {
-      if (e.deltaY > 0 && !shown) {
-        showMoreInfoButton = true;
-        shown = true;
-      } else if (e.deltaY < 0 && shown) {
-        showMoreInfoButton = false;
-        shown = false;
-      }
-    }
-  }
-
-  // Touch event handling for mobile devices
-  let lastTouchY: number | null = null;
-
-  function handleTouchStart(e: TouchEvent) {
-    lastTouchY = e.touches[0]?.clientY ?? null;
-  }
-  function handleTouchMove(e: TouchEvent) {
-    const drawerIsOpen = document.querySelector('[data-vaul-drawer-visible="true"]');
-    if (!drawerIsOpen && lastTouchY !== null) {
-      const deltaY = e.touches[0].clientY - lastTouchY;
-      if (deltaY < -10 && !shown) {
-        showMoreInfoButton = true;
-        shown = true;
-      } else if (deltaY > 10 && shown) {
-        showMoreInfoButton = false;
-        shown = false;
-      }
-    }
-  }
-
-  // Event listener management using $effect
-  $effect(() => {
-    if (browser) {
-      window.addEventListener("wheel", handleWheel, { passive: true });
-      window.addEventListener("touchstart", handleTouchStart, { passive: true });
-      window.addEventListener("touchmove", handleTouchMove, { passive: true });
-
-      return () => {
-        window.removeEventListener("wheel", handleWheel);
-        window.removeEventListener("touchstart", handleTouchStart);
-        window.removeEventListener("touchmove", handleTouchMove);
-      };
-    }
   });
+}
 
-  // The logic to hide the button when the drawer is open has been removed for simplification.
-  // The drawer will now cover the button, which is the intended behavior.
+// Scroll detection state
+let shown = false;
+
+function handleWheel(e: WheelEvent) {
+  // We only want to show the "More Info" button if the drawer is NOT open.
+  const drawerIsOpen = document.querySelector('[data-vaul-drawer-visible="true"]');
+  if (!drawerIsOpen) {
+    if (e.deltaY > 0 && !shown) {
+      showMoreInfoButton = true;
+      shown = true;
+    } else if (e.deltaY < 0 && shown) {
+      showMoreInfoButton = false;
+      shown = false;
+    }
+  }
+}
+
+// Touch event handling for mobile devices
+let lastTouchY: number | null = null;
+
+function handleTouchStart(e: TouchEvent) {
+  lastTouchY = e.touches[0]?.clientY ?? null;
+}
+function handleTouchMove(e: TouchEvent) {
+  const drawerIsOpen = document.querySelector('[data-vaul-drawer-visible="true"]');
+  if (!drawerIsOpen && lastTouchY !== null) {
+    const deltaY = e.touches[0].clientY - lastTouchY;
+    if (deltaY < -10 && !shown) {
+      showMoreInfoButton = true;
+      shown = true;
+    } else if (deltaY > 10 && shown) {
+      showMoreInfoButton = false;
+      shown = false;
+    }
+  }
+}
+
+// Event listener management using $effect
+$effect(() => {
+  if (browser) {
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    window.addEventListener("touchstart", handleTouchStart, {
+      passive: true
+    });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }
+});
+
+// The logic to hide the button when the drawer is open has been removed for simplification.
+// The drawer will now cover the button, which is the intended behavior.
 </script>
 
 <!-- Main landing page layout -->
@@ -158,12 +164,22 @@
   </p>
   {#if $anonymousUserId}
     <!-- Show Dashboard button for returning users -->
-    <Button onclick={handleDashboardClick} size="lg" disabled={sessionStarting} class="btn-3d">
+    <Button
+      onclick={handleDashboardClick}
+      size="lg"
+      disabled={sessionStarting}
+      class="btn-3d"
+    >
       {sessionStarting ? "Loading..." : "Go to Habits"}
     </Button>
   {:else}
     <!-- Show Start button for new users -->
-    <Button onclick={handleStart} size="lg" disabled={sessionStarting} class="btn-3d">
+    <Button
+      onclick={handleStart}
+      size="lg"
+      disabled={sessionStarting}
+      class="btn-3d"
+    >
       {sessionStarting ? "Starting..." : "Get Started"}
     </Button>
   {/if}

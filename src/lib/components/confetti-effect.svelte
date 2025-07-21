@@ -1,119 +1,113 @@
 <script lang="ts">
-  import { triggerConfetti } from "$lib/stores/ui";
+import { triggerConfetti } from "$lib/stores/ui";
 
-  interface ConfettiBurst {
-    id: number;
-    originX: number;
-    originY: number;
-    colors: string[];
-    amount: number;
-    duration: number;
-    fallDistance: string;
-    cone: boolean;
-    x: [number, number];
-    y: [number, number];
-    size: number;
-    delay: [number, number];
-    xSpread: number;
-    rounded: boolean;
-  }
+interface ConfettiBurst {
+  id: number;
+  originX: number;
+  originY: number;
+  colors: string[];
+  amount: number;
+  duration: number;
+  fallDistance: string;
+  cone: boolean;
+  x: [number, number];
+  y: [number, number];
+  size: number;
+  delay: [number, number];
+  xSpread: number;
+  rounded: boolean;
+}
 
-  let bursts = $state<ConfettiBurst[]>([]);
-  let nextId = 0;
+let bursts = $state<ConfettiBurst[]>([]);
+let nextId = 0;
 
-  /**
-   * Generates color variants from a base color to create visual variety in the confetti.
-   * Creates lighter, darker, and complementary color variations.
-   */
-  function generateColorVariants(baseColor: string): string[] {
-    const variants = [baseColor];
-    const hex = baseColor.replace("#", "");
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
+/**
+ * Generates color variants from a base color to create visual variety in the confetti.
+ * Creates lighter, darker, and complementary color variations.
+ */
+function generateColorVariants(baseColor: string): string[] {
+  const variants = [baseColor];
+  const hex = baseColor.replace("#", "");
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
 
-    const lighten = (val: number, amount: number) => Math.min(255, Math.floor(val + amount));
-    const darken = (val: number, amount: number) => Math.max(0, Math.floor(val - amount));
+  const lighten = (val: number, amount: number) => Math.min(255, Math.floor(val + amount));
+  const darken = (val: number, amount: number) => Math.max(0, Math.floor(val - amount));
 
-    variants.push(`rgb(${lighten(r, 60)}, ${lighten(g, 60)}, ${lighten(b, 60)})`);
-    variants.push(`rgb(${lighten(r, 30)}, ${lighten(g, 30)}, ${lighten(b, 30)})`);
-    variants.push(`rgb(${darken(r, 30)}, ${darken(g, 30)}, ${darken(b, 30)})`);
-    variants.push(
-      `rgb(${Math.min(255, r + 80)}, ${Math.max(0, g - 20)}, ${Math.min(255, b + 80)})`
-    );
-    variants.push(
-      `rgb(${Math.max(0, r - 20)}, ${Math.min(255, g + 80)}, ${Math.min(255, b + 80)})`
-    );
-    variants.push(
-      `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.max(0, b - 20)})`
-    );
-    variants.push("#FFD700", "#FFA500", "#FFFF00", "#FF69B4", "#ADD8E6", "#C0C0C0");
+  variants.push(`rgb(${lighten(r, 60)}, ${lighten(g, 60)}, ${lighten(b, 60)})`);
+  variants.push(`rgb(${lighten(r, 30)}, ${lighten(g, 30)}, ${lighten(b, 30)})`);
+  variants.push(`rgb(${darken(r, 30)}, ${darken(g, 30)}, ${darken(b, 30)})`);
+  variants.push(`rgb(${Math.min(255, r + 80)}, ${Math.max(0, g - 20)}, ${Math.min(255, b + 80)})`);
+  variants.push(`rgb(${Math.max(0, r - 20)}, ${Math.min(255, g + 80)}, ${Math.min(255, b + 80)})`);
+  variants.push(`rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.max(0, b - 20)})`);
+  variants.push("#FFD700", "#FFA500", "#FFFF00", "#FF69B4", "#ADD8E6", "#C0C0C0");
 
-    return variants;
-  }
+  return variants;
+}
 
-  /**
-   * Effect that listens for confetti trigger events and creates new confetti bursts.
-   * Handles different trigger types: boolean, number, or ConfettiTrigger object.
-   */
-  $effect(() => {
-    const triggerValue = $triggerConfetti;
-    if (triggerValue) {
-      let color = "#3b82f6";
-      let intensity = 1;
-      let originX = window.innerWidth / 2;
-      let originY = window.innerHeight / 2;
+/**
+ * Effect that listens for confetti trigger events and creates new confetti bursts.
+ * Handles different trigger types: boolean, number, or ConfettiTrigger object.
+ */
+$effect(() => {
+  const triggerValue = $triggerConfetti;
+  if (triggerValue) {
+    let color = "#3b82f6";
+    let intensity = 1;
+    let originX = window.innerWidth / 2;
+    let originY = window.innerHeight / 2;
 
-      if (typeof triggerValue === "object") {
-        color = triggerValue.color || color;
-        intensity = Math.max(0.5, (triggerValue.points || 1) / 3);
-        if (triggerValue.originX !== undefined && triggerValue.originY !== undefined) {
-          originX = triggerValue.originX;
-          originY = triggerValue.originY;
-        }
-      } else if (typeof triggerValue === "number") {
-        intensity = Math.max(0.5, triggerValue / 3);
+    if (typeof triggerValue === "object") {
+      color = triggerValue.color || color;
+      intensity = Math.max(0.5, (triggerValue.points || 1) / 3);
+      if (triggerValue.originX !== undefined && triggerValue.originY !== undefined) {
+        originX = triggerValue.originX;
+        originY = triggerValue.originY;
       }
-
-      const newBurst: ConfettiBurst = {
-        id: nextId++,
-        originX,
-        originY,
-        colors: generateColorVariants(color),
-        amount: Math.floor(25 * intensity),
-        duration: 3000,
-        fallDistance: "200px",
-        cone: true,
-        x: [-0.5, 0.5],
-        y: [0.2, 1.2],
-        size: 5,
-        delay: [0, 500],
-        xSpread: 0.1,
-        rounded: true
-      };
-
-      bursts = [...bursts, newBurst];
-
-      // Clean up the burst after animation completes
-      setTimeout(
-        () => {
-          bursts = bursts.filter((b) => b.id !== newBurst.id);
-        },
-        newBurst.duration + Math.max(...newBurst.delay) + 500
-      );
-
-      // Reset the trigger
-      triggerConfetti.set(false);
+    } else if (typeof triggerValue === "number") {
+      intensity = Math.max(0.5, triggerValue / 3);
     }
-  });
 
-  /**
-   * Generates a random number between min and max values.
-   * Used for creating varied confetti properties like rotation, scale, and position.
-   */
-  function randomBetween(min: number, max: number) {
-    return Math.random() * (max - min) + min;
+    const newBurst: ConfettiBurst = {
+      id: nextId++,
+      originX,
+      originY,
+      colors: generateColorVariants(color),
+      amount: Math.floor(25 * intensity),
+      duration: 3000,
+      fallDistance: "200px",
+      cone: true,
+      x: [-0.5, 0.5],
+      y: [0.2, 1.2],
+      size: 5,
+      delay: [0, 500],
+      xSpread: 0.1,
+      rounded: true
+    };
+
+    bursts = [...bursts, newBurst];
+
+    // Clean up the burst after animation completes
+    setTimeout(
+      () => {
+        bursts = bursts.filter((b) => b.id !== newBurst.id);
+      },
+      newBurst.duration + Math.max(...newBurst.delay) + 500
+    );
+
+    // Reset the trigger
+    triggerConfetti.set(false);
   }
+});
+
+/**
+ * Generates a random number between min and max values.
+ * Used for creating varied confetti properties like rotation, scale, and position.
+ */
+function randomBetween(min: number, max: number) {
+  return Math.random() * (max - min) + min;
+}
 </script>
 
 <div class="confetti-viewport">
@@ -130,7 +124,7 @@
         --x-spread: {1 - burst.xSpread};
       "
     >
-      {#each { length: burst.amount } as _}
+      {#each { length: burst.amount }}
         <div
           class="confetti"
           style="

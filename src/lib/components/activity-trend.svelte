@@ -8,33 +8,30 @@
     label: string;
   };
 
-  let { data = $bindable(), title = "Activity Trend" }: { data: TrendData[]; title?: string } =
-    $props();
+  let {
+    data: filteredData = $bindable(),
+    title = "Activity Trend",
+  }: { data: TrendData[]; title?: string } = $props();
 
   const chartConfig = {
     completions: {
       label: "Completions",
-      color: "var(--chart-1)"
-    }
+      color: "var(--chart-1)",
+    },
   } satisfies Chart.ChartConfig;
-
-  const filteredData = $derived.by(() => {
-    const firstNonZeroIndex = data.findIndex((d) => d.completions > 0);
-    if (firstNonZeroIndex === -1) {
-      // If all are zero, show nothing to avoid the empty state message
-      return [];
-    }
-    return data.slice(firstNonZeroIndex);
-  });
 </script>
 
 <div class="space-y-2">
-  <span class="text-muted-foreground block w-full pb-4 text-right text-xs font-medium">
+  <span
+    class="text-muted-foreground block w-full pb-4 text-right text-xs font-medium"
+  >
     {title} - Last {filteredData.length} Days
   </span>
 
   {#if filteredData.length === 0}
-    <div class="text-muted-foreground flex h-[300px] items-center justify-center text-sm">
+    <div
+      class="text-muted-foreground flex h-[300px] items-center justify-center text-sm"
+    >
       No activity data available
     </div>
   {:else}
@@ -49,12 +46,12 @@
           props={{
             bars: {
               fill: "var(--color-chart-1)",
-              stroke: "none"
+              stroke: "none",
             },
             xAxis: {
               ticks: [],
-              tickMarks: false
-            }
+              tickMarks: false,
+            },
           }}
         >
           {#snippet tooltip()}

@@ -1,57 +1,59 @@
 <script lang="ts">
-  import type { Completion } from "$lib/stores/completions";
-  import { formatDate, generateColorShades } from "$lib/utils/date";
-  // import * as Tooltip from "$lib/components/ui/tooltip";
+import { SvelteDate, SvelteMap } from "svelte/reactivity";
+import type { Completion } from "$lib/stores/completions";
+import { formatDate, generateColorShades } from "$lib/utils/date";
 
-  let {
-    completions = [],
-    calendarColor = "#3b82f6",
-    numDays = 30 // Default to 30 days for a slimmer look
-  } = $props<{
-    completions: Completion[];
-    calendarColor: string;
-    numDays?: number;
-  }>();
+// import * as Tooltip from "$lib/components/ui/tooltip";
 
-  interface DaySquare {
-    date: string;
-    count: number;
-    color: string;
-    isToday: boolean;
+let {
+  completions = [],
+  calendarColor = "#3b82f6",
+  numDays = 30 // Default to 30 days for a slimmer look
+} = $props<{
+  completions: Completion[];
+  calendarColor: string;
+  numDays?: number;
+}>();
+
+interface DaySquare {
+  date: string;
+  count: number;
+  color: string;
+  isToday: boolean;
+}
+
+const days = $derived(() => {
+  const shades = generateColorShades(calendarColor, 5, 8);
+  const today = new SvelteDate();
+  const todayStr = formatDate(today);
+  const squares: DaySquare[] = [];
+
+  const completionsByDate = new SvelteMap<string, number>();
+  for (const completion of completions) {
+    const dateStr = formatDate(new SvelteDate(completion.completedAt));
+    completionsByDate.set(dateStr, (completionsByDate.get(dateStr) ?? 0) + 1);
   }
 
-  const days = $derived(() => {
-    const shades = generateColorShades(calendarColor, 5, 8);
-    const today = new Date();
-    const todayStr = formatDate(today);
-    const squares: DaySquare[] = [];
+  for (let i = numDays - 1; i >= 0; i--) {
+    const date = new SvelteDate();
+    date.setDate(today.getDate() - i);
+    const dateStr = formatDate(date);
+    const count = completionsByDate.get(dateStr) ?? 0;
 
-    const completionsByDate = new Map<string, number>();
-    for (const completion of completions) {
-      const dateStr = formatDate(new Date(completion.completedAt));
-      completionsByDate.set(dateStr, (completionsByDate.get(dateStr) ?? 0) + 1);
+    let color = "var(--muted-foreground-transparent)";
+    if (count > 0) {
+      color = shades[Math.min(count - 1, shades.length - 1)];
     }
 
-    for (let i = numDays - 1; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(today.getDate() - i);
-      const dateStr = formatDate(date);
-      const count = completionsByDate.get(dateStr) ?? 0;
-
-      let color = "var(--muted-foreground-transparent)";
-      if (count > 0) {
-        color = shades[Math.min(count - 1, shades.length - 1)];
-      }
-
-      squares.push({
-        date: dateStr,
-        count,
-        color,
-        isToday: dateStr === todayStr
-      });
-    }
-    return squares;
-  });
+    squares.push({
+      date: dateStr,
+      count,
+      color,
+      isToday: dateStr === todayStr
+    });
+  }
+  return squares;
+});
 </script>
 
 <div class="flex items-center gap-0.5">
@@ -70,7 +72,11 @@
 
 <style>
   :root {
-    --muted-foreground-transparent: color-mix(in srgb, var(--muted-foreground), transparent 90%);
+    --muted-foreground-transparent: color-mix(
+      in srgb,
+      var(--muted-foreground),
+      transparent 90%
+    );
   }
 
   .day-square {
