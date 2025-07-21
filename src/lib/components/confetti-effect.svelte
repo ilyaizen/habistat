@@ -21,6 +21,10 @@
   let bursts = $state<ConfettiBurst[]>([]);
   let nextId = 0;
 
+  /**
+   * Generates color variants from a base color to create visual variety in the confetti.
+   * Creates lighter, darker, and complementary color variations.
+   */
   function generateColorVariants(baseColor: string): string[] {
     const variants = [baseColor];
     const hex = baseColor.replace("#", "");
@@ -43,11 +47,15 @@
     variants.push(
       `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.max(0, b - 20)})`
     );
-    variants.push("#FFD700", "#FFA500", "#FFFF00");
+    variants.push("#FFD700", "#FFA500", "#FFFF00", "#FF69B4", "#ADD8E6", "#C0C0C0");
 
     return variants;
   }
 
+  /**
+   * Effect that listens for confetti trigger events and creates new confetti bursts.
+   * Handles different trigger types: boolean, number, or ConfettiTrigger object.
+   */
   $effect(() => {
     const triggerValue = $triggerConfetti;
     if (triggerValue) {
@@ -72,20 +80,21 @@
         originX,
         originY,
         colors: generateColorVariants(color),
-        amount: Math.floor(70 * intensity),
+        amount: Math.floor(25 * intensity),
         duration: 3000,
         fallDistance: "200px",
         cone: true,
-        x: [-0.7, 0.7],
-        y: [0.5, 1.2],
-        size: 12,
-        delay: [0, 100],
-        xSpread: 0.2,
+        x: [-0.5, 0.5],
+        y: [0.2, 1.2],
+        size: 5,
+        delay: [0, 500],
+        xSpread: 0.1,
         rounded: true
       };
 
       bursts = [...bursts, newBurst];
 
+      // Clean up the burst after animation completes
       setTimeout(
         () => {
           bursts = bursts.filter((b) => b.id !== newBurst.id);
@@ -93,10 +102,15 @@
         newBurst.duration + Math.max(...newBurst.delay) + 500
       );
 
+      // Reset the trigger
       triggerConfetti.set(false);
     }
   });
 
+  /**
+   * Generates a random number between min and max values.
+   * Used for creating varied confetti properties like rotation, scale, and position.
+   */
   function randomBetween(min: number, max: number) {
     return Math.random() * (max - min) + min;
   }
@@ -114,7 +128,6 @@
         --fall-distance: {burst.fallDistance};
         --size: {burst.size}px;
         --x-spread: {1 - burst.xSpread};
-        --transition-iteration-count: 1;
       "
     >
       {#each { length: burst.amount } as _}
@@ -123,14 +136,13 @@
           style="
             --color: {burst.colors[Math.floor(Math.random() * burst.colors.length)]};
             --skew: {randomBetween(-45, 45)}deg,{randomBetween(-45, 45)}deg;
-            --rotation-xyz: {randomBetween(-10, 10)}, {randomBetween(-10, 10)}, {randomBetween(
-            -10,
-            10
-          )};
+            --rotation-x: {randomBetween(-30, 30)};
+            --rotation-y: {randomBetween(-30, 30)};
+            --rotation-z: {randomBetween(-30, 30)};
             --rotation-deg: {randomBetween(0, 360)}deg;
             --translate-y-multiplier: {randomBetween(burst.y[0], burst.y[1])};
             --translate-x-multiplier: {randomBetween(burst.x[0], burst.x[1])};
-            --scale: {0.1 * randomBetween(2, 10)};
+            --scale: {0.1 * randomBetween(4, 16)};
             --transition-delay: {randomBetween(burst.delay[0], burst.delay[1])}ms;
             --transition-duration: {burst.duration}ms;
           "
@@ -157,11 +169,18 @@
 
   @keyframes rotate {
     0% {
-      transform: skew(var(--skew)) rotate3d(var(--full-rotation));
+      transform: skew(var(--skew))
+        rotate3d(var(--rotation-x), var(--rotation-y), var(--rotation-z), var(--rotation-deg));
     }
 
     100% {
-      transform: skew(var(--skew)) rotate3d(var(--rotation-xyz), calc(var(--rotation-deg) + 360deg));
+      transform: skew(var(--skew))
+        rotate3d(
+          var(--rotation-x),
+          var(--rotation-y),
+          var(--rotation-z),
+          calc(var(--rotation-deg) + 360deg)
+        );
     }
   }
 
@@ -196,40 +215,27 @@
     }
   }
 
-  @keyframes no-gravity-translate {
-    0% {
-      opacity: 1;
-    }
-
-    100% {
-      transform: translateY(var(--translate-y)) translateX(var(--translate-x));
-      opacity: 0;
-    }
-  }
-
   .confetti {
     --translate-y: calc(-200px * var(--translate-y-multiplier));
     --translate-x: calc(200px * var(--translate-x-multiplier));
     position: absolute;
     height: calc(var(--size) * var(--scale));
     width: calc(var(--size) * var(--scale));
-    animation: translate var(--transition-duration) var(--transition-delay)
-      var(--transition-iteration-count) linear;
+    animation: translate var(--transition-duration) var(--transition-delay) ease-out forwards;
     opacity: 0;
     pointer-events: none;
   }
 
   .confetti::before {
-    --full-rotation: var(--rotation-xyz), var(--rotation-deg);
     content: "";
     display: block;
     width: 100%;
     height: 100%;
     background: var(--color);
     background-size: contain;
-    transform: skew(var(--skew)) rotate3d(var(--full-rotation));
-    animation: rotate var(--transition-duration) var(--transition-delay)
-      var(--transition-iteration-count) linear;
+    transform: skew(var(--skew))
+      rotate3d(var(--rotation-x), var(--rotation-y), var(--rotation-z), var(--rotation-deg));
+    animation: rotate var(--transition-duration) var(--transition-delay) linear;
   }
 
   .rounded .confetti::before {
@@ -240,15 +246,11 @@
     --translate-x: calc(200px * var(--translate-y-multiplier) * var(--translate-x-multiplier));
   }
 
-  /* .no-gravity .confetti {
-    animation-name: no-gravity-translate;
-    animation-timing-function: ease-out;
-  }
-
-  @media (prefers-reduced-motion) {
-    .reduced-motion .confetti,
-    .reduced-motion .confetti::before {
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .confetti,
+    .confetti::before {
       animation: none;
     }
-  } */
+  }
 </style>

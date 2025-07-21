@@ -9,7 +9,7 @@
   import { Minus, Check, X } from "@lucide/svelte";
   import { Button } from "$lib/components/ui/button";
   import { completionsStore } from "$lib/stores/completions";
-  // import { triggerConfetti } from "$lib/stores/ui";
+  import { triggerConfetti } from "$lib/stores/ui";
   import { calendarsStore } from "$lib/stores/calendars";
   import { getContext } from "svelte";
   import type { Habit } from "$lib/stores/habits";
@@ -77,6 +77,7 @@
   /**
    * Handles adding a new completion for the habit.
    * It captures the current user's ID and logs the completion.
+   * For positive habits, triggers confetti effect from the button position.
    */
   async function handleAdd() {
     let userId: string | null = null;
@@ -91,13 +92,15 @@
 
     await completionsStore.logCompletion(habit.id, userId);
 
-    // TODO: 2025-07-21 - Re-enable confetti when the feature is ready.
-    // triggerConfetti.set({
-    //   color: calendarColor(),
-    //   points: habit.pointsValue ?? 1,
-    //   originX: addButtonPosition.x,
-    //   originY: addButtonPosition.y
-    // });
+    // Trigger confetti effect for positive habits only
+    if (!isNegativeHabit) {
+      triggerConfetti.set({
+        color: calendarColor(),
+        points: habit.pointsValue ?? 1,
+        originX: addButtonPosition.x,
+        originY: addButtonPosition.y
+      });
+    }
   }
 
   /**
@@ -135,7 +138,7 @@
   Active state: At least one completion has been logged.
   - A compact control group is shown with buttons to add or remove completions.
   - The `NumberFlow` component displays an animated count of today's completions.
--->
+  -->
 {:else}
   <div
     class="{isNegativeHabit

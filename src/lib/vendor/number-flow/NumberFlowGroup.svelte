@@ -1,27 +1,41 @@
-<script>
-  import { get } from "svelte/store";
+<script lang="ts">
+  import { get, type Readable } from "svelte/store";
   import { onDestroy, tick } from "svelte";
-  import { setGroupContext } from "./group.js"; // This file will need to be created as well.
+  import { setGroupContext } from "./group.js";
 
-  const flows = new Set();
+  let { children } = $props();
+
+  type FlowInstance = {
+    willUpdate: () => void;
+    didUpdate: () => void;
+    created: boolean;
+  };
+
+  const flows = new Set<Readable<FlowInstance>>();
   let updating = false;
 
-  const registerWithGroup = (el) => {
+  const registerWithGroup = (el: Readable<FlowInstance>) => {
     flows.add(el);
 
-    $effect(async () => {
+    $effect(() => {
       if (updating) return;
-      updating = true;
-      for (const flow of flows) {
-        const f = get(flow);
-        if (f && f.created) {
-          f.willUpdate();
-          await tick();
-          get(flow)?.didUpdate();
+
+      // Use tick() to handle async operations
+      tick().then(() => {
+        updating = true;
+        for (const flow of flows) {
+          const f = get(flow);
+          if (f && f.created) {
+            f.willUpdate();
+            tick().then(() => {
+              get(flow)?.didUpdate();
+            });
+          }
         }
-      }
-      await tick();
-      updating = false;
+        tick().then(() => {
+          updating = false;
+        });
+      });
     });
 
     onDestroy(() => {
@@ -32,4 +46,4 @@
   setGroupContext({ register: registerWithGroup });
 </script>
 
-<slot />
+{@render children()}

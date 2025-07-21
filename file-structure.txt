@@ -1,4 +1,6 @@
 .
+├── .claude
+│   └── settings.local.json
 ├── .cursor
 │   ├── rules
 │   │   ├── add-comments.mdc
@@ -17,6 +19,13 @@
 │   └── rules
 │       ├── add-comments.md
 │       └── windsurf-rules.md
+├── PRPs
+│   ├── SV-create-base-prp.md
+│   ├── SV-execute-base-prp.md
+│   ├── SV-review-general.md
+│   ├── SV-review-staged-unstaged.md
+│   ├── phase3-saas-subscription-management.md
+│   └── prp-svelte.md
 ├── migrations
 │   ├── 0000_initial.sql
 │   └── 0001_simplify_completions.sql
@@ -48,6 +57,10 @@
 │   │   └── index.ts
 │   ├── lib
 │   │   ├── components
+│   │   │   ├── subscription
+│   │   │   │   ├── subscription-badge.svelte
+│   │   │   │   ├── tier-limit-guard.svelte
+│   │   │   │   └── upgrade-prompt.svelte
 │   │   │   ├── about-drawer.svelte
 │   │   │   ├── activity-monitor.svelte
 │   │   │   ├── activity-trend.svelte
@@ -59,6 +72,7 @@
 │   │   │   ├── dashboard-calendars.svelte
 │   │   │   ├── dashboard-main-panel.svelte
 │   │   │   ├── dashboard-side-panel.svelte
+│   │   │   ├── dev-settings-tab.svelte
 │   │   │   ├── environment-indicator-old.svelte
 │   │   │   ├── fireworks-effect.svelte
 │   │   │   ├── habit-completion-control.svelte
@@ -119,8 +133,14 @@
 │   │   │   ├── environment.ts
 │   │   │   ├── navigation.ts
 │   │   │   ├── sample-data.ts
+│   │   │   ├── subscription-limits.ts
 │   │   │   ├── tauri-debug.ts
 │   │   │   └── tracking.ts
+│   │   ├── vendor
+│   │   │   └── number-flow
+│   │   │       ├── NumberFlow.svelte
+│   │   │       ├── NumberFlowGroup.svelte
+│   │   │       └── group.js
 │   │   ├── utils.ts
 │   │   └── version.ts
 │   ├── params
@@ -145,6 +165,9 @@
 │   │   │   ├── new
 │   │   │   │   └── +page.svelte
 │   │   │   ├── +layout.svelte
+│   │   │   └── +page.svelte
+│   │   ├── dev
+│   │   │   ├── +layout.server.ts
 │   │   │   └── +page.svelte
 │   │   ├── premium
 │   │   │   ├── +layout.server.ts
@@ -174,6 +197,7 @@
 │   │   ├── lib.rs
 │   │   └── main.rs
 │   ├── .gitignore
+│   ├── Cargo.lock
 │   ├── Cargo.toml
 │   ├── GEMINI.md
 │   ├── build.rs
@@ -211,20 +235,23 @@
 │   ├── sample-data.md
 │   └── tech-stack.md
 ├── .cursorignore
+├── .dockerignore
 ├── .env.example
 ├── .env.local
-├── .eslintrc.cjs
 ├── .gitignore
 ├── .mcp.json
 ├── .prettierignore
 ├── .prettierrc
+├── Dockerfile
 ├── GEMINI.md
 ├── LICENSE
+├── PRD.md
 ├── README.md
 ├── bun.lockb
 ├── components.json
 ├── convex.json
 ├── drizzle.config.ts
+├── eslint.config.js
 ├── file-structure.txt
 ├── package.json
 ├── postcss.config.cjs
