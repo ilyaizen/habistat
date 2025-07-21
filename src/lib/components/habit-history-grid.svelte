@@ -1,12 +1,7 @@
 <script lang="ts">
   import type { Completion } from "$lib/stores/completions";
   import { formatDate, generateColorShades } from "$lib/utils/date";
-  import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-    TooltipProvider
-  } from "$lib/components/ui/tooltip";
+  // import * as Tooltip from "$lib/components/ui/tooltip";
 
   let {
     completions = [],

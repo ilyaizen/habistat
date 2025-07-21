@@ -1,6 +1,6 @@
 import { getDb as getDrizzleDb, persistBrowserDb } from "../db/client";
-import * as schema from "../db/schema";
-import { isNull, eq } from "drizzle-orm";
+// import * as schema from "../db/schema";
+// import { isNull, eq } from "drizzle-orm";
 
 /**
  * Migration service to handle database schema changes
@@ -10,12 +10,12 @@ export class MigrationService {
    * Run all pending migrations
    */
   static async runMigrations(): Promise<void> {
-    // console.log("🔄 Running database migrations...");
+    console.log("🔄 Running database migrations...");
 
     try {
       await this.simplifyCompletionsTable();
       // Note: syncMetadata table is now created via official Drizzle migration (0003_equal_songbird.sql)
-      // console.log("✅ Database migrations completed successfully");
+      console.log("✅ Database migrations completed successfully");
     } catch (error) {
       console.error("❌ Database migration failed:", error);
       throw error;
@@ -46,7 +46,7 @@ export class MigrationService {
         tableSchema.includes("createdAt") ||
         tableSchema.includes("updatedAt")
       ) {
-        // console.log("📝 Ultra-simplifying completions table structure...");
+        console.log("📝 Ultra-simplifying completions table structure...");
 
         // Create new ultra-simplified completions table
         await db.run(`
@@ -73,13 +73,14 @@ export class MigrationService {
         await db.run(`ALTER TABLE completions_new RENAME TO completions`);
 
         await persistBrowserDb();
-        // console.log("✅ Completions table ultra-simplified successfully");
+        console.log("✅ Completions table ultra-simplified successfully");
       } else {
-        // console.log("📝 Completions table already ultra-simplified");
+        console.log("📝 Completions table already ultra-simplified");
       }
     } catch (error) {
+      console.error("❌ Completions table migration failed:", error);
       // If there's an error, it might mean the table doesn't exist or is already in the new format
-      // console.log("📝 Completions table migration not needed or already completed");
+      console.log("📝 Completions table migration not needed or already completed");
     }
   }
 }
