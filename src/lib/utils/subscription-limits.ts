@@ -4,7 +4,7 @@
 
 export const FREE_TIER_LIMITS = {
   maxCalendars: 3,
-  maxHabitsPerCalendar: 7
+  maxHabitsPerCalendar: 4
 } as const;
 
 export type SubscriptionTier = "free" | "premium_monthly" | "premium_lifetime";
@@ -47,7 +47,7 @@ export function getLimitsForTier(tier: SubscriptionTier): {
 /**
  * Generate contextual upgrade messages for limit scenarios
  */
-export function getUpgradeMessage(type: "calendars" | "habits", currentCount?: number): string {
+export function getUpgradeMessage(type: "calendars" | "habits"): string {
   if (type === "calendars") {
     return `You've reached the free tier limit of ${FREE_TIER_LIMITS.maxCalendars} calendars. Upgrade to Premium for unlimited calendars and advanced features.`;
   } else {

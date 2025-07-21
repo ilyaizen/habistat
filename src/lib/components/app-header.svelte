@@ -78,14 +78,6 @@
         >
           Stats
         </a>
-
-        <a
-          href="/settings"
-          class="text-muted-foreground hover:text-foreground transition-colors"
-          class:font-medium={page.url.pathname.includes("/settings")}
-        >
-          Settings
-        </a>
         <a
           href="/premium"
           class="text-muted-foreground hover:text-foreground transition-colors"
@@ -93,6 +85,14 @@
         >
           Upgrade
         </a>
+        <a
+          href="/settings"
+          class="text-muted-foreground hover:text-foreground transition-colors"
+          class:font-medium={page.url.pathname.includes("/settings")}
+        >
+          Settings
+        </a>
+
         <!-- Dev navigation item for developers -->
         {#if $settings.developerMode}
           <a
@@ -146,10 +146,22 @@
         </button>
         <!-- Stats navigation item for user statistics and analytics -->
         <button
-          class="text-muted-foreground hover:text-foreground text-left font-medium transition-colors"
+          class="text-muted-foreground hover:text-foreground text-left font-medium"
           onclick={() => handleNavigation("/stats")}
         >
           Stats
+        </button>
+        <button
+          class="text-muted-foreground hover:text-foreground text-left font-medium"
+          onclick={() => handleNavigation("/premium")}
+        >
+          Upgrade
+        </button>
+        <button
+          class="text-muted-foreground hover:text-foreground text-left font-medium"
+          onclick={() => handleNavigation("/settings")}
+        >
+          Settings
         </button>
         {#if $settings.developerMode}
           <button
@@ -159,12 +171,6 @@
             Dev
           </button>
         {/if}
-        <button
-          class="text-muted-foreground hover:text-foreground text-left font-medium"
-          onclick={() => handleNavigation("/premium")}
-        >
-          Premium
-        </button>
       </div>
     </div>
   {/if}
