@@ -25,7 +25,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         claims: {
           sub: "user-from-jwt" // This would be extracted from the actual JWT
         }
-      } as any;
+      } as App.Locals["session"];
     }
   } catch (error) {
     console.error("[hooks.server] Error processing session:", error);

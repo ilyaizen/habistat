@@ -13,7 +13,12 @@ export default tseslint.config(
       prettier
     },
     rules: {
-      "prettier/prettier": "error"
+      "prettier/prettier": [
+        "error",
+        {
+          endOfLine: "auto"
+        }
+      ]
     }
   },
   {

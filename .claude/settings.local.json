@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "browser-tools"
+  ],
+  "enableAllProjectMcpServers": true
+}
