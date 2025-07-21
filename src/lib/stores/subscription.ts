@@ -25,7 +25,7 @@ export interface SubscriptionStore {
 }
 
 function createSubscriptionStore(): SubscriptionStore {
-  const { subscribe, set, update } = writable<SubscriptionStatus | null>(null);
+  const { subscribe, set } = writable<SubscriptionStatus | null>(null);
   const { subscribe: subscribeLoading, set: setLoading } = writable(false);
 
   let currentStatus: SubscriptionStatus | null = null;

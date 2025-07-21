@@ -24,6 +24,11 @@
   let media: MediaQueryList | null = null;
   let systemListener: (() => void) | null = null;
 
+  // Reactive state for reduced motion preference
+  let prefersReducedMotion = $state(false);
+  let reducedMotionMediaQuery: MediaQueryList | null = null;
+  let reducedMotionListener: ((event: MediaQueryListEvent) => void) | null = null;
+
   /**
    * Applies the system's preferred color scheme (dark/light) to the document.
    */
@@ -54,6 +59,32 @@
     }
     media = null;
     systemListener = null;
+  }
+
+  /**
+   * Sets up a listener for changes in the system's reduced motion preference.
+   */
+  function setupReducedMotionListener() {
+    cleanupReducedMotionListener();
+    if (browser) {
+      reducedMotionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      prefersReducedMotion = reducedMotionMediaQuery.matches;
+      reducedMotionListener = (event) => {
+        prefersReducedMotion = event.matches;
+      };
+      reducedMotionMediaQuery.addEventListener("change", reducedMotionListener);
+    }
+  }
+
+  /**
+   * Removes the system reduced motion change listener.
+   */
+  function cleanupReducedMotionListener() {
+    if (reducedMotionMediaQuery && reducedMotionListener) {
+      reducedMotionMediaQuery.removeEventListener("change", reducedMotionListener);
+    }
+    reducedMotionMediaQuery = null;
+    reducedMotionListener = null;
   }
 
   /**
@@ -109,11 +140,19 @@
     } else {
       selectTheme(get(theme));
     }
+    setupReducedMotionListener();
+  });
+
+  $effect(() => {
+    if (prefersReducedMotion) {
+      $settings.enableMotion = false;
+    }
   });
 
   // Cleanup listener when the component is destroyed
   onDestroy(() => {
     cleanupSystemListener();
+    cleanupReducedMotionListener();
   });
 </script>
 
@@ -171,17 +210,22 @@
   </CardContent>
 </Card>
 
-<!-- Animations Toggle Section -->
+<!-- Motion Toggle Section -->
 <Card class="mb-6">
   <CardHeader>
-    <Label class="flex items-center gap-2" for="motion">
-      <LoaderPinwheel class="h-4 w-4" /> Animations
+    <Label class="flex items-center gap-2">
+      <LoaderPinwheel class="h-4 w-4" /> Motion
     </Label>
   </CardHeader>
   <CardContent>
     <div class="flex items-center justify-between">
       <Label for="motion">Enable Animations</Label>
-      <Switch id="motion" bind:checked={$settings.enableMotion} />
+      <Switch id="motion" bind:checked={$settings.enableMotion} disabled={prefersReducedMotion} />
     </div>
+    {#if prefersReducedMotion}
+      <div class="bg-destructive/10 text-destructive mt-4 rounded-md p-4 text-xs">
+        Animations are disabled as your browser/OS has reduced motion enabled.
+      </div>
+    {/if}
   </CardContent>
 </Card>

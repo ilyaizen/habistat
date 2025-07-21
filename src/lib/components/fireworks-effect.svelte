@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { triggerFireworks } from "$lib/stores/ui";
+  import { settings } from "$lib/stores/settings";
 
   // Svelte 5 $state and $effect runes
   let isTriggered = $state(false);
@@ -17,6 +18,15 @@
 
   // Derived store to react to changes in the triggerFireworks store
   $effect(() => {
+    // Honor the user's motion preference. If motion is disabled, do not show fireworks.
+    if (!$settings.enableMotion) {
+      // Ensure the trigger is reset to prevent fireworks from starting if motion is re-enabled later.
+      if ($triggerFireworks) {
+        triggerFireworks.set(false);
+      }
+      return;
+    }
+
     const triggerValue = $triggerFireworks;
     if (triggerValue && !isTriggered) {
       let intensity = 1; // Default intensity
