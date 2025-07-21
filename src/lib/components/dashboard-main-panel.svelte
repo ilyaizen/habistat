@@ -10,7 +10,6 @@
 
 <div class="flex flex-col gap-6">
   <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold">Habits</h1>
     <Tooltip>
       <TooltipTrigger>
         <div class="flex items-center gap-2">
@@ -20,6 +19,7 @@
       </TooltipTrigger>
       <TooltipContent>Toggle reorder mode</TooltipContent>
     </Tooltip>
+    <!-- <h1 class="text-2xl font-bold">Habits</h1> -->
   </div>
   <DashboardCalendars {isReorderMode} />
 </div>

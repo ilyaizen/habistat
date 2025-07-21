@@ -255,7 +255,7 @@
 <!-- Main calendars and habits list -->
 <!-- Drag-and-drop zone for calendar reordering with visual feedback -->
 <div
-  class="flex flex-col gap-5 transition-all duration-200 ease-in-out {isReorderMode
+  class="flex w-full min-w-0 flex-col gap-5 transition-all duration-200 ease-in-out {isReorderMode
     ? 'border-primary/30 bg-primary/10 rounded-lg border-2 border-dashed p-2'
     : 'border-2 border-transparent p-0'}"
   data-dnd-zone="calendar"
@@ -335,7 +335,7 @@
               <!-- Individual habit card with flip animation -->
               <div animate:flip={{ duration: 200 }} data-habit-id={habit.id} role="listitem">
                 <Card
-                  class="bg-card flex flex-row flex-nowrap items-center justify-between gap-2 rounded-3xl border p-1 shadow-xs transition-all {isHabitDisabled
+                  class="bg-card flex w-full min-w-0 flex-row flex-nowrap items-center justify-between gap-2 rounded-3xl border p-1 shadow-xs transition-all {isHabitDisabled
                     ? 'pointer-events-none opacity-50 grayscale'
                     : ''} {habit.isEnabled === 0 ? 'border-dashed' : 'hover:bg-card/90'}"
                   aria-disabled={isHabitDisabled}
@@ -344,7 +344,7 @@
                   <div class="flex min-w-0 flex-1 items-center">
                     <!-- Drag handle for habit reordering (shows only in reorder mode) -->
                     <div
-                      class="overflow-hidden transition-all duration-200 {isReorderMode
+                      class="shrink-0 overflow-hidden transition-all duration-200 {isReorderMode
                         ? 'w-5 opacity-100'
                         : 'w-0 opacity-0'}"
                     >
