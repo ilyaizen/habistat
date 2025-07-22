@@ -3,7 +3,7 @@
   import { page } from "$app/state";
   import { Button } from "$lib/components/ui/button";
   import { goto } from "$app/navigation";
-  import { _ } from "svelte-i18n";
+  // import { _ } from "svelte-i18n";
   import { Badge } from "$lib/components/ui/badge";
   import { gamification } from "$lib/stores/gamification";
   import { Skeleton } from "$lib/components/ui/skeleton";

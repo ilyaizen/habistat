@@ -189,7 +189,7 @@
   </CardHeader>
   <CardContent>
     <div class="mt-2 flex w-full flex-wrap justify-start gap-4">
-      {#each locales as loc}
+      {#each locales as loc (loc)}
         <Button
           size="sm"
           variant={$locale === loc ? "default" : "outline"}

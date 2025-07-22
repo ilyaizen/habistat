@@ -7,7 +7,7 @@ import { completionsStore } from "$lib/stores/completions";
  * Uses standard store patterns without overcomplicating reactivity.
  */
 export function useDashboardData() {
-  let loading = $state(true);
+  // let loading = $state(true);
 
   /**
    * Refresh all dashboard data stores
@@ -33,13 +33,14 @@ export function useDashboardData() {
       await refreshData();
     } catch (error) {
       console.error("Dashboard mount error:", error);
-    } finally {
-      loading = false;
     }
+    // finally {
+    //   loading = false;
+    // }
   }
 
   return {
-    loading: () => loading,
+    // loading: () => loading,
     refreshData,
     initialize
   };

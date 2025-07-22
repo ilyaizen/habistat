@@ -14,10 +14,10 @@
   import MotionWrapper from "$lib/components/motion-wrapper.svelte";
   import type { LayoutData } from "./$types";
   import { browser } from "$app/environment";
-  import { useTheme } from "$lib/hooks/use-theme.svelte";
-  import { useClerk } from "$lib/hooks/use-clerk.svelte";
-  import { useNavigation } from "$lib/hooks/use-navigation.svelte";
-  import { useAppInit } from "$lib/hooks/use-app-init.svelte";
+  import { useTheme } from "$lib/hooks/use-theme.ts";
+  import { useClerk } from "$lib/hooks/use-clerk.ts";
+  // import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
+  import { useAppInit } from "$lib/hooks/use-app-init.svelte.ts";
   // import { handleRefresh } from "$lib/utils/context-menu";
   import { injectAnalytics } from "@vercel/analytics/sveltekit";
   import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
@@ -43,7 +43,7 @@
   // Initialize hooks
   const theme = useTheme();
   const clerk = useClerk();
-  const navigation = useNavigation();
+  // const navigation = useNavigation();
   const appInit = useAppInit();
 
   // --- Singleton Drawer State & Context ---
@@ -90,21 +90,22 @@
     theme.initializeTheme();
 
     // Initialize navigation tracking
-    navigation.initializeNavigationTracking();
+    // navigation.initializeNavigationTracking();
 
     // Initialize Clerk
     clerk.initializeClerk();
 
     // Set up midnight scheduling and development mode
     appInit.scheduleMidnightCheck();
-    appInit.setupDevelopmentMode();
+    // TODO: 2025-07-22 - Add this back in when we have a way to handle it
+    // appInit.setupDevelopmentMode();
 
     // Return cleanup function to remove listeners when the component is destroyed.
     return () => {
       if (browser) {
         theme.cleanupSystemListener();
-        navigation.cleanup();
-        appInit.cleanup();
+        // navigation.cleanup();
+        // appInit.cleanup();
       }
     };
   });

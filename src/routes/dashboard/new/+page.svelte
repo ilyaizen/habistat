@@ -12,9 +12,9 @@
   let saving = $state(false);
 
   // Derived trigger content: show selected color circle and name
-  const triggerContent = $derived(
-    COLOR_PALETTE.find((c) => c.value === colorTheme)?.name ?? "Select a color"
-  );
+  // const triggerContent = $derived(
+  //   COLOR_PALETTE.find((c) => c.value === colorTheme)?.name ?? "Select a color"
+  // );
 
   async function saveCalendar(event: SubmitEvent) {
     event.preventDefault();

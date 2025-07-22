@@ -3,8 +3,10 @@
 // - Store is reactive: UI updates automatically on changes
 // - Used throughout dashboard and calendar pages
 import { writable, get } from "svelte/store";
+
+// TODO: 2025-07-21 - InferModel is deprecated, we need to find a replacement
 import type { InferModel } from "drizzle-orm";
-import { eq } from "drizzle-orm";
+// import { eq } from "drizzle-orm";
 
 import { calendars as calendarsSchema } from "../db/schema";
 // All data operations are now done through the local-data service,

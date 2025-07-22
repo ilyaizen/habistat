@@ -1,14 +1,32 @@
 <script lang="ts">
-  import NumberFlowLite, { define, renderInnerHTML, formatToData } from "number-flow/lite";
+  import NumberFlowLite, {
+    define,
+    renderInnerHTML,
+    formatToData,
+    type KeyedNumberPart
+  } from "number-flow/lite";
   import { writable } from "svelte/store";
   import { getGroupContext } from "./group.js";
   import { BROWSER } from "esm-env";
 
   export class NumberFlowElement extends NumberFlowLite {
     set __svelte_batched(batched: boolean) {
+      // Set the internal 'batched' property; used to control batched updates in Svelte context
       this.batched = batched;
     }
-    set data(data: any) {
+    // Override the 'data' setter to ensure correct typing for number parts
+    set data(
+      data:
+        | {
+            pre: KeyedNumberPart[]; // Array of keyed parts before the integer (e.g., prefix)
+            integer: KeyedNumberPart[]; // Array of keyed integer parts
+            fraction: KeyedNumberPart[];
+            post: KeyedNumberPart[];
+            valueAsString: string;
+            value: number;
+          }
+        | undefined
+    ) {
       super.data = data;
     }
   }
@@ -73,5 +91,7 @@
   __svelte_digits={digits}
   {data}
 >
-  {@html BROWSER ? undefined : renderInnerHTML(data)}
+  {#if !BROWSER}
+    {@html renderInnerHTML(data)}
+  {/if}
 </number-flow-svelte>

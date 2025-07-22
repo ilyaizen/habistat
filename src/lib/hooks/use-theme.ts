@@ -8,18 +8,10 @@ import { browser } from "$app/environment";
  * Handles system theme detection, user preference application, and cleanup.
  */
 export function useTheme() {
-  let media: MediaQueryList | null = $state(null);
-  let systemListener: (() => void) | null = $state(null);
-  let lastAppliedTheme: "system" | "light" | "dark" | null = $state(null);
-
-  // Make theme reactive by subscribing to it
-  let currentTheme = $state(get(theme));
-
-  if (browser) {
-    theme.subscribe((value) => {
-      currentTheme = value;
-    });
-  }
+  let media: MediaQueryList | null = null;
+  let systemListener: (() => void) | null = null;
+  let lastAppliedTheme: "system" | "light" | "dark" | null = null;
+  // let currentTheme: "system" | "light" | "dark" | null = null;
 
   /**
    * Applies the system theme (dark/light) based on the user's OS preference.
@@ -85,21 +77,28 @@ export function useTheme() {
   function initializeTheme() {
     if (!browser) return;
 
-    selectTheme(currentTheme);
-    lastAppliedTheme = currentTheme;
+    const currentThemeValue = get(theme);
+    selectTheme(currentThemeValue);
+    lastAppliedTheme = currentThemeValue;
   }
 
   /**
-   * Effect to watch for theme changes and apply them.
+   * Updates the theme when the store value changes.
    */
-  $effect(() => {
+  function updateTheme() {
     if (!browser) return;
 
-    if (currentTheme !== lastAppliedTheme) {
-      selectTheme(currentTheme);
-      lastAppliedTheme = currentTheme;
+    const currentThemeValue = get(theme);
+    if (currentThemeValue !== lastAppliedTheme) {
+      selectTheme(currentThemeValue);
+      lastAppliedTheme = currentThemeValue;
     }
-  });
+  }
+
+  // Subscribe to theme changes
+  if (browser) {
+    theme.subscribe(updateTheme);
+  }
 
   return {
     initializeTheme,

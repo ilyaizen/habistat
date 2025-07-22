@@ -5,7 +5,7 @@
   import { goto } from "$app/navigation";
   import { Separator } from "$lib/components/ui/separator";
 
-  import EnvironmentIndicator from "./environment-indicator-old.svelte";
+  // import EnvironmentIndicator from "./environment-indicator-old.svelte";
   import SocialLinks from "./social-links.svelte";
   import QuoteOfTheDay from "./quote-of-the-day.svelte";
   // Svelte 5: Use callback props instead of createEventDispatcher for events

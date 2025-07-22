@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteSet } from "svelte/reactivity";
   import { get, type Readable } from "svelte/store";
   import { onDestroy, tick } from "svelte";
   import { setGroupContext } from "./group.js";
@@ -11,7 +12,8 @@
     created: boolean;
   };
 
-  const flows = new Set<Readable<FlowInstance>>();
+  // Use SvelteSet for better reactivity
+  const flows = new SvelteSet<Readable<FlowInstance>>();
   let updating = false;
 
   const registerWithGroup = (el: Readable<FlowInstance>) => {

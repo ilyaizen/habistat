@@ -14,7 +14,7 @@
   import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
   import { browser } from "$app/environment";
   import { getContext } from "svelte";
-  import { get, type Writable } from "svelte/store";
+  import { get } from "svelte/store";
   import { triggerFireworks } from "$lib/stores/ui";
   import { triggerConfetti } from "$lib/stores/ui";
   import { toast } from "svelte-sonner";
@@ -22,7 +22,11 @@
 
   // --- Drawer Controller ---
   // Get the singleton drawer controller from the root layout context.
-  const drawerController = getContext<any>("drawer-controller");
+  const drawerController = getContext<{
+    registerHandleStart: (fn: () => void) => void;
+    open: () => void;
+    close: () => void;
+  }>("drawer-controller");
 
   // State management using Svelte 5 runes ($state)
   let showMoreInfoButton = $state(false);

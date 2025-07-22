@@ -1,17 +1,18 @@
 <script lang="ts">
   import { Badge } from "$lib/components/ui/badge";
-  import { isOnline } from "$lib/stores/network";
+  // TODO: 2025-07-22 - Add this back in when we have a way to handle it
+  // import { isOnline } from "$lib/stores/network";
   import { getContext } from "svelte";
   import type { Readable } from "svelte/store";
   import type { UserResource } from "@clerk/types";
 
   // Props for controlling sync indicator behavior
   let {
-    isSyncing = false,
-    showOfflineOnly = false
+    isSyncing = false
+    // showOfflineOnly = false
   }: {
     isSyncing?: boolean;
-    showOfflineOnly?: boolean;
+    // showOfflineOnly?: boolean;
   } = $props();
 
   // Get user from context (if available)
@@ -21,7 +22,7 @@
   const syncStatus = $derived.by(() => {
     // If user context not available or user not authenticated, check if we should show offline
     if (!clerkUserStore || !$clerkUserStore) {
-      if (showOfflineOnly && !$isOnline) return "offline";
+      // if (showOfflineOnly && !$isOnline) return "offline";
       return null; // Don't show anything for anonymous users
     }
 
@@ -29,19 +30,19 @@
     if (isSyncing) return "syncing";
 
     // Network-based status for authenticated users
-    if (!$isOnline) return "offline";
+    // if (!$isOnline) return "offline";
 
     return "synced";
   });
 
   const syncConfig = $derived.by(() => {
     switch (syncStatus) {
-      case "offline":
-        return {
-          text: "Offline",
-          variant: "secondary" as const,
-          pulse: false
-        };
+      // case "offline":
+      //   return {
+      //     text: "Offline",
+      //     variant: "secondary" as const,
+      //     pulse: false
+      //   };
       case "syncing":
         return {
           text: "Syncing",

@@ -5,7 +5,11 @@ import type { RequestHandler } from "./$types";
  * API endpoint to provide Clerk JWT token for Convex authentication.
  * This endpoint is called by the Convex client to authenticate API requests.
  */
-export const GET: RequestHandler = async ({ cookies, request, locals }) => {
+
+// TODO: 2025-07-21 - Add request and locals back in when we have a way to test it
+// export const GET: RequestHandler = async ({ cookies, request, locals }) => {
+
+export const GET: RequestHandler = async ({ cookies, locals }) => {
   try {
     // First check if we have session from server-side (via hooks.server.ts)
     const serverSession = locals.session;

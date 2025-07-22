@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteDate, SvelteMap } from "svelte/reactivity";
   import { calendarsStore, type Calendar } from "$lib/stores/calendars";
   import { habits as habitsStore } from "$lib/stores/habits";
   import { completionsStore } from "$lib/stores/completions";
@@ -48,10 +49,10 @@
     habits: Array<{ id: string; name: string; type: string }>,
     days: number
   ) {
-    const today = new Date();
+    const today = new SvelteDate();
     const currentUserId = get(sessionStore)?.id;
     for (let dayOffset = days - 1; dayOffset >= 0; dayOffset--) {
-      const date = new Date(today);
+      const date = new SvelteDate(today);
       date.setDate(today.getDate() - dayOffset);
       for (const habit of habits) {
         // Only positive habits, 0-3 completions per day
@@ -59,7 +60,7 @@
         for (let i = 0; i < numCompletions; i++) {
           const randomHour = Math.floor(Math.random() * 16) + 6;
           const randomMinute = Math.floor(Math.random() * 60);
-          const completionTime = new Date(date);
+          const completionTime = new SvelteDate(date);
           completionTime.setHours(randomHour, randomMinute, 0, 0);
           await localData.createCompletion({
             id: uuid(),
@@ -100,7 +101,7 @@
       ]);
       await calendarsStore.refresh();
       const calendars = get(calendarsStore);
-      const calendarIdMap = new Map<string, string>();
+      const calendarIdMap = new SvelteMap<string, string>();
       for (const calendarName of createdCalendars) {
         const calendarId = calendars.find((c: Calendar) => c.name === calendarName)?.id;
         if (calendarId) {

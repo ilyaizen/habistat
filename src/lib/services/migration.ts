@@ -36,6 +36,12 @@ export class MigrationService {
         WHERE type='table' AND name='completions'
       `);
 
+      // If no table exists, there's nothing to migrate
+      if (!testQuery.rows || testQuery.rows.length === 0) {
+        console.log("📝 Completions table doesn't exist yet - no migration needed");
+        return;
+      }
+
       const tableSchema = (testQuery.rows[0]?.sql as string) || "";
 
       // If the table still has any of the old columns, we need to migrate

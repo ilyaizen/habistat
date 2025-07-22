@@ -73,9 +73,7 @@ export async function getDb(): Promise<
     if (import.meta.env.SSR) {
       // Dynamically import the server-side DB initializer.
       // This prevents `better-sqlite3` from being bundled in the browser build.
-      globalThis.dbPromise = import("./server.server.ts").then((module) =>
-        module.initializeNodeDb()
-      );
+      globalThis.dbPromise = import("./server.ts").then((module) => module.initializeNodeDb());
     } else {
       globalThis.dbPromise = initializeBrowserDb();
     }

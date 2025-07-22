@@ -12,7 +12,9 @@ export type ActiveTimer = InferModel<typeof activeTimers>;
  * Provides CRUD operations and loads data from the local SQLite DB via Drizzle ORM.
  */
 function createActiveTimersStore() {
-  const { subscribe, set, update } = writable<ActiveTimer[]>([]);
+  // TODO: 2025-07-21 - Add set and update to the store when we have a way to test it
+  // const { subscribe, set, update } = writable<ActiveTimer[]>([]);
+  const { subscribe, set } = writable<ActiveTimer[]>([]);
 
   return {
     subscribe,

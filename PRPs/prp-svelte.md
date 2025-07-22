@@ -1,4 +1,5 @@
-name: "Svelte/Tauri PRP Template v1 - Habistat Edition"
+# name: "Svelte/Tauri PRP Template v1 - Habistat Edition"
+
 description: |
 Template optimized for AI agents to implement features in the Habistat Svelte/Tauri codebase, with sufficient context and self-validation capabilities to achieve working code through iterative refinement. Based on @guidebook.md.
 

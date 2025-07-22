@@ -354,10 +354,10 @@
 
   // Optional: Launch fireworks on click (can be removed or adapted)
   // Kept for testing, but the main trigger will be the store
-  function handleClick(event: MouseEvent) {
-    if (!isTriggered) startFireworks(); // Start if not already running on click
-    // You might want to add logic here to launch one firework at the click position if desired
-  }
+  // function handleClick(event: MouseEvent) {
+  //   if (!isTriggered) startFireworks(); // Start if not already running on click
+  //   // You might want to add logic here to launch one firework at the click position if desired
+  // }
 </script>
 
 <!--

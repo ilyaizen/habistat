@@ -8,7 +8,7 @@
   import { getContext } from "svelte";
   import { calendarsStore } from "$lib/stores/calendars";
   import { habits } from "$lib/stores/habits";
-  import { completionsStore } from "$lib/stores/completions";
+
   import { syncStore } from "$lib/stores/sync";
   import { browser } from "$app/environment";
   import { toast } from "svelte-sonner";

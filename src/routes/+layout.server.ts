@@ -4,7 +4,7 @@ import type { LayoutServerLoad } from "./$types";
 // This function runs on the server for every page load.
 // It accesses the session data populated by hooks.server.ts
 // and makes it available to the client-side layout.
-export const load: LayoutServerLoad = async ({ locals, url }) => {
+export const load: LayoutServerLoad = async ({ locals }) => {
   // Extract relevant user info from the Clerk session object
   const userId = locals.session?.claims?.sub;
 

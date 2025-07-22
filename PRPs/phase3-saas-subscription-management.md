@@ -1,4 +1,5 @@
-name: "Phase 3: SaaS Subscription Management & UI Limits - Habistat"
+# name: "Phase 3: SaaS Subscription Management & UI Limits - Habistat"
+
 description: |
 Implement subscription-aware UI logic, tier limitations, and sync feedback for the Habistat SaaS model. Based on Phase 3 requirements from implementation-plan.md.
 

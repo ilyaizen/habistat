@@ -1,7 +1,7 @@
 import { sessionStore } from "$lib/utils/tracking";
-import { goto } from "$app/navigation";
-import { browser } from "$app/environment";
-import { getContext } from "svelte";
+// import { goto } from "$app/navigation";
+// import { browser } from "$app/environment";
+// import { getContext } from "svelte";
 import type { LoadedClerk } from "@clerk/types";
 
 /**

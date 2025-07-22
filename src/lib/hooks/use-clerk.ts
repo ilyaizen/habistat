@@ -1,10 +1,5 @@
-// Svelte store utilities for state management
 import { get, readable, writable } from "svelte/store";
-
-// Svelte context API for dependency injection
 import { setContext } from "svelte";
-
-// Clerk type definitions for type safety
 import type { LoadedClerk, UserResource } from "@clerk/types";
 import { browser } from "$app/environment";
 // import { syncIsOnline as networkIsOnline } from "$lib/stores/sync";
@@ -94,19 +89,18 @@ export function useClerk() {
   function setupSessionAssociation() {
     // This effect hook runs whenever the Clerk user state changes.
     // It's responsible for associating the anonymous session with the Clerk user.
-    $effect(() => {
-      const unsubscribe = clerkUserStore.subscribe((user) => {
-        if (user) {
-          const session = get(sessionStore);
-          if (session?.state === "anonymous") {
-            console.log("[Session] Associating anonymous session with Clerk user:", user.id);
-            markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
-          }
+    const unsubscribe = clerkUserStore.subscribe((user) => {
+      if (user) {
+        const session = get(sessionStore);
+        if (session?.state === "anonymous") {
+          console.log("[Session] Associating anonymous session with Clerk user:", user.id);
+          markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
         }
-      });
-
-      return unsubscribe;
+      }
     });
+
+    // Return cleanup function
+    return unsubscribe;
   }
 
   return {

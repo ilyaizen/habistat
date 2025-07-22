@@ -7,6 +7,7 @@
   import { onMount } from "svelte";
   import { get } from "svelte/store";
   import { getAppOpenHistory } from "$lib/utils/tracking";
+  import { SvelteDate } from "svelte/reactivity";
 
   // Local state for completions
   const completions = $state<Completion[]>([]);
@@ -21,7 +22,7 @@
    * Helper function to format a Date object into a 'YYYY-MM-DD' string.
    * This uses the local timezone.
    */
-  function formatLocalDate(date: Date): string {
+  function formatLocalDate(date: SvelteDate): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
@@ -65,7 +66,9 @@
     loadingUsageHistory = true;
     usageHistoryTimestamps = await getAppOpenHistory();
     // Use the local date formatter to prevent timezone issues.
-    activeDatesSet = new Set(usageHistoryTimestamps.map((ts) => formatLocalDate(new Date(ts))));
+    activeDatesSet = new Set(
+      usageHistoryTimestamps.map((ts) => formatLocalDate(new SvelteDate(ts)))
+    );
     usageHistoryTimestamps = usageHistoryTimestamps.slice().reverse(); // Show most recent first
     loadingUsageHistory = false;
   }
@@ -105,9 +108,11 @@
                 total.
               </p>
               <ul class="mt-2 space-y-1 text-sm text-gray-500">
-                {#each usageHistoryTimestamps.slice(0, 10) as timestamp}
+                {#each usageHistoryTimestamps.slice(0, 10) as timestamp (timestamp)}
                   <li>
-                    <span class="font-mono text-xs">{new Date(timestamp).toLocaleString()}</span>
+                    <span class="font-mono text-xs"
+                      >{new SvelteDate(timestamp).toLocaleString()}</span
+                    >
                   </li>
                 {/each}
                 {#if usageHistoryTimestamps.length > 10}
@@ -128,12 +133,15 @@
             <p>Loading completions...</p>
           {:else if completions.length > 0}
             <ul class="mt-2 space-y-1 text-sm text-gray-500">
-              {#each completions as c}
+              {#each completions as c (c.id)}
                 <li>
-                  <span class="font-mono text-xs">{new Date(c.completedAt).toLocaleString()}</span>
-                  {" "}- Habit: <span class="font-semibold">{c.habitId}</span>
+                  <span class="font-mono text-xs"
+                    >{new SvelteDate(c.completedAt).toLocaleString()}</span
+                  >
+                  - Habit: <span class="font-semibold">{c.habitId}</span>
                   {#if c.userId}
-                    - User: {c.userId}{/if}
+                    - User: {c.userId}
+                  {/if}
                 </li>
               {/each}
             </ul>

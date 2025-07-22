@@ -130,7 +130,7 @@
         --x-spread: {1 - burst.xSpread};
       "
     >
-      {#each { length: burst.amount } as _}
+      {#each { length: burst.amount }}
         <div
           class="confetti"
           style="

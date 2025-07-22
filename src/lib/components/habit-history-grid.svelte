@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Completion } from "$lib/stores/completions";
+  import { SvelteDate, SvelteMap } from "svelte/reactivity";
   import { formatDate, generateColorShades } from "$lib/utils/date";
   // import * as Tooltip from "$lib/components/ui/tooltip";
 
@@ -22,18 +23,18 @@
 
   const days = $derived(() => {
     const shades = generateColorShades(calendarColor, 5, 8);
-    const today = new Date();
+    const today = new SvelteDate();
     const todayStr = formatDate(today);
     const squares: DaySquare[] = [];
 
-    const completionsByDate = new Map<string, number>();
+    const completionsByDate = new SvelteMap<string, number>();
     for (const completion of completions) {
-      const dateStr = formatDate(new Date(completion.completedAt));
+      const dateStr = formatDate(new SvelteDate(completion.completedAt));
       completionsByDate.set(dateStr, (completionsByDate.get(dateStr) ?? 0) + 1);
     }
 
     for (let i = numDays - 1; i >= 0; i--) {
-      const date = new Date();
+      const date = new SvelteDate();
       date.setDate(today.getDate() - i);
       const dateStr = formatDate(date);
       const count = completionsByDate.get(dateStr) ?? 0;

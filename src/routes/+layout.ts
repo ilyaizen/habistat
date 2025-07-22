@@ -9,7 +9,8 @@ export const ssr = false; // Disable SSR for static builds
 export const csr = true; // Enable client-side rendering
 
 import "../app.css";
-import { browser, dev } from "$app/environment";
+import { browser } from "$app/environment";
+// import { dev } from "$app/environment";
 // import { inject } from "@vercel/analytics";
 
 import { logAppOpenIfNeeded } from "$lib/utils/tracking";

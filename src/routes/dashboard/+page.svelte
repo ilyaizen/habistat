@@ -12,7 +12,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { useDashboardData } from "$lib/hooks/use-dashboard-data.svelte.ts";
+  import { useDashboardData } from "$lib/hooks/use-dashboard-data.svelte";
   import DashboardMainPanel from "$lib/components/dashboard-main-panel.svelte";
   import DashboardSidePanel from "$lib/components/dashboard-side-panel.svelte";
 
@@ -28,7 +28,9 @@
 
   // --- Data Initialization Hook ---
   // Custom hook for loading and refreshing dashboard data from stores
-  const { loading, initialize, refreshData } = useDashboardData();
+  // TODO: 2025-07-22 - Add loading state back in when we have a way to track it
+  // const { loading, initialize, refreshData } = useDashboardData();
+  const { initialize, refreshData } = useDashboardData();
 
   // Add key for ActivityMonitor remount
   let activityMonitorKey = $state(0);
@@ -82,20 +84,13 @@
 <!-- Create New Calendar Button at Top -->
 <div class="flex justify-center pb-8">
   <TierLimitGuard type="calendars">
-    {#snippet children()}
-      <Button size="lg" onclick={openCreateDialog} class="btn-3d">New Calendar</Button>
-    {/snippet}
+    <Button size="lg" onclick={openCreateDialog} class="btn-3d">New Calendar</Button>
   </TierLimitGuard>
 </div>
 
 <!-- Main dashboard container with responsive padding -->
 <Tooltip.Provider>
-  {#if loading()}
-    <!-- Loading state -->
-    <div class="flex h-full w-full items-center justify-center text-center">
-      <p class="text-muted-foreground">Loading dashboard...</p>
-    </div>
-  {:else if calendars.length === 0}
+  {#if calendars.length === 0}
     <!-- Empty state with action buttons -->
     <div class="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
       <p class="text-muted-foreground">No calendars yet. Create one to get started!</p>

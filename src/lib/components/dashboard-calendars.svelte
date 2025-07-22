@@ -25,10 +25,11 @@
   import HabitCompletionControl from "$lib/components/habit-completion-control.svelte";
   import HabitHistoryGrid from "$lib/components/habit-history-grid.svelte";
   import { formatDate } from "$lib/utils/date";
-  import { IsMobile } from "$lib/hooks/is-mobile.svelte.ts";
+  import { IsMobile } from "$lib/hooks/is-mobile";
   import { Card } from "$lib/components/ui/card";
   import HabitEditDialog from "$lib/components/habit-edit-dialog.svelte";
   import CalendarEditDialog from "$lib/components/calendar-edit-dialog.svelte";
+  import { SvelteDate } from "svelte/reactivity";
 
   // --- Component Props ---
   // isReorderMode is controlled by the parent component (DashboardHeader)
@@ -93,13 +94,13 @@
    * Today's completion counts per habit for quick access
    */
   const completionsTodayByHabit = $derived.by(() => {
-    const todayStr = formatDate(new Date());
+    const todayStr = formatDate(new SvelteDate());
     const newMap = new Map<string, number>();
     const allCompletions = $completionsByHabit;
 
     for (const [habitId, completions] of allCompletions.entries()) {
       const todayCount = completions.filter(
-        (c) => formatDate(new Date(c.completedAt)) === todayStr
+        (c) => formatDate(new SvelteDate(c.completedAt)) === todayStr
       ).length;
       newMap.set(habitId, todayCount);
     }

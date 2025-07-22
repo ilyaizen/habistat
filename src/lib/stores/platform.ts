@@ -32,12 +32,13 @@ export const platform = readable<string>("Web", (set) => {
       // Capitalize first letter for display
       const formattedPlatform = osPlatform.charAt(0).toUpperCase() + osPlatform.slice(1);
       set(formattedPlatform);
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error("Failed to determine platform:", error);
       // If the os.platform() call fails, we are likely not in a Tauri environment
-      // console.log(
-      //   "Tauri OS plugin call failed (likely not in Tauri), assuming Web platform:",
-      //   error
-      // );
+      console.log(
+        "Tauri OS plugin call failed (likely not in Tauri), assuming Web platform:",
+        error
+      );
       set("Web");
     }
   }

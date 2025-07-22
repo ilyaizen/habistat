@@ -46,7 +46,7 @@
     </Button>
   </DropdownMenu.Trigger>
   <DropdownMenu.Content align="end">
-    {#each locales as loc}
+    {#each locales as loc (loc)}
       <DropdownMenu.Item onclick={() => handleLanguageChange(loc)} class="flex items-center gap-2">
         <img
           src={languageMap[loc].flagSrc}

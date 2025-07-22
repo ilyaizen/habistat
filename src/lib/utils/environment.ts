@@ -5,7 +5,8 @@
  */
 
 import { browser } from "$app/environment";
-import { invoke } from "@tauri-apps/api/core";
+// import { invoke } from "@tauri-apps/api/core";
+
 // Import the OS plugin API
 import * as os from "@tauri-apps/plugin-os";
 
@@ -55,6 +56,7 @@ export async function getPlatformName(): Promise<string> {
         return `Unknown (${platform})`; // Fallback for unknown Tauri platform
     }
   } catch (error) {
+    console.error("Failed to get platform name:", error);
     // If the os.platform() call fails, we are likely not in a Tauri environment
     // console.log("Tauri OS plugin call failed (likely not in Tauri), identified as Browser.", error);
     return "Browser";

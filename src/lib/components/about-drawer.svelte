@@ -4,7 +4,7 @@
   import * as Drawer from "$lib/components/ui/drawer";
   import { X } from "@lucide/svelte";
   import MoreInfo from "./more-info.svelte";
-  import { getContext } from "svelte";
+  // import { getContext } from "svelte";
 
   // Svelte 5 props: make 'open' bindable
   let { showMoreInfoButton = false, open = $bindable(), handleStart } = $props();

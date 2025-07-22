@@ -18,7 +18,7 @@
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import { Trash2 } from "@lucide/svelte";
   import { sessionStore, anonymousUserId } from "$lib/utils/tracking";
-  import { settings } from "$lib/stores/settings";
+  // import { settings } from "$lib/stores/settings";
   import { derived, get, type Readable } from "svelte/store";
   import { getContext } from "svelte";
   import type { UserResource, LoadedClerk } from "@clerk/types";
@@ -43,9 +43,6 @@
       rawSessionState: $session?.state ?? null
     };
   });
-
-  // Control visibility of usage history section
-  const showUsageHistory = derived(settings, ($s) => $s.showUsageHistory);
 
   // Local state management
   let deleting = $state(false); // Tracks ongoing deletion process
@@ -72,23 +69,6 @@
     } else {
       // Fallback: try to delete known DBs (if any are hardcoded)
       indexedDB.deleteDatabase("habistat-sqljs-db");
-    }
-  }
-
-  /**
-   * Clears all app-specific session data from Svelte stores and localStorage.
-   * This includes sessionStore, anonymousUserId, and any other relevant keys.
-   */
-  function clearAppSessionData() {
-    try {
-      // Reset Svelte stores (if they have reset methods)
-      if (sessionStore?.set) sessionStore.set(null);
-      // Remove from localStorage (if used)
-      localStorage.removeItem("anonymousUserId");
-      localStorage.removeItem("sessionStore");
-      // Add more keys as needed
-    } catch (e) {
-      // Ignore errors
     }
   }
 

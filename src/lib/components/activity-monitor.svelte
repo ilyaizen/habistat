@@ -4,8 +4,8 @@
   import { sessionStore, getAppOpenHistory, logAppOpenIfNeeded } from "$lib/utils/tracking";
   import {
     completionsStore,
-    getCompletionCountForDate,
-    completionsByDate
+    getCompletionCountForDate
+    // completionsByDate
   } from "$lib/stores/completions";
   import { formatLocalDate } from "$lib/utils/date";
   import { Skeleton } from "$lib/components/ui/skeleton";
@@ -19,10 +19,11 @@
     TooltipProvider
   } from "$lib/components/ui/tooltip";
   import ActivityTrend from "./activity-trend.svelte";
+  import { SvelteDate, SvelteSet } from "svelte/reactivity";
 
   // State for the component
   let sessionStartDate: string | null = $state(null);
-  let activeDates: Set<string> = $state(new Set());
+  let activeDates = new SvelteSet<string>();
   let loadingHistory = $state(true);
   let activityDays: DayStatus[] = $state([]);
   let isExpanded = $state(false);
@@ -58,7 +59,7 @@
     try {
       const session = $sessionStore;
       if (session?.createdAt) {
-        const created = new Date(session.createdAt);
+        const created = new SvelteDate(session.createdAt);
         sessionStartDate = formatLocalDate(created);
       }
 
@@ -67,7 +68,9 @@
 
       // console.log("[ActivityMonitor] DEBUG - App open history raw:", history);
 
-      const newActiveDates = new Set((history ?? []).map((ts) => formatLocalDate(new Date(ts))));
+      const newActiveDates = new SvelteSet(
+        (history ?? []).map((ts) => formatLocalDate(new SvelteDate(ts)))
+      );
 
       // console.log(
       //   "[ActivityMonitor] DEBUG - App open dates formatted:",
@@ -75,7 +78,7 @@
       // );
 
       // Safeguard: Always ensure today is marked as active after a load.
-      const todayFormatted = formatLocalDate(new Date());
+      const todayFormatted = formatLocalDate(new SvelteDate());
       newActiveDates.add(todayFormatted);
 
       // console.log("[ActivityMonitor] DEBUG - Today added:", todayFormatted);
@@ -125,17 +128,17 @@
    */
   function generateActivityData() {
     const days: DayStatus[] = [];
-    const today = new Date();
+    const today = new SvelteDate();
     today.setHours(0, 0, 0, 0);
     const todayStr = formatLocalDate(today);
-    const sessionStart = sessionStartDate ? new Date(sessionStartDate + "T00:00:00") : null;
+    const sessionStart = sessionStartDate ? new SvelteDate(sessionStartDate + "T00:00:00") : null;
     if (sessionStart) sessionStart.setHours(0, 0, 0, 0);
 
     // Get the completion count function from the derived store
     const getCompletionCount = $getCompletionCountForDate;
 
     for (let i = numDays - 1; i >= 0; i--) {
-      const currentDate = new Date();
+      const currentDate = new SvelteDate();
       currentDate.setHours(0, 0, 0, 0);
       currentDate.setDate(today.getDate() - i);
       const currentDateStr = formatLocalDate(currentDate);
@@ -195,7 +198,7 @@
     if (session && !loadingHistory) {
       // Update session start date if it changed
       if (session.createdAt) {
-        const newSessionStartDate = formatLocalDate(new Date(session.createdAt));
+        const newSessionStartDate = formatLocalDate(new SvelteDate(session.createdAt));
         if (newSessionStartDate !== sessionStartDate) {
           sessionStartDate = newSessionStartDate;
           generateActivityData();
@@ -229,7 +232,7 @@
     {#if loadingHistory}
       <div class="space-y-3">
         <div class="flex space-x-0.5 p-0.5 pb-6">
-          {#each Array(numDays) as _, i}
+          {#each Array(numDays), i (i)}
             <Skeleton class="h-6 w-[10px] rounded-lg" />
           {/each}
         </div>
@@ -249,12 +252,10 @@
               ></div>
             </TooltipTrigger>
             <TooltipContent>
-              {#snippet children()}
-                <div class="text-center">
-                  <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
-                  <div>Completions: {day.completionCount}</div>
-                </div>
-              {/snippet}
+              <div class="text-center">
+                <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
+                <div>Completions: {day.completionCount}</div>
+              </div>
             </TooltipContent>
           </Tooltip>
         {/each}

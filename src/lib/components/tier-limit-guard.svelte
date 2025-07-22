@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import { subscriptionStore } from "$lib/stores/subscription";
   import UpgradePrompt from "./upgrade-prompt.svelte";
 
@@ -12,7 +13,7 @@
   }: {
     type: "calendars" | "habits";
     calendarId?: string;
-    children: any;
+    children: Snippet;
     showUpgradePrompt?: boolean;
     upgradePromptCompact?: boolean;
     disabled?: boolean;

@@ -344,7 +344,10 @@ function createHabitsStore() {
               convexPayload.calendarId = data.calendarId;
             }
 
-            await getConvexClient().mutation(api.habits.updateHabit, convexPayload as any);
+            await getConvexClient().mutation(
+              api.habits.updateHabit,
+              convexPayload as unknown as ConvexHabit
+            );
 
             console.log(`Habit ${localUuid} updated in Convex.`);
           } catch (error) {
@@ -366,7 +369,7 @@ function createHabitsStore() {
         .filter((h) => h.calendarId === calendarId)
         .sort((a, b) => a.position - b.position);
 
-      const updatePromises: Promise<any>[] = [];
+      const updatePromises: Promise<unknown>[] = [];
 
       const updatedHabits = allHabits.map((habit) => {
         if (habit.calendarId === calendarId) {

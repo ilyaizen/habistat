@@ -1,6 +1,6 @@
 <script lang="ts">
   // Import stores for settings management
-  import { settings } from "$lib/stores/settings";
+  // import { settings } from "$lib/stores/settings";
   import { goto } from "$app/navigation";
 
   // Import custom tab components

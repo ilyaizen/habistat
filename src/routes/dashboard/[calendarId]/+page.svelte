@@ -7,7 +7,7 @@
   import * as Card from "$lib/components/ui/card";
   import { Separator } from "$lib/components/ui/separator";
   import { Edit, PlusCircle, ArrowUp, ArrowDown } from "@lucide/svelte";
-  import type { Writable } from "svelte/store";
+  // import type { Writable } from "svelte/store";
 
   let calendar = $state<Calendar | undefined>(undefined);
   let calendarHabits = $state<Habit[]>([]);

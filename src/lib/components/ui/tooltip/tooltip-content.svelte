@@ -8,11 +8,8 @@
     sideOffset = 0,
     side = "top",
     children,
-    arrowClasses,
     ...restProps
-  }: TooltipPrimitive.ContentProps & {
-    arrowClasses?: string;
-  } = $props();
+  }: TooltipPrimitive.ContentProps = $props();
 </script>
 
 <TooltipPrimitive.Portal>
