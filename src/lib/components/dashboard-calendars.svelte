@@ -29,7 +29,7 @@
   import { Card } from "$lib/components/ui/card";
   import HabitEditDialog from "$lib/components/habit-edit-dialog.svelte";
   import CalendarEditDialog from "$lib/components/calendar-edit-dialog.svelte";
-  import { SvelteDate } from "svelte/reactivity";
+  import { SvelteDate, SvelteMap } from "svelte/reactivity";
 
   // --- Component Props ---
   // isReorderMode is controlled by the parent component (DashboardHeader)
@@ -42,7 +42,7 @@
   // --- Local State Management ---
   // Local copies of store data for optimistic UI updates during drag operations
   let localCalendars = $state<Calendar[]>([]);
-  let localHabitsByCalendar = $state(new Map<string, Habit[]>());
+  let localHabitsByCalendar = $state(new SvelteMap<string, Habit[]>());
   let editingHabitId = $state<string | null>(null);
   let editingCalendarId = $state<string | null>(null);
   let editingCalendarIdForDialog = $state<string | null>(null);
@@ -69,7 +69,7 @@
    */
   const habitsByCalendar = $derived.by(() => {
     const allHabits = $habitsStore ?? [];
-    const newMap = new Map<string, Habit[]>();
+    const newMap = new SvelteMap<string, Habit[]>();
 
     // Group habits by calendar
     for (const habit of allHabits) {
@@ -95,7 +95,7 @@
    */
   const completionsTodayByHabit = $derived.by(() => {
     const todayStr = formatDate(new SvelteDate());
-    const newMap = new Map<string, number>();
+    const newMap = new SvelteMap<string, number>();
     const allCompletions = $completionsByHabit;
 
     for (const [habitId, completions] of allCompletions.entries()) {
@@ -116,7 +116,7 @@
    */
   $effect(() => {
     localCalendars = [...calendars];
-    const newHabitsMap = new Map();
+    const newHabitsMap = new SvelteMap<string, Habit[]>();
     for (const [key, value] of habitsByCalendar.entries()) {
       newHabitsMap.set(key, [...value]);
     }
@@ -188,7 +188,7 @@
     const reorderedHabits = e.detail.items;
 
     // Optimistic UI update: immediately reflect the new state in the local component state.
-    const newMap = new Map(localHabitsByCalendar);
+    const newMap = new SvelteMap(localHabitsByCalendar);
     newMap.set(calendarId, [...reorderedHabits]);
     localHabitsByCalendar = newMap;
 
