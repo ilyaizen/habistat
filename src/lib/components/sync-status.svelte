@@ -3,46 +3,46 @@
   Shows current sync status with visual indicators
 -->
 <script lang="ts">
-  import { syncStore, isSyncing, syncError, lastSyncTime, syncIsOnline } from "$lib/stores/sync";
-  import { Button } from "$lib/components/ui/button";
-  import { Badge } from "$lib/components/ui/badge";
-  import { Cloud, CloudOff, RefreshCw, Wifi, WifiOff, AlertCircle } from "@lucide/svelte";
-  import { getContext } from "svelte";
-  import type { UserResource } from "@clerk/types";
-  import type { Readable } from "svelte/store";
+import { syncStore, isSyncing, syncError, lastSyncTime, syncIsOnline } from "$lib/stores/sync";
+import { Button } from "$lib/components/ui/button";
+import { Badge } from "$lib/components/ui/badge";
+import { Cloud, CloudOff, RefreshCw, Wifi, WifiOff, AlertCircle } from "@lucide/svelte";
+import { getContext } from "svelte";
+import type { UserResource } from "@clerk/types";
+import type { Readable } from "svelte/store";
 
-  // Get current user from context to only show sync for authenticated users
-  const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");
+// Get current user from context to only show sync for authenticated users
+const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");
 
-  let user = $state<UserResource | null>(null);
+let user = $state<UserResource | null>(null);
 
-  // Subscribe to user changes
-  $effect(() => {
-    const unsubscribe = clerkUserStore?.subscribe((u) => {
-      user = u;
-    });
-    return unsubscribe;
+// Subscribe to user changes
+$effect(() => {
+  const unsubscribe = clerkUserStore?.subscribe((u) => {
+    user = u;
   });
+  return unsubscribe;
+});
 
-  function formatLastSync(timestamp: number | null): string {
-    if (!timestamp) return "Never";
+function formatLastSync(timestamp: number | null): string {
+  if (!timestamp) return "Never";
 
-    const now = Date.now();
-    const diff = now - timestamp;
+  const now = Date.now();
+  const diff = now - timestamp;
 
-    if (diff < 60000) return "Just now";
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return `${Math.floor(diff / 86400000)}d ago`;
-  }
+  if (diff < 60000) return "Just now";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+  return `${Math.floor(diff / 86400000)}d ago`;
+}
 
-  function handleSyncClick() {
-    syncStore.triggerSync();
-  }
+function handleSyncClick() {
+  syncStore.triggerSync();
+}
 
-  function handleClearError() {
-    syncStore.clearError();
-  }
+function handleClearError() {
+  syncStore.clearError();
+}
 </script>
 
 <!-- Only show sync status for authenticated users -->

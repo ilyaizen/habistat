@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { settings } from "$lib/stores/settings";
-  import { Card, CardHeader, CardContent } from "$lib/components/ui/card";
-  import { Button } from "$lib/components/ui/button";
-  import { Label } from "$lib/components/ui/label";
-  import SyncStatus from "$lib/components/sync-status.svelte";
-  import { Cloud, RefreshCw, Database } from "@lucide/svelte";
-  import { syncStore, isSyncing, syncError, lastSyncTime, syncIsOnline } from "$lib/stores/sync";
+import { settings } from "$lib/stores/settings";
+import { Card, CardHeader, CardContent } from "$lib/components/ui/card";
+import { Button } from "$lib/components/ui/button";
+import { Label } from "$lib/components/ui/label";
+import SyncStatus from "$lib/components/sync-status.svelte";
+import { Cloud, RefreshCw, Database } from "@lucide/svelte";
+import { syncStore, isSyncing, syncError, lastSyncTime, syncIsOnline } from "$lib/stores/sync";
 
-  const developerMode = $derived($settings.developerMode);
+const developerMode = $derived($settings.developerMode);
 </script>
 
 <!-- Sync Settings Section -->

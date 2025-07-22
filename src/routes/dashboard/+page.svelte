@@ -10,75 +10,75 @@
  */ -->
 
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
-  import { useDashboardData } from "$lib/hooks/use-dashboard-data.svelte";
-  import DashboardMainPanel from "$lib/components/dashboard-main-panel.svelte";
-  import DashboardSidePanel from "$lib/components/dashboard-side-panel.svelte";
+import { onMount } from "svelte";
+import { goto } from "$app/navigation";
+import { useDashboardData } from "$lib/hooks/use-dashboard-data.svelte";
+import DashboardMainPanel from "$lib/components/dashboard-main-panel.svelte";
+import DashboardSidePanel from "$lib/components/dashboard-side-panel.svelte";
 
-  // --- Store Imports ---
-  // Core data stores for calendars
-  import { calendarsStore } from "$lib/stores/calendars";
+// --- Store Imports ---
+// Core data stores for calendars
+import { calendarsStore } from "$lib/stores/calendars";
 
-  // --- Component Imports ---
-  import Button from "$lib/components/ui/button/button.svelte";
-  import * as Tooltip from "$lib/components/ui/tooltip";
-  import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
-  import TierLimitGuard from "$lib/components/tier-limit-guard.svelte";
+// --- Component Imports ---
+import Button from "$lib/components/ui/button/button.svelte";
+import * as Tooltip from "$lib/components/ui/tooltip";
+import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
+import TierLimitGuard from "$lib/components/tier-limit-guard.svelte";
 
-  // --- Data Initialization Hook ---
-  // Custom hook for loading and refreshing dashboard data from stores
-  // TODO: 2025-07-22 - Add loading state back in when we have a way to track it
-  // const { loading, initialize, refreshData } = useDashboardData();
-  const { initialize, refreshData } = useDashboardData();
+// --- Data Initialization Hook ---
+// Custom hook for loading and refreshing dashboard data from stores
+// TODO: 2025-07-22 - Add loading state back in when we have a way to track it
+// const { loading, initialize, refreshData } = useDashboardData();
+const { initialize, refreshData } = useDashboardData();
 
-  // Add key for ActivityMonitor remount
-  let activityMonitorKey = $state(0);
+// Add key for ActivityMonitor remount
+let activityMonitorKey = $state(0);
 
-  // Reorder mode state (controlled by header component)
-  let isReorderMode = $state(false);
+// Reorder mode state (controlled by header component)
+let isReorderMode = $state(false);
 
-  // --- Derived Store Values ---
-  // Reactive computed values that automatically update when stores change
+// --- Derived Store Values ---
+// Reactive computed values that automatically update when stores change
 
-  /**
-   * Sorted calendars by position for consistent ordering
-   */
-  const calendars = $derived(
-    [...($calendarsStore ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-  );
+/**
+ * Sorted calendars by position for consistent ordering
+ */
+const calendars = $derived(
+  [...($calendarsStore ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+);
 
-  // --- Component Lifecycle ---
-  /**
-   * Initialize dashboard data on component mount
-   */
-  onMount(async () => {
-    await initialize();
-  });
+// --- Component Lifecycle ---
+/**
+ * Initialize dashboard data on component mount
+ */
+onMount(async () => {
+  await initialize();
+});
 
-  // --- Event Handlers ---
+// --- Event Handlers ---
 
-  /**
-   * Navigation handler for creating new calendars
-   * Uses SvelteKit's programmatic navigation
-   */
-  function openCreateDialog() {
-    goto("/dashboard/new");
+/**
+ * Navigation handler for creating new calendars
+ * Uses SvelteKit's programmatic navigation
+ */
+function openCreateDialog() {
+  goto("/dashboard/new");
+}
+
+/**
+ * Refreshes dashboard data after sample data generation
+ * Ensures UI reflects new data immediately
+ */
+async function handleDataGenerated() {
+  try {
+    await refreshData();
+    activityMonitorKey++; // Trigger re-mount for components that use it
+    console.log("Dashboard refreshed after sample data generation");
+  } catch (error) {
+    console.error("Error refreshing dashboard after data generation:", error);
   }
-
-  /**
-   * Refreshes dashboard data after sample data generation
-   * Ensures UI reflects new data immediately
-   */
-  async function handleDataGenerated() {
-    try {
-      await refreshData();
-      activityMonitorKey++; // Trigger re-mount for components that use it
-      console.log("Dashboard refreshed after sample data generation");
-    } catch (error) {
-      console.error("Error refreshing dashboard after data generation:", error);
-    }
-  }
+}
 </script>
 
 <!-- Create New Calendar Button at Top -->

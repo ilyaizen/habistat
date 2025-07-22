@@ -1,6 +1,6 @@
 <!-- Dashboard layout -->
 <script lang="ts">
-  let { children } = $props();
+let { children } = $props();
 </script>
 
 <div class="flex min-h-full flex-col">

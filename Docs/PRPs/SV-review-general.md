@@ -92,14 +92,13 @@ If no specific scope provided, review the entire codebase.
 ### 9. **Documentation & Maintenance**
 
     - Code documentation quality (JSDoc).
-    - `README.md` and `vibes/guidebook.md` completeness.
+    - `README.md` and `Docs/guidebook.md` completeness.
     - Component prop documentation.
-    - `vibes/` documentation updates.
+    - `Docs/` documentation updates.
 
 ### 10. **Standards Compliance**
 
-    - ESLint configuration and compliance.
-    - Prettier formatting consistency.
+    - Biome linting and formatting configuration.
     - TypeScript strict mode adherence.
     - Build process compliance (`bun build`, `bun tauri build`).
     - Pre-commit hook effectiveness.

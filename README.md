@@ -91,7 +91,7 @@ habistat/
 ├── static/                       # Static assets (icons, images, etc.)
 ├── migrations/                   # SQLite database migrations
 ├── scripts/                      # Build and utility scripts
-└── vibes/                        # Documentation & development guides
+└── Docs/                        # Documentation & development guides
 ```
 
 To view the complete file structure, refer to [file-structure.txt](file-structure.txt).

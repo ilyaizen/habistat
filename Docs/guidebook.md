@@ -18,8 +18,8 @@ bun tauri android dev  # Tauri Android development build
 bun bump               # Bump version
 
 # Quality Checks
-bun lint               # ESLint
-bun format             # Prettier
+bun lint               # Biome linting
+bun format             # Biome formatting
 ```
 
 ## Code Style & Naming Conventions
@@ -73,6 +73,10 @@ bun format             # Prettier
 - **Data Layer**: SQLite, Drizzle ORM, Convex (opt-in)
 - **Auth**: Clerk, svelte-clerk
 - **Utilities**: uuid, date-fns, svelte-i18n
+
+- **Available shadcn-svelte UI Components**: `alert-dialog, avatar, badge, button, calendar, card, chart, checkbox, context-menu, dialog, drawer, dropdown-menu, form, input, label, p5-canvas, popover, progress, radio-group, select, separator, skeleton, slider, sonner, switch, table, tabs, textarea, toggle, toggle-group, tooltip`
+
+For usage examples and API details, see the [shadcn-svelte documentation](https://shadcn-svelte.com/docs).
 
 See [tech-stack.md](tech-stack.md) or check the project's `package.json` for a fuller list.
 

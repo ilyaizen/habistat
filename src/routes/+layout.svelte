@@ -9,151 +9,151 @@
  */ -->
 
 <script lang="ts">
-  import { onMount, setContext, type Snippet } from "svelte";
-  import { ClerkProvider } from "svelte-clerk";
-  import MotionWrapper from "$lib/components/motion-wrapper.svelte";
-  import type { LayoutData } from "./$types";
-  import { browser } from "$app/environment";
-  import { useTheme } from "$lib/hooks/use-theme.ts";
-  import { useClerk } from "$lib/hooks/use-clerk.ts";
-  // import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
-  import { useAppInit } from "$lib/hooks/use-app-init.svelte.ts";
-  // import { handleRefresh } from "$lib/utils/context-menu";
-  import { injectAnalytics } from "@vercel/analytics/sveltekit";
-  import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
-  import "../app.css";
-  import AppHeader from "$lib/components/app-header.svelte";
-  import AppFooter from "$lib/components/app-footer.svelte";
-  import { page } from "$app/state";
-  import AboutDrawer from "$lib/components/about-drawer.svelte";
-  import { setupConvex } from "convex-svelte";
-  import FireworksEffect from "$lib/components/fireworks-effect.svelte";
-  import ConfettiEffect from "$lib/components/confetti-effect.svelte";
-  import { Toaster } from "$lib/components/ui/sonner";
+import { onMount, setContext, type Snippet } from "svelte";
+import { ClerkProvider } from "svelte-clerk";
+import MotionWrapper from "$lib/components/motion-wrapper.svelte";
+import type { LayoutData } from "./$types";
+import { browser } from "$app/environment";
+import { useTheme } from "$lib/hooks/use-theme.ts";
+import { useClerk } from "$lib/hooks/use-clerk.ts";
+// import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
+import { useAppInit } from "$lib/hooks/use-app-init.svelte.ts";
+// import { handleRefresh } from "$lib/utils/context-menu";
+import { injectAnalytics } from "@vercel/analytics/sveltekit";
+import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
+import "../app.css";
+import AppHeader from "$lib/components/app-header.svelte";
+import AppFooter from "$lib/components/app-footer.svelte";
+import { page } from "$app/state";
+import AboutDrawer from "$lib/components/about-drawer.svelte";
+import { setupConvex } from "convex-svelte";
+import FireworksEffect from "$lib/components/fireworks-effect.svelte";
+import ConfettiEffect from "$lib/components/confetti-effect.svelte";
+import { Toaster } from "$lib/components/ui/sonner";
 
-  // import * as ContextMenu from "$lib/components/ui/context-menu";
+// import * as ContextMenu from "$lib/components/ui/context-menu";
 
-  // import { runDiagnostics } from "$lib/utils/tauri-debug";
+// import { runDiagnostics } from "$lib/utils/tauri-debug";
 
-  // import StoreSync from "$lib/components/store-sync.svelte";
+// import StoreSync from "$lib/components/store-sync.svelte";
 
-  // Props received from parent routes using Svelte 5 $props rune
-  let { children } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
+// Props received from parent routes using Svelte 5 $props rune
+let { children } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
 
-  // Initialize hooks
-  const theme = useTheme();
-  const clerk = useClerk();
-  // const navigation = useNavigation();
-  const appInit = useAppInit();
+// Initialize hooks
+const theme = useTheme();
+const clerk = useClerk();
+// const navigation = useNavigation();
+const appInit = useAppInit();
 
-  // --- Singleton Drawer State & Context ---
-  let aboutDrawerOpen = $state(false);
-  // A placeholder that can be overridden by the page context.
-  let handleStart = $state(() => {});
+// --- Singleton Drawer State & Context ---
+let aboutDrawerOpen = $state(false);
+// A placeholder that can be overridden by the page context.
+let handleStart = $state(() => {});
 
-  setContext("drawer-controller", {
-    open: () => (aboutDrawerOpen = true),
-    close: () => (aboutDrawerOpen = false),
-    // Allows the current page to register its specific `handleStart` function.
-    registerHandleStart: (fn: () => void) => {
-      handleStart = fn;
-    }
-  });
+setContext("drawer-controller", {
+  open: () => (aboutDrawerOpen = true),
+  close: () => (aboutDrawerOpen = false),
+  // Allows the current page to register its specific `handleStart` function.
+  registerHandleStart: (fn: () => void) => {
+    handleStart = fn;
+  }
+});
 
-  // Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
-  import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
-  import ThemeToggle from "$lib/components/theme-toggle.svelte";
+// Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
+import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
+import ThemeToggle from "$lib/components/theme-toggle.svelte";
 
-  // Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
+// Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
 
-  /*
+/*
     Noto Sans and Noto Sans Hebrew are loaded via @import in src/app.css for global font-sans usage.
     This ensures proper rendering for both Latin and Hebrew scripts.
     See src/app.css for the @import and --font-sans override.
   */
 
-  // import "@fontsource/oxanium"; // Sans-serif font for UI/headers (removed)
-  // import "@fontsource/fira-code"; // Monospace font for code/inputs
+// import "@fontsource/oxanium"; // Sans-serif font for UI/headers (removed)
+// import "@fontsource/fira-code"; // Monospace font for code/inputs
 
-  // Set up Clerk contexts and session association
-  clerk.setupClerkContexts();
-  clerk.setupSessionAssociation();
+// Set up Clerk contexts and session association
+clerk.setupClerkContexts();
+clerk.setupSessionAssociation();
 
-  onMount(() => {
-    // Run diagnostics for Tauri builds
-    // if (browser) {
-    //   runDiagnostics();
-    // }
+onMount(() => {
+  // Run diagnostics for Tauri builds
+  // if (browser) {
+  //   runDiagnostics();
+  // }
 
-    // Initialize core functionalities when the component mounts in the browser.
-    appInit.initializeAppCore();
-    theme.initializeTheme();
+  // Initialize core functionalities when the component mounts in the browser.
+  appInit.initializeAppCore();
+  theme.initializeTheme();
 
-    // Initialize navigation tracking
-    // navigation.initializeNavigationTracking();
+  // Initialize navigation tracking
+  // navigation.initializeNavigationTracking();
 
-    // Initialize Clerk
-    clerk.initializeClerk();
+  // Initialize Clerk
+  clerk.initializeClerk();
 
-    // Set up midnight scheduling and development mode
-    appInit.scheduleMidnightCheck();
-    // TODO: 2025-07-22 - Add this back in when we have a way to handle it
-    // appInit.setupDevelopmentMode();
+  // Set up midnight scheduling and development mode
+  appInit.scheduleMidnightCheck();
+  // TODO: 2025-07-22 - Add this back in when we have a way to handle it
+  // appInit.setupDevelopmentMode();
 
-    // Return cleanup function to remove listeners when the component is destroyed.
-    return () => {
-      if (browser) {
-        theme.cleanupSystemListener();
-        // navigation.cleanup();
-        // appInit.cleanup();
-      }
-    };
-  });
-
-  // Inject Vercel Analytics, Speed Insights for performance monitoring (runs only in browser)
-  injectSpeedInsights();
-  injectAnalytics();
-
-  // Set up Convex client for Svelte context - only in browser
-  if (browser) {
-    const convexUrl = import.meta.env.PUBLIC_CONVEX_URL || import.meta.env.VITE_CONVEX_URL;
-    // console.log("[DEBUG] Environment variables:", {
-    //   VITE_CONVEX_URL: import.meta.env.VITE_CONVEX_URL,
-    //   VITE_CLERK_PUBLISHABLE_KEY: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-    //     ? "✅ Set"
-    //     : "❌ Missing"
-    // });
-
-    if (convexUrl) {
-      try {
-        setupConvex(convexUrl);
-        // console.log("[DEBUG] setupConvex completed successfully with URL:", convexUrl);
-      } catch (error) {
-        console.error("[ERROR] setupConvex failed:", error);
-      }
-    } else {
-      console.warn("[WARN] No Convex URL found, skipping setupConvex");
+  // Return cleanup function to remove listeners when the component is destroyed.
+  return () => {
+    if (browser) {
+      theme.cleanupSystemListener();
+      // navigation.cleanup();
+      // appInit.cleanup();
     }
+  };
+});
+
+// Inject Vercel Analytics, Speed Insights for performance monitoring (runs only in browser)
+injectSpeedInsights();
+injectAnalytics();
+
+// Set up Convex client for Svelte context - only in browser
+if (browser) {
+  const convexUrl = import.meta.env.PUBLIC_CONVEX_URL || import.meta.env.VITE_CONVEX_URL;
+  // console.log("[DEBUG] Environment variables:", {
+  //   VITE_CONVEX_URL: import.meta.env.VITE_CONVEX_URL,
+  //   VITE_CLERK_PUBLISHABLE_KEY: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+  //     ? "✅ Set"
+  //     : "❌ Missing"
+  // });
+
+  if (convexUrl) {
+    try {
+      setupConvex(convexUrl);
+      // console.log("[DEBUG] setupConvex completed successfully with URL:", convexUrl);
+    } catch (error) {
+      console.error("[ERROR] setupConvex failed:", error);
+    }
+  } else {
+    console.warn("[WARN] No Convex URL found, skipping setupConvex");
   }
+}
 
-  // let contextMenuOpen = $state(false);
+// let contextMenuOpen = $state(false);
 
-  // // Context menu actions
-  // function goBack() {
-  //   navigation.goBack();
-  //   contextMenuOpen = false;
-  // }
+// // Context menu actions
+// function goBack() {
+//   navigation.goBack();
+//   contextMenuOpen = false;
+// }
 
-  // function goForward() {
-  //   navigation.goForward();
-  //   contextMenuOpen = false;
-  // }
+// function goForward() {
+//   navigation.goForward();
+//   contextMenuOpen = false;
+// }
 
-  // function handleRefreshWithClose() {
-  //   // console.log("Refreshing...");
-  //   contextMenuOpen = false;
-  //   handleRefresh();
-  // }
+// function handleRefreshWithClose() {
+//   // console.log("Refreshing...");
+//   contextMenuOpen = false;
+//   handleRefresh();
+// }
 </script>
 
 <!-- <ContextMenu.Root bind:open={contextMenuOpen}>

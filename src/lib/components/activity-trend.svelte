@@ -1,31 +1,31 @@
 <script lang="ts">
-  import { BarChart } from "layerchart";
-  import * as Chart from "$lib/components/ui/chart";
+import { BarChart } from "layerchart";
+import * as Chart from "$lib/components/ui/chart";
 
-  type TrendData = {
-    date: string;
-    completions: number;
-    label: string;
-  };
+type TrendData = {
+  date: string;
+  completions: number;
+  label: string;
+};
 
-  let { data = $bindable(), title = "Activity Trend" }: { data: TrendData[]; title?: string } =
-    $props();
+let { data = $bindable(), title = "Activity Trend" }: { data: TrendData[]; title?: string } =
+  $props();
 
-  const chartConfig = {
-    completions: {
-      label: "Completions",
-      color: "var(--chart-1)"
-    }
-  } satisfies Chart.ChartConfig;
+const chartConfig = {
+  completions: {
+    label: "Completions",
+    color: "var(--chart-1)"
+  }
+} satisfies Chart.ChartConfig;
 
-  const filteredData = $derived.by(() => {
-    const firstNonZeroIndex = data.findIndex((d) => d.completions > 0);
-    if (firstNonZeroIndex === -1) {
-      // If all are zero, show nothing to avoid the empty state message
-      return [];
-    }
-    return data.slice(firstNonZeroIndex);
-  });
+const filteredData = $derived.by(() => {
+  const firstNonZeroIndex = data.findIndex((d) => d.completions > 0);
+  if (firstNonZeroIndex === -1) {
+    // If all are zero, show nothing to avoid the empty state message
+    return [];
+  }
+  return data.slice(firstNonZeroIndex);
+});
 </script>
 
 <div class="space-y-2">

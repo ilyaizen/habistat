@@ -9,6 +9,11 @@
 ├── .github
 │   └── workflows
 │       └── release.yml
+├── .kiro
+│   └── steering
+│       ├── product.md
+│       ├── structure.md
+│       └── tech.md
 ├── .vercel
 │   ├── README.txt
 │   └── project.json
@@ -19,13 +24,23 @@
 │   └── rules
 │       ├── add-comments.md
 │       └── windsurf-rules.md
-├── PRPs
-│   ├── SV-create-base-prp.md
-│   ├── SV-execute-base-prp.md
-│   ├── SV-review-general.md
-│   ├── SV-review-staged-unstaged.md
-│   ├── phase3-saas-subscription-management.md
-│   └── prp-svelte.md
+├── Docs
+│   ├── PRPs
+│   │   ├── SV-create-base-prp.md
+│   │   ├── SV-execute-base-prp.md
+│   │   ├── SV-review-general.md
+│   │   ├── SV-review-staged-unstaged.md
+│   │   ├── phase3-saas-subscription-management.md
+│   │   └── prp-svelte.md
+│   ├── add-comments.md
+│   ├── contribution-guide.md
+│   ├── guidebook.md
+│   ├── implementation-plan.md
+│   ├── llms-convex.txt
+│   ├── llms-small-svelte.txt
+│   ├── rules.md
+│   ├── sample-data.md
+│   └── tech-stack.md
 ├── migrations
 │   ├── 0000_initial.sql
 │   └── 0001_simplify_completions.sql
@@ -58,9 +73,6 @@
 │   ├── lib
 │   │   ├── components
 │   │   │   ├── subscription
-│   │   │   │   ├── subscription-badge.svelte
-│   │   │   │   ├── tier-limit-guard.svelte
-│   │   │   │   └── upgrade-prompt.svelte
 │   │   │   ├── about-drawer.svelte
 │   │   │   ├── activity-monitor.svelte
 │   │   │   ├── activity-trend.svelte
@@ -72,7 +84,6 @@
 │   │   │   ├── dashboard-calendars.svelte
 │   │   │   ├── dashboard-main-panel.svelte
 │   │   │   ├── dashboard-side-panel.svelte
-│   │   │   ├── dev-settings-tab.svelte
 │   │   │   ├── environment-indicator-old.svelte
 │   │   │   ├── fireworks-effect.svelte
 │   │   │   ├── habit-completion-control.svelte
@@ -87,24 +98,30 @@
 │   │   │   ├── settings-account-tab.svelte
 │   │   │   ├── settings-customization-tab.svelte
 │   │   │   ├── settings-data-tab.svelte
+│   │   │   ├── settings-dev-tab.svelte
 │   │   │   ├── settings-sync-tab.svelte
 │   │   │   ├── social-links.svelte
 │   │   │   ├── store-sync.svelte
+│   │   │   ├── subscription-badge.svelte
+│   │   │   ├── sync-indicator.svelte
 │   │   │   ├── sync-status.svelte
 │   │   │   ├── tab-motion-wrapper.svelte
 │   │   │   ├── theme-toggle.svelte
+│   │   │   ├── tier-limit-guard.svelte
+│   │   │   ├── upgrade-prompt.svelte
 │   │   │   └── virtual-garden.svelte
 │   │   ├── db
 │   │   │   ├── client.ts
 │   │   │   ├── schema.ts
-│   │   │   └── server.server.ts
+│   │   │   └── server.ts
 │   │   ├── hooks
-│   │   │   ├── is-mobile.svelte.ts
+│   │   │   ├── is-mobile.ts
 │   │   │   ├── use-app-init.svelte.ts
 │   │   │   ├── use-clerk.svelte.ts
+│   │   │   ├── use-clerk.ts
 │   │   │   ├── use-dashboard-data.svelte.ts
 │   │   │   ├── use-navigation.svelte.ts
-│   │   │   └── use-theme.svelte.ts
+│   │   │   └── use-theme.ts
 │   │   ├── p5
 │   │   │   └── virtual-garden.ts
 │   │   ├── services
@@ -117,7 +134,6 @@
 │   │   │   ├── completions.ts
 │   │   │   ├── gamification.ts
 │   │   │   ├── habits.ts
-│   │   │   ├── network.ts
 │   │   │   ├── platform.ts
 │   │   │   ├── settings.ts
 │   │   │   ├── subscription.ts
@@ -224,34 +240,21 @@
 │   ├── offline.html
 │   ├── site.webmanifest
 │   └── sql-wasm.wasm
-├── vibes
-│   ├── add-comments.md
-│   ├── contribution-guide.md
-│   ├── guidebook.md
-│   ├── implementation-plan.md
-│   ├── llms-convex.txt
-│   ├── llms-small-svelte.txt
-│   ├── rules.md
-│   ├── sample-data.md
-│   └── tech-stack.md
 ├── .cursorignore
 ├── .dockerignore
 ├── .env.example
 ├── .env.local
 ├── .gitignore
 ├── .mcp.json
-├── .prettierignore
-├── .prettierrc
 ├── Dockerfile
 ├── GEMINI.md
 ├── LICENSE
-├── PRD.md
 ├── README.md
+├── biome.json
 ├── bun.lockb
 ├── components.json
 ├── convex.json
 ├── drizzle.config.ts
-├── eslint.config.js
 ├── file-structure.txt
 ├── package.json
 ├── postcss.config.cjs

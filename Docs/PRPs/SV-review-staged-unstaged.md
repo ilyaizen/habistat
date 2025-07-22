@@ -74,7 +74,7 @@ May or may not be added; ignore the previous review if not specified.
 
 - Clear component interfaces with JSDoc.
 - Proper prop descriptions.
-- `vibes/guidebook.md` updates for new patterns/dependencies.
+- `Docs/guidebook.md` updates for new patterns/dependencies.
 - `README.md` updates if needed.
 
 ## Review Output

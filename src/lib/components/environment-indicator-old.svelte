@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { isOnline } from "$lib/stores/network";
-  import { platform } from "$lib/stores/platform"; // Use the new platform store
-  import { Badge } from "$lib/components/ui/badge";
-  import { Wifi, WifiOff, Globe, MonitorSmartphone } from "@lucide/svelte"; // Icons
-  // import { onMount } from "svelte";
-  // import { getContext } from "svelte";
-  // import type { Writable } from "svelte/store";
+import { isOnline } from "$lib/stores/network";
+import { platform } from "$lib/stores/platform"; // Use the new platform store
+import { Badge } from "$lib/components/ui/badge";
+import { Wifi, WifiOff, Globe, MonitorSmartphone } from "@lucide/svelte"; // Icons
+// import { onMount } from "svelte";
+// import { getContext } from "svelte";
+// import type { Writable } from "svelte/store";
 
-  // Context for online status and auth mode
-  // const isOnline = getContext<Writable<boolean>>("isOnline");
+// Context for online status and auth mode
+// const isOnline = getContext<Writable<boolean>>("isOnline");
 </script>
 
 <Badge

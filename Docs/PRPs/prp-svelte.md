@@ -46,7 +46,7 @@ Template optimized for AI agents to implement features in the Habistat Svelte/Ta
   section: [Specific section about common pitfalls]
   critical: [Key insight that prevents common errors]
 
-- docfile: [vibes/guidebook.md]
+- docfile: [Docs/guidebook.md]
   why: [Core project conventions and architectural rules.]
 ```
 
@@ -127,7 +127,7 @@ import { getMyFeatureData } from "$lib/services/my-feature";
 import type { PageLoad } from "./$types";
 
 const ParamsSchema = z.object({
-  id: z.string().uuid()
+  id: z.string().uuid(),
 });
 
 export const load: PageLoad = async ({ params }) => {
@@ -141,7 +141,7 @@ export const load: PageLoad = async ({ params }) => {
     // PATTERN: Fetch data in load function. This runs on server and client.
     const data = await getMyFeatureData(validation.data.id);
     return {
-      featureData: data
+      featureData: data,
     };
   } catch (err) {
     // PATTERN: SvelteKit's error helper shows the nearest +error.svelte page.
@@ -195,9 +195,9 @@ ROUTES:
 
 ```bash
 # Run these FIRST - fix any errors before proceeding
-bun lint                    # ESLint checks
+bun lint                    # Biome linting
 bunx tsc --noEmit           # TypeScript type checking
-bun format                  # Prettier formatting
+bun format                  # Biome formatting
 
 # Expected: No errors. If errors, READ the error and fix.
 ```
@@ -212,12 +212,16 @@ import MyNewFeature from "$lib/components/my-new-feature.svelte";
 
 describe("MyNewFeature", () => {
   it("renders without crashing", () => {
-    const { container } = render(MyNewFeature, { props: { feature: { name: "Test" } } });
+    const { container } = render(MyNewFeature, {
+      props: { feature: { name: "Test" } },
+    });
     expect(container).toBeInTheDocument();
   });
 
   it("displays the feature name", () => {
-    render(MyNewFeature, { props: { feature: { name: "My Awesome Feature" } } });
+    render(MyNewFeature, {
+      props: { feature: { name: "My Awesome Feature" } },
+    });
     expect(screen.getByText("My Awesome Feature")).toBeInTheDocument();
   });
 });

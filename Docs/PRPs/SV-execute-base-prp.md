@@ -18,7 +18,7 @@ Implement a Svelte/Tauri feature using the PRP file.
    - Break down the PRP into clear todos using the TodoWrite tool.
    - Use agents, subagents, and the batchtool to enhance the process.
    - **Important**: YOU MUST ENSURE YOU HAVE EXTREMELY CLEAR TASKS FOR SUBAGENTS AND REFERENCE CONTEXT, AND MAKE SURE EACH SUBAGENT READS THE PRP AND UNDERSTANDS ITS CONTEXT.
-   - Identify implementation patterns from existing code to follow (refer to `vibes/guidebook.md`).
+   - Identify implementation patterns from existing code to follow (refer to `Docs/guidebook.md`).
    - Never guess about imports, file names, or function names; ALWAYS be based in reality and real context gathering.
 
 3. **Execute the plan**

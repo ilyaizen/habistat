@@ -20,7 +20,7 @@ The AI agent only gets the context you are appending to the PRP and its own trai
 2. **External Research at scale**
    - Create clear todos and spawn with instructions subagents to do deep research for similar features/patterns online and include URLs to documentation and examples.
    - Library documentation (include specific URLs for Svelte, SvelteKit, Tauri, shadcn-svelte, etc.).
-   - For critical pieces of documentation add a .md file to `vibes/` and reference it in the PRP with clear reasoning and instructions.
+   - For critical pieces of documentation add a .md file to `Docs/` and reference it in the PRP with clear reasoning and instructions.
    - Implementation examples (GitHub/StackOverflow/blogs with a Svelte/Tauri focus).
    - Best practices and common pitfalls found during research.
    - Use the batch tools to spawn subagents to search for similar features/patterns online and include URLs to documentation and examples.
@@ -37,7 +37,7 @@ Using `PRPs/prp-svelte.md` as a template:
 - **Documentation**: URLs with specific sections (Svelte, Tauri, etc.).
 - **Code Examples**: Real snippets from the codebase (`src/lib/...`, `src/routes/...`).
 - **Gotchas**: Library quirks, version issues, Svelte 5 runes, Tauri IPC.
-- **Patterns**: Existing approaches to follow (see `vibes/guidebook.md`).
+- **Patterns**: Existing approaches to follow (see `Docs/guidebook.md`).
 - **Best Practices**: Common pitfalls found during research.
 
 ### Implementation Blueprint

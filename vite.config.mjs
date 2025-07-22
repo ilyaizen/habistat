@@ -37,7 +37,7 @@ export default defineConfig(async ({ mode }) => {
         : undefined,
       watch: {
         // 3. tell vite to ignore watching `src-tauri` and `implementation-plan.md`
-        ignored: ["**/src-tauri/**", "**/vibes/**"]
+        ignored: ["**/src-tauri/**", "**/Docs/**"]
       },
       // 4. Allow serving files from the workspace root and specific directories
       fs: {

@@ -60,7 +60,7 @@ Subscription-aware UI that:
 - file: src/lib/utils/convex.ts
   why: Client initialization and auth setup patterns
 
-- docfile: vibes/guidebook.md
+- docfile: Docs/guidebook.md
   why: Local-first architecture, Svelte 5 runes, performance patterns
 
 - url: https://kit.svelte.dev/docs/state-management
@@ -131,7 +131,7 @@ src/lib/utils/
 // src/lib/utils/subscription-limits.ts
 export const FREE_TIER_LIMITS = {
   maxCalendars: 3,
-  maxHabitsPerCalendar: 7
+  maxHabitsPerCalendar: 7,
 } as const;
 
 export type SubscriptionTier = "free" | "premium_monthly" | "premium_lifetime";
@@ -146,7 +146,9 @@ export interface SubscriptionStatus {
 
 // Store interfaces using Svelte's writable pattern
 export interface SubscriptionStore {
-  subscribe: (callback: (value: SubscriptionStatus | null) => void) => () => void;
+  subscribe: (
+    callback: (value: SubscriptionStatus | null) => void
+  ) => () => void;
   refresh: () => Promise<void>;
   checkLimit: (type: "calendars" | "habits", calendarId?: string) => boolean;
   getUpgradeMessage: (type: "calendars" | "habits") => string;
@@ -217,7 +219,10 @@ import { writable, derived } from "svelte/store";
 import { getConvexClient } from "$lib/utils/convex";
 import { api } from "../convex/_generated/api";
 import { user } from "./user"; // Existing user store
-import { FREE_TIER_LIMITS, type SubscriptionStatus } from "$lib/utils/subscription-limits";
+import {
+  FREE_TIER_LIMITS,
+  type SubscriptionStatus,
+} from "$lib/utils/subscription-limits";
 
 // PATTERN: Writable store with custom methods like existing stores
 function createSubscriptionStore() {
@@ -238,14 +243,17 @@ function createSubscriptionStore() {
             tier: userData.subscriptionTier || "free",
             isActive:
               userData.subscriptionTier !== "free" &&
-              (!userData.subscriptionExpiresAt || userData.subscriptionExpiresAt > Date.now()),
+              (!userData.subscriptionExpiresAt ||
+                userData.subscriptionExpiresAt > Date.now()),
             expiresAt: userData.subscriptionExpiresAt,
             maxCalendars:
-              userData.subscriptionTier === "free" ? FREE_TIER_LIMITS.maxCalendars : Infinity,
+              userData.subscriptionTier === "free"
+                ? FREE_TIER_LIMITS.maxCalendars
+                : Infinity,
             maxHabitsPerCalendar:
               userData.subscriptionTier === "free"
                 ? FREE_TIER_LIMITS.maxHabitsPerCalendar
-                : Infinity
+                : Infinity,
           };
           set(status);
         }
@@ -266,7 +274,7 @@ function createSubscriptionStore() {
         // Check habits count for specific calendar
         // Use existing habits store to get count for calendarId
       }
-    }
+    },
   };
 }
 
@@ -344,9 +352,9 @@ STORES:
 
 ```bash
 # Run these FIRST - fix any errors before proceeding
-bun lint                    # ESLint checks
+bun lint                    # Biome linting
 bunx tsc --noEmit           # TypeScript type checking
-bun format                  # Prettier formatting
+bun format                  # Biome formatting
 
 # Expected: No errors. If errors, READ the error and fix.
 ```
@@ -367,9 +375,9 @@ describe("Subscription Store", () => {
       getConvexClient: () => ({
         query: vi.fn().mockResolvedValue({
           subscriptionTier: "free",
-          subscriptionExpiresAt: null
-        })
-      })
+          subscriptionExpiresAt: null,
+        }),
+      }),
     }));
   });
 
@@ -503,7 +511,7 @@ I've successfully implemented the Phase 3: SaaS Subscription Management & UI Lim
 - Context-Aware: Integrates with existing Clerk authentication patterns
 - Modular: Clean separation of concerns with reusable components
 
-The implementation follows all the established patterns from the vibes/guidebook.md and integrates seamlessly with the existing codebase. The subscription
+The implementation follows all the established patterns from the Docs/guidebook.md and integrates seamlessly with the existing codebase. The subscription
 management is now ready to support the SaaS business model with clear user feedback and proper tier enforcement.
 
 Next Steps: This sets up the foundation for Phase 5 (Stripe Integration) where the actual payment processing and premium subscription management will be
