@@ -1,27 +1,24 @@
 <script lang="ts">
 // Import stores for settings management
 // import { settings } from "$lib/stores/settings";
-import { goto } from "$app/navigation";
 
+// Import Svelte lifecycle hooks
+import { onMount } from "svelte";
+import { get } from "svelte/store";
+import { browser } from "$app/environment";
+import { goto } from "$app/navigation";
 // Import custom tab components
 import SettingsAccountTab from "$lib/components/settings-account-tab.svelte";
 import SettingsCustomizationTab from "$lib/components/settings-customization-tab.svelte";
-import SettingsSyncTab from "$lib/components/settings-sync-tab.svelte";
 import SettingsDataTab from "$lib/components/settings-data-tab.svelte";
-
-// Import tracking utilities
-import { anonymousUserId, logAppOpenIfNeeded } from "$lib/utils/tracking";
-// Import Svelte lifecycle hooks
-import { onMount } from "svelte";
-
-import { browser } from "$app/environment";
-import { get } from "svelte/store";
+import SettingsSyncTab from "$lib/components/settings-sync-tab.svelte";
+// Import wrapper for tab content transitions
+import TabMotionWrapper from "$lib/components/tab-motion-wrapper.svelte";
 
 // Import tab bar UI components
 import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
-
-// Import wrapper for tab content transitions
-import TabMotionWrapper from "$lib/components/tab-motion-wrapper.svelte";
+// Import tracking utilities
+import { anonymousUserId, logAppOpenIfNeeded } from "$lib/utils/tracking";
 
 // State for the active settings tab, defaults to 'customization'
 let activeTab = $state("customization");

@@ -1,10 +1,10 @@
 <script lang="ts">
-import { Badge } from "$lib/components/ui/badge";
+import type { UserResource } from "@clerk/types";
 // TODO: 2025-07-22 - Add this back in when we have a way to handle it
 // import { isOnline } from "$lib/stores/network";
 import { getContext } from "svelte";
 import type { Readable } from "svelte/store";
-import type { UserResource } from "@clerk/types";
+import { Badge } from "$lib/components/ui/badge";
 
 // Props for controlling sync indicator behavior
 let {

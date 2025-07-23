@@ -1,8 +1,8 @@
-import { writable } from "svelte/store";
 import type { InferModel } from "drizzle-orm";
-import { activeTimers } from "../db/schema";
-import { getDb } from "../db/client";
 import { eq } from "drizzle-orm";
+import { writable } from "svelte/store";
+import { getDb } from "../db/client";
+import { activeTimers } from "../db/schema";
 
 // Type for ActiveTimer row
 export type ActiveTimer = InferModel<typeof activeTimers>;

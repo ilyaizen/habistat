@@ -1,5 +1,5 @@
-import { goto, pushState, replaceState } from "$app/navigation";
 import { browser } from "$app/environment";
+import { goto, pushState, replaceState } from "$app/navigation";
 // import { page } from "$app/state";
 // import { get } from "svelte/store";
 

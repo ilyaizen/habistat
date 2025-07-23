@@ -1,7 +1,8 @@
 <script lang="ts">
-import type { Completion } from "$lib/stores/completions";
 import { SvelteDate, SvelteMap } from "svelte/reactivity";
+import type { Completion } from "$lib/stores/completions";
 import { formatDate, generateColorShades } from "$lib/utils/date";
+
 // import * as Tooltip from "$lib/components/ui/tooltip";
 
 let {
@@ -71,7 +72,11 @@ const days = $derived(() => {
 
 <style>
   :root {
-    --muted-foreground-transparent: color-mix(in srgb, var(--muted-foreground), transparent 90%);
+    --muted-foreground-transparent: color-mix(
+      in srgb,
+      var(--muted-foreground),
+      transparent 90%
+    );
   }
 
   .day-square {

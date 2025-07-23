@@ -1,9 +1,9 @@
-import { get, readable, writable } from "svelte/store";
-import { setContext } from "svelte";
 import type { LoadedClerk, UserResource } from "@clerk/types";
+import { setContext } from "svelte";
+import { get, readable, writable } from "svelte/store";
 import { browser } from "$app/environment";
 // import { syncIsOnline as networkIsOnline } from "$lib/stores/sync";
-import { sessionStore, markSessionAssociated } from "$lib/utils/tracking";
+import { markSessionAssociated, sessionStore } from "$lib/utils/tracking";
 
 /**
  * Clerk authentication hook for Habistat application.

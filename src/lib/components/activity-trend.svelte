@@ -8,8 +8,11 @@ type TrendData = {
   label: string;
 };
 
-let { data = $bindable(), title = "Activity Trend" }: { data: TrendData[]; title?: string } =
-  $props();
+let {
+  data: filteredData = $bindable(),
+  title = "Activity Trend"
+}: { data: TrendData[]; title?: string } = $props();
+$props();
 
 const chartConfig = {
   completions: {
@@ -17,15 +20,6 @@ const chartConfig = {
     color: "var(--chart-1)"
   }
 } satisfies Chart.ChartConfig;
-
-const filteredData = $derived.by(() => {
-  const firstNonZeroIndex = data.findIndex((d) => d.completions > 0);
-  if (firstNonZeroIndex === -1) {
-    // If all are zero, show nothing to avoid the empty state message
-    return [];
-  }
-  return data.slice(firstNonZeroIndex);
-});
 </script>
 
 <div class="space-y-2">

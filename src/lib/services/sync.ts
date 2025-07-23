@@ -1,9 +1,9 @@
-import { api } from "../../convex/_generated/api";
 import type { ConvexClient } from "convex/browser";
-import * as localData from "./local-data";
-import { completions as completionsSchema } from "../db/schema";
 import type { InferModel } from "drizzle-orm";
+import { api } from "../../convex/_generated/api";
+import type { completions as completionsSchema } from "../db/schema";
 import { completionsStore } from "../stores/completions";
+import * as localData from "./local-data";
 
 type Completion = InferModel<typeof completionsSchema>;
 

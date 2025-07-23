@@ -1,6 +1,6 @@
+import * as os from "@tauri-apps/plugin-os"; // Import the OS plugin
 import { readable } from "svelte/store";
 import { browser } from "$app/environment";
-import * as os from "@tauri-apps/plugin-os"; // Import the OS plugin
 
 /**
  * A readable Svelte store that indicates the current platform (OS name or 'Web').

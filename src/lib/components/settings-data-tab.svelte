@@ -1,13 +1,13 @@
 <script lang="ts">
-import { settings } from "$lib/stores/settings";
-import { completionsStore, type Completion } from "$lib/stores/completions";
-import Switch from "$lib/components/ui/switch/switch.svelte";
-import { Card, CardHeader, CardContent } from "$lib/components/ui/card";
-import { Label } from "$lib/components/ui/label";
 import { onMount } from "svelte";
-import { get } from "svelte/store";
-import { getAppOpenHistory } from "$lib/utils/tracking";
 import { SvelteDate } from "svelte/reactivity";
+import { get } from "svelte/store";
+import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
+import { Label } from "$lib/components/ui/label";
+import Switch from "$lib/components/ui/switch/switch.svelte";
+import { type Completion, completionsStore } from "$lib/stores/completions";
+import { settings } from "$lib/stores/settings";
+import { getAppOpenHistory } from "$lib/utils/tracking";
 
 // Local state for completions
 const completions = $state<Completion[]>([]);

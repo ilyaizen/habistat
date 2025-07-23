@@ -178,7 +178,7 @@
   }
 }
 
-:global(number-flow-svelte) {
+number-flow-svelte {
   --number-flow-char-height: 0.85em;
 }
 

@@ -1,6 +1,6 @@
-import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import type { QueryCtx, MutationCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 // Helper to get user ID from auth context
 async function getUserId(ctx: QueryCtx | MutationCtx) {

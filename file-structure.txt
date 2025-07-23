@@ -72,7 +72,6 @@
 │   │   └── index.ts
 │   ├── lib
 │   │   ├── components
-│   │   │   ├── subscription
 │   │   │   ├── about-drawer.svelte
 │   │   │   ├── activity-monitor.svelte
 │   │   │   ├── activity-trend.svelte
@@ -84,7 +83,6 @@
 │   │   │   ├── dashboard-calendars.svelte
 │   │   │   ├── dashboard-main-panel.svelte
 │   │   │   ├── dashboard-side-panel.svelte
-│   │   │   ├── environment-indicator-old.svelte
 │   │   │   ├── fireworks-effect.svelte
 │   │   │   ├── habit-completion-control.svelte
 │   │   │   ├── habit-edit-dialog.svelte
@@ -117,7 +115,6 @@
 │   │   ├── hooks
 │   │   │   ├── is-mobile.ts
 │   │   │   ├── use-app-init.svelte.ts
-│   │   │   ├── use-clerk.svelte.ts
 │   │   │   ├── use-clerk.ts
 │   │   │   ├── use-dashboard-data.svelte.ts
 │   │   │   ├── use-navigation.svelte.ts

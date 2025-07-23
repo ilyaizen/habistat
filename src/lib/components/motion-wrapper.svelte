@@ -1,7 +1,7 @@
 <script lang="ts">
 import { fly } from "svelte/transition";
-import { settings } from "$lib/stores/settings";
 import { afterNavigate } from "$app/navigation";
+import { settings } from "$lib/stores/settings";
 
 // Force transitions to run on every navigation
 let key = $state(0);

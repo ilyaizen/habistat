@@ -3,13 +3,13 @@
   Shows current sync status with visual indicators
 -->
 <script lang="ts">
-import { syncStore, isSyncing, syncError, lastSyncTime, syncIsOnline } from "$lib/stores/sync";
-import { Button } from "$lib/components/ui/button";
-import { Badge } from "$lib/components/ui/badge";
-import { Cloud, CloudOff, RefreshCw, Wifi, WifiOff, AlertCircle } from "@lucide/svelte";
-import { getContext } from "svelte";
 import type { UserResource } from "@clerk/types";
+import { AlertCircle, Cloud, CloudOff, RefreshCw, Wifi, WifiOff } from "@lucide/svelte";
+import { getContext } from "svelte";
 import type { Readable } from "svelte/store";
+import { Badge } from "$lib/components/ui/badge";
+import { Button } from "$lib/components/ui/button";
+import { isSyncing, lastSyncTime, syncError, syncIsOnline, syncStore } from "$lib/stores/sync";
 
 // Get current user from context to only show sync for authenticated users
 const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");

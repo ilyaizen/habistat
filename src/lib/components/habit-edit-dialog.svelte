@@ -1,17 +1,18 @@
 <script lang="ts">
-import { calendarsStore, type Calendar } from "$lib/stores/calendars";
-import { habits as habitsStore, type Habit } from "$lib/stores/habits";
-import Button from "$lib/components/ui/button/button.svelte";
-import { goto } from "$app/navigation";
-import * as Select from "$lib/components/ui/select";
-import Label from "$lib/components/ui/label/label.svelte";
 import { get } from "svelte/store";
-import Switch from "$lib/components/ui/switch/switch.svelte";
-import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-import Textarea from "$lib/components/ui/textarea/textarea.svelte";
-import Input from "$lib/components/ui/input/input.svelte";
 import { toast } from "svelte-sonner";
+import { goto } from "$app/navigation";
+import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+import Button from "$lib/components/ui/button/button.svelte";
 import * as Dialog from "$lib/components/ui/dialog/index.js";
+import Input from "$lib/components/ui/input/input.svelte";
+import Label from "$lib/components/ui/label/label.svelte";
+import * as Select from "$lib/components/ui/select";
+import Switch from "$lib/components/ui/switch/switch.svelte";
+import Textarea from "$lib/components/ui/textarea/textarea.svelte";
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+import { type Habit, habits as habitsStore } from "$lib/stores/habits";
+
 // Using $bindable for two-way binding of the open prop in Svelte 5
 
 let {
@@ -25,8 +26,16 @@ let {
 }>();
 
 const habitTypeItems = [
-  { value: "positive", label: "Positive", description: "Positive (Build good habits)" },
-  { value: "negative", label: "Negative", description: "Negative (Reduce bad habits)" }
+  {
+    value: "positive",
+    label: "Positive",
+    description: "Positive (Build good habits)"
+  },
+  {
+    value: "negative",
+    label: "Negative",
+    description: "Negative (Reduce bad habits)"
+  }
 ];
 
 let calendars = $state<Calendar[]>([]);
@@ -157,21 +166,31 @@ async function deleteHabit() {
         <p class="text-muted-foreground">Loading habit details...</p>
       {:else if !habit}
         <p class="text-destructive">
-          Habit not found. <a href={`/dashboard/${calendarId}`} class="text-primary hover:underline"
-            >Return to calendar.</a
+          Habit not found. <a
+            href={`/dashboard/${calendarId}`}
+            class="text-primary hover:underline">Return to calendar.</a
           >
         </p>
       {:else}
         <form onsubmit={saveHabit} class="flex flex-col gap-6">
           <div>
-            <Label class="text-foreground mb-2 block text-sm font-medium">Calendar</Label>
-            <Select.Root name="calendar" bind:value={selectedCalendarId} type="single">
+            <Label class="text-foreground mb-2 block text-sm font-medium"
+              >Calendar</Label
+            >
+            <Select.Root
+              name="calendar"
+              bind:value={selectedCalendarId}
+              type="single"
+            >
               <Select.Trigger class="w-full md:w-[200px]">
-                {calendars.find((c) => c.id === selectedCalendarId)?.name ?? "Select calendar"}
+                {calendars.find((c) => c.id === selectedCalendarId)?.name ??
+                  "Select calendar"}
               </Select.Trigger>
               <Select.Content>
                 <Select.Group>
-                  <Select.Label class="px-2 py-1.5 text-sm font-semibold">Calendars</Select.Label>
+                  <Select.Label class="px-2 py-1.5 text-sm font-semibold"
+                    >Calendars</Select.Label
+                  >
                   {#each calendars as cal (cal.id)}
                     <Select.Item value={cal.id} label={cal.name}>
                       {cal.name}
@@ -182,8 +201,9 @@ async function deleteHabit() {
             </Select.Root>
           </div>
           <div>
-            <Label for="habit-name" class="text-foreground mb-2 block text-sm font-medium"
-              >Name</Label
+            <Label
+              for="habit-name"
+              class="text-foreground mb-2 block text-sm font-medium">Name</Label
             >
             <Input
               id="habit-name"
@@ -193,10 +213,14 @@ async function deleteHabit() {
               maxlength={30}
               placeholder="Habit name (e.g., Drink Water)"
             />
-            <div class="text-muted-foreground text-right text-xs">{name.length} / 30</div>
+            <div class="text-muted-foreground text-right text-xs">
+              {name.length} / 30
+            </div>
           </div>
           <div>
-            <Label for="habit-description" class="text-foreground mb-2 block text-sm font-medium"
+            <Label
+              for="habit-description"
+              class="text-foreground mb-2 block text-sm font-medium"
               >Description</Label
             >
             <Textarea
@@ -208,10 +232,14 @@ async function deleteHabit() {
               maxlength={500}
               class="resize-none"
             />
-            <div class="text-muted-foreground text-right text-xs">{description.length} / 500</div>
+            <div class="text-muted-foreground text-right text-xs">
+              {description.length} / 500
+            </div>
           </div>
           <div>
-            <Label class="text-foreground mb-2 block text-sm font-medium">Type</Label>
+            <Label class="text-foreground mb-2 block text-sm font-medium"
+              >Type</Label
+            >
             <Select.Root name="type" bind:value={type} type="single">
               <Select.Trigger class="w-full md:w-[200px]">
                 {#if selectedLabel}
@@ -222,7 +250,9 @@ async function deleteHabit() {
               </Select.Trigger>
               <Select.Content>
                 <Select.Group>
-                  <Select.Label class="px-2 py-1.5 text-sm font-semibold">Habit Type</Select.Label>
+                  <Select.Label class="px-2 py-1.5 text-sm font-semibold"
+                    >Habit Type</Select.Label
+                  >
                   {#each habitTypeItems as item (item.value)}
                     <Select.Item value={item.value} label={item.label}>
                       {item.description}
@@ -235,8 +265,9 @@ async function deleteHabit() {
 
           <div class="flex items-center gap-3 rounded-md border p-4">
             <Switch id="timerEnabled" bind:checked={timerEnabled} />
-            <Label for="timerEnabled" class="text-foreground text-sm font-medium"
-              >Enable Timer</Label
+            <Label
+              for="timerEnabled"
+              class="text-foreground text-sm font-medium">Enable Timer</Label
             >
           </div>
           {#if timerEnabled}
@@ -259,7 +290,9 @@ async function deleteHabit() {
             </div>
           {/if}
           <div>
-            <Label for="habit-pointsValue" class="text-foreground mb-2 block text-sm font-medium"
+            <Label
+              for="habit-pointsValue"
+              class="text-foreground mb-2 block text-sm font-medium"
               >Points Value</Label
             >
             <Input
@@ -298,8 +331,11 @@ async function deleteHabit() {
           </div>
 
           <div class="mt-6 flex justify-end gap-3 border-t pt-6">
-            <Button type="button" variant="outline" onclick={handleClose} disabled={saving}
-              >Cancel</Button
+            <Button
+              type="button"
+              variant="outline"
+              onclick={handleClose}
+              disabled={saving}>Cancel</Button
             >
             <Button
               type="button"
@@ -346,8 +382,8 @@ async function deleteHabit() {
         <AlertDialog.Header>
           <AlertDialog.Title>Delete Habit?</AlertDialog.Title>
           <AlertDialog.Description>
-            This will permanently delete the habit "{habit?.name}" and all its completion data. This
-            action cannot be undone. Are you sure?
+            This will permanently delete the habit "{habit?.name}" and all its
+            completion data. This action cannot be undone. Are you sure?
           </AlertDialog.Description>
         </AlertDialog.Header>
         <AlertDialog.Footer>

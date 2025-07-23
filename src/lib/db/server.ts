@@ -3,8 +3,8 @@
 // It uses `better-sqlite3` for native SQLite performance.
 // This file should ONLY be imported in a server environment.
 
-import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import * as schema from "$lib/db/schema";
 
@@ -27,7 +27,7 @@ export async function initializeNodeDb() {
 
     // This will automatically run migrations on startup.
     // Use an absolute path for migrations to ensure it works in built Tauri apps
-    const migrationsPath = process.env.TAURI_DEBUG ? "./migrations" : process.cwd() + "/migrations";
+    const migrationsPath = process.env.TAURI_DEBUG ? "./migrations" : `${process.cwd()}/migrations`;
     migrate(globalThis.dbInstance, { migrationsFolder: migrationsPath });
     return globalThis.dbInstance;
   } catch (error) {

@@ -1,17 +1,16 @@
 <script lang="ts">
 import { Menu, X } from "@lucide/svelte";
-import { page } from "$app/state";
-import { Button } from "$lib/components/ui/button";
 import { goto } from "$app/navigation";
+import { page } from "$app/state";
+import Avatar from "$lib/components/avatar.svelte";
+import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
+import SyncIndicator from "$lib/components/sync-indicator.svelte";
 // import { _ } from "svelte-i18n";
 import { Badge } from "$lib/components/ui/badge";
-import { gamification } from "$lib/stores/gamification";
+import { Button } from "$lib/components/ui/button";
 import { Skeleton } from "$lib/components/ui/skeleton";
+import { gamification } from "$lib/stores/gamification";
 import { settings } from "$lib/stores/settings";
-import SyncIndicator from "$lib/components/sync-indicator.svelte";
-import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
-
-import Avatar from "$lib/components/avatar.svelte";
 
 let isMobileMenuOpen = $state(false);
 

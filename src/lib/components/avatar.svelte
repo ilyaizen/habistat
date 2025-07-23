@@ -1,9 +1,9 @@
 <script lang="ts">
-import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-import { getContext } from "svelte";
-import { goto } from "$app/navigation";
 import type { UserResource } from "@clerk/types";
+import { getContext } from "svelte";
 import { type Readable } from "svelte/store";
+import { goto } from "$app/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 // Get Clerk user context for authentication state
 const clerkUser = getContext<Readable<UserResource | null>>("clerkUser");

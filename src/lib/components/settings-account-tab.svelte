@@ -1,12 +1,12 @@
 <script lang="ts">
-import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
-import { Button } from "$lib/components/ui/button";
-import SessionInfo from "$lib/components/session-info.svelte";
-import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
-import { subscriptionStore } from "$lib/stores/subscription";
+import type { UserResource } from "@clerk/types";
 import { getContext } from "svelte";
 import type { Readable } from "svelte/store";
-import type { UserResource } from "@clerk/types";
+import SessionInfo from "$lib/components/session-info.svelte";
+import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
+import { Button } from "$lib/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
+import { subscriptionStore } from "$lib/stores/subscription";
 
 // Get user from context
 const clerkUserStore = getContext<Readable<UserResource | null> | undefined>("clerkUser");

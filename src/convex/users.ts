@@ -1,5 +1,5 @@
-import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { internalMutation, query } from "./_generated/server";
 
 /**
  * Creates a new user record or updates an existing one based on Clerk ID.

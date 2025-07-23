@@ -1,12 +1,12 @@
 <script lang="ts">
-import { habits as habitsStore, type HabitInputData } from "$lib/stores/habits";
-import { calendarsStore, type Calendar } from "$lib/stores/calendars";
-import Input from "$lib/components/ui/input/input.svelte";
-import Button from "$lib/components/ui/button/button.svelte";
 import { goto } from "$app/navigation";
-import * as Select from "$lib/components/ui/select";
 import { page } from "$app/state";
+import Button from "$lib/components/ui/button/button.svelte";
+import Input from "$lib/components/ui/input/input.svelte";
 import Label from "$lib/components/ui/label/label.svelte";
+import * as Select from "$lib/components/ui/select";
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+import { type HabitInputData, habits as habitsStore } from "$lib/stores/habits";
 
 const habitTypeItems = [
   { value: "positive", label: "Positive", description: "Positive (Build good habits)" },

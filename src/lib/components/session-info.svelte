@@ -12,17 +12,17 @@
  */ -->
 
 <script lang="ts">
-import { Button } from "$lib/components/ui/button/index.js";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+import type { LoadedClerk, UserResource } from "@clerk/types";
 import { Trash2 } from "@lucide/svelte";
-import { sessionStore, anonymousUserId } from "$lib/utils/tracking";
+import { getContext } from "svelte";
 // import { settings } from "$lib/stores/settings";
 import { derived, get, type Readable } from "svelte/store";
-import { getContext } from "svelte";
-import type { UserResource, LoadedClerk } from "@clerk/types";
 import { SignInButton, SignUpButton, UserButton } from "svelte-clerk";
+import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+import { Button } from "$lib/components/ui/button/index.js";
+import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
 // Derive anonymous ID from the store for reactive updates
 const anonymousId = derived(anonymousUserId, ($id) => $id);
@@ -158,8 +158,11 @@ async function deleteUserSessionWithConfirm() {
     ];
 
     cookiesToClear.forEach((cookieName) => {
+      // biome-ignore lint/suspicious/noDocumentCookie: This is a deliberate fallback for cookie clearing.
       document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+      // biome-ignore lint/suspicious/noDocumentCookie: This is a deliberate fallback for cookie clearing.
       document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
+      // biome-ignore lint/suspicious/noDocumentCookie: This is a deliberate fallback for cookie clearing.
       document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
     });
 

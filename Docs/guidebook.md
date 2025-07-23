@@ -74,14 +74,17 @@ bun format             # Biome formatting
 - **Auth**: Clerk, svelte-clerk
 - **Utilities**: uuid, date-fns, svelte-i18n
 
-- **Available shadcn-svelte UI Components**: `alert-dialog, avatar, badge, button, calendar, card, chart, checkbox, context-menu, dialog, drawer, dropdown-menu, form, input, label, p5-canvas, popover, progress, radio-group, select, separator, skeleton, slider, sonner, switch, table, tabs, textarea, toggle, toggle-group, tooltip`
+- **Available shadcn-svelte UI Components**:
+```
+alert-dialog, avatar, badge, button, calendar, card, chart, checkbox, context-menu, dialog, drawer, dropdown-menu, form, input, label, p5-canvas, popover, progress, radio-group, select, separator, skeleton, slider, sonner, switch, table, tabs, textarea, toggle, toggle-group, tooltip
+```
 
-For usage examples and API details, see the [shadcn-svelte documentation](https://shadcn-svelte.com/docs).
+For usage examples and API details, see the [shadcn-svelte documentation](https://shadcn-svelte.com/docs/components).
 
 See [tech-stack.md](tech-stack.md) or check the project's `package.json` for a fuller list.
 
 **Cross-Platform Data Layer Warning**:
-The project uses `better-sqlite3` in Node.js/Tauri environments and `sql.js` in the browser. Never import Node-only drivers like `better-sqlite3` in browser-facing code. The current setup correctly handles this by conditionally importing the right driver based on the environment.
+The project uses `better-sqlite3` in Node.js / Tauri environments and `sql.js` in the browser. Never import Node-only drivers like `better-sqlite3` in browser-facing code. The current setup correctly handles this by conditionally importing the right driver based on the environment.
 
 ## Testing Guidelines
 

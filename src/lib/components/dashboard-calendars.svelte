@@ -8,28 +8,26 @@
  */ -->
 
 <script lang="ts">
+import { GripVertical } from "@lucide/svelte";
+import { flip } from "svelte/animate";
+import { SvelteDate, SvelteMap } from "svelte/reactivity";
+import { type DndEvent, dndzone } from "svelte-dnd-action";
 import { goto } from "$app/navigation";
-
-// --- Store Imports ---
-// Core data stores for calendars, habits, and completions
-import { calendarsStore, type Calendar } from "$lib/stores/calendars";
-import { habits as habitsStore, type Habit } from "$lib/stores/habits";
-import { completionsByHabit } from "$lib/stores/completions";
-
+import CalendarEditDialog from "$lib/components/calendar-edit-dialog.svelte";
+import HabitCompletionControl from "$lib/components/habit-completion-control.svelte";
+import HabitEditDialog from "$lib/components/habit-edit-dialog.svelte";
+import HabitHistoryGrid from "$lib/components/habit-history-grid.svelte";
 // --- Component Imports ---
 // UI components for drag-and-drop, habit controls, and visualization
 import Button from "$lib/components/ui/button/button.svelte";
-import { dndzone, type DndEvent } from "svelte-dnd-action";
-import { flip } from "svelte/animate";
-import { GripVertical } from "@lucide/svelte";
-import HabitCompletionControl from "$lib/components/habit-completion-control.svelte";
-import HabitHistoryGrid from "$lib/components/habit-history-grid.svelte";
-import { formatDate } from "$lib/utils/date";
-import { IsMobile } from "$lib/hooks/is-mobile";
 import { Card } from "$lib/components/ui/card";
-import HabitEditDialog from "$lib/components/habit-edit-dialog.svelte";
-import CalendarEditDialog from "$lib/components/calendar-edit-dialog.svelte";
-import { SvelteDate, SvelteMap } from "svelte/reactivity";
+import { IsMobile } from "$lib/hooks/is-mobile";
+// --- Store Imports ---
+// Core data stores for calendars, habits, and completions
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+import { completionsByHabit } from "$lib/stores/completions";
+import { type Habit, habits as habitsStore } from "$lib/stores/habits";
+import { formatDate } from "$lib/utils/date";
 
 // --- Component Props ---
 // isReorderMode is controlled by the parent component (DashboardHeader)
@@ -77,7 +75,7 @@ const habitsByCalendar = $derived.by(() => {
     if (!newMap.has(habit.calendarId)) {
       newMap.set(habit.calendarId, []);
     }
-    newMap.get(habit.calendarId)!.push(habit);
+    newMap.get(habit.calendarId)?.push(habit);
   }
 
   // Sort habits within each calendar by position

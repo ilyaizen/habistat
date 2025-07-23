@@ -1,10 +1,10 @@
 <script lang="ts">
+import type { UserResource } from "@clerk/types";
+import { getContext } from "svelte";
+import type { Readable } from "svelte/store";
 import { Badge } from "$lib/components/ui/badge";
 import { subscriptionStore } from "$lib/stores/subscription";
 import { formatSubscriptionStatus } from "$lib/utils/subscription-limits";
-import { getContext } from "svelte";
-import type { Readable } from "svelte/store";
-import type { UserResource } from "@clerk/types";
 
 let {
   showDetails = false,

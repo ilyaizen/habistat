@@ -1,24 +1,22 @@
 <script lang="ts">
 // Import stores for settings management
-import { settings } from "$lib/stores/settings";
-import { goto } from "$app/navigation";
-
-// Import custom tab components
-import DevSettingsTab from "$lib/components/settings-dev-tab.svelte";
 
 // Import tracking utilities
 // import { anonymousUserId, logAppOpenIfNeeded } from "$lib/utils/tracking";
 // Import Svelte lifecycle hooks
 import { onMount } from "svelte";
-
 import { browser } from "$app/environment";
-// import { get } from "svelte/store";
+import { goto } from "$app/navigation";
+// Import custom tab components
+import DevSettingsTab from "$lib/components/settings-dev-tab.svelte";
+import { settings } from "$lib/stores/settings";
 
-// Import tab bar UI components
-import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
+// import { get } from "svelte/store";
 
 // Import wrapper for tab content transitions
 import TabMotionWrapper from "$lib/components/tab-motion-wrapper.svelte";
+// Import tab bar UI components
+import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
 
 // State for the active settings tab, defaults to 'customization'
 let activeTab = $state("dev");

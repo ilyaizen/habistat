@@ -1,7 +1,8 @@
 <script lang="ts">
 import { Button, buttonVariants } from "$lib/components/ui/button";
-import SocialLinks from "./social-links.svelte";
 import QuoteOfTheDay from "./quote-of-the-day.svelte";
+import SocialLinks from "./social-links.svelte";
+
 let { onMoreInfo = () => {} }: { onMoreInfo?: () => void } = $props();
 </script>
 

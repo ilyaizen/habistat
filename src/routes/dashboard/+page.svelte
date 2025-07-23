@@ -12,25 +12,22 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import { goto } from "$app/navigation";
-import { useDashboardData } from "$lib/hooks/use-dashboard-data.svelte";
 import DashboardMainPanel from "$lib/components/dashboard-main-panel.svelte";
 import DashboardSidePanel from "$lib/components/dashboard-side-panel.svelte";
+import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
+import TierLimitGuard from "$lib/components/tier-limit-guard.svelte";
 
+// --- Component Imports ---
+import { Button } from "$lib/components/ui/button";
+import * as Tooltip from "$lib/components/ui/tooltip";
+import { useDashboardData } from "$lib/hooks/use-dashboard-data.svelte";
 // --- Store Imports ---
 // Core data stores for calendars
 import { calendarsStore } from "$lib/stores/calendars";
 
-// --- Component Imports ---
-import Button from "$lib/components/ui/button/button.svelte";
-import * as Tooltip from "$lib/components/ui/tooltip";
-import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
-import TierLimitGuard from "$lib/components/tier-limit-guard.svelte";
-
 // --- Data Initialization Hook ---
 // Custom hook for loading and refreshing dashboard data from stores
-// TODO: 2025-07-22 - Add loading state back in when we have a way to track it
-// const { loading, initialize, refreshData } = useDashboardData();
-const { initialize, refreshData } = useDashboardData();
+const { loading, initialize, refreshData } = useDashboardData();
 
 // Add key for ActivityMonitor remount
 let activityMonitorKey = $state(0);
@@ -84,16 +81,36 @@ async function handleDataGenerated() {
 <!-- Create New Calendar Button at Top -->
 <div class="flex justify-center pb-8">
   <TierLimitGuard type="calendars">
-    <Button size="lg" onclick={openCreateDialog} class="btn-3d">New Calendar</Button>
+    <Button size="lg" onclick={openCreateDialog} class="btn-3d"
+      >New Calendar</Button
+    >
   </TierLimitGuard>
 </div>
 
 <!-- Main dashboard container with responsive padding -->
 <Tooltip.Provider>
-  {#if calendars.length === 0}
+  {#if loading()}
+    <div
+      class="flex h-full w-full flex-col items-center justify-center gap-4 text-center"
+    >
+      <div
+        class="flex h-full w-full flex-col items-center justify-center gap-4 text-center"
+      >
+        <!-- TODO: 2025-07-23 - Make this a beautiful loading spinner -->
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-t-primary border-b-secondary"
+        ></div>
+      </div>
+      <p class="text-muted-foreground">Loading...</p>
+    </div>
+  {:else if calendars.length === 0}
     <!-- Empty state with action buttons -->
-    <div class="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
-      <p class="text-muted-foreground">No calendars yet. Create one to get started!</p>
+    <div
+      class="flex h-full w-full flex-col items-center justify-center gap-4 text-center"
+    >
+      <p class="text-muted-foreground">
+        No calendars yet. Create one to get started!
+      </p>
       <div class="mt-4 flex justify-center gap-2">
         <SampleDataGenerator ondatagenerated={handleDataGenerated} />
       </div>

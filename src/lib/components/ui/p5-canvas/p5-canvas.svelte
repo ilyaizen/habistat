@@ -1,6 +1,6 @@
 <script lang="ts">
-import { browser } from "$app/environment";
 import type p5 from "p5";
+import { browser } from "$app/environment";
 
 let {
   sketch,

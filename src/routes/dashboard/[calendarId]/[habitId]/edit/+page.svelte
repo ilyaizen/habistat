@@ -1,17 +1,17 @@
 <script lang="ts">
-import { calendarsStore, type Calendar } from "$lib/stores/calendars";
-import { habits as habitsStore, type Habit } from "$lib/stores/habits";
-import Button from "$lib/components/ui/button/button.svelte";
-import { goto } from "$app/navigation";
-import * as Select from "$lib/components/ui/select";
-import { page } from "$app/state";
-import Label from "$lib/components/ui/label/label.svelte";
 import { get } from "svelte/store";
-import Switch from "$lib/components/ui/switch/switch.svelte";
-import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-import Textarea from "$lib/components/ui/textarea/textarea.svelte";
-import Input from "$lib/components/ui/input/input.svelte";
 import { toast } from "svelte-sonner";
+import { goto } from "$app/navigation";
+import { page } from "$app/state";
+import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+import Button from "$lib/components/ui/button/button.svelte";
+import Input from "$lib/components/ui/input/input.svelte";
+import Label from "$lib/components/ui/label/label.svelte";
+import * as Select from "$lib/components/ui/select";
+import Switch from "$lib/components/ui/switch/switch.svelte";
+import Textarea from "$lib/components/ui/textarea/textarea.svelte";
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+import { type Habit, habits as habitsStore } from "$lib/stores/habits";
 
 const habitTypeItems = [
   { value: "positive", label: "Positive", description: "Positive (Build good habits)" },

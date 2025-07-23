@@ -1,12 +1,10 @@
-import { writable, get } from "svelte/store";
-import type { InferModel } from "drizzle-orm";
-
-import { habits as habitsSchema } from "../db/schema";
-import * as localData from "../services/local-data";
-
 import { ConvexClient } from "convex/browser";
+import type { InferModel } from "drizzle-orm";
+import { get, writable } from "svelte/store";
 import { api } from "../../convex/_generated/api";
 import type { Doc } from "../../convex/_generated/dataModel";
+import type { habits as habitsSchema } from "../db/schema";
+import * as localData from "../services/local-data";
 
 // Lazy initialization of Convex client to avoid undefined deployment address during static build
 let convex: ConvexClient | null = null;
@@ -142,9 +140,11 @@ function createHabitsStore() {
             const localHabitsMap = new Map(localUserHabits.map((h) => [h.id, h]));
 
             for (const convexHabit of convexHabitsFromServer) {
+              if (!currentClerkUserId) return;
+
               const localHabit = localHabitsMap.get(convexHabit.localUuid);
               const serverDataForLocal: Omit<Habit, "id"> = {
-                userId: currentClerkUserId!,
+                userId: currentClerkUserId,
                 calendarId: convexHabit.calendarId,
                 name: convexHabit.name,
                 description: convexHabit.description ?? null,

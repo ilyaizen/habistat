@@ -1,7 +1,7 @@
-import { get } from "svelte/store";
 import { resetMode, setMode } from "mode-watcher";
-import { theme } from "$lib/stores/settings";
+import { get } from "svelte/store";
 import { browser } from "$app/environment";
+import { theme } from "$lib/stores/settings";
 
 /**
  * Theme management hook for Habistat application.

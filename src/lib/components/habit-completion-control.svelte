@@ -6,15 +6,16 @@
  * It displays different controls based on whether the habit has been completed today and
  * adapts its appearance for positive vs. negative habits.
  */
-import { Minus, Check, X } from "@lucide/svelte";
-import { Button } from "$lib/components/ui/button";
-import { completionsStore } from "$lib/stores/completions";
-import { triggerConfetti } from "$lib/stores/ui";
-import { calendarsStore } from "$lib/stores/calendars";
-import { getContext } from "svelte";
-import type { Habit } from "$lib/stores/habits";
+
 import type { UserResource } from "@clerk/types";
+import { Check, Minus, X } from "@lucide/svelte";
+import { getContext } from "svelte";
 import type { Readable } from "svelte/store";
+import { Button } from "$lib/components/ui/button";
+import { calendarsStore } from "$lib/stores/calendars";
+import { completionsStore } from "$lib/stores/completions";
+import type { Habit } from "$lib/stores/habits";
+import { triggerConfetti } from "$lib/stores/ui";
 import NumberFlow from "$lib/vendor/number-flow/NumberFlow.svelte";
 
 // --- Component Properties ---

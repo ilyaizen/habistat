@@ -1,9 +1,10 @@
 <script lang="ts">
+import { X } from "@lucide/svelte";
 import { slide } from "svelte/transition";
 import { Button, buttonVariants } from "$lib/components/ui/button";
 import * as Drawer from "$lib/components/ui/drawer";
-import { X } from "@lucide/svelte";
 import MoreInfo from "./more-info.svelte";
+
 // import { getContext } from "svelte";
 
 // Svelte 5 props: make 'open' bindable

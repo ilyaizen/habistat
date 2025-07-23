@@ -1,10 +1,10 @@
 <script lang="ts">
-import { calendarsStore } from "$lib/stores/calendars";
-import Input from "$lib/components/ui/input/input.svelte";
-import Button from "$lib/components/ui/button/button.svelte";
-import { goto } from "$app/navigation";
-import * as Select from "$lib/components/ui/select";
 import ArrowLeftIcon from "@lucide/svelte/icons/arrow-left";
+import { goto } from "$app/navigation";
+import Button from "$lib/components/ui/button/button.svelte";
+import Input from "$lib/components/ui/input/input.svelte";
+import * as Select from "$lib/components/ui/select";
+import { calendarsStore } from "$lib/stores/calendars";
 import { COLOR_PALETTE } from "$lib/utils/colors";
 
 let name = $state("");

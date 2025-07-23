@@ -31,9 +31,7 @@ const upgradeMessage = $derived.by(() => {
 });
 
 // Check if subscription data is still loading
-const isLoading = $derived.by(() => {
-  return subscriptionStore.isLoading();
-});
+const isLoading = subscriptionStore.isLoading();
 </script>
 
 {#if isLoading}

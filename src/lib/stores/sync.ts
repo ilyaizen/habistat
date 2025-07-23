@@ -1,6 +1,6 @@
-import { writable, derived, get } from "svelte/store";
-import { SyncService } from "../services/sync";
+import { derived, get, writable } from "svelte/store";
 import { browser } from "$app/environment";
+import { SyncService } from "../services/sync";
 import { convex } from "../utils/convex";
 import { completionsStore } from "./completions";
 

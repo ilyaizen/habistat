@@ -1,13 +1,13 @@
 <script lang="ts">
+import { BROWSER } from "esm-env";
 import NumberFlowLite, {
   define,
-  renderInnerHTML,
   formatToData,
-  type KeyedNumberPart
+  type KeyedNumberPart,
+  renderInnerHTML
 } from "number-flow/lite";
 import { writable } from "svelte/store";
 import { getGroupContext } from "./group.js";
-import { BROWSER } from "esm-env";
 
 export class NumberFlowElement extends NumberFlowLite {
   set __svelte_batched(batched: boolean) {

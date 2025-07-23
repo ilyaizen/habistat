@@ -1,13 +1,13 @@
 <script lang="ts">
-import { Button } from "$lib/components/ui/button";
 import { Globe, RefreshCw, Target } from "@lucide/svelte";
-import { anonymousUserId } from "$lib/utils/tracking";
 import { goto } from "$app/navigation";
+import { Button } from "$lib/components/ui/button";
 import { Separator } from "$lib/components/ui/separator";
-
+import { anonymousUserId } from "$lib/utils/tracking";
+import QuoteOfTheDay from "./quote-of-the-day.svelte";
 // import EnvironmentIndicator from "./environment-indicator-old.svelte";
 import SocialLinks from "./social-links.svelte";
-import QuoteOfTheDay from "./quote-of-the-day.svelte";
+
 // Svelte 5: Use callback props instead of createEventDispatcher for events
 let {
   handleStart,

@@ -60,15 +60,3 @@ declare global {
     // interface Platform {}
   }
 }
-
-// Tauri window type declarations
-// interface Window {
-//   __TAURI__?: {
-//     tauri?: {
-//       invoke: <T>(cmd: string, args?: Record<string, unknown>) => Promise<T>;
-//       // Additional Tauri API methods would be defined here
-//     };
-//   };
-// }
-
-export {};

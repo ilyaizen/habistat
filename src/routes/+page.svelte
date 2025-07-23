@@ -9,16 +9,16 @@
  */ -->
 
 <script lang="ts">
-import { Button, buttonVariants } from "$lib/components/ui/button";
-import { goto } from "$app/navigation";
-import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
-import { browser } from "$app/environment";
 import { getContext } from "svelte";
 import { get } from "svelte/store";
-import { triggerFireworks } from "$lib/stores/ui";
-import { triggerConfetti } from "$lib/stores/ui";
-import { toast } from "svelte-sonner";
 import { slide } from "svelte/transition";
+import { toast } from "svelte-sonner";
+import { browser } from "$app/environment";
+import { goto } from "$app/navigation";
+import { Button, buttonVariants } from "$lib/components/ui/button";
+import { triggerConfetti, triggerFireworks } from "$lib/stores/ui";
+
+import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
 
 // --- Drawer Controller ---
 // Get the singleton drawer controller from the root layout context.
@@ -131,7 +131,9 @@ function handleTouchMove(e: TouchEvent) {
 $effect(() => {
   if (browser) {
     window.addEventListener("wheel", handleWheel, { passive: true });
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchstart", handleTouchStart, {
+      passive: true
+    });
     window.addEventListener("touchmove", handleTouchMove, { passive: true });
 
     return () => {
@@ -162,12 +164,22 @@ $effect(() => {
   </p>
   {#if $anonymousUserId}
     <!-- Show Dashboard button for returning users -->
-    <Button onclick={handleDashboardClick} size="lg" disabled={sessionStarting} class="btn-3d">
+    <Button
+      onclick={handleDashboardClick}
+      size="lg"
+      disabled={sessionStarting}
+      class="btn-3d"
+    >
       {sessionStarting ? "Loading..." : "Go to Habits"}
     </Button>
   {:else}
     <!-- Show Start button for new users -->
-    <Button onclick={handleStart} size="lg" disabled={sessionStarting} class="btn-3d">
+    <Button
+      onclick={handleStart}
+      size="lg"
+      disabled={sessionStarting}
+      class="btn-3d"
+    >
       {sessionStarting ? "Starting..." : "Get Started"}
     </Button>
   {/if}

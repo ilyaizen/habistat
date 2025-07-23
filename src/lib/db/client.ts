@@ -2,12 +2,12 @@
 // - Browser: sql.js (WASM) with IndexedDB persistence
 // - Tauri/Node: better-sqlite3 (via server.ts)
 
-import * as schema from "$lib/db/schema";
-import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
-import wasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import type { SQLJsDatabase } from "drizzle-orm/sql-js";
+import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
+import wasmUrl from "sql.js/dist/sql-wasm.wasm?url";
+import * as schema from "$lib/db/schema";
 
 // This is a dynamic import that Vite will handle.
 // It imports the content of all migration files as raw strings.
@@ -21,7 +21,7 @@ export const migrationQueries = Object.entries(migrationModules)
   .map(([path, query]) => ({
     path,
     query: query as string,
-    name: path.split("/").pop()!
+    name: path.split("/").pop() ?? path
   }))
   .sort((a, b) => {
     const aPrefix = parseInt(a.name.split("_")[0], 10);

@@ -1,7 +1,7 @@
 <script lang="ts">
-import { onMount, onDestroy } from "svelte";
-import { triggerFireworks } from "$lib/stores/ui";
+import { onDestroy, onMount } from "svelte";
 import { settings } from "$lib/stores/settings";
+import { triggerFireworks } from "$lib/stores/ui";
 
 // Svelte 5 $state and $effect runes
 let isTriggered = $state(false);
@@ -303,19 +303,20 @@ function launchFirework(intensity: number = 1) {
 
 // Animation loop
 function animate() {
-  if (!ctx || !canvas) return;
+  const currentCtx = ctx;
+  if (!currentCtx) return;
 
   // Clear the canvas on each frame for a transparent background
-  ctx.clearRect(0, 0, maxx, maxy);
+  currentCtx.clearRect(0, 0, maxx, maxy);
 
   // Update and draw fireworks
   fireworks = fireworks.filter((f) => f.update());
-  fireworks.forEach((f) => f.draw(ctx!));
+  fireworks.forEach((f) => f.draw(currentCtx));
 
   // Update and draw explosions
   explosions = explosions.filter((p) => {
     p.update();
-    p.draw(ctx!);
+    p.draw(currentCtx);
     return p.isAlive();
   });
 
@@ -367,5 +368,9 @@ function cleanup() {
   efficient and avoids issues with CSS opacity transitions.
 -->
 <div class="pointer-events-none fixed inset-0 z-[9999]" hidden={!isTriggered}>
-  <canvas bind:this={canvas} class="pointer-events-none h-full w-full" aria-hidden="true"></canvas>
+  <canvas
+    bind:this={canvas}
+    class="pointer-events-none h-full w-full"
+    aria-hidden="true"
+  ></canvas>
 </div>

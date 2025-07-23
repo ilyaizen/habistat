@@ -1,9 +1,9 @@
 <!-- src/lib/components/dashboard-main-panel.svelte -->
 <script lang="ts">
-import { Switch } from "$lib/components/ui/switch";
 import { ArrowUpDown } from "@lucide/svelte";
-import { Tooltip, TooltipTrigger, TooltipContent } from "$lib/components/ui/tooltip";
 import DashboardCalendars from "$lib/components/dashboard-calendars.svelte";
+import { Switch } from "$lib/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "$lib/components/ui/tooltip";
 
 let { isReorderMode = $bindable() }: { isReorderMode: boolean } = $props();
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
-import { Button } from "$lib/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "$lib/components/ui/card";
 import { Badge } from "$lib/components/ui/badge";
+import { Button } from "$lib/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
 
 let {
   message,

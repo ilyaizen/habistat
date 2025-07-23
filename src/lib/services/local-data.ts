@@ -1,8 +1,8 @@
+import type { InferModel } from "drizzle-orm";
+import { and, desc, eq, gte, isNull } from "drizzle-orm";
 import { getDb as getDrizzleDb, persistBrowserDb } from "../db/client";
 import * as schema from "../db/schema";
-import { eq, and, gte, desc, isNull } from "drizzle-orm";
 import type { Calendar } from "../stores/calendars";
-import type { InferModel } from "drizzle-orm";
 
 // --- Types ---
 type Habit = InferModel<typeof schema.habits>;

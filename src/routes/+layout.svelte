@@ -9,26 +9,26 @@
  */ -->
 
 <script lang="ts">
-import { onMount, setContext, type Snippet } from "svelte";
-import { ClerkProvider } from "svelte-clerk";
-import MotionWrapper from "$lib/components/motion-wrapper.svelte";
-import type { LayoutData } from "./$types";
-import { browser } from "$app/environment";
-import { useTheme } from "$lib/hooks/use-theme.ts";
-import { useClerk } from "$lib/hooks/use-clerk.ts";
-// import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
-import { useAppInit } from "$lib/hooks/use-app-init.svelte.ts";
 // import { handleRefresh } from "$lib/utils/context-menu";
 import { injectAnalytics } from "@vercel/analytics/sveltekit";
 import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
+import { onMount, type Snippet, setContext } from "svelte";
+import { ClerkProvider } from "svelte-clerk";
+import { browser } from "$app/environment";
+import MotionWrapper from "$lib/components/motion-wrapper.svelte";
+// import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
+import { useAppInit } from "$lib/hooks/use-app-init.svelte.ts";
+import { useClerk } from "$lib/hooks/use-clerk.ts";
+import { useTheme } from "$lib/hooks/use-theme.ts";
+import type { LayoutData } from "./$types";
 import "../app.css";
-import AppHeader from "$lib/components/app-header.svelte";
-import AppFooter from "$lib/components/app-footer.svelte";
+import { setupConvex } from "convex-svelte";
 import { page } from "$app/state";
 import AboutDrawer from "$lib/components/about-drawer.svelte";
-import { setupConvex } from "convex-svelte";
-import FireworksEffect from "$lib/components/fireworks-effect.svelte";
+import AppFooter from "$lib/components/app-footer.svelte";
+import AppHeader from "$lib/components/app-header.svelte";
 import ConfettiEffect from "$lib/components/confetti-effect.svelte";
+import FireworksEffect from "$lib/components/fireworks-effect.svelte";
 import { Toaster } from "$lib/components/ui/sonner";
 
 // import * as ContextMenu from "$lib/components/ui/context-menu";
@@ -52,8 +52,12 @@ let aboutDrawerOpen = $state(false);
 let handleStart = $state(() => {});
 
 setContext("drawer-controller", {
-  open: () => (aboutDrawerOpen = true),
-  close: () => (aboutDrawerOpen = false),
+  open: () => {
+    aboutDrawerOpen = true;
+  },
+  close: () => {
+    aboutDrawerOpen = false;
+  },
   // Allows the current page to register its specific `handleStart` function.
   registerHandleStart: (fn: () => void) => {
     handleStart = fn;

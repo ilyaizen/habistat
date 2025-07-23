@@ -30,7 +30,7 @@ export function formatLocalDate(date: Date): string {
  * @returns Object with start and end timestamps for the day
  */
 export function getLocalDayRange(dateStr: string): { start: Date; end: Date } {
-  const start = new Date(dateStr + "T00:00:00");
+  const start = new Date(`${dateStr}T00:00:00`);
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
   return { start, end };
@@ -88,7 +88,7 @@ function hslToHex(h: number, s: number, l: number): string {
   g = Math.round((g + m) * 255);
   b = Math.round((b + m) * 255);
 
-  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
 /**

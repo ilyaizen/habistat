@@ -1,7 +1,7 @@
 <script lang="ts">
+import { onDestroy, tick } from "svelte";
 import { SvelteSet } from "svelte/reactivity";
 import { get, type Readable } from "svelte/store";
-import { onDestroy, tick } from "svelte";
 import { setGroupContext } from "./group.js";
 
 let { children } = $props();
@@ -27,7 +27,7 @@ const registerWithGroup = (el: Readable<FlowInstance>) => {
       updating = true;
       for (const flow of flows) {
         const f = get(flow);
-        if (f && f.created) {
+        if (f?.created) {
           f.willUpdate();
           tick().then(() => {
             get(flow)?.didUpdate();

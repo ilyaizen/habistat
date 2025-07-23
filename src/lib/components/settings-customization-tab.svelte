@@ -1,16 +1,16 @@
 <script lang="ts">
-import { settings, theme } from "$lib/stores/settings";
-import { Card, CardHeader, CardContent } from "$lib/components/ui/card";
-import { Button } from "$lib/components/ui/button";
-import { Label } from "$lib/components/ui/label";
-import Switch from "$lib/components/ui/switch/switch.svelte";
+import { Languages, LoaderPinwheel, Sun } from "@lucide/svelte";
+import { resetMode, setMode } from "mode-watcher";
+import { onDestroy, onMount } from "svelte";
+import { get } from "svelte/store";
 import { locale } from "svelte-i18n";
 import { browser } from "$app/environment";
-import { Sun, Languages, LoaderPinwheel } from "@lucide/svelte";
-import { resetMode, setMode } from "mode-watcher";
+import { Button } from "$lib/components/ui/button";
+import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
+import { Label } from "$lib/components/ui/label";
+import Switch from "$lib/components/ui/switch/switch.svelte";
 import type { ThemeMode } from "$lib/stores/settings";
-import { get } from "svelte/store";
-import { onDestroy, onMount } from "svelte";
+import { settings, theme } from "$lib/stores/settings";
 
 // Reactive state for the current theme, initialized from the store
 let currentTheme = $state(get(theme));

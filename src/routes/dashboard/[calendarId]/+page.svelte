@@ -1,12 +1,13 @@
 <script lang="ts">
-import { page } from "$app/state";
-import { calendarsStore, type Calendar } from "$lib/stores/calendars";
-import { habits as habitsStore, type Habit } from "$lib/stores/habits";
-import Button from "$lib/components/ui/button/button.svelte";
+import { ArrowDown, ArrowUp, Edit, PlusCircle } from "@lucide/svelte";
 import { goto } from "$app/navigation";
+import { page } from "$app/state";
+import Button from "$lib/components/ui/button/button.svelte";
 import * as Card from "$lib/components/ui/card";
 import { Separator } from "$lib/components/ui/separator";
-import { Edit, PlusCircle, ArrowUp, ArrowDown } from "@lucide/svelte";
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+import { type Habit, habits as habitsStore } from "$lib/stores/habits";
+
 // import type { Writable } from "svelte/store";
 
 let calendar = $state<Calendar | undefined>(undefined);

@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
 import { sveltekit } from "@sveltejs/kit/vite";
+import { defineConfig } from "vite";
 import devtoolsJson from "vite-plugin-devtools-json";
 
 // @ts-expect-error process is a nodejs global

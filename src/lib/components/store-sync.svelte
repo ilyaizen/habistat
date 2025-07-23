@@ -4,16 +4,15 @@
   Uses Svelte 5 $effect to react to page data changes and Clerk auth state.
 -->
 <script lang="ts">
-import { page } from "$app/state";
+import type { UserResource } from "@clerk/types";
 import { getContext } from "svelte";
+import type { Readable } from "svelte/store";
+import { toast } from "svelte-sonner";
+import { browser } from "$app/environment";
+import { page } from "$app/state";
 import { calendarsStore } from "$lib/stores/calendars";
 import { habits } from "$lib/stores/habits";
-
 import { syncStore } from "$lib/stores/sync";
-import { browser } from "$app/environment";
-import { toast } from "svelte-sonner";
-import type { UserResource } from "@clerk/types";
-import type { Readable } from "svelte/store";
 
 // Get Clerk user from context
 const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");

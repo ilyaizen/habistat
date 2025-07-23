@@ -1,21 +1,21 @@
 <script lang="ts">
-import { SvelteDate, SvelteMap } from "svelte/reactivity";
-import { calendarsStore, type Calendar } from "$lib/stores/calendars";
-import { habits as habitsStore } from "$lib/stores/habits";
-import { completionsStore } from "$lib/stores/completions";
-import Button from "$lib/components/ui/button/button.svelte";
-import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
 import { WandSparkles } from "@lucide/svelte";
+import { SvelteDate, SvelteMap } from "svelte/reactivity";
 import { get } from "svelte/store";
+import { v4 as uuid } from "uuid";
+import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+import Button from "$lib/components/ui/button/button.svelte";
 import * as localData from "$lib/services/local-data";
-import {
-  sessionStore,
-  generateFakeAppOpenHistory,
-  updateSessionStartDate
-} from "$lib/utils/tracking";
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+import { completionsStore } from "$lib/stores/completions";
+import { habits as habitsStore } from "$lib/stores/habits";
 import { COLOR_PALETTE } from "$lib/utils/colors";
 import { SAMPLE_DATA_CONFIG } from "$lib/utils/sample-data";
-import { v4 as uuid } from "uuid";
+import {
+  generateFakeAppOpenHistory,
+  sessionStore,
+  updateSessionStartDate
+} from "$lib/utils/tracking";
 
 // Callback prop for when data generation completes
 interface Props {

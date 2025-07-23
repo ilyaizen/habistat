@@ -5,15 +5,15 @@ import { getDb as getDrizzleDb, persistBrowserDb } from "../db/client";
 /**
  * Migration service to handle database schema changes
  */
-export class MigrationService {
+export namespace MigrationService {
   /**
    * Run all pending migrations
    */
-  static async runMigrations(): Promise<void> {
+  export async function runMigrations(): Promise<void> {
     console.log("🔄 Running database migrations...");
 
     try {
-      await this.simplifyCompletionsTable();
+      await simplifyCompletionsTable();
       // Note: syncMetadata table is now created via official Drizzle migration (0003_equal_songbird.sql)
       console.log("✅ Database migrations completed successfully");
     } catch (error) {
@@ -26,7 +26,7 @@ export class MigrationService {
    * Ultra-simplify completions table by removing all unnecessary columns
    * Keep only: id, userId, habitId, completedAt
    */
-  private static async simplifyCompletionsTable(): Promise<void> {
+  async function simplifyCompletionsTable(): Promise<void> {
     const db = await getDrizzleDb();
 
     try {

@@ -3,10 +3,10 @@
  * Handles core app setup including i18n, tracking, and scheduled tasks.
  */
 
+import { SvelteDate } from "svelte/reactivity";
 import { waitLocale } from "svelte-i18n";
 import { browser } from "$app/environment";
 import { logAppOpenIfNeeded } from "$lib/utils/tracking";
-import { SvelteDate } from "svelte/reactivity";
 
 export function useAppInit() {
   let i18nReady = $state(false);

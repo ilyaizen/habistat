@@ -1,20 +1,20 @@
 <script lang="ts">
 // Import necessary Svelte and SvelteKit modules for page functionality.
-import { page } from "$app/state";
-import { goto } from "$app/navigation";
-// Import stores and types for managing calendar data.
-import { calendarsStore, type Calendar } from "$lib/stores/calendars";
-import { get } from "svelte/store";
 
+import { get } from "svelte/store";
+import { toast } from "svelte-sonner";
+import { goto } from "$app/navigation";
+import { page } from "$app/state";
+import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
 // Import UI components from the library.
 import Button from "$lib/components/ui/button/button.svelte";
 import Input from "$lib/components/ui/input/input.svelte";
 import Label from "$lib/components/ui/label/label.svelte";
 import * as Select from "$lib/components/ui/select";
 import Switch from "$lib/components/ui/switch/switch.svelte";
-import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+// Import stores and types for managing calendar data.
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
 import { COLOR_PALETTE } from "$lib/utils/colors";
-import { toast } from "svelte-sonner";
 
 /**
  * Extracts the calendar ID from the page parameters using Svelte 5 runes.
