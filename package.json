@@ -18,7 +18,8 @@
     "bump": "node scripts/version-bumper.mjs",
     "bump:patch": "bun run bump patch",
     "bump:minor": "bun run bump minor",
-    "bump:major": "bun run bump major"
+    "bump:major": "bun run bump major",
+    "tree": "wsl bash -c \"tree -a -I 'node_modules|.next|src-tauri/target|.git|dist|out|gen|target|.svelte-kit|.obsidian|dist-clean|ui|build|icons' --noreport --dirsfirst > file-structure.txt\""
   },
   "license": "MIT",
   "dependencies": {
@@ -63,6 +64,7 @@
     "@internationalized/date": "^3.8.2",
     "@lucide/svelte": "^0.526.0",
     "@sveltejs/adapter-static": "^3.0.8",
+    "@sveltejs/adapter-vercel": "^5.8.1",
     "@sveltejs/kit": "^2.26.1",
     "@sveltejs/vite-plugin-svelte": "^6.1.0",
     "@tailwindcss/postcss": "^4.1.11",

@@ -1,7 +1,11 @@
 {
   "extends": "./.svelte-kit/tsconfig.json",
-  "include": ["src/**/*", "src/convex/_generated/**/*"],
-  "exclude": ["src-tauri/**/*"],
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "src-tauri/**/*"
+  ],
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
@@ -13,6 +17,34 @@
     "strict": true,
     "moduleResolution": "bundler",
     "module": "esnext",
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "noImplicitAny": false,
+    "baseUrl": ".",
+    "paths": {
+      "$lib": [
+        "./src/lib"
+      ],
+      "$lib/*": [
+        "./src/lib/*"
+      ],
+      "$components": [
+        "./src/lib/components"
+      ],
+      "$components/*": [
+        "./src/lib/components/*"
+      ],
+      "$stores": [
+        "./src/lib/stores"
+      ],
+      "$stores/*": [
+        "./src/lib/stores/*"
+      ],
+      "$utils": [
+        "./src/lib/utils"
+      ],
+      "$utils/*": [
+        "./src/lib/utils/*"
+      ]
+    }
   }
 }

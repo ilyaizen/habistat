@@ -109,6 +109,12 @@ export function useAppInit() {
     get trackingInitialized() {
       return trackingInitialized;
     },
+    setI18nReady: (value: boolean) => {
+      i18nReady = value;
+    },
+    setTrackingInitialized: (value: boolean) => {
+      trackingInitialized = value;
+    },
     initializeAppCore,
     scheduleMidnightCheck
     // setupDevelopmentMode,

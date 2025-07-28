@@ -2,7 +2,7 @@ import { derived, get, writable } from "svelte/store";
 import { browser } from "$app/environment";
 import { SyncService } from "../services/sync";
 import { convex } from "../utils/convex";
-import { authStateStore } from "./auth-state";
+import { authState } from "./auth-state";
 import { completionsStore } from "./completions";
 
 // Sync status types
@@ -64,14 +64,14 @@ function createSyncStore() {
       service?.setUserId(userId);
 
       // Update auth state
-      authStateStore.setClerkState(userId, true);
+      authState.setClerkState(userId, true);
 
       if (userId) {
         // Wait for authentication to be fully ready before syncing
         const attemptSyncWhenReady = async () => {
           console.log("[Sync] Waiting for authentication to be ready...");
 
-          const authReady = await authStateStore.waitForAuthReady(15000); // 15 second timeout
+          const authReady = await authState.waitForAuthReady(15000); // 15 second timeout
 
           if (authReady) {
             console.log("[Sync] Authentication ready, triggering sync");
@@ -106,11 +106,13 @@ function createSyncStore() {
       }
 
       // Check if authentication is ready
-      if (!authStateStore.isAuthReady()) {
+      const authStateData = get(authState);
+      if (!authStateData.clerkReady || !authStateData.clerkUserId) {
         console.log("[Sync] Authentication not ready, checking auth status...");
-        await authStateStore.checkConvexAuth();
+        authState.setConvexAuthStatus("pending");
 
-        if (!authStateStore.isAuthReady()) {
+        const authStateData2 = get(authState);
+        if (!authStateData2.clerkReady || !authStateData2.clerkUserId) {
           update((state) => ({
             ...state,
             error: "Authentication not ready - please wait and try again"

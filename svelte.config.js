@@ -1,4 +1,4 @@
-import adapter from "@sveltejs/adapter-static";
+import adapter from "@sveltejs/adapter-vercel";
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -8,13 +8,9 @@ const config = {
   preprocess: [vitePreprocess({})],
 
   kit: {
-    // See https://kit.svelte.dev/docs/adapter-static for more details
+    // See https://kit.svelte.dev/docs/adapter-vercel for more details
     adapter: adapter({
-      pages: "dist",
-      assets: "dist",
-      fallback: "index.html", // SPA mode - crucial for Tauri
-      precompress: false,
-      strict: false // Set to false to allow dynamic routes
+      fallback: "index.html" // SPA mode for client-side routing
     }),
 
     // App-wide settings

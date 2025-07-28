@@ -114,15 +114,6 @@ function createCalendarsStore() {
 
     currentClerkUserId = newClerkUserId;
 
-    // Authenticate the Convex client with a token provider function.
-    // This is called by Convex automatically when it needs to authenticate.
-    const convexClient = getConvexClient();
-    convexClient.setAuth(async () => {
-      const response = await fetch("/api/auth/token");
-      if (!response.ok) return null;
-      return response.text();
-    });
-
     if (convexUnsubscribe) {
       convexUnsubscribe();
       convexUnsubscribe = null;
@@ -139,10 +130,11 @@ function createCalendarsStore() {
 
       try {
         // Subscribe to the query using onUpdate
+        const convexClient: ConvexClient = getConvexClient();
         convexUnsubscribe = convexClient.onUpdate(
           api.calendars.getUserCalendars,
           {},
-          async (convexCalendarsFromServer) => {
+          async (convexCalendarsFromServer: any) => {
             if (convexCalendarsFromServer === undefined) return; // Data not ready yet.
 
             // --- MERGE LOGIC ---

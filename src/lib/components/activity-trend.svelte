@@ -1,24 +1,24 @@
 <script lang="ts">
-  import { BarChart } from "layerchart";
-  import * as Chart from "$lib/components/ui/chart";
+import { BarChart } from "layerchart";
+import * as Chart from "$lib/components/ui/chart";
 
-  type TrendData = {
-    date: string;
-    completions: number;
-    label: string;
-  };
+type TrendData = {
+  date: string;
+  completions: number;
+  label: string;
+};
 
-  let {
-    data: filteredData = $bindable(),
-    title = "Activity Trend",
-  }: { data: TrendData[]; title?: string } = $props();
+let {
+  data: filteredData = $bindable(),
+  title = "Activity Trend"
+}: { data: TrendData[]; title?: string } = $props();
 
-  const chartConfig = {
-    completions: {
-      label: "Completions",
-      color: "var(--chart-1)",
-    },
-  } satisfies Chart.ChartConfig;
+const chartConfig = {
+  completions: {
+    label: "Completions",
+    color: "var(--chart-1)"
+  }
+} satisfies Chart.ChartConfig;
 </script>
 
 <div class="space-y-2">

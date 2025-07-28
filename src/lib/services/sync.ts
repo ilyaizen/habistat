@@ -9,7 +9,6 @@ import * as localData from "./local-data";
 type Completion = InferModel<typeof completionsSchema>;
 
 export class SyncService {
-  private convex: ConvexClient;
   private userId: string | null = null;
   private isSyncing = false;
 

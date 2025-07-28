@@ -44,7 +44,7 @@ Habistat is built with a modern and robust technology stack:
 
 - **Package Manager:** [Bun v1.2](https://bun.com/)
 - **Core Framework:** [Tauri v2](https://v2.tauri.app/) (Rust backend, web frontend)
-- **Frontend:** [SvelteKit](https://svelte.dev/)
+- **Frontend:** [SvelteKit v2](https://svelte.dev/) (Svelte v5)
 - **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **UI Components:** [shadcn-svelte](https://next.shadcn-svelte.com/)
 - **Icons** [@lucide/svelte](https://github.com/lucide-icons/lucide)

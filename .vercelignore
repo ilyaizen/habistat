@@ -1,0 +1,32 @@
+# Development and build artifacts
+node_modules
+.svelte-kit
+src-tauri
+target
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Documentation and config files that aren't needed in production
+Docs/
+.cursor/
+.windsurf/
+.kiro/
+migrations/
+scripts/
+
+# Tauri-specific files
+src-tauri/target/
+src-tauri/gen/
+
+# Development tools
+.vscode/
+*.md

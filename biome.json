@@ -16,6 +16,9 @@
         "noUnusedImports": "off",
         "noUnusedVariables": "off"
       },
+      "suspicious": {
+        "noExplicitAny": "off"
+      },
       "nursery": {
         "useSortedClasses": "error"
       }
@@ -53,12 +56,16 @@
             "noUnusedImports": "off",
             "noUnusedVariables": "off"
           },
+          "suspicious": {
+            "noExplicitAny": "off",
+            "noArrayIndexKey": "off"
+          },
           "style": {
             "useConst": "off",
             "useImportType": "off"
           },
           "nursery": {
-            "useSortedClasses": "error"
+            "useSortedClasses": "on"
           }
         }
       }

@@ -2,7 +2,7 @@ import type { LoadedClerk, UserResource } from "@clerk/types";
 import { setContext } from "svelte";
 import { get, readable, writable } from "svelte/store";
 import { browser } from "$app/environment";
-import { authStateStore } from "$lib/stores/auth-state";
+import { authState } from "$lib/stores/auth-state";
 // import { syncIsOnline as networkIsOnline } from "$lib/stores/sync";
 import { markSessionAssociated, sessionStore } from "$lib/utils/tracking";
 
@@ -26,13 +26,13 @@ export function useClerk() {
         set(user);
 
         // Update auth state when Clerk user changes
-        authStateStore.setClerkState(user?.id ?? null, true);
+        authState.setClerkState(user?.id ?? null, true);
 
         // Add listener to update store on auth changes
         unsubscribe = clerk.addListener(({ user }) => {
           set(user ?? null);
           // Update auth state when Clerk user changes
-          authStateStore.setClerkState(user?.id ?? null, true);
+          authState.setClerkState(user?.id ?? null, true);
         });
       } else {
         // Retry after a short delay

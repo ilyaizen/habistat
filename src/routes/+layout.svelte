@@ -18,9 +18,15 @@ import MotionWrapper from "$lib/components/motion-wrapper.svelte";
 import { useAppInit } from "$lib/hooks/use-app-init.svelte.ts";
 import { useClerk } from "$lib/hooks/use-clerk.ts";
 import { useTheme } from "$lib/hooks/use-theme.ts";
-import type { LayoutData } from "./$types";
+
+// Temporary fix until SvelteKit types are generated
+type LayoutData = {
+  dbError?: string;
+  fallbackMode?: boolean;
+  [key: string]: any;
+};
 import "../app.css";
-import { page } from "$app/state";
+import { page } from "$app/stores";
 import AboutDrawer from "$lib/components/about-drawer.svelte";
 import AppFooter from "$lib/components/app-footer.svelte";
 import AppHeader from "$lib/components/app-header.svelte";
@@ -38,7 +44,7 @@ import { getConvexClient } from "$lib/utils/convex";
 import StoreSync from "$lib/components/store-sync.svelte";
 
 // Props received from parent routes using Svelte 5 $props rune
-let { children } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
+let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
 
 // Initialize hooks
 const theme = useTheme();
@@ -50,6 +56,12 @@ const appInit = useAppInit();
 let aboutDrawerOpen = $state(false);
 // A placeholder that can be overridden by the page context.
 let handleStart = $state(() => {});
+
+// Production loading states
+let initializationComplete = $state(false);
+let initializationError = $state<string | null>(data?.dbError || null);
+let authTimeout = $state(false);
+let authFallbackEnabled = $state(data?.fallbackMode || false);
 
 setContext("drawer-controller", {
   open: () => {
@@ -84,25 +96,84 @@ clerk.setupClerkContexts();
 clerk.setupSessionAssociation();
 
 onMount(() => {
+  // Check for database errors from layout load
+  if (data?.dbError) {
+    console.warn("[Layout] Database error detected:", data.dbError);
+    initializationError = `Database error: ${data.dbError}`;
+  }
+
   // Run diagnostics for Tauri builds
   // if (browser) {
   //   runDiagnostics();
   // }
 
-  // Initialize core functionalities when the component mounts in the browser.
-  appInit.initializeAppCore();
-  theme.initializeTheme();
+  let initTimeout: ReturnType<typeof setTimeout>;
+  let authFallbackTimeout: ReturnType<typeof setTimeout>;
 
-  // Initialize navigation tracking
-  // navigation.initializeNavigationTracking();
+  // Set a timeout for initialization to prevent infinite loading
+  initTimeout = setTimeout(() => {
+    console.warn("[Layout] Initialization taking longer than expected, enabling fallback mode");
+    authTimeout = true;
+    authFallbackEnabled = true;
+    initializationComplete = true;
+  }, 8000); // Reduced from 10 seconds to 8 seconds
 
-  // Initialize Clerk
-  clerk.initializeClerk();
+  // Set an even shorter timeout for auth-specific issues
+  authFallbackTimeout = setTimeout(() => {
+    if (!initializationComplete) {
+      console.warn("[Layout] Authentication timeout - enabling fallback");
+      authFallbackEnabled = true;
+    }
+  }, 5000); // 5 second auth timeout
 
-  // Set up midnight scheduling and development mode
-  appInit.scheduleMidnightCheck();
-  // TODO: 2025-07-22 - Add this back in when we have a way to handle it
-  // appInit.setupDevelopmentMode();
+  try {
+    // Initialize core functionalities when the component mounts in the browser.
+    appInit.initializeAppCore();
+    theme.initializeTheme();
+
+    // Initialize navigation tracking
+    // navigation.initializeNavigationTracking();
+
+    // Initialize Clerk - with timeout handling
+    try {
+      clerk.initializeClerk();
+    } catch (clerkError) {
+      console.error("[Layout] Clerk initialization failed:", clerkError);
+      authFallbackEnabled = true;
+    }
+
+    // Set up midnight scheduling and development mode
+    appInit.scheduleMidnightCheck();
+    // TODO: 2025-07-22 - Add this back in when we have a way to handle it
+    // appInit.setupDevelopmentMode();
+
+    // Initialize Convex client with authentication - only in browser
+    if (browser) {
+      try {
+        const client = getConvexClient();
+        if (client) {
+          console.log("[DEBUG] Convex client initialized successfully");
+        } else {
+          console.warn("[WARN] Failed to initialize Convex client - app will work in offline mode");
+        }
+      } catch (error) {
+        console.error("[ERROR] Convex client initialization failed:", error);
+        // Don't block the app if Convex fails
+      }
+    }
+
+    // Clear the timeouts since initialization completed
+    clearTimeout(initTimeout);
+    clearTimeout(authFallbackTimeout);
+    initializationComplete = true;
+  } catch (error) {
+    console.error("[Layout] Initialization error:", error);
+    initializationError = error instanceof Error ? error.message : "Unknown initialization error";
+    clearTimeout(initTimeout);
+    clearTimeout(authFallbackTimeout);
+    initializationComplete = true;
+    authFallbackEnabled = true;
+  }
 
   // Return cleanup function to remove listeners when the component is destroyed.
   return () => {
@@ -111,26 +182,18 @@ onMount(() => {
       // navigation.cleanup();
       // appInit.cleanup();
     }
+    if (initTimeout) {
+      clearTimeout(initTimeout);
+    }
+    if (authFallbackTimeout) {
+      clearTimeout(authFallbackTimeout);
+    }
   };
 });
 
 // Inject Vercel Analytics, Speed Insights for performance monitoring (runs only in browser)
 injectSpeedInsights();
 injectAnalytics();
-
-// Initialize Convex client with authentication - only in browser
-if (browser) {
-  try {
-    const client = getConvexClient();
-    if (client) {
-      console.log("[DEBUG] Convex client initialized successfully");
-    } else {
-      console.warn("[WARN] Failed to initialize Convex client");
-    }
-  } catch (error) {
-    console.error("[ERROR] Convex client initialization failed:", error);
-  }
-}
 
 // let contextMenuOpen = $state(false);
 
@@ -152,64 +215,37 @@ if (browser) {
 // }
 </script>
 
-<!-- <ContextMenu.Root bind:open={contextMenuOpen}>
-  <ContextMenu.Trigger> -->
-<div
-  class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
->
-  <ClerkProvider publishableKey={import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY}>
-    {#if page.url.pathname !== "/"}
+<ClerkProvider {...data}>
+  <div
+    class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
+  >
+    {#if $page.url.pathname !== "/"}
       <!-- Header is hidden on the landing page ("/") -->
       <AppHeader />
     {/if}
     <main class="flex-1">
-      {#if page.url.pathname === "/"}
+      {#if $page.url.pathname === "/"}
         <div class="absolute top-4 right-4">
           <ThemeToggle />
         </div>
       {/if}
       <!-- Main content area -->
       <MotionWrapper>
-        {#if appInit.i18nReady && appInit.trackingInitialized}
-          {@render children()}
-        {:else}
-          <div class="flex h-full items-center justify-center">
-            <!-- Loading spinner or placeholder -->
-            <div
-              class="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"
-            ></div>
-          </div>
-        {/if}
+        <!-- STRIPPED DOWN FOR DEBUGGING -->
+        {@render children()}
       </MotionWrapper>
     </main>
-    {#if page.url.pathname !== "/"}
+    {#if $page.url.pathname !== "/"}
       <!-- Footer is hidden on the landing page ("/") -->
       <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
     {/if}
-  </ClerkProvider>
 
-  <FireworksEffect />
-  <ConfettiEffect />
-  <Toaster />
-  <StoreSync />
+    <FireworksEffect />
+    <ConfettiEffect />
+    <Toaster />
+    <StoreSync />
 
-  <!-- The AboutDrawer is now a singleton here, its lifecycle is not tied to page navigation. -->
-  <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
-</div>
-<!-- </ContextMenu.Trigger>
-  <ContextMenu.Content class="w-52">
-    <ContextMenu.Item inset onclick={goBack}>
-      Back
-      <ContextMenu.Shortcut>Ctrl+[</ContextMenu.Shortcut>
-    </ContextMenu.Item>
-    <ContextMenu.Item inset disabled={!navigation.canGoForward} onclick={goForward}>
-      Forward
-      <ContextMenu.Shortcut>Ctrl+]</ContextMenu.Shortcut>
-    </ContextMenu.Item>
-    <ContextMenu.Separator />
-    <ContextMenu.Item inset onclick={handleRefreshWithClose}>
-      Refresh
-      <ContextMenu.Shortcut>Ctrl+R</ContextMenu.Shortcut>
-    </ContextMenu.Item>
-  </ContextMenu.Content>
-</ContextMenu.Root> -->
+    <!-- The AboutDrawer is now a singleton here, its lifecycle is not tied to page navigation. -->
+    <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
+  </div>
+</ClerkProvider>

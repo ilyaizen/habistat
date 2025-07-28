@@ -1,12 +1,12 @@
+import type { Clerk } from "@clerk/clerk-js";
 import { ConvexClient } from "convex/browser";
 import { browser } from "$app/environment";
 
 /**
  * Convex client singleton and authentication management
  *
- * This module handles creating and configuring the Convex client with proper
- * authentication token fetching, retries, and error handling to ensure a more
- * robust connection between the client and Convex backend.
+ * This module handles creating and configuring the Convex client with client-side
+ * Clerk authentication for static generation compatibility.
  */
 
 // Create a single convex client instance for the application
@@ -19,14 +19,66 @@ let lastSuccessfulToken: string | null = null;
 let authReady = false;
 let offlineMode = false;
 
-// Add token verification tracking
-let tokenVerificationInProgress = false;
-let lastVerifyAttemptTime = 0;
-let lastSuccessfulVerifyTime = 0;
+// Type declarations for window.Clerk
+declare global {
+  interface Window {
+    Clerk?: Clerk;
+    clerkPublishableKey?: string;
+  }
+}
 
 // Configure network detection
 function isOnline(): boolean {
   return browser ? navigator.onLine : false;
+}
+
+/**
+ * Check if Clerk is loaded and ready to use
+ */
+function isClerkReady(): boolean {
+  return browser && typeof window !== "undefined" && window.Clerk !== undefined;
+}
+
+/**
+ * Wait for Clerk to be loaded and ready
+ */
+async function waitForClerk(): Promise<boolean> {
+  if (!browser) return false;
+
+  // If already ready, return immediately
+  if (isClerkReady()) return true;
+
+  // Wait for Clerk to load with timeout
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      console.warn("[Convex] Timeout waiting for Clerk to load");
+      resolve(false);
+    }, 10000);
+
+    const checkClerk = () => {
+      if (typeof window !== "undefined" && window.Clerk) {
+        clearTimeout(timeout);
+        console.log("[Convex] Clerk is now ready");
+        resolve(true);
+      }
+    };
+
+    // Check immediately
+    checkClerk();
+
+    // Poll for Clerk
+    const pollInterval = setInterval(() => {
+      if (typeof window !== "undefined" && window.Clerk) {
+        clearInterval(pollInterval);
+        clearTimeout(timeout);
+        console.log("[Convex] Clerk detected via polling");
+        resolve(true);
+      }
+    }, 100);
+
+    // Clean up polling on timeout
+    setTimeout(() => clearInterval(pollInterval), 10000);
+  });
 }
 
 /**
@@ -68,7 +120,7 @@ function initializeConvexClient() {
       console.log("[Convex] Offline mode detected, some operations may be unavailable");
     }
 
-    // Configure auth with robust token handling
+    // Configure auth with client-side Clerk token handling
     convexClient.setAuth(async () => {
       // If we're offline, don't attempt auth
       if (!isOnline()) {
@@ -94,47 +146,36 @@ function initializeConvexClient() {
 
       while (attempts < maxAttempts) {
         try {
-          console.log(`[Convex] Fetching auth token (attempt ${attempts + 1}/${maxAttempts})`);
-          const response = await fetch("/api/auth/token");
+          console.log(
+            `[Convex] Fetching auth token from Clerk (attempt ${attempts + 1}/${maxAttempts})`
+          );
 
-          if (response.ok) {
-            const token = await response.text();
-            if (token) {
-              console.log("[Convex] Authentication successful");
-              lastSuccessfulToken = token;
-              authenticationInProgress = false;
+          // Wait for Clerk to be ready
+          const clerkAvailable = await waitForClerk();
+          if (!clerkAvailable) {
+            console.warn("[Convex] Clerk not available, cannot authenticate");
+            break;
+          }
 
-              // Start token verification immediately and allow optimistic auth
-              // This helps prevent race conditions between token fetch and usage
-              authReady = true; // Set optimistically
+          // Check if user is signed in
+          if (!window.Clerk?.user) {
+            console.log("[Convex] No user signed in to Clerk");
+            authenticationInProgress = false;
+            return null;
+          }
 
-              // Verify token asynchronously
-              tokenVerificationInProgress = true;
-              lastVerifyAttemptTime = Date.now();
+          // Get token from Clerk session
+          const token = await window.Clerk?.session?.getToken({ template: "convex" });
 
-              verifyTokenWorks()
-                .then((isValid) => {
-                  tokenVerificationInProgress = false;
-                  if (isValid) {
-                    lastSuccessfulVerifyTime = Date.now();
-                    console.log("[Convex] Authentication verified and working");
-                  } else {
-                    console.warn("[Convex] Authentication token may not be valid");
-                    // Only set authReady to false if verification explicitly fails
-                    // This reduces disruption to ongoing operations
-                    if (Date.now() - lastSuccessfulVerifyTime > 30000) {
-                      // Allow a grace period
-                      authReady = false;
-                    }
-                  }
-                })
-                .catch(() => {
-                  tokenVerificationInProgress = false;
-                  console.warn("[Convex] Failed to verify token, will retry on next operation");
-                });
-              offlineMode = false;
-              return token;
-            }
+          if (token) {
+            console.log("[Convex] Authentication successful via Clerk");
+            lastSuccessfulToken = token;
+            authenticationInProgress = false;
+            authReady = true;
+            offlineMode = false;
+            return token;
+          } else {
+            console.warn("[Convex] Failed to get token from Clerk session");
           }
 
           attempts++;
@@ -156,8 +197,8 @@ function initializeConvexClient() {
       console.warn("[Convex] Authentication failed after multiple attempts");
       authenticationInProgress = false;
 
-      // Return last successful token as a fallback
-      return lastSuccessfulToken;
+      // Return null instead of cached token on failure
+      return null;
     });
   } catch (error) {
     console.error("[Convex] Failed to initialize client:", error);
@@ -166,31 +207,16 @@ function initializeConvexClient() {
 }
 
 /**
- * Verify that the current token actually works with Convex
- * @returns Promise resolving to true if token works
+ * Check if user is authenticated in Clerk
+ * @returns Promise resolving to true if user is authenticated
  */
-async function verifyTokenWorks(): Promise<boolean> {
-  if (!convexClient || !lastSuccessfulToken) {
-    return false;
-  }
+async function isUserAuthenticated(): Promise<boolean> {
+  if (!browser) return false;
 
-  try {
-    // Make a direct token check request instead of using query
-    // This avoids circular dependencies with the API
-    const response = await fetch("/api/auth/check", {
-      headers: {
-        Authorization: `Bearer ${lastSuccessfulToken}`
-      }
-    });
+  const clerkAvailable = await waitForClerk();
+  if (!clerkAvailable) return false;
 
-    if (response.ok) {
-      return true;
-    }
-    return false;
-  } catch (error) {
-    console.warn("[Convex] Token verification failed:", error);
-    return false;
-  }
+  return !!window.Clerk?.user && !!window.Clerk?.session;
 }
 
 /**
@@ -198,20 +224,16 @@ async function verifyTokenWorks(): Promise<boolean> {
  * @returns Boolean indicating if auth is ready
  */
 export function isAuthReady(): boolean {
-  // Return true if we have a token AND auth is marked ready
-  if (authReady && !offlineMode && !!lastSuccessfulToken) {
-    return true;
+  // Must have Clerk ready and user authenticated
+  if (!isClerkReady() || offlineMode) {
+    return false;
   }
 
-  // If token verification is in progress, give it the benefit of the doubt
-  // This helps prevent race conditions during initial auth
-  if (tokenVerificationInProgress && lastSuccessfulToken && !offlineMode) {
-    // But only if we fetched the token recently
+  // Check if we have a valid token and recent fetch
+  if (authReady && lastSuccessfulToken) {
     const timeSinceLastFetch = Date.now() - lastTokenFetchTime;
-    if (timeSinceLastFetch < 10000) {
-      // 10 second grace period
-      return true;
-    }
+    // Token is valid for a reasonable time period
+    return timeSinceLastFetch < 300000; // 5 minutes
   }
 
   return false;

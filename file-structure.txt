@@ -1,9 +1,6 @@
 .
 ├── .claude
 │   └── settings.local.json
-├── .codeviz
-│   └── reports
-│       └── frontend_utilities_hooks_component_analysis_2025-07-26T11-56-31.md
 ├── .cursor
 │   ├── rules
 │   │   ├── add-comments.mdc
@@ -50,8 +47,11 @@
 │   ├── 0000_initial.sql
 │   └── 0001_simplify_completions.sql
 ├── scripts
+│   ├── fix-production-issues.mjs
+│   ├── generate-file-structure.sh
 │   ├── generate-sample-data.mjs
 │   ├── prepare-dist.js
+│   ├── production-hotfix.mjs
 │   └── version-bumper.mjs
 ├── src
 │   ├── convex
@@ -88,7 +88,6 @@
 │   │   │   ├── dashboard-calendars.svelte
 │   │   │   ├── dashboard-main-panel.svelte
 │   │   │   ├── dashboard-side-panel.svelte
-│   │   │   ├── debug-auth-status.svelte
 │   │   │   ├── fireworks-effect.svelte
 │   │   │   ├── habit-completion-control.svelte
 │   │   │   ├── habit-edit-dialog.svelte
@@ -149,6 +148,7 @@
 │   │   │   ├── completions.ts
 │   │   │   ├── context-menu.ts
 │   │   │   ├── convex.ts
+│   │   │   ├── database-fixer.ts
 │   │   │   ├── date.ts
 │   │   │   ├── environment.ts
 │   │   │   ├── navigation.ts
@@ -168,6 +168,11 @@
 │   │   └── lang.ts
 │   ├── routes
 │   │   ├── api
+│   │   │   ├── admin
+│   │   │   │   ├── db-init
+│   │   │   │   │   └── +server.ts
+│   │   │   │   └── db-status
+│   │   │   │       └── +server.ts
 │   │   │   └── auth
 │   │   │       ├── check
 │   │   │       │   └── +server.ts
@@ -190,7 +195,9 @@
 │   │   │   ├── +layout.svelte
 │   │   │   └── +page.svelte
 │   │   ├── debug
-│   │   │   └── auth
+│   │   │   ├── auth
+│   │   │   │   └── +page.svelte
+│   │   │   └── convex
 │   │   │       └── +page.svelte
 │   │   ├── dev
 │   │   │   ├── +layout.server.ts
@@ -241,6 +248,7 @@
 │   ├── favicon-32x32.png
 │   ├── favicon.ico
 │   ├── favicon.png
+│   ├── fix-database.js
 │   ├── flag-es.png
 │   ├── flag-il.png
 │   ├── flag-us.png
@@ -257,6 +265,7 @@
 ├── .env.local
 ├── .gitignore
 ├── .mcp.json
+├── .vercelignore
 ├── CLAUDE.md
 ├── Dockerfile
 ├── GEMINI.md
@@ -269,7 +278,10 @@
 ├── drizzle.config.ts
 ├── file-structure.txt
 ├── package.json
+├── plan.md
 ├── postcss.config.cjs
+├── production-init.sql
 ├── svelte.config.js
 ├── tsconfig.json
+├── vercel.json
 └── vite.config.mjs

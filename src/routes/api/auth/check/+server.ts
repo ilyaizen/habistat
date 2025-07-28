@@ -9,8 +9,8 @@ import type { RequestHandler } from "./$types";
 // Define proper types for the debug response
 interface AuthDebugInfo {
   timestamp: string;
-  hasSession: boolean;
-  sessionDetails: Record<string, any>;
+  hasAuth: boolean;
+  authDetails: Record<string, any>;
   cookies: Record<string, string>;
   authStatus: string;
 }
@@ -18,8 +18,8 @@ interface AuthDebugInfo {
 export const GET: RequestHandler = async ({ locals, cookies }) => {
   const debugInfo: AuthDebugInfo = {
     timestamp: new Date().toISOString(),
-    hasSession: !!locals.session,
-    sessionDetails: {},
+    hasAuth: !!locals.auth,
+    authDetails: {},
     cookies: {},
     authStatus: "unknown"
   };
@@ -32,36 +32,34 @@ export const GET: RequestHandler = async ({ locals, cookies }) => {
     __host_clerk_db_jwt: cookies.get("__Host-clerk-db-jwt") ? "true" : "false"
   };
 
-  if (locals.session) {
+  const { auth } = locals;
+
+  if (auth) {
     try {
-      debugInfo.sessionDetails = {
-        isSignedIn: locals.session.isSignedIn,
-        hasToAuth: typeof locals.session.toAuth === "function"
+      // Type guard to check if auth object has required authenticated properties
+      const isAuthenticated = "userId" in auth && auth.userId;
+      const hasGetToken = "getToken" in auth && typeof auth.getToken === "function";
+
+      debugInfo.authDetails = {
+        isSignedIn: isAuthenticated,
+        hasGetToken: hasGetToken,
+        userId: isAuthenticated ? auth.userId : null,
+        sessionId: "sessionId" in auth ? auth.sessionId : null
       };
 
-      if (locals.session.isSignedIn) {
+      if (isAuthenticated) {
         debugInfo.authStatus = "signed_in";
-
-        try {
-          const auth = locals.session.toAuth();
-          debugInfo.sessionDetails.userId = auth?.userId;
-          debugInfo.sessionDetails.sessionId = auth?.sessionId;
-          debugInfo.sessionDetails.hasGetToken = typeof auth?.getToken === "function";
-        } catch (authError) {
-          debugInfo.sessionDetails.authError = (authError as Error).message;
-          debugInfo.authStatus = "auth_error";
-        }
       } else {
         debugInfo.authStatus = "not_signed_in";
       }
-    } catch (sessionError) {
-      debugInfo.sessionDetails = {
-        error: (sessionError as Error).message
+    } catch (authError) {
+      debugInfo.authDetails = {
+        error: (authError as Error).message
       };
-      debugInfo.authStatus = "session_error";
+      debugInfo.authStatus = "auth_error";
     }
   } else {
-    debugInfo.authStatus = "no_session";
+    debugInfo.authStatus = "no_auth";
   }
 
   console.log("[API] Auth check result:", debugInfo);

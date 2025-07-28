@@ -1,82 +1,75 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-  import { page } from "$app/state";
-  import Button from "$lib/components/ui/button/button.svelte";
-  import Input from "$lib/components/ui/input/input.svelte";
-  import Label from "$lib/components/ui/label/label.svelte";
-  import * as Select from "$lib/components/ui/select";
-  import { type Calendar, calendarsStore } from "$lib/stores/calendars";
-  import {
-    type HabitInputData,
-    habits as habitsStore,
-  } from "$lib/stores/habits";
+import { goto } from "$app/navigation";
+import { page } from "$app/state";
+import Button from "$lib/components/ui/button/button.svelte";
+import Input from "$lib/components/ui/input/input.svelte";
+import Label from "$lib/components/ui/label/label.svelte";
+import * as Select from "$lib/components/ui/select";
+import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+import { type HabitInputData, habits as habitsStore } from "$lib/stores/habits";
 
-  const habitTypeItems = [
-    {
-      value: "positive",
-      label: "Positive",
-      description: "Positive (Build good habits)",
-    },
-    {
-      value: "negative",
-      label: "Negative",
-      description: "Negative (Reduce bad habits)",
-    },
-  ];
+const habitTypeItems = [
+  {
+    value: "positive",
+    label: "Positive",
+    description: "Positive (Build good habits)"
+  },
+  {
+    value: "negative",
+    label: "Negative",
+    description: "Negative (Reduce bad habits)"
+  }
+];
 
-  let name = $state("");
-  let description = $state("");
-  let type = $state("positive");
-  const selectedLabel = $derived(
-    habitTypeItems.find((item) => item.value === type)?.label,
-  );
-  let timerEnabled = $state(false);
-  let targetDurationSeconds = $state(0);
-  let pointsValue = $state(0);
-  let saving = $state(false);
-  let calendar = $state<Calendar | undefined>(undefined);
+let name = $state("");
+let description = $state("");
+let type = $state("positive");
+const selectedLabel = $derived(habitTypeItems.find((item) => item.value === type)?.label);
+let timerEnabled = $state(false);
+let targetDurationSeconds = $state(0);
+let pointsValue = $state(0);
+let saving = $state(false);
+let calendar = $state<Calendar | undefined>(undefined);
 
-  const calendarId = $derived(page.params.calendarId);
+const calendarId = $derived(page.params.calendarId);
 
-  // Effect to load calendar details
-  $effect(() => {
-    const unsubscribe = calendarsStore.subscribe((calendars) => {
-      calendar = calendars.find((c) => c.id === calendarId);
-    });
-    return unsubscribe;
+// Effect to load calendar details
+$effect(() => {
+  const unsubscribe = calendarsStore.subscribe((calendars) => {
+    calendar = calendars.find((c) => c.id === calendarId);
   });
+  return unsubscribe;
+});
 
-  async function createHabit(event: SubmitEvent) {
-    event.preventDefault();
-    saving = true;
-    try {
-      if (!calendarId) {
-        throw new Error("Calendar ID is required");
-      }
-      const newHabitData: HabitInputData = {
-        calendarId,
-        name,
-        description,
-        type,
-        timerEnabled: timerEnabled ? 1 : 0,
-        targetDurationSeconds: timerEnabled
-          ? Number(targetDurationSeconds) || null
-          : null,
-        pointsValue: Number(pointsValue) || 0,
-        // Position will be handled by the store or backend
-      };
-      await habitsStore.add(newHabitData);
-      goto(`/dashboard/${calendarId}`);
-    } catch (error) {
-      console.error("Failed to create habit:", error);
-    } finally {
-      saving = false;
+async function createHabit(event: SubmitEvent) {
+  event.preventDefault();
+  saving = true;
+  try {
+    if (!calendarId) {
+      throw new Error("Calendar ID is required");
     }
-  }
-
-  function cancelCreation() {
+    const newHabitData: HabitInputData = {
+      calendarId,
+      name,
+      description,
+      type,
+      timerEnabled: timerEnabled ? 1 : 0,
+      targetDurationSeconds: timerEnabled ? Number(targetDurationSeconds) || null : null,
+      pointsValue: Number(pointsValue) || 0
+      // Position will be handled by the store or backend
+    };
+    await habitsStore.add(newHabitData);
     goto(`/dashboard/${calendarId}`);
+  } catch (error) {
+    console.error("Failed to create habit:", error);
+  } finally {
+    saving = false;
   }
+}
+
+function cancelCreation() {
+  goto(`/dashboard/${calendarId}`);
+}
 </script>
 
 <div class="mx-auto max-w-2xl p-6">

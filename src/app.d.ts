@@ -44,19 +44,19 @@ declare module "$app/navigation" {
 //   env?: ImportMetaEnv;
 // }
 
-// import type { ClerkAPIResponseError, SessionClaims, RequestState } from "@clerk/backend";
+import type { AuthObject } from "svelte-clerk/server";
 
-import type { RequestState } from "@clerk/backend";
-
-// See https://svelte.dev/docs/kit/types#app.locals for information about these interfaces
+// See https://kit.svelte.dev/docs/types#app
+// for information about these interfaces
 declare global {
   namespace App {
-    // interface Error {}
+    interface Error {}
     interface Locals {
-      session: RequestState | null;
+      auth: AuthObject;
     }
-    // interface PageData {}
-    // interface PageState {}
-    // interface Platform {}
+    interface PageData {}
+    interface Platform {}
   }
 }
+
+/// <reference types="svelte-clerk/env" />

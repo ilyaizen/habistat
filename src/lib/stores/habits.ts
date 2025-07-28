@@ -105,13 +105,6 @@ function createHabitsStore() {
 
     currentClerkUserId = newClerkUserId;
 
-    const convexClient = getConvexClient();
-    convexClient.setAuth(async () => {
-      const response = await fetch("/api/auth/token");
-      if (!response.ok) return null;
-      return response.text();
-    });
-
     if (convexUnsubscribe) {
       convexUnsubscribe();
       convexUnsubscribe = null;
@@ -126,10 +119,11 @@ function createHabitsStore() {
       await _syncAnonymousHabits(currentClerkUserId);
 
       try {
+        const convexClient = getConvexClient();
         convexUnsubscribe = convexClient.onUpdate(
           api.habits.getUserHabits,
           {},
-          async (convexHabitsFromServer) => {
+          async (convexHabitsFromServer: any) => {
             if (convexHabitsFromServer === undefined) return;
 
             isSyncing.set(true);

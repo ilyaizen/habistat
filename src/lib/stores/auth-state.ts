@@ -1,10 +1,5 @@
-import { derived, get, writable } from "svelte/store";
-import { browser } from "$app/environment";
-import { getConvexClient, isAuthReady, isOfflineMode } from "$lib/utils/convex";
+import { get, type Writable, writable } from "svelte/store";
 
-/**
- * Authentication state types
- */
 export type ConvexAuthStatus = "pending" | "authenticated" | "unauthenticated" | "error";
 
 interface AuthState {
@@ -16,11 +11,13 @@ interface AuthState {
 }
 
 /**
- * Centralized authentication state management
- * Coordinates between Clerk and Convex authentication
+ * Auth state store for managing authentication across Clerk and Convex
+ *
+ * For static builds (prerender=true, ssr=false), authentication is handled
+ * entirely on the client side through Clerk's client SDK.
  */
 function createAuthStateStore() {
-  const { subscribe, update } = writable<AuthState>({
+  const { subscribe, update, set }: Writable<AuthState> = writable({
     clerkReady: false,
     clerkUserId: null,
     convexAuthStatus: "pending",
@@ -28,46 +25,24 @@ function createAuthStateStore() {
     error: null
   });
 
-  let authCheckInProgress = false;
+  const authCheckInProgress = false;
 
   /**
-   * Check if Convex client is authenticated using enhanced client utils
-   *
-   * This leverages the improved client's authentication state tracking and
-   * provides a more reliable check for auth readiness.
+   * Check Convex authentication status
+   * For static builds, we rely on Clerk's client-side authentication
+   * and assume Convex auth is ready when Clerk is authenticated
    */
   const checkConvexAuth = async (): Promise<ConvexAuthStatus> => {
-    if (!browser) return "unauthenticated";
+    // For static builds, we don't have server-side API routes
+    // Instead, we assume Convex auth is ready when Clerk is authenticated
+    const state = get({ subscribe });
 
-    const convexClient = getConvexClient();
-    if (!convexClient) return "unauthenticated";
-
-    // Use the enhanced client's auth readiness check
-    if (isOfflineMode()) {
-      console.log("[Auth] In offline mode, considering unauthenticated");
-      return "unauthenticated";
-    }
-
-    if (isAuthReady()) {
-      console.log("[Auth] Convex auth is ready");
+    if (state.clerkReady && state.clerkUserId) {
+      console.log("[Auth] Clerk authenticated, assuming Convex auth is ready");
       return "authenticated";
     }
 
-    try {
-      // Fallback to direct token check
-      const response = await fetch("/api/auth/token");
-      if (response.ok) {
-        const token = await response.text();
-        if (token) {
-          console.log("[Auth] Token check successful");
-          return "authenticated";
-        }
-      }
-      return "unauthenticated";
-    } catch (error) {
-      console.warn("[Auth] Failed to check Convex auth:", error);
-      return "error";
-    }
+    return "unauthenticated";
   };
 
   /**
@@ -87,25 +62,11 @@ function createAuthStateStore() {
           return;
         }
 
-        // Check if both Clerk and Convex are ready
-        if (state.clerkReady && state.clerkUserId && state.convexAuthStatus === "authenticated") {
+        // For static builds, we only need Clerk to be ready
+        if (state.clerkReady && state.clerkUserId) {
           clearInterval(checkInterval);
           resolve(true);
           return;
-        }
-
-        // If Clerk is ready but Convex isn't, check Convex auth
-        if (state.clerkReady && state.clerkUserId && state.convexAuthStatus !== "authenticated") {
-          if (!authCheckInProgress) {
-            authCheckInProgress = true;
-            const convexStatus = await checkConvexAuth();
-            update((s) => ({
-              ...s,
-              convexAuthStatus: convexStatus,
-              lastAuthCheck: Date.now()
-            }));
-            authCheckInProgress = false;
-          }
         }
       }, 500); // Check every 500ms
     });
@@ -115,100 +76,63 @@ function createAuthStateStore() {
     subscribe,
 
     /**
-     * Set Clerk authentication state with improved coordination
-     *
-     * This enhanced version coordinates better with the Convex client
-     * and implements a progressive checking strategy to ensure
-     * both authentication systems are properly synchronized.
+     * Set Clerk authentication state
+     * For static builds, this is the primary authentication method
      */
     setClerkState: (userId: string | null, ready: boolean = true) => {
       update((state) => ({
         ...state,
         clerkReady: ready,
         clerkUserId: userId,
-        // Reset Convex auth status when Clerk state changes
-        convexAuthStatus: userId ? "pending" : "unauthenticated"
+        // For static builds, Convex auth follows Clerk auth
+        convexAuthStatus: userId ? "authenticated" : "unauthenticated"
       }));
 
-      // If user is set, start checking Convex auth with progressive checks
-      if (userId && ready) {
-        // Initial check with delay to allow Convex client initialization
-        setTimeout(async () => {
-          const convexStatus = await checkConvexAuth();
-          update((s) => ({
-            ...s,
-            convexAuthStatus: convexStatus,
-            lastAuthCheck: Date.now()
-          }));
-
-          // If not authenticated on first try, schedule follow-up checks
-          if (convexStatus !== "authenticated") {
-            const checkTimes = [1000, 2000, 4000, 8000]; // Progressive backoff
-
-            // Schedule progressive auth checks
-            checkTimes.forEach((delay, index) => {
-              setTimeout(async () => {
-                const state = get({ subscribe });
-
-                // Skip if we've already authenticated or no longer have a user
-                if (state.convexAuthStatus === "authenticated" || !state.clerkUserId) {
-                  return;
-                }
-
-                console.log(`[Auth] Follow-up check ${index + 1}/${checkTimes.length}`);
-                const convexStatus = await checkConvexAuth();
-
-                update((s) => ({
-                  ...s,
-                  convexAuthStatus: convexStatus,
-                  lastAuthCheck: Date.now()
-                }));
-              }, delay);
-            });
-          }
-        }, 500);
-      }
+      console.log(`[Auth] Clerk state updated: userId=${userId}, ready=${ready}`);
     },
 
     /**
-     * Manually trigger Convex auth check
+     * Set Convex authentication status directly
+     * This is mainly for compatibility with existing code
      */
-    checkConvexAuth: async () => {
-      if (authCheckInProgress) return;
-
-      authCheckInProgress = true;
-      const status = await checkConvexAuth();
+    setConvexAuthStatus: (status: ConvexAuthStatus) => {
       update((state) => ({
         ...state,
         convexAuthStatus: status,
         lastAuthCheck: Date.now()
       }));
-      authCheckInProgress = false;
     },
 
     /**
-     * Wait for authentication to be fully ready
+     * Set error state
      */
-    waitForAuthReady,
+    setError: (error: string | null) => {
+      update((state) => ({
+        ...state,
+        error
+      }));
+    },
 
     /**
-     * Check if authentication is fully ready
+     * Reset the store to initial state
      */
-    isAuthReady: () => {
-      const state = get({ subscribe });
-      return state.clerkReady && state.clerkUserId && state.convexAuthStatus === "authenticated";
-    }
+    reset: () => {
+      set({
+        clerkReady: false,
+        clerkUserId: null,
+        convexAuthStatus: "pending",
+        lastAuthCheck: null,
+        error: null
+      });
+    },
+
+    /**
+     * Wait for authentication to be ready
+     */
+    waitForAuthReady
   };
 
   return store;
 }
 
-export const authStateStore = createAuthStateStore();
-
-/**
- * Derived store that indicates when authentication is fully ready
- */
-export const authReady = derived(
-  authStateStore,
-  (state) => state.clerkReady && state.clerkUserId && state.convexAuthStatus === "authenticated"
-);
+export const authState = createAuthStateStore();

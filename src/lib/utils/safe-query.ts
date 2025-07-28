@@ -6,7 +6,7 @@
  */
 
 import { get } from "svelte/store";
-import { authStateStore } from "$lib/stores/auth-state";
+import { authState } from "$lib/stores/auth-state";
 import { convex, isAuthReady } from "./convex";
 
 // Maximum number of retry attempts
@@ -45,8 +45,8 @@ export async function safeQuery<T = unknown, A = unknown>(
   }
 
   // Check auth state first
-  const authState = get(authStateStore);
-  if (!authState.clerkUserId) {
+  const authStateData = get(authState);
+  if (!authStateData.clerkUserId) {
     console.log("[SafeQuery] No user authenticated, skipping query");
     return null;
   }
@@ -89,7 +89,7 @@ export async function safeQuery<T = unknown, A = unknown>(
           await new Promise((resolve) => setTimeout(resolve, delay));
 
           // Trigger a Convex auth check
-          authStateStore.checkConvexAuth();
+          authState.setConvexAuthStatus("pending");
           continue;
         }
       }
@@ -137,8 +137,8 @@ export async function safeMutation<T = unknown, A = unknown>(
   }
 
   // Check auth state first
-  const authState = get(authStateStore);
-  if (!authState.clerkUserId) {
+  const authStateData = get(authState);
+  if (!authStateData.clerkUserId) {
     console.log("[SafeMutation] No user authenticated, skipping mutation");
     return null;
   }
@@ -181,7 +181,7 @@ export async function safeMutation<T = unknown, A = unknown>(
           await new Promise((resolve) => setTimeout(resolve, delay));
 
           // Trigger a Convex auth check
-          authStateStore.checkConvexAuth();
+          authState.setConvexAuthStatus("pending");
           continue;
         }
       }

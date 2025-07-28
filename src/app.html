@@ -1,34 +1,9 @@
 <!doctype html>
 <html lang="en" %sveltekit.theme%>
   <head>
-    <!-- IMMEDIATE console override - must be first script to run -->
-    <script>
-      // Override console.warn immediately to catch all history API warnings
-      if (typeof console !== "undefined" && console.warn) {
-        const _warn = console.warn;
-        console.warn = function (...args) {
-          const msg = String(args[0] || "");
-          if (
-            msg.includes("history.pushState") ||
-            msg.includes("history.replaceState") ||
-            msg.includes("Avoid using `history") ||
-            msg.includes("SvelteKit's router")
-          ) {
-            return; // Silently suppress
-          }
-          return _warn.apply(console, args);
-        };
-      }
-    </script>
-
     <meta charset="utf-8" />
     <link rel="icon" href="%sveltekit.assets%/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <!-- Prevent SvelteKit history API conflicts by setting proper navigation hints -->
-    <meta name="sveltekit:noscroll" content="false" />
-    <meta name="sveltekit:reload" content="false" />
-
     <title>Habistat</title>
 
     <!-- Google Fonts: Inter, Noto Sans, Noto Sans Hebrew, Nunito -->
@@ -45,56 +20,6 @@
 
     %sveltekit.head%
 
-    <!-- AGGRESSIVE warning suppression for SvelteKit history API warnings -->
-    <script>
-      // Immediately override console to suppress ALL history API warnings
-      (function () {
-        if (typeof console !== "undefined" && console.warn) {
-          const originalWarn = console.warn;
-
-          console.warn = function (...args) {
-            const message = String(args[0] || "");
-
-            // Suppress ALL SvelteKit history API warnings (these are expected from auth libraries)
-            if (
-              message.includes("Avoid using `history.pushState") ||
-              message.includes("Avoid using `history.replaceState") ||
-              message.includes("history.pushState") ||
-              message.includes("history.replaceState") ||
-              message.includes("Use the pushState and replaceState functions") ||
-              message.includes("conflict with SvelteKit's router")
-            ) {
-              // Log that we suppressed it (remove this line if you don't want to see it)
-              console.debug(
-                "🔇 Suppressed SvelteKit history API warning (from third-party library)"
-              );
-              return;
-            }
-
-            // Allow all other warnings through
-            return originalWarn.apply(console, args);
-          };
-        }
-      })();
-
-      // Enhanced error handling for missing routes in SPA mode
-      window.addEventListener("error", function (e) {});
-
-      window.addEventListener("unhandledrejection", function (e) {});
-
-      // Log when the SvelteKit app starts
-      window.addEventListener("DOMContentLoaded", function () {});
-
-      // Force SvelteKit to handle the current route properly in Tauri
-      if (typeof window.__TAURI__ !== "undefined") {
-        // Wait for SvelteKit to load, then force route handling
-        window.addEventListener("load", function () {
-          // If we're not on the root path, log route handling
-          if (window.location.pathname !== "/") {
-          }
-        });
-      }
-    </script>
   </head>
   <body
     data-sveltekit-preload-data="hover"
