@@ -8,6 +8,7 @@ import type { SQLJsDatabase } from "drizzle-orm/sql-js";
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
 import wasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 import * as schema from "$lib/db/schema";
+import productionInitSql from "../../../production-init.sql?raw";
 
 // This is a dynamic import that Vite will handle.
 // It imports the content of all migration files as raw strings.
@@ -116,53 +117,71 @@ function openIndexedDB(): Promise<IDBDatabase> {
 async function loadSqlJsDb(SQL: SqlJsStatic): Promise<SqlJsDatabase> {
   const idb = await openIndexedDB();
 
-  const processDb = (db: SqlJsDatabase) => {
+  const processDb = (db: SqlJsDatabase, isNew: boolean) => {
     try {
-      // Create migrations table if it doesn't exist
-      db.run("CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY)");
+      if (isNew) {
+        // For a new database, run the full production initialization script.
+        // This script creates all tables and marks all migrations as applied.
+        console.log("New database detected, running production initialization script...");
+        db.exec(productionInitSql);
+        console.log("Production initialization script completed.");
+      } else {
+        // For an existing database, run incremental migrations.
+        console.log("Existing database detected, checking for pending migrations...");
+        // Create migrations table if it doesn't exist (for backward compatibility)
+        db.run("CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY)");
 
-      // Get list of applied migrations
-      const appliedMigrationsStmt = db.prepare("SELECT name FROM _migrations");
-      const appliedMigrationNames = new Set<string>();
-      while (appliedMigrationsStmt.step()) {
-        appliedMigrationNames.add(appliedMigrationsStmt.get()[0] as string);
-      }
-      appliedMigrationsStmt.free();
+        // Get list of applied migrations
+        const appliedMigrationsStmt = db.prepare("SELECT name FROM _migrations");
+        const appliedMigrationNames = new Set<string>();
+        while (appliedMigrationsStmt.step()) {
+          appliedMigrationNames.add(appliedMigrationsStmt.get()[0] as string);
+        }
+        appliedMigrationsStmt.free();
 
-      const migrationsToApply = migrationQueries.filter((m) => !appliedMigrationNames.has(m.name));
+        const migrationsToApply = migrationQueries.filter(
+          (m) => !appliedMigrationNames.has(m.name)
+        );
 
-      if (migrationsToApply.length > 0) {
-        for (const migration of migrationsToApply) {
-          try {
-            const cleanQuery = migration.query.replace(/--> statement-breakpoint/g, "");
-            db.run(cleanQuery);
+        if (migrationsToApply.length > 0) {
+          console.log(`Applying ${migrationsToApply.length} pending migrations...`);
+          for (const migration of migrationsToApply) {
+            try {
+              const cleanQuery = migration.query.replace(/--> statement-breakpoint/g, "");
+              db.run(cleanQuery);
 
-            // Mark migration as applied
-            const stmt = db.prepare("INSERT OR IGNORE INTO _migrations (name) VALUES (?)");
-            stmt.bind([migration.name]);
-            stmt.step();
-            stmt.free();
-          } catch (migrationError: unknown) {
-            // For development, we'll continue with other migrations instead of failing completely
-            // This helps with migration conflicts during development
-            if (
-              migrationError instanceof Error &&
-              migrationError.message.includes("already exists")
-            ) {
-              // Still mark it as applied to prevent future attempts
+              // Mark migration as applied
               const stmt = db.prepare("INSERT OR IGNORE INTO _migrations (name) VALUES (?)");
               stmt.bind([migration.name]);
               stmt.step();
               stmt.free();
-            } else {
-              throw migrationError;
+              console.log(`Migration ${migration.name} applied successfully.`);
+            } catch (migrationError: unknown) {
+              console.error(`Error applying migration ${migration.name}:`, migrationError);
+              // For development, we'll continue with other migrations instead of failing completely
+              // This helps with migration conflicts during development
+              if (
+                migrationError instanceof Error &&
+                migrationError.message.includes("already exists")
+              ) {
+                // Still mark it as applied to prevent future attempts
+                const stmt = db.prepare("INSERT OR IGNORE INTO _migrations (name) VALUES (?)");
+                stmt.bind([migration.name]);
+                stmt.step();
+                stmt.free();
+              } else {
+                throw migrationError;
+              }
             }
           }
+          console.log("All pending migrations applied.");
+        } else {
+          console.log("No pending migrations to apply.");
         }
       }
     } catch (e: unknown) {
-      console.error("A critical error occurred during migration:", e);
-      throw new Error("Migration failed, database might be corrupt.");
+      console.error("A critical error occurred during database setup:", e);
+      throw new Error("Database setup failed, the database might be corrupt.");
     }
     return db;
   };
@@ -174,18 +193,21 @@ async function loadSqlJsDb(SQL: SqlJsStatic): Promise<SqlJsDatabase> {
 
     getReq.onsuccess = () => {
       try {
-        const db = getReq.result
-          ? new SQL.Database(new Uint8Array(getReq.result as ArrayBuffer))
-          : new SQL.Database();
-        resolve(processDb(db));
+        const dbData = getReq.result;
+        const isNew = !dbData;
+        const db = isNew
+          ? new SQL.Database()
+          : new SQL.Database(new Uint8Array(dbData as ArrayBuffer));
+        resolve(processDb(db, isNew));
       } catch (e) {
         reject(e);
       }
     };
-    getReq.onerror = () => {
+    getReq.onerror = (event) => {
+      console.warn("IndexedDB read failed, creating a new database.", event);
       try {
         const newDb = new SQL.Database();
-        resolve(processDb(newDb));
+        resolve(processDb(newDb, true));
       } catch (e) {
         reject(e);
       }
@@ -231,7 +253,10 @@ async function initializeBrowserDb() {
     const { drizzle } = await import("drizzle-orm/sql-js");
     const SQL = await withTimeout(initSqlJs({ locateFile: () => wasmUrl }), 10000, "sql.js init");
     browserSqliteInstance = await withTimeout(loadSqlJsDb(SQL), 15000, "DB load from IndexedDB");
-    globalThis.dbInstance = drizzle(browserSqliteInstance, { schema, logger: false });
+    globalThis.dbInstance = drizzle(browserSqliteInstance, {
+      schema,
+      logger: false
+    });
 
     // Run custom migrations for sync support
     try {

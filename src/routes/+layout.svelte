@@ -9,210 +9,229 @@
  */ -->
 
 <script lang="ts">
-import { injectAnalytics } from "@vercel/analytics/sveltekit";
-import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
-import { onMount, type Snippet, setContext } from "svelte";
-import { ClerkProvider } from "svelte-clerk";
-import { browser } from "$app/environment";
-import MotionWrapper from "$lib/components/motion-wrapper.svelte";
-import { useAppInit } from "$lib/hooks/use-app-init.svelte.ts";
-import { useClerk } from "$lib/hooks/use-clerk.ts";
-import { useTheme } from "$lib/hooks/use-theme.ts";
+  import { injectAnalytics } from "@vercel/analytics/sveltekit";
+  import { injectSpeedInsights } from "@vercel/speed-insights/sveltekit";
+  import { onMount, type Snippet, setContext } from "svelte";
+  import { ClerkProvider } from "svelte-clerk";
+  import { browser, dev } from "$app/environment";
+  import MotionWrapper from "$lib/components/motion-wrapper.svelte";
+  import { useAppInit } from "$lib/hooks/use-app-init.svelte.ts";
+  import { useClerk } from "$lib/hooks/use-clerk.ts";
+  import { useTheme } from "$lib/hooks/use-theme.ts";
 
-// Temporary fix until SvelteKit types are generated
-type LayoutData = {
-  dbError?: string;
-  fallbackMode?: boolean;
-  [key: string]: any;
-};
-import "../app.css";
-import { page } from "$app/stores";
-import AboutDrawer from "$lib/components/about-drawer.svelte";
-import AppFooter from "$lib/components/app-footer.svelte";
-import AppHeader from "$lib/components/app-header.svelte";
-import ConfettiEffect from "$lib/components/confetti-effect.svelte";
-import FireworksEffect from "$lib/components/fireworks-effect.svelte";
-import { Toaster } from "$lib/components/ui/sonner";
-import { getConvexClient } from "$lib/utils/convex";
+  // Temporary fix until SvelteKit types are generated
+  type LayoutData = {
+    dbError?: string;
+    fallbackMode?: boolean;
+    [key: string]: any;
+  };
+  import "../app.css";
+  import { page } from "$app/stores";
+  import AboutDrawer from "$lib/components/about-drawer.svelte";
+  import AppFooter from "$lib/components/app-footer.svelte";
+  import AppHeader from "$lib/components/app-header.svelte";
 
-// import * as ContextMenu from "$lib/components/ui/context-menu";
-// import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
-// import { handleRefresh } from "$lib/utils/context-menu";
+  import { Toaster } from "$lib/components/ui/sonner";
+  import { getConvexClient } from "$lib/utils/convex";
 
-// import { runDiagnostics } from "$lib/utils/tauri-debug";
+  // import * as ContextMenu from "$lib/components/ui/context-menu";
+  // import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
+  // import { handleRefresh } from "$lib/utils/context-menu";
 
-import StoreSync from "$lib/components/store-sync.svelte";
+  // import { runDiagnostics } from "$lib/utils/tauri-debug";
 
-// Props received from parent routes using Svelte 5 $props rune
-let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
+  import StoreSync from "$lib/components/store-sync.svelte";
 
-// Initialize hooks
-const theme = useTheme();
-const clerk = useClerk();
-// const navigation = useNavigation();
-const appInit = useAppInit();
+  // Props received from parent routes using Svelte 5 $props rune
+  let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
 
-// --- Singleton Drawer State & Context ---
-let aboutDrawerOpen = $state(false);
-// A placeholder that can be overridden by the page context.
-let handleStart = $state(() => {});
+  // Initialize hooks
+  const theme = useTheme();
+  const clerk = useClerk();
+  // const navigation = useNavigation();
+  const appInit = useAppInit();
 
-// Production loading states
-let initializationComplete = $state(false);
-let initializationError = $state<string | null>(data?.dbError || null);
-let authTimeout = $state(false);
-let authFallbackEnabled = $state(data?.fallbackMode || false);
+  // --- Singleton Drawer State & Context ---
+  let aboutDrawerOpen = $state(false);
+  // A placeholder that can be overridden by the page context.
+  let handleStart = $state(() => {});
 
-setContext("drawer-controller", {
-  open: () => {
-    aboutDrawerOpen = true;
-  },
-  close: () => {
-    aboutDrawerOpen = false;
-  },
-  // Allows the current page to register its specific `handleStart` function.
-  registerHandleStart: (fn: () => void) => {
-    handleStart = fn;
-  }
-});
+  // Production loading states
+  let initializationComplete = $state(false);
+  let initializationError = $state<string | null>(data?.dbError || null);
+  let authTimeout = $state(false);
+  let authFallbackEnabled = $state(data?.fallbackMode || false);
 
-// Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
-import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
-import ThemeToggle from "$lib/components/theme-toggle.svelte";
+  setContext("drawer-controller", {
+    open: () => {
+      aboutDrawerOpen = true;
+    },
+    close: () => {
+      aboutDrawerOpen = false;
+    },
+    // Allows the current page to register its specific `handleStart` function.
+    registerHandleStart: (fn: () => void) => {
+      handleStart = fn;
+    },
+  });
 
-// Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
+  // Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
+  import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
+  import ThemeToggle from "$lib/components/theme-toggle.svelte";
 
-/*
+  // Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
+
+  /*
     Noto Sans and Noto Sans Hebrew are loaded via @import in src/app.css for global font-sans usage.
     This ensures proper rendering for both Latin and Hebrew scripts.
     See src/app.css for the @import and --font-sans override.
   */
 
-// import "@fontsource/oxanium"; // Sans-serif font for UI/headers (removed)
-// import "@fontsource/fira-code"; // Monospace font for code/inputs
+  // import "@fontsource/oxanium"; // Sans-serif font for UI/headers (removed)
+  // import "@fontsource/fira-code"; // Monospace font for code/inputs
 
-// Set up Clerk contexts and session association
-clerk.setupClerkContexts();
-clerk.setupSessionAssociation();
+  // Set up Clerk contexts and session association
+  clerk.setupClerkContexts();
+  clerk.setupSessionAssociation();
 
-onMount(() => {
-  // Check for database errors from layout load
-  if (data?.dbError) {
-    console.warn("[Layout] Database error detected:", data.dbError);
-    initializationError = `Database error: ${data.dbError}`;
+  onMount(() => {
+    // Suppress Clerk development warning in dev mode
+    if (dev) {
+      const warn = console.warn;
+      console.warn = (...args: any[]) => {
+        const clerkStartMsg =
+          "Clerk: Clerk has been loaded with development keys.";
+        if (typeof args[0] === "string" && args[0].startsWith(clerkStartMsg)) {
+          return;
+        }
+        warn.apply(console, args);
+      };
+    }
+
+    // Check for database errors from layout load
+    if (data?.dbError) {
+      console.warn("[Layout] Database error detected:", data.dbError);
+      initializationError = `Database error: ${data.dbError}`;
+    }
+
+    // Run diagnostics for Tauri builds
+    // if (browser) {
+    //   runDiagnostics();
+    // }
+
+    let initTimeout: ReturnType<typeof setTimeout>;
+    let authFallbackTimeout: ReturnType<typeof setTimeout>;
+
+    // Set a timeout for initialization to prevent infinite loading
+    initTimeout = setTimeout(() => {
+      console.warn(
+        "[Layout] Initialization taking longer than expected, enabling fallback mode"
+      );
+      authTimeout = true;
+      authFallbackEnabled = true;
+      initializationComplete = true;
+    }, 8000); // Reduced from 10 seconds to 8 seconds
+
+    // Set an even shorter timeout for auth-specific issues
+    authFallbackTimeout = setTimeout(() => {
+      if (!initializationComplete) {
+        console.warn("[Layout] Authentication timeout - enabling fallback");
+        authFallbackEnabled = true;
+      }
+    }, 5000); // 5 second auth timeout
+
+    try {
+      // Initialize core functionalities when the component mounts in the browser.
+      appInit.initializeAppCore();
+      theme.initializeTheme();
+
+      // Initialize navigation tracking
+      // navigation.initializeNavigationTracking();
+
+      // Initialize Clerk - with timeout handling
+      try {
+        clerk.initializeClerk();
+      } catch (clerkError) {
+        console.error("[Layout] Clerk initialization failed:", clerkError);
+        authFallbackEnabled = true;
+      }
+
+      // Set up midnight scheduling and development mode
+      appInit.scheduleMidnightCheck();
+      // TODO: 2025-07-22 - Add this back in when we have a way to handle it
+      // appInit.setupDevelopmentMode();
+
+      // Initialize Convex client with authentication - only in browser
+      if (browser) {
+        try {
+          const client = getConvexClient();
+          if (client) {
+            console.log("[DEBUG] Convex client initialized successfully");
+          } else {
+            console.warn(
+              "[WARN] Failed to initialize Convex client - app will work in offline mode"
+            );
+          }
+        } catch (error) {
+          console.error("[ERROR] Convex client initialization failed:", error);
+          // Don't block the app if Convex fails
+        }
+      }
+
+      // Clear the timeouts since initialization completed
+      clearTimeout(initTimeout);
+      clearTimeout(authFallbackTimeout);
+      initializationComplete = true;
+    } catch (error) {
+      console.error("[Layout] Initialization error:", error);
+      initializationError =
+        error instanceof Error ? error.message : "Unknown initialization error";
+      clearTimeout(initTimeout);
+      clearTimeout(authFallbackTimeout);
+      initializationComplete = true;
+      authFallbackEnabled = true;
+    }
+
+    // Return cleanup function to remove listeners when the component is destroyed.
+    return () => {
+      if (browser) {
+        theme.cleanupSystemListener();
+        // navigation.cleanup();
+        // appInit.cleanup();
+      }
+      if (initTimeout) {
+        clearTimeout(initTimeout);
+      }
+      if (authFallbackTimeout) {
+        clearTimeout(authFallbackTimeout);
+      }
+    };
+  });
+
+  // Inject Vercel Analytics, Speed Insights for performance monitoring (runs only in browser)
+  if (!dev) {
+    injectSpeedInsights();
+    injectAnalytics();
   }
 
-  // Run diagnostics for Tauri builds
-  // if (browser) {
-  //   runDiagnostics();
+  // let contextMenuOpen = $state(false);
+
+  // // Context menu actions
+  // function goBack() {
+  //   navigation.goBack();
+  //   contextMenuOpen = false;
   // }
 
-  let initTimeout: ReturnType<typeof setTimeout>;
-  let authFallbackTimeout: ReturnType<typeof setTimeout>;
+  // function goForward() {
+  //   navigation.goForward();
+  //   contextMenuOpen = false;
+  // }
 
-  // Set a timeout for initialization to prevent infinite loading
-  initTimeout = setTimeout(() => {
-    console.warn("[Layout] Initialization taking longer than expected, enabling fallback mode");
-    authTimeout = true;
-    authFallbackEnabled = true;
-    initializationComplete = true;
-  }, 8000); // Reduced from 10 seconds to 8 seconds
-
-  // Set an even shorter timeout for auth-specific issues
-  authFallbackTimeout = setTimeout(() => {
-    if (!initializationComplete) {
-      console.warn("[Layout] Authentication timeout - enabling fallback");
-      authFallbackEnabled = true;
-    }
-  }, 5000); // 5 second auth timeout
-
-  try {
-    // Initialize core functionalities when the component mounts in the browser.
-    appInit.initializeAppCore();
-    theme.initializeTheme();
-
-    // Initialize navigation tracking
-    // navigation.initializeNavigationTracking();
-
-    // Initialize Clerk - with timeout handling
-    try {
-      clerk.initializeClerk();
-    } catch (clerkError) {
-      console.error("[Layout] Clerk initialization failed:", clerkError);
-      authFallbackEnabled = true;
-    }
-
-    // Set up midnight scheduling and development mode
-    appInit.scheduleMidnightCheck();
-    // TODO: 2025-07-22 - Add this back in when we have a way to handle it
-    // appInit.setupDevelopmentMode();
-
-    // Initialize Convex client with authentication - only in browser
-    if (browser) {
-      try {
-        const client = getConvexClient();
-        if (client) {
-          console.log("[DEBUG] Convex client initialized successfully");
-        } else {
-          console.warn("[WARN] Failed to initialize Convex client - app will work in offline mode");
-        }
-      } catch (error) {
-        console.error("[ERROR] Convex client initialization failed:", error);
-        // Don't block the app if Convex fails
-      }
-    }
-
-    // Clear the timeouts since initialization completed
-    clearTimeout(initTimeout);
-    clearTimeout(authFallbackTimeout);
-    initializationComplete = true;
-  } catch (error) {
-    console.error("[Layout] Initialization error:", error);
-    initializationError = error instanceof Error ? error.message : "Unknown initialization error";
-    clearTimeout(initTimeout);
-    clearTimeout(authFallbackTimeout);
-    initializationComplete = true;
-    authFallbackEnabled = true;
-  }
-
-  // Return cleanup function to remove listeners when the component is destroyed.
-  return () => {
-    if (browser) {
-      theme.cleanupSystemListener();
-      // navigation.cleanup();
-      // appInit.cleanup();
-    }
-    if (initTimeout) {
-      clearTimeout(initTimeout);
-    }
-    if (authFallbackTimeout) {
-      clearTimeout(authFallbackTimeout);
-    }
-  };
-});
-
-// Inject Vercel Analytics, Speed Insights for performance monitoring (runs only in browser)
-injectSpeedInsights();
-injectAnalytics();
-
-// let contextMenuOpen = $state(false);
-
-// // Context menu actions
-// function goBack() {
-//   navigation.goBack();
-//   contextMenuOpen = false;
-// }
-
-// function goForward() {
-//   navigation.goForward();
-//   contextMenuOpen = false;
-// }
-
-// function handleRefreshWithClose() {
-//   // console.log("Refreshing...");
-//   contextMenuOpen = false;
-//   handleRefresh();
-// }
+  // function handleRefreshWithClose() {
+  //   // console.log("Refreshing...");
+  //   contextMenuOpen = false;
+  //   handleRefresh();
+  // }
 </script>
 
 <ClerkProvider {...data}>
@@ -240,8 +259,6 @@ injectAnalytics();
       <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
     {/if}
 
-    <FireworksEffect />
-    <ConfettiEffect />
     <Toaster />
     <StoreSync />
 

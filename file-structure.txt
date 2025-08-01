@@ -48,7 +48,6 @@
 │   └── 0001_simplify_completions.sql
 ├── scripts
 │   ├── fix-production-issues.mjs
-│   ├── generate-file-structure.sh
 │   ├── generate-sample-data.mjs
 │   ├── prepare-dist.js
 │   ├── production-hotfix.mjs
@@ -64,6 +63,7 @@
 │   │   ├── README.md
 │   │   ├── auth.config.ts
 │   │   ├── calendars.ts
+│   │   ├── cleanup.ts
 │   │   ├── completions.ts
 │   │   ├── habits.ts
 │   │   ├── http.ts
@@ -111,8 +111,7 @@
 │   │   │   ├── tab-motion-wrapper.svelte
 │   │   │   ├── theme-toggle.svelte
 │   │   │   ├── tier-limit-guard.svelte
-│   │   │   ├── upgrade-prompt.svelte
-│   │   │   └── virtual-garden.svelte
+│   │   │   └── upgrade-prompt.svelte
 │   │   ├── db
 │   │   │   ├── client.ts
 │   │   │   ├── schema.ts
@@ -124,8 +123,6 @@
 │   │   │   ├── use-dashboard-data.svelte.ts
 │   │   │   ├── use-navigation.svelte.ts
 │   │   │   └── use-theme.ts
-│   │   ├── p5
-│   │   │   └── virtual-garden.ts
 │   │   ├── services
 │   │   │   ├── local-data.ts
 │   │   │   ├── migration.ts

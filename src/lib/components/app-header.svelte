@@ -1,31 +1,30 @@
 <script lang="ts">
-import { Menu, X } from "@lucide/svelte";
-import { goto } from "$app/navigation";
-import { page } from "$app/state";
-import Avatar from "$lib/components/avatar.svelte";
-import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
-import SyncIndicator from "$lib/components/sync-indicator.svelte";
-// import { _ } from "svelte-i18n";
-import { Badge } from "$lib/components/ui/badge";
-import { Button } from "$lib/components/ui/button";
-import { Skeleton } from "$lib/components/ui/skeleton";
-import { gamification } from "$lib/stores/gamification";
-import { settings } from "$lib/stores/settings";
+  import { Menu, X } from "@lucide/svelte";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
+  import Avatar from "$lib/components/avatar.svelte";
+  import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
+  import SyncIndicator from "$lib/components/sync-indicator.svelte";
+  // import { _ } from "svelte-i18n";
+  // import { Badge } from "$lib/components/ui/badge";
+  import { Button } from "$lib/components/ui/button";
+  // import { Skeleton } from "$lib/components/ui/skeleton";
+  import { settings } from "$lib/stores/settings";
 
-let isMobileMenuOpen = $state(false);
+  let isMobileMenuOpen = $state(false);
 
-function toggleMobileMenu() {
-  isMobileMenuOpen = !isMobileMenuOpen;
-}
+  function toggleMobileMenu() {
+    isMobileMenuOpen = !isMobileMenuOpen;
+  }
 
-function closeMobileMenu() {
-  isMobileMenuOpen = false;
-}
+  function closeMobileMenu() {
+    isMobileMenuOpen = false;
+  }
 
-function handleNavigation(path: string) {
-  closeMobileMenu();
-  goto(path);
-}
+  function handleNavigation(path: string) {
+    closeMobileMenu();
+    goto(path);
+  }
 </script>
 
 <!--
@@ -37,9 +36,16 @@ function handleNavigation(path: string) {
   -->
 
 <header class="border-border/40 relative border-b">
-  <div class="container mx-auto flex h-16 justify-between px-4 rtl:flex-row-reverse">
+  <div
+    class="container mx-auto flex h-16 justify-between px-4 rtl:flex-row-reverse"
+  >
     <div class="flex items-center md:hidden">
-      <Button variant="ghost" size="sm" class="h-9 w-9 px-0" onclick={toggleMobileMenu}>
+      <Button
+        variant="ghost"
+        size="sm"
+        class="h-9 w-9 px-0"
+        onclick={toggleMobileMenu}
+      >
         {#if isMobileMenuOpen}
           <X class="h-4 w-4" />
         {:else}
@@ -51,7 +57,10 @@ function handleNavigation(path: string) {
 
     <!-- Logo on the left -->
     <div class="hidden items-center md:flex rtl:mr-0 rtl:ml-4">
-      <a href="/" class="nunito-header flex items-center space-x-2 rtl:space-x-reverse">
+      <a
+        href="/"
+        class="nunito-header flex items-center space-x-2 rtl:space-x-reverse"
+      >
         <img src="/logo.svg" alt="Habistat Logo" class="h-6 w-6" />
         <span class="hidden font-bold sm:inline-block">Habistat</span>
       </a>
@@ -108,22 +117,6 @@ function handleNavigation(path: string) {
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
       <SyncIndicator />
       <SubscriptionBadge />
-      {#if $gamification.loading}
-        <div class="flex items-center gap-2">
-          <Skeleton class="h-6 w-16 rounded-md" />
-          <Skeleton class="h-6 w-16 rounded-md" />
-        </div>
-      {:else}
-        <!-- <Badge variant="outline" class="hidden sm:flex">
-          Total: {$gamification.totalPoints}
-        </Badge> -->
-        <Badge
-          variant={$gamification.weeklyPointsDelta >= 0 ? "default" : "destructive"}
-          class="hidden sm:flex"
-        >
-          XP {$gamification.weeklyPointsDelta >= 0 ? "+" : ""}{$gamification.weeklyPointsDelta}
-        </Badge>
-      {/if}
       <Avatar />
     </div>
   </div>

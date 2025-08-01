@@ -1,220 +1,229 @@
 <script lang="ts">
-import { ChevronDown } from "@lucide/svelte";
-import { onMount } from "svelte";
-import { SvelteDate, SvelteSet } from "svelte/reactivity";
-import { Button } from "$lib/components/ui/button";
-import { Separator } from "$lib/components/ui/separator";
-import { Skeleton } from "$lib/components/ui/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "$lib/components/ui/tooltip";
-import {
-  completionsStore,
-  getCompletionCountForDate
-  // completionsByDate
-} from "$lib/stores/completions";
-import { triggerFireworks } from "$lib/stores/ui";
-import { formatLocalDate } from "$lib/utils/date";
-import { getAppOpenHistory, logAppOpenIfNeeded, sessionStore } from "$lib/utils/tracking";
+  import { ChevronDown } from "@lucide/svelte";
+  import { onMount } from "svelte";
+  import { SvelteDate, SvelteSet } from "svelte/reactivity";
+  import { Button } from "$lib/components/ui/button";
+  import { Separator } from "$lib/components/ui/separator";
+  import { Skeleton } from "$lib/components/ui/skeleton";
+  import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+  } from "$lib/components/ui/tooltip";
+  import {
+    completionsStore,
+    getCompletionCountForDate,
+    // completionsByDate
+  } from "$lib/stores/completions";
+  import { triggerFireworks } from "$lib/stores/ui";
+  import { formatLocalDate } from "$lib/utils/date";
+  import {
+    getAppOpenHistory,
+    logAppOpenIfNeeded,
+    sessionStore,
+  } from "$lib/utils/tracking";
 
-// TODO: 2025-07-23 - Add the activity trend chart back in when it's ready
-// import ActivityTrend from "./activity-trend.svelte";
+  // TODO: 2025-07-23 - Add the activity trend chart back in when it's ready
+  // TOFIX: 2025-08-02 - Import the activity trend chart component correctly
+  import ActivityTrend from "./activity-trend.svelte";
 
-// State for the component
-let sessionStartDate: string | null = $state(null);
-let activeDates = new SvelteSet<string>();
-let loadingHistory = $state(true);
-let activityDays: DayStatus[] = $state([]);
-let isExpanded = $state(false);
+  // State for the component
+  let sessionStartDate: string | null = $state(null);
+  let activeDates = new SvelteSet<string>();
+  let loadingHistory = $state(true);
+  let activityDays: DayStatus[] = $state([]);
+  let isExpanded = $state(false);
 
-const { numDays = 30 } = $props<{ numDays?: number }>();
+  const { numDays = 30 } = $props<{ numDays?: number }>();
 
-/**
- * Represents the status of a single day in the activity bar.
- */
-interface DayStatus {
-  date: string; // YYYY-MM-DD
-  status: "active" | "inactive" | "pre-registration";
-  isToday: boolean;
-  completionCount: number; // Number of completions for this day
-}
+  /**
+   * Represents the status of a single day in the activity bar.
+   */
+  interface DayStatus {
+    date: string; // YYYY-MM-DD
+    status: "active" | "inactive" | "pre-registration";
+    isToday: boolean;
+    completionCount: number; // Number of completions for this day
+  }
 
-/**
- * Chart data interface for activity visualization
- */
-interface TrendData {
-  date: string;
-  completions: number;
-  label: string; // For display in chart
-}
+  /**
+   * Chart data interface for activity visualization
+   */
+  interface TrendData {
+    date: string;
+    completions: number;
+    label: string; // For display in chart
+  }
 
-/**
- * Loads activity data from the database and updates the component state.
- * This function can be called to refresh the data after changes.
- */
-async function loadActivityData() {
-  loadingHistory = true;
+  /**
+   * Loads activity data from the database and updates the component state.
+   * This function can be called to refresh the data after changes.
+   */
+  async function loadActivityData() {
+    loadingHistory = true;
 
-  try {
-    const session = $sessionStore;
-    if (session?.createdAt) {
-      const created = new SvelteDate(session.createdAt);
-      sessionStartDate = formatLocalDate(created);
+    try {
+      const session = $sessionStore;
+      if (session?.createdAt) {
+        const created = new SvelteDate(session.createdAt);
+        sessionStartDate = formatLocalDate(created);
+      }
+
+      // Get all app open history as dates
+      const history = await getAppOpenHistory();
+
+      // console.log("[ActivityMonitor] DEBUG - App open history raw:", history);
+
+      const newActiveDates = new SvelteSet(
+        (history ?? []).map((ts) => formatLocalDate(new SvelteDate(ts)))
+      );
+
+      // console.log(
+      //   "[ActivityMonitor] DEBUG - App open dates formatted:",
+      //   Array.from(newActiveDates)
+      // );
+
+      // Safeguard: Always ensure today is marked as active after a load.
+      const todayFormatted = formatLocalDate(new SvelteDate());
+      newActiveDates.add(todayFormatted);
+
+      // console.log("[ActivityMonitor] DEBUG - Today added:", todayFormatted);
+
+      activeDates = newActiveDates;
+
+      // Debug completions store
+      // console.log(
+      //   "[ActivityMonitor] DEBUG - Total completions in store:",
+      //   $completionsStore?.length || 0
+      // );
+    } catch (error) {
+      console.error("Failed to load activity data:", error);
+    } finally {
+      loadingHistory = false;
+    }
+  }
+
+  /**
+   * Public refresh function that can be called to reload activity data.
+   * Useful when sample data is generated or when the user wants to refresh manually.
+   */
+  export function refresh() {
+    return loadActivityData();
+  }
+
+  onMount(async () => {
+    // Ensure a session exists before logging app open
+    sessionStore.ensure();
+
+    // Load completions data first
+    await completionsStore.refresh();
+
+    // Log app open and check if it was the first for the day
+    const wasJustLogged = await logAppOpenIfNeeded();
+    if (wasJustLogged) {
+      // If it's a new day log, trigger the fireworks
+      triggerFireworks.set(true);
     }
 
-    // Get all app open history as dates
-    const history = await getAppOpenHistory();
-
-    // console.log("[ActivityMonitor] DEBUG - App open history raw:", history);
-
-    const newActiveDates = new SvelteSet(
-      (history ?? []).map((ts) => formatLocalDate(new SvelteDate(ts)))
-    );
-
-    // console.log(
-    //   "[ActivityMonitor] DEBUG - App open dates formatted:",
-    //   Array.from(newActiveDates)
-    // );
-
-    // Safeguard: Always ensure today is marked as active after a load.
-    const todayFormatted = formatLocalDate(new SvelteDate());
-    newActiveDates.add(todayFormatted);
-
-    // console.log("[ActivityMonitor] DEBUG - Today added:", todayFormatted);
-
-    activeDates = newActiveDates;
-
-    // Debug completions store
-    // console.log(
-    //   "[ActivityMonitor] DEBUG - Total completions in store:",
-    //   $completionsStore?.length || 0
-    // );
-  } catch (error) {
-    console.error("Failed to load activity data:", error);
-  } finally {
-    loadingHistory = false;
-  }
-}
-
-/**
- * Public refresh function that can be called to reload activity data.
- * Useful when sample data is generated or when the user wants to refresh manually.
- */
-export function refresh() {
-  return loadActivityData();
-}
-
-onMount(async () => {
-  // Ensure a session exists before logging app open
-  sessionStore.ensure();
-
-  // Load completions data first
-  await completionsStore.refresh();
-
-  // Log app open and check if it was the first for the day
-  const wasJustLogged = await logAppOpenIfNeeded();
-  if (wasJustLogged) {
-    // If it's a new day log, trigger the fireworks
-    triggerFireworks.set(true);
-  }
-
-  // Load the initial activity data
-  await loadActivityData();
-});
-
-/**
- * Generates the activity data for the past numDays.
- */
-function generateActivityData() {
-  const days: DayStatus[] = [];
-  const today = new SvelteDate();
-  today.setHours(0, 0, 0, 0);
-  const todayStr = formatLocalDate(today);
-  const sessionStart = sessionStartDate ? new SvelteDate(`${sessionStartDate}T00:00:00`) : null;
-  if (sessionStart) sessionStart.setHours(0, 0, 0, 0);
-
-  // Get the completion count function from the derived store
-  const getCompletionCount = $getCompletionCountForDate;
-
-  for (let i = numDays - 1; i >= 0; i--) {
-    const currentDate = new SvelteDate();
-    currentDate.setHours(0, 0, 0, 0);
-    currentDate.setDate(today.getDate() - i);
-    const currentDateStr = formatLocalDate(currentDate);
-    let status: "active" | "inactive" | "pre-registration";
-    const isToday = currentDateStr === todayStr;
-    const completionCount = getCompletionCount(currentDateStr);
-
-    if (sessionStart && currentDate < sessionStart) {
-      status = "pre-registration";
-    } else if (activeDates.has(currentDateStr)) {
-      status = "active";
-    } else {
-      status = "inactive";
-    }
-    days.push({ date: currentDateStr, status, isToday, completionCount });
-  }
-  activityDays = days.reverse();
-}
-
-/**
- * Generates chart data from activity days for the expanded view
- */
-function generateChartData(): TrendData[] {
-  // Take the most recent 15 days for the chart
-  const chartDays = Math.min(15, activityDays.length);
-
-  // activityDays is in reverse chronological order (newest first), so we take the first `chartDays`.
-  const recentDays = activityDays.slice(0, chartDays);
-
-  // The chart expects data from oldest to newest to display correctly, so we reverse the array.
-  const orderedDays = recentDays.reverse();
-
-  const chartData = orderedDays.map((day) => {
-    // Calculate total activity: completions + 1 if the app was opened
-    const appOpenBonus = day.status === "active" ? 1 : 0;
-    const totalActivity = day.completionCount + appOpenBonus;
-
-    return {
-      date: day.date,
-      completions: totalActivity,
-      // Use the actual date as the label for clarity in the chart and tooltips
-      label: day.date
-    };
+    // Load the initial activity data
+    await loadActivityData();
   });
 
-  const firstNonZeroIndex = chartData.findIndex((d) => d.completions > 0);
-  if (firstNonZeroIndex === -1) {
-    // If all are zero, show nothing to avoid the empty state message
-    return [];
-  }
-  return chartData.slice(firstNonZeroIndex);
-}
+  /**
+   * Generates the activity data for the past numDays.
+   */
+  function generateActivityData() {
+    const days: DayStatus[] = [];
+    const today = new SvelteDate();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = formatLocalDate(today);
+    const sessionStart = sessionStartDate
+      ? new SvelteDate(`${sessionStartDate}T00:00:00`)
+      : null;
+    if (sessionStart) sessionStart.setHours(0, 0, 0, 0);
 
-// Reactive statement that regenerates activity data when dependencies change
-$effect(() => {
-  if (!loadingHistory && activeDates.size > 0) {
-    generateActivityData();
-  }
-});
+    // Get the completion count function from the derived store
+    const getCompletionCount = $getCompletionCountForDate;
 
-// Watch for changes in the session store and refresh when session changes
-$effect(() => {
-  const session = $sessionStore;
-  if (session && !loadingHistory) {
-    // Update session start date if it changed
-    if (session.createdAt) {
-      const newSessionStartDate = formatLocalDate(new SvelteDate(session.createdAt));
-      if (newSessionStartDate !== sessionStartDate) {
-        sessionStartDate = newSessionStartDate;
-        generateActivityData();
+    for (let i = numDays - 1; i >= 0; i--) {
+      const currentDate = new SvelteDate();
+      currentDate.setHours(0, 0, 0, 0);
+      currentDate.setDate(today.getDate() - i);
+      const currentDateStr = formatLocalDate(currentDate);
+      let status: "active" | "inactive" | "pre-registration";
+      const isToday = currentDateStr === todayStr;
+      const completionCount = getCompletionCount(currentDateStr);
+
+      if (sessionStart && currentDate < sessionStart) {
+        status = "pre-registration";
+      } else if (activeDates.has(currentDateStr)) {
+        status = "active";
+      } else {
+        status = "inactive";
+      }
+      days.push({ date: currentDateStr, status, isToday, completionCount });
+    }
+    activityDays = days.reverse();
+  }
+
+  /**
+   * Generates chart data from activity days for the expanded view
+   */
+  function generateChartData(): TrendData[] {
+    // Take the most recent 15 days for the chart
+    const chartDays = Math.min(15, activityDays.length);
+
+    // activityDays is in reverse chronological order (newest first), so we take the first `chartDays`.
+    const recentDays = activityDays.slice(0, chartDays);
+
+    // The chart expects data from oldest to newest to display correctly, so we reverse the array.
+    const orderedDays = recentDays.reverse();
+
+    const chartData = orderedDays.map((day) => {
+      // Calculate total activity: completions + 1 if the app was opened
+      const appOpenBonus = day.status === "active" ? 1 : 0;
+      const totalActivity = day.completionCount + appOpenBonus;
+
+      return {
+        date: day.date,
+        completions: totalActivity,
+        // Use the actual date as the label for clarity in the chart and tooltips
+        label: day.date,
+      };
+    });
+
+    const firstNonZeroIndex = chartData.findIndex((d) => d.completions > 0);
+    if (firstNonZeroIndex === -1) {
+      // If all are zero, show nothing to avoid the empty state message
+      return [];
+    }
+    return chartData.slice(firstNonZeroIndex);
+  }
+
+  // Reactive statement that regenerates activity data when dependencies change
+  $effect(() => {
+    if (!loadingHistory && activeDates.size > 0) {
+      generateActivityData();
+    }
+  });
+
+  // Watch for changes in the session store and refresh when session changes
+  $effect(() => {
+    const session = $sessionStore;
+    if (session && !loadingHistory) {
+      // Update session start date if it changed
+      if (session.createdAt) {
+        const newSessionStartDate = formatLocalDate(
+          new SvelteDate(session.createdAt)
+        );
+        if (newSessionStartDate !== sessionStartDate) {
+          sessionStartDate = newSessionStartDate;
+          generateActivityData();
+        }
       }
     }
-  }
-});
+  });
 </script>
 
 <TooltipProvider>
@@ -302,7 +311,7 @@ $effect(() => {
       <div class="inner-content">
         <Separator class="my-3" />
         <div class="h-[230px] w-full">
-          <!-- <ActivityTrend data={generateChartData()} /> -->
+          <ActivityTrend data={generateChartData()} />
         </div>
       </div>
     </div>
