@@ -10,11 +10,16 @@ export default defineSchema({
     avatarUrl: v.optional(v.string()),
     subscriptionId: v.optional(v.string()), // Stripe Subscription ID
     subscriptionTier: v.optional(
-      v.union(v.literal("free"), v.literal("premium_monthly"), v.literal("premium_lifetime"))
+      v.union(
+        v.literal("free"),
+        v.literal("premium_monthly"),
+        v.literal("premium_lifetime")
+      )
     ),
-    subscriptionExpiresAt: v.optional(v.number()) // Timestamp
+    subscriptionExpiresAt: v.optional(v.number()), // Timestamp
   })
     .index("by_clerk_id", ["clerkId"])
+    .index("by_email", ["email"])
     .index("by_subscription_id", ["subscriptionId"]),
 
   calendars: defineTable({
@@ -25,7 +30,7 @@ export default defineSchema({
     position: v.number(),
     isEnabled: v.boolean(),
     clientCreatedAt: v.number(), // Timestamp from client for LWW
-    clientUpdatedAt: v.number() // Timestamp from client for LWW
+    clientUpdatedAt: v.number(), // Timestamp from client for LWW
   })
     .index("by_user_id_and_pos", ["userId", "position"]) // For sorted fetching by user
     .index("by_user_local_uuid", ["userId", "localUuid"]), // For finding/updating specific item by its local ID
@@ -43,7 +48,7 @@ export default defineSchema({
     position: v.number(),
     isEnabled: v.boolean(),
     clientCreatedAt: v.number(), // Timestamp from client for LWW
-    clientUpdatedAt: v.number() // Timestamp from client for LWW
+    clientUpdatedAt: v.number(), // Timestamp from client for LWW
   })
     .index("by_user_id_and_pos", ["userId", "position"]) // For sorted fetching by user
     .index("by_user_local_uuid", ["userId", "localUuid"]), // For finding/updating specific item by its local ID
@@ -53,7 +58,7 @@ export default defineSchema({
     userId: v.string(), // Clerk User ID (from identity.subject)
     localUuid: v.string(), // Maps to local completion.id
     habitId: v.string(), // Maps to the Convex habit ID
-    completedAt: v.number() // The only timestamp we need - when habit was completed
+    completedAt: v.number(), // The only timestamp we need - when habit was completed
   })
     .index("by_user_habit", ["userId", "habitId"])
     .index("by_local_uuid", ["userId", "localUuid"])
@@ -68,9 +73,9 @@ export default defineSchema({
     totalPausedDurationSeconds: v.number(),
     status: v.string(), // 'running' | 'paused'
     clientCreatedAt: v.number(), // Timestamp from client for LWW
-    clientUpdatedAt: v.number() // Timestamp from client for LWW
+    clientUpdatedAt: v.number(), // Timestamp from client for LWW
   })
     .index("by_user_habit", ["userId", "habitId"])
     .index("by_local_uuid", ["userId", "localUuid"])
-    .index("by_status", ["userId", "status"])
+    .index("by_status", ["userId", "status"]),
 });
