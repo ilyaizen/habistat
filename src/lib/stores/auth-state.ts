@@ -1,6 +1,10 @@
 import { get, type Writable, writable } from "svelte/store";
 
-export type ConvexAuthStatus = "pending" | "authenticated" | "unauthenticated" | "error";
+export type ConvexAuthStatus =
+  | "pending"
+  | "authenticated"
+  | "unauthenticated"
+  | "error";
 
 interface AuthState {
   clerkReady: boolean;
@@ -22,7 +26,7 @@ function createAuthStateStore() {
     clerkUserId: null,
     convexAuthStatus: "pending",
     lastAuthCheck: null,
-    error: null
+    error: null,
   });
 
   const authCheckInProgress = false;
@@ -85,10 +89,12 @@ function createAuthStateStore() {
         clerkReady: ready,
         clerkUserId: userId,
         // For static builds, Convex auth follows Clerk auth
-        convexAuthStatus: userId ? "authenticated" : "unauthenticated"
+        convexAuthStatus: userId ? "authenticated" : "unauthenticated",
       }));
 
-      console.log(`[Auth] Clerk state updated: userId=${userId}, ready=${ready}`);
+      console.log(
+        `[Auth] Clerk state updated: userId=${userId}, ready=${ready}`
+      );
     },
 
     /**
@@ -99,7 +105,7 @@ function createAuthStateStore() {
       update((state) => ({
         ...state,
         convexAuthStatus: status,
-        lastAuthCheck: Date.now()
+        lastAuthCheck: Date.now(),
       }));
     },
 
@@ -109,7 +115,7 @@ function createAuthStateStore() {
     setError: (error: string | null) => {
       update((state) => ({
         ...state,
-        error
+        error,
       }));
     },
 
@@ -122,14 +128,14 @@ function createAuthStateStore() {
         clerkUserId: null,
         convexAuthStatus: "pending",
         lastAuthCheck: null,
-        error: null
+        error: null,
       });
     },
 
     /**
      * Wait for authentication to be ready
      */
-    waitForAuthReady
+    waitForAuthReady,
   };
 
   return store;

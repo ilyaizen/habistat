@@ -117,7 +117,9 @@ function initializeConvexClient() {
     // Check online status before configuring auth
     offlineMode = !isOnline();
     if (offlineMode) {
-      console.log("[Convex] Offline mode detected, some operations may be unavailable");
+      console.log(
+        "[Convex] Offline mode detected, some operations may be unavailable"
+      );
     }
 
     // Configure auth with client-side Clerk token handling
@@ -165,7 +167,9 @@ function initializeConvexClient() {
           }
 
           // Get token from Clerk session
-          const token = await window.Clerk?.session?.getToken({ template: "convex" });
+          const token = await window.Clerk?.session?.getToken({
+            template: "convex",
+          });
 
           if (token) {
             console.log("[Convex] Authentication successful via Clerk");

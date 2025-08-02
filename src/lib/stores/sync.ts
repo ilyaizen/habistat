@@ -22,7 +22,7 @@ function createSyncStore() {
     status: "idle",
     lastSyncTime: null,
     error: null,
-    isOnline: browser ? navigator.onLine : true
+    isOnline: browser ? navigator.onLine : true,
   });
 
   let syncService: SyncService | null = null;
@@ -80,10 +80,13 @@ function createSyncStore() {
               await store.triggerSync();
             }
           } else {
-            console.warn("[Sync] Authentication not ready after timeout, skipping initial sync");
+            console.warn(
+              "[Sync] Authentication not ready after timeout, skipping initial sync"
+            );
             update((state) => ({
               ...state,
-              error: "Authentication timeout - sync will retry when auth is ready"
+              error:
+                "Authentication timeout - sync will retry when auth is ready",
             }));
           }
         };
@@ -100,7 +103,7 @@ function createSyncStore() {
       if (!service || !currentUserId) {
         update((state) => ({
           ...state,
-          error: "Not authenticated or sync service unavailable"
+          error: "Not authenticated or sync service unavailable",
         }));
         return;
       }
@@ -115,7 +118,7 @@ function createSyncStore() {
         if (!authStateData2.clerkReady || !authStateData2.clerkUserId) {
           update((state) => ({
             ...state,
-            error: "Authentication not ready - please wait and try again"
+            error: "Authentication not ready - please wait and try again",
           }));
           return;
         }
@@ -125,7 +128,7 @@ function createSyncStore() {
       if (!currentState.isOnline) {
         update((state) => ({
           ...state,
-          error: "Cannot sync while offline"
+          error: "Cannot sync while offline",
         }));
         return;
       }
@@ -133,7 +136,7 @@ function createSyncStore() {
       update((state) => ({
         ...state,
         status: "syncing",
-        error: null
+        error: null,
       }));
 
       try {
@@ -147,13 +150,13 @@ function createSyncStore() {
             ...state,
             status: "success",
             lastSyncTime: Date.now(),
-            error: null
+            error: null,
           }));
         } else {
           update((state) => ({
             ...state,
             status: "error",
-            error: result.error || "Sync failed"
+            error: result.error || "Sync failed",
           }));
         }
       } catch (error) {
@@ -161,7 +164,7 @@ function createSyncStore() {
         update((state) => ({
           ...state,
           status: "error",
-          error: error instanceof Error ? error.message : "Unknown sync error"
+          error: error instanceof Error ? error.message : "Unknown sync error",
         }));
       }
 
@@ -183,7 +186,7 @@ function createSyncStore() {
       update((state) => ({
         ...state,
         status: "syncing",
-        error: null
+        error: null,
       }));
 
       try {
@@ -196,23 +199,24 @@ function createSyncStore() {
           update((state) => ({
             ...state,
             status: "success",
-            lastSyncTime: Date.now()
+            lastSyncTime: Date.now(),
           }));
         } else {
           update((state) => ({
             ...state,
             status: "error",
-            error: result.error || "Migration failed"
+            error: result.error || "Migration failed",
           }));
         }
 
         return result;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Migration failed";
+        const errorMessage =
+          error instanceof Error ? error.message : "Migration failed";
         update((state) => ({
           ...state,
           status: "error",
-          error: errorMessage
+          error: errorMessage,
         }));
         return { success: false, migratedCount: 0, error: errorMessage };
       }
@@ -228,7 +232,7 @@ function createSyncStore() {
     /**
      * Get sync service instance (for advanced operations)
      */
-    getSyncService: () => getSyncService()
+    getSyncService: () => getSyncService(),
   };
 
   return store;
@@ -238,7 +242,10 @@ function createSyncStore() {
 export const syncStore = createSyncStore();
 
 // Derived stores for common UI needs
-export const isSyncing = derived(syncStore, ($sync) => $sync.status === "syncing");
+export const isSyncing = derived(
+  syncStore,
+  ($sync) => $sync.status === "syncing"
+);
 export const syncError = derived(syncStore, ($sync) => $sync.error);
 export const lastSyncTime = derived(syncStore, ($sync) => $sync.lastSyncTime);
 export const syncIsOnline = derived(syncStore, ($sync) => $sync.isOnline);
