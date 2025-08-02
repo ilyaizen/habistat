@@ -71,7 +71,7 @@ const handleClerkWebhook = httpAction(async (ctx, request) => {
 
   console.log(`Received Clerk webhook event: ${eventType} for user ${clerkId}`);
 
-  // Handle supported event types (user created or updated)
+  // Handle supported event types (user created, updated, or deleted)
   if (eventType === "user.created" || eventType === "user.updated") {
     // Extract primary email address
     const primaryEmail = email_addresses?.find(
@@ -97,6 +97,24 @@ const handleClerkWebhook = httpAction(async (ctx, request) => {
     } catch (mutationError) {
       console.error(`Error running createOrUpdate mutation for user ${clerkId}:`, mutationError);
       return new Response("Internal server error during mutation", { status: 500 });
+    }
+  } else if (eventType === "user.deleted") {
+    try {
+      // Call the internal Convex mutation to delete the user
+      const deletionResult = await ctx.runMutation(internal.users.deleteUserByClerkId, {
+        clerkId: clerkId
+      });
+
+      if (deletionResult) {
+        console.log(`Successfully deleted user ${clerkId}`);
+      } else {
+        console.warn(`User ${clerkId} was not found for deletion`);
+      }
+      
+      return new Response("OK", { status: 200 });
+    } catch (mutationError) {
+      console.error(`Error running deleteUserByClerkId mutation for user ${clerkId}:`, mutationError);
+      return new Response("Internal server error during deletion", { status: 500 });
     }
   } else {
     // Log and ignore unsupported event types

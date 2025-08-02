@@ -5,6 +5,7 @@ import { api } from "../../convex/_generated/api";
 import type { Doc } from "../../convex/_generated/dataModel";
 import type { habits as habitsSchema } from "../db/schema";
 import * as localData from "../services/local-data";
+import { subscriptionStore } from "./subscription";
 
 // Lazy initialization of Convex client to avoid undefined deployment address during static build
 let convex: ConvexClient | null = null;
@@ -199,6 +200,13 @@ function createHabitsStore() {
     },
 
     async add(data: HabitInputData) {
+      // Check subscription limits before creating
+      const canCreate = subscriptionStore.checkLimit("habits", data.calendarId);
+      if (!canCreate) {
+        const upgradeMessage = subscriptionStore.getUpgradeMessage("habits");
+        throw new Error(`Habit creation limit reached for this calendar. ${upgradeMessage}`);
+      }
+
       const allHabits = get(_habits);
       const habitsInCalendar = allHabits.filter((h) => h.calendarId === data.calendarId);
       const newPosition = habitsInCalendar.length;

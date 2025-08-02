@@ -12,7 +12,7 @@ type Completion = InferModel<typeof completionsSchema>;
 export class SyncService {
   private userId: string | null = null;
   private isSyncing = false;
-
+  private userSyncing = false;
 
   /**
    * Set the current user ID for sync operations
@@ -38,11 +38,105 @@ export class SyncService {
   }
 
   /**
+   * Sync the current user to Convex database.
+   * This ensures the authenticated user exists in the Convex users table.
+   * Should be called when authentication state changes.
+   */
+  async syncCurrentUser(userInfo: {
+    email: string;
+    name?: string;
+    avatarUrl?: string;
+  }): Promise<{ success: boolean; error?: string; userId?: string }> {
+    if (!this.userId || this.userSyncing) {
+      return { success: false, error: "Not authenticated or already syncing user" };
+    }
+
+    // Import isAuthReady to check Convex auth status
+    const { isAuthReady } = await import("../utils/convex");
+
+    // Wait for Convex authentication to be ready
+    if (!isAuthReady()) {
+      console.log("[Sync] Waiting for Convex authentication to be ready before syncing user...");
+
+      const maxWaitTime = 15000; // Wait up to 15 seconds for auth
+      const startTime = Date.now();
+
+      while (!isAuthReady() && Date.now() - startTime < maxWaitTime) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+
+      if (!isAuthReady()) {
+        console.warn("[Sync] Convex authentication not ready after waiting, aborting user sync");
+        return { success: false, error: "Authentication not ready - please wait and try again" };
+      }
+
+      console.log("[Sync] Convex authentication is ready, proceeding with user sync");
+    }
+
+    try {
+      this.userSyncing = true;
+      console.log("🔄 Starting user sync...");
+
+      const result = await safeMutation(
+        api.users.syncCurrentUser,
+        {
+          email: userInfo.email,
+          name: userInfo.name,
+          avatarUrl: userInfo.avatarUrl
+        },
+        { retries: 3 }
+      );
+
+      if (!result) {
+        const authStateData = await import("../stores/auth-state").then((m) => m.authState);
+        const errorMsg =
+          get(authStateData).error || "Authentication or network error during user sync";
+        console.error("❌ User sync failed:", errorMsg);
+        return { success: false, error: errorMsg };
+      }
+
+      console.log("✅ User sync completed successfully");
+      return { success: true, userId: result as string };
+    } catch (error) {
+      console.error("❌ User sync failed:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown user sync error"
+      };
+    } finally {
+      this.userSyncing = false;
+    }
+  }
+
+  /**
    * Sync completions bidirectionally
+   * Now waits for Convex authentication to be fully ready to prevent race conditions
    */
   async syncCompletions(): Promise<{ success: boolean; error?: string }> {
     if (!this.userId || this.isSyncing) {
       return { success: false, error: "Not authenticated or already syncing" };
+    }
+
+    // Import isAuthReady to check Convex auth status
+    const { isAuthReady } = await import("../utils/convex");
+
+    // Wait for Convex authentication to be ready before starting sync
+    if (!isAuthReady()) {
+      console.log("[Sync] Waiting for Convex authentication to be ready before syncing...");
+
+      const maxWaitTime = 15000; // Wait up to 15 seconds for auth
+      const startTime = Date.now();
+
+      while (!isAuthReady() && Date.now() - startTime < maxWaitTime) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+
+      if (!isAuthReady()) {
+        console.warn("[Sync] Convex authentication not ready after waiting, aborting sync");
+        return { success: false, error: "Authentication not ready - please wait and try again" };
+      }
+
+      console.log("[Sync] Convex authentication is ready, proceeding with sync");
     }
 
     try {
@@ -320,9 +414,25 @@ export class SyncService {
   }
 
   /**
-   * Full sync: pull then push all data
+   * Full sync: sync user then sync all data
+   * @param userInfo - User information for user sync (optional, skips user sync if not provided)
    */
-  async fullSync(): Promise<{ success: boolean; error?: string }> {
+  async fullSync(userInfo?: {
+    email: string;
+    name?: string;
+    avatarUrl?: string;
+  }): Promise<{ success: boolean; error?: string; userSyncResult?: any }> {
+    let userSyncResult: { success: boolean; error?: string; userId?: string } | undefined;
+
+    // Sync user first if user info is provided
+    if (userInfo) {
+      userSyncResult = await this.syncCurrentUser(userInfo);
+      if (!userSyncResult.success) {
+        console.warn("⚠️ User sync failed, but continuing with data sync:", userSyncResult.error);
+      }
+    }
+
+    // Sync completions
     const result = await this.syncCompletions();
 
     // Refresh completions store after successful sync
@@ -330,13 +440,24 @@ export class SyncService {
       await completionsStore.refresh();
     }
 
-    return result;
+    return {
+      success: result.success,
+      error: result.error,
+      userSyncResult
+    };
   }
 
   /**
    * Check if sync is currently in progress
    */
   isInProgress(): boolean {
-    return this.isSyncing;
+    return this.isSyncing || this.userSyncing;
+  }
+
+  /**
+   * Check if user sync is currently in progress
+   */
+  isUserSyncInProgress(): boolean {
+    return this.userSyncing;
   }
 }

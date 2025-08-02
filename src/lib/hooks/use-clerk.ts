@@ -2,6 +2,7 @@ import type { LoadedClerk, UserResource } from "@clerk/types";
 import { setContext } from "svelte";
 import { get, readable, writable } from "svelte/store";
 import { browser } from "$app/environment";
+import { userSyncService } from "$lib/services/user-sync";
 import { authState } from "$lib/stores/auth-state";
 // import { syncIsOnline as networkIsOnline } from "$lib/stores/sync";
 import { markSessionAssociated, sessionStore } from "$lib/utils/tracking";
@@ -91,18 +92,27 @@ export function useClerk() {
   }
 
   /**
-   * Sets up session association effect for when user signs in.
+   * Sets up session association and user sync effects for when user signs in.
    */
   function setupSessionAssociation() {
     // This effect hook runs whenever the Clerk user state changes.
-    // It's responsible for associating the anonymous session with the Clerk user.
-    const unsubscribe = clerkUserStore.subscribe((user) => {
+    // It's responsible for associating the anonymous session with the Clerk user
+    // and syncing the user to Convex database.
+    const unsubscribe = clerkUserStore.subscribe(async (user) => {
       if (user) {
         const session = get(sessionStore);
         if (session?.state === "anonymous") {
           console.log("[Session] Associating anonymous session with Clerk user:", user.id);
           markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
         }
+
+        // Sync user to Convex database
+        console.log("[Session] Triggering user sync for:", user.id);
+        await userSyncService.handleAuthChange(user);
+      } else {
+        // User signed out, handle cleanup
+        console.log("[Session] User signed out, cleaning up sync state");
+        await userSyncService.handleAuthChange(null);
       }
     });
 

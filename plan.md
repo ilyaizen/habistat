@@ -28,12 +28,20 @@
 - [ ] Verify sync/auth layer is stable under real usage
 
 ## Current Goal
-✅ RESTORED: Reverted all breaking changes, authentication system restored to working state
+🔧 IDENTIFIED: Root cause is Clerk JWT template configuration - Convex auth returns null despite valid JWT tokens
 
 ## Status
 - ✅ Convex auth configuration restored to working state
-- ✅ Token fetching and verification restored to original implementation
-- ✅ Debug page removed (was causing routing issues)
+- ✅ Token fetching and verification working (JWT has correct iss, aud, sub claims)
+- ❌ Convex getUserIdentity() returns null - **Clerk JWT template "convex" needs configuration**
 - ✅ Development server runs on port 3001 (not 5173)
 
-The system should now be back to the working state from before the debugging session.
+## Next Steps
+**IMMEDIATE FIX REQUIRED:**
+1. Go to Clerk Dashboard → JWT Templates
+2. Create/edit template named "convex" with:
+   - Audience: "convex"  
+   - Claims: {"sub": "{{user.id}}"}
+   - Issuer: https://joint-thrush-99.clerk.accounts.dev
+
+The JWT tokens are valid but Convex getUserIdentity() returns null, indicating the JWT template mapping is incorrect.

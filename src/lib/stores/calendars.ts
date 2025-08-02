@@ -213,6 +213,13 @@ function createCalendarsStore() {
     },
 
     async add(data: CalendarInputData) {
+      // Check subscription limits before creating
+      const canCreate = subscriptionStore.checkLimit("calendars");
+      if (!canCreate) {
+        const upgradeMessage = subscriptionStore.getUpgradeMessage("calendars");
+        throw new Error(`Calendar creation limit reached. ${upgradeMessage}`);
+      }
+
       const allCalendars = get(_calendars);
       const maxPosition =
         allCalendars.length > 0 ? Math.max(...allCalendars.map((c) => c.position ?? 0)) : -1;

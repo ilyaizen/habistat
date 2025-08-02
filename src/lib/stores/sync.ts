@@ -1,6 +1,7 @@
 import { derived, get, writable } from "svelte/store";
 import { browser } from "$app/environment";
 import { SyncService } from "../services/sync";
+import { setupUserSync } from "../services/user-sync";
 import { convex } from "../utils/convex";
 import { authState } from "./auth-state";
 import { completionsStore } from "./completions";
@@ -33,10 +34,14 @@ function createSyncStore() {
     if (!syncService && browser) {
       const convexClient = convex;
       if (convexClient) {
-        syncService = new SyncService(convexClient);
+        syncService = new SyncService();
         if (currentUserId) {
           syncService.setUserId(currentUserId);
         }
+
+        // Initialize user sync service
+        setupUserSync(syncService);
+        console.log("[Sync] User sync service initialized with SyncService");
       }
     }
     return syncService;
@@ -105,20 +110,43 @@ function createSyncStore() {
         return;
       }
 
-      // Check if authentication is ready
+      // Check if Clerk authentication is ready
       const authStateData = get(authState);
       if (!authStateData.clerkReady || !authStateData.clerkUserId) {
-        console.log("[Sync] Authentication not ready, checking auth status...");
+        console.log("[Sync] Clerk authentication not ready, checking auth status...");
         authState.setConvexAuthStatus("pending");
 
         const authStateData2 = get(authState);
         if (!authStateData2.clerkReady || !authStateData2.clerkUserId) {
           update((state) => ({
             ...state,
-            error: "Authentication not ready - please wait and try again"
+            error: "Clerk authentication not ready - please wait and try again"
           }));
           return;
         }
+      }
+
+      // Also check if Convex authentication is ready (critical for preventing race conditions)
+      const { isAuthReady } = await import("../utils/convex");
+      if (!isAuthReady()) {
+        console.log("[Sync] Convex authentication not ready, waiting...");
+
+        const maxWaitTime = 10000;
+        const startTime = Date.now();
+
+        while (!isAuthReady() && Date.now() - startTime < maxWaitTime) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+
+        if (!isAuthReady()) {
+          update((state) => ({
+            ...state,
+            error: "Convex authentication not ready - please refresh the page"
+          }));
+          return;
+        }
+
+        console.log("[Sync] Convex authentication is ready, proceeding with sync");
       }
 
       const currentState = get({ subscribe });

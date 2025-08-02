@@ -5,6 +5,7 @@
   import Button from "$lib/components/ui/button/button.svelte";
   import * as Card from "$lib/components/ui/card";
   import { Separator } from "$lib/components/ui/separator";
+  import TierLimitGuard from "$lib/components/tier-limit-guard.svelte";
   import { type Calendar, calendarsStore } from "$lib/stores/calendars";
   import { type Habit, habits as habitsStore } from "$lib/stores/habits";
 
@@ -105,10 +106,12 @@
     <section aria-labelledby="habits-heading">
       <div class="mb-4 flex items-center justify-between">
         <h2 id="habits-heading" class="text-foreground text-2xl font-semibold">Habits</h2>
-        <Button onclick={navigateToNewHabit} class="flex items-center gap-2">
-          <PlusCircle class="h-4 w-4" />
-          New Habit
-        </Button>
+        <TierLimitGuard type="habits" {calendarId}>
+          <Button onclick={navigateToNewHabit} class="flex items-center gap-2">
+            <PlusCircle class="h-4 w-4" />
+            New Habit
+          </Button>
+        </TierLimitGuard>
       </div>
 
       {#if loadingHabits}
@@ -117,9 +120,11 @@
         <Card.Root class="p-6 text-center">
           <Card.Content>
             <p class="text-muted-foreground">No habits yet for this calendar.</p>
-            <Button onclick={navigateToNewHabit} variant="link" class="mt-2"
-              >Add your first habit</Button
-            >
+            <TierLimitGuard type="habits" {calendarId}>
+              <Button onclick={navigateToNewHabit} variant="link" class="mt-2"
+                >Add your first habit</Button
+              >
+            </TierLimitGuard>
           </Card.Content>
         </Card.Root>
       {:else}

@@ -4,7 +4,7 @@
 
 export const FREE_TIER_LIMITS = {
   maxCalendars: 3,
-  maxHabitsPerCalendar: 4
+  maxHabitsPerCalendar: 7
 } as const;
 
 export type SubscriptionTier = "free" | "premium_monthly" | "premium_lifetime";

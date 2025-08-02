@@ -7,7 +7,7 @@
 
 import { get } from "svelte/store";
 import { authState } from "$lib/stores/auth-state";
-import { convex, refreshConvexToken } from "./convex";
+import { convex, isAuthReady, refreshConvexToken } from "./convex";
 
 // Maximum number of retry attempts
 const MAX_RETRIES = 3;
@@ -44,11 +44,34 @@ export async function safeQuery<T = unknown, A = unknown>(
     return null;
   }
 
-  // Check auth state first
+  // Check Clerk auth state first
   const authStateData = get(authState);
   if (!authStateData.clerkUserId) {
     console.log("[SafeQuery] No user authenticated, skipping query");
     return null;
+  }
+
+  // Wait for Convex authentication to be ready (this is the critical fix for race conditions)
+  if (!isAuthReady()) {
+    console.log("[SafeQuery] Convex authentication not ready, waiting for auth to complete");
+
+    // Give Convex auth some time to complete (up to 10 seconds)
+    const maxWaitTime = 10000;
+    const startTime = Date.now();
+
+    while (!isAuthReady() && Date.now() - startTime < maxWaitTime) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    if (!isAuthReady()) {
+      console.warn(
+        "[SafeQuery] Convex authentication still not ready after waiting, skipping query"
+      );
+      authState.setError("Convex authentication timed out - please refresh the page");
+      return null;
+    }
+
+    console.log("[SafeQuery] Convex authentication is now ready, proceeding with query");
   }
 
   let attempt = 0;
@@ -146,11 +169,34 @@ export async function safeMutation<T = unknown, A = unknown>(
     return null;
   }
 
-  // Check auth state first
+  // Check Clerk auth state first
   const authStateData = get(authState);
   if (!authStateData.clerkUserId) {
     console.log("[SafeMutation] No user authenticated, skipping mutation");
     return null;
+  }
+
+  // Wait for Convex authentication to be ready (this is the critical fix for race conditions)
+  if (!isAuthReady()) {
+    console.log("[SafeMutation] Convex authentication not ready, waiting for auth to complete");
+
+    // Give Convex auth some time to complete (up to 10 seconds)
+    const maxWaitTime = 10000;
+    const startTime = Date.now();
+
+    while (!isAuthReady() && Date.now() - startTime < maxWaitTime) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    if (!isAuthReady()) {
+      console.warn(
+        "[SafeMutation] Convex authentication still not ready after waiting, skipping mutation"
+      );
+      authState.setError("Convex authentication timed out - please refresh the page");
+      return null;
+    }
+
+    console.log("[SafeMutation] Convex authentication is now ready, proceeding with mutation");
   }
 
   let attempt = 0;

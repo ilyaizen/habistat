@@ -230,7 +230,7 @@
   // }
 </script>
 
-<ClerkProvider {...data}>
+<ClerkProvider publishableKey={import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY}>
   <div
     class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
   >

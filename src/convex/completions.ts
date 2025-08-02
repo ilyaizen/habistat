@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAuth, getCurrentUserOptional } from "./auth_helpers";
 // import { api } from "./_generated/api";
 
 /**
@@ -13,8 +14,7 @@ export const createCompletion = mutation({
     completedAt: v.number()
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const identity = await requireAuth(ctx);
 
     // Check if completion with this localUuid already exists
     const existing = await ctx.db
@@ -59,8 +59,7 @@ export const updateCompletion = mutation({
     completedAt: v.number()
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const identity = await requireAuth(ctx);
 
     const completion = await ctx.db
       .query("completions")
@@ -96,8 +95,7 @@ export const getUserCompletions = query({
     cursor: v.optional(v.string()) // Pagination cursor
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const identity = await requireAuth(ctx);
 
     const limit = args.limit || 100; // Default to 100 items per page
 
@@ -114,9 +112,9 @@ export const getUserCompletions = query({
     }
 
     // Apply pagination
-    const results = await query.paginate({ 
-      cursor: args.cursor || null, 
-      numItems: limit 
+    const results = await query.paginate({
+      cursor: args.cursor || null,
+      numItems: limit
     });
 
     return {
@@ -143,8 +141,8 @@ export const getCompletionsSince = query({
     cursor: v.optional(v.string()) // Pagination cursor
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    // Use improved auth helper with detailed error reporting
+    const identity = await requireAuth(ctx);
 
     const limit = args.limit || 100; // Default to 100 items per page
 
@@ -154,9 +152,9 @@ export const getCompletionsSince = query({
       .filter((q) => q.gt(q.field("completedAt"), args.timestamp));
 
     // Apply pagination
-    const results = await query.paginate({ 
-      cursor: args.cursor || null, 
-      numItems: limit 
+    const results = await query.paginate({
+      cursor: args.cursor || null,
+      numItems: limit
     });
 
     return {
@@ -187,8 +185,7 @@ export const batchUpsertCompletions = mutation({
     )
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    const identity = await requireAuth(ctx);
 
     const results = [];
 

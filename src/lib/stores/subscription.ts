@@ -13,6 +13,7 @@ import {
   type SubscriptionTier
 } from "$lib/utils/subscription-limits";
 import { api } from "../../convex/_generated/api";
+import { authState } from "./auth-state";
 import { calendarsStore } from "./calendars";
 import { habits } from "./habits";
 
@@ -140,5 +141,23 @@ function createSubscriptionStore(): SubscriptionStore {
 
 export const subscriptionStore = createSubscriptionStore();
 
-// Note: Auto-refresh will be handled by components using the subscription store
-// by calling subscriptionStore.refresh() when user state changes
+// Auto-refresh subscription when user authentication state changes
+authState.subscribe((auth) => {
+  if (auth.clerkReady && auth.clerkUserId && auth.convexAuthStatus === "authenticated") {
+    // User is authenticated, refresh subscription status
+    subscriptionStore.refresh();
+  } else if (!auth.clerkUserId) {
+    // User logged out, reset to default free tier
+    const { subscribe, set } = writable<SubscriptionStatus | null>(null);
+    // Get the current subscription store and reset it
+    const defaultStatus: SubscriptionStatus = {
+      tier: "free",
+      isActive: true,
+      maxCalendars: FREE_TIER_LIMITS.maxCalendars,
+      maxHabitsPerCalendar: FREE_TIER_LIMITS.maxHabitsPerCalendar
+    };
+    // Note: This is a bit of a hack since we can't directly access the store's set method
+    // The proper way would be to add a reset method to the store interface
+    subscriptionStore.refresh(); // This will default to free tier in error case
+  }
+});

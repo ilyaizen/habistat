@@ -34,15 +34,18 @@
 │   │   ├── phase3-saas-subscription-management.md
 │   │   └── prp-svelte.md
 │   ├── add-comments.md
+│   ├── authentication-fix-guide.md
 │   ├── clerk-setup.md
 │   ├── contribution-guide.md
+│   ├── convex-auth-testing-guide.md
 │   ├── guidebook.md
 │   ├── implementation-plan.md
 │   ├── llms-convex.txt
 │   ├── llms-small-svelte.txt
 │   ├── rules.md
 │   ├── sample-data.md
-│   └── tech-stack.md
+│   ├── tech-stack.md
+│   └── user-sync-implementation.md
 ├── migrations
 │   ├── 0000_initial.sql
 │   └── 0001_simplify_completions.sql
@@ -62,9 +65,11 @@
 │   │   │   └── server.js
 │   │   ├── README.md
 │   │   ├── auth.config.ts
+│   │   ├── auth_helpers.ts
 │   │   ├── calendars.ts
 │   │   ├── cleanup.ts
 │   │   ├── completions.ts
+│   │   ├── debug.ts
 │   │   ├── habits.ts
 │   │   ├── http.ts
 │   │   ├── schema.ts
@@ -82,6 +87,7 @@
 │   │   │   ├── activity-trend.svelte
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
+│   │   │   ├── authenticated-query-example.svelte
 │   │   │   ├── avatar.svelte
 │   │   │   ├── calendar-edit-dialog.svelte
 │   │   │   ├── confetti-effect.svelte
@@ -111,7 +117,8 @@
 │   │   │   ├── tab-motion-wrapper.svelte
 │   │   │   ├── theme-toggle.svelte
 │   │   │   ├── tier-limit-guard.svelte
-│   │   │   └── upgrade-prompt.svelte
+│   │   │   ├── upgrade-prompt.svelte
+│   │   │   └── user-sync-debug.svelte
 │   │   ├── db
 │   │   │   ├── client.ts
 │   │   │   ├── schema.ts
@@ -119,6 +126,7 @@
 │   │   ├── hooks
 │   │   │   ├── is-mobile.ts
 │   │   │   ├── use-app-init.svelte.ts
+│   │   │   ├── use-authenticated-query.ts
 │   │   │   ├── use-clerk.ts
 │   │   │   ├── use-dashboard-data.svelte.ts
 │   │   │   ├── use-navigation.svelte.ts
@@ -126,7 +134,8 @@
 │   │   ├── services
 │   │   │   ├── local-data.ts
 │   │   │   ├── migration.ts
-│   │   │   └── sync.ts
+│   │   │   ├── sync.ts
+│   │   │   └── user-sync.ts
 │   │   ├── stores
 │   │   │   ├── active-timers.ts
 │   │   │   ├── auth-state.ts
@@ -165,11 +174,6 @@
 │   │   └── lang.ts
 │   ├── routes
 │   │   ├── api
-│   │   │   ├── admin
-│   │   │   │   ├── db-init
-│   │   │   │   │   └── +server.ts
-│   │   │   │   └── db-status
-│   │   │   │       └── +server.ts
 │   │   │   └── auth
 │   │   │       ├── check
 │   │   │       │   └── +server.ts
@@ -217,6 +221,7 @@
 │   ├── app.css
 │   ├── app.d.ts
 │   ├── app.html
+│   ├── debug-auth-test.ts
 │   ├── env.d.ts
 │   ├── hooks.client.ts
 │   └── hooks.server.ts
@@ -262,6 +267,8 @@
 ├── .env.local
 ├── .gitignore
 ├── .mcp.json
+├── .prettierignore
+├── .prettierrc
 ├── .vercelignore
 ├── CLAUDE.md
 ├── Dockerfile
