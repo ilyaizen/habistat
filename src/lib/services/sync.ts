@@ -1,5 +1,6 @@
-import type { ConvexClient } from "convex/browser";
+// import type { ConvexClient } from "convex/browser";
 import type { InferModel } from "drizzle-orm";
+import { get } from "svelte/store";
 import { api } from "../../convex/_generated/api";
 import type { completions as completionsSchema } from "../db/schema";
 import { completionsStore } from "../stores/completions";
@@ -12,9 +13,6 @@ export class SyncService {
   private userId: string | null = null;
   private isSyncing = false;
 
-  constructor(convex: ConvexClient) {
-    this.convex = convex;
-  }
 
   /**
    * Set the current user ID for sync operations
@@ -122,8 +120,10 @@ export class SyncService {
         );
 
         if (!response) {
-          console.warn("⚠️ Failed to fetch completions");
-          return { success: false, error: "Failed to fetch completions" };
+          const authStateData = await import("../stores/auth-state").then((m) => m.authState);
+          const errorMsg = get(authStateData).error || "Failed to fetch completions";
+          console.warn("⚠️ Failed to fetch completions:", errorMsg);
+          return { success: false, error: errorMsg };
         }
 
         if (response.completions.length === 0) break;
@@ -234,8 +234,10 @@ export class SyncService {
       );
 
       if (!result) {
-        console.log("📤 Push failed, will retry on next sync");
-        return { success: false, error: "Authentication or network error" };
+        const authStateData = await import("../stores/auth-state").then((m) => m.authState);
+        const errorMsg = get(authStateData).error || "Authentication or network error";
+        console.log("📤 Push failed:", errorMsg);
+        return { success: false, error: errorMsg };
       }
 
       // Mark synced in local DB by updating sync metadata

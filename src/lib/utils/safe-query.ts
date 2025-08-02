@@ -7,7 +7,7 @@
 
 import { get } from "svelte/store";
 import { authState } from "$lib/stores/auth-state";
-import { convex, isAuthReady } from "./convex";
+import { convex, refreshConvexToken } from "./convex";
 
 // Maximum number of retry attempts
 const MAX_RETRIES = 3;
@@ -55,24 +55,18 @@ export async function safeQuery<T = unknown, A = unknown>(
 
   while (attempt < opts.retries) {
     try {
-      // Check if auth is ready
-      if (!isAuthReady()) {
-        // If not ready, check if we should wait or fail
-        if (attempt < opts.retries - 1) {
-          attempt++;
-          const delay = BASE_DELAY * 2 ** attempt;
-          console.log(
-            `[SafeQuery] Auth not ready, waiting ${delay}ms before retry ${attempt}/${opts.retries}`
-          );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          continue;
-        } else {
-          console.warn("[SafeQuery] Auth not ready after retries");
-          return null;
-        }
+      // Add a small delay before executing the query to ensure auth is ready
+      if (attempt > 0) {
+        const delay = BASE_DELAY * 2 ** attempt;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
 
-      // Execute the query
+      // Execute the query - let Convex client handle auth internally
+      // This allows the Convex client to retry auth as needed
+      console.log(`[SafeQuery] Executing query attempt ${attempt + 1}/${opts.retries}`);
+
+      // Ensure the auth token is fresh before executing the query
+      await refreshConvexToken();
       return await convex.query(queryFn, args as any);
     } catch (error) {
       attempt++;
@@ -81,16 +75,32 @@ export async function safeQuery<T = unknown, A = unknown>(
         console.error(`[SafeQuery] Error on attempt ${attempt}/${opts.retries}:`, error);
       }
 
-      if (error instanceof Error && error.message.includes("Not authenticated")) {
-        // Handle auth errors specifically
-        if (attempt < opts.retries) {
-          const delay = BASE_DELAY * 2 ** attempt;
-          console.log(`[SafeQuery] Auth error, retrying in ${delay}ms...`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
+      if (error instanceof Error) {
+        // Extract more detailed error information
+        let errorDetails = "";
+        if (error.message.includes("Not authenticated")) {
+          errorDetails = "Authentication error: JWT token may be invalid or expired";
 
-          // Trigger a Convex auth check
-          authState.setConvexAuthStatus("pending");
-          continue;
+          // Check for more specific error details
+          if (error.message.includes("JWT")) {
+            errorDetails = `JWT validation error: ${error.message}`;
+          } else if (error.message.includes("token")) {
+            errorDetails = `Token error: ${error.message}`;
+          }
+
+          // Record the error in auth state for UI display
+          authState.setError(errorDetails);
+
+          // Handle auth errors specifically
+          if (attempt < opts.retries) {
+            const delay = BASE_DELAY * 2 ** attempt;
+            console.log(`[SafeQuery] ${errorDetails}, retrying in ${delay}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+
+            // Trigger a Convex auth check
+            authState.setConvexAuthStatus("pending");
+            continue;
+          }
         }
       }
 
@@ -147,24 +157,18 @@ export async function safeMutation<T = unknown, A = unknown>(
 
   while (attempt < opts.retries) {
     try {
-      // Check if auth is ready
-      if (!isAuthReady()) {
-        // If not ready, check if we should wait or fail
-        if (attempt < opts.retries - 1) {
-          attempt++;
-          const delay = BASE_DELAY * 2 ** attempt;
-          console.log(
-            `[SafeMutation] Auth not ready, waiting ${delay}ms before retry ${attempt}/${opts.retries}`
-          );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          continue;
-        } else {
-          console.warn("[SafeMutation] Auth not ready after retries");
-          return null;
-        }
+      // Add a small delay before executing the mutation to ensure auth is ready
+      if (attempt > 0) {
+        const delay = BASE_DELAY * 2 ** attempt;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
 
-      // Execute the mutation
+      // Execute the mutation - let Convex client handle auth internally
+      // This allows the Convex client to retry auth as needed
+      console.log(`[SafeMutation] Executing mutation attempt ${attempt + 1}/${opts.retries}`);
+
+      // Ensure the auth token is fresh before executing the mutation
+      await refreshConvexToken();
       return await convex.mutation(mutationFn, args as any);
     } catch (error) {
       attempt++;
@@ -173,16 +177,32 @@ export async function safeMutation<T = unknown, A = unknown>(
         console.error(`[SafeMutation] Error on attempt ${attempt}/${opts.retries}:`, error);
       }
 
-      if (error instanceof Error && error.message.includes("Not authenticated")) {
-        // Handle auth errors specifically
-        if (attempt < opts.retries) {
-          const delay = BASE_DELAY * 2 ** attempt;
-          console.log(`[SafeMutation] Auth error, retrying in ${delay}ms...`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
+      if (error instanceof Error) {
+        // Extract more detailed error information
+        let errorDetails = "";
+        if (error.message.includes("Not authenticated")) {
+          errorDetails = "Authentication error: JWT token may be invalid or expired";
 
-          // Trigger a Convex auth check
-          authState.setConvexAuthStatus("pending");
-          continue;
+          // Check for more specific error details
+          if (error.message.includes("JWT")) {
+            errorDetails = `JWT validation error: ${error.message}`;
+          } else if (error.message.includes("token")) {
+            errorDetails = `Token error: ${error.message}`;
+          }
+
+          // Record the error in auth state for UI display
+          authState.setError(errorDetails);
+
+          // Handle auth errors specifically
+          if (attempt < opts.retries) {
+            const delay = BASE_DELAY * 2 ** attempt;
+            console.log(`[SafeMutation] ${errorDetails}, retrying in ${delay}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+
+            // Trigger a Convex auth check
+            authState.setConvexAuthStatus("pending");
+            continue;
+          }
         }
       }
 

@@ -61,7 +61,24 @@
             {new Date($lastSyncTime).toLocaleString()}
           </p>
         {/if}
-        <p class="text-xs">
+
+        {#if $syncError}
+          <div class="bg-destructive/10 text-destructive mt-2 rounded-md p-2 text-xs">
+            <p><strong>Error details:</strong></p>
+            <p class="break-words">{$syncError}</p>
+            {#if $syncError.includes("JWT") || $syncError.includes("token") || $syncError.includes("authenticate")}
+              <p class="mt-1"><strong>Possible causes:</strong></p>
+              <ul class="list-inside list-disc">
+                <li>JWT secret mismatch between Clerk and Convex</li>
+                <li>Token expired or malformed</li>
+                <li>Missing CLERK_JWT_ISSUER_DOMAIN environment variable</li>
+                <li>Incorrect JWT template configuration</li>
+              </ul>
+            {/if}
+          </div>
+        {/if}
+
+        <p class="mt-2 text-xs">
           Your data automatically syncs when you're online and signed in. All changes are saved
           locally first to ensure no data is lost.
         </p>

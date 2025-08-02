@@ -242,6 +242,65 @@ export function isAuthReady(): boolean {
 }
 
 /**
+ * Manually refresh the Convex auth token
+ * This can be used to ensure a fresh token before making API calls
+ */
+export async function refreshConvexToken(): Promise<string | null> {
+  if (!browser || !isClerkReady() || !window.Clerk?.session) {
+    console.warn("[Convex] Cannot refresh token: Browser, Clerk, or session unavailable");
+    return null;
+  }
+
+  try {
+    console.log("[Convex] Manually refreshing auth token");
+
+    // Get a fresh token from Clerk
+    const token = await window.Clerk.session.getToken({
+      template: "convex"
+    });
+
+    if (token) {
+      lastSuccessfulToken = token;
+      lastTokenFetchTime = Date.now();
+      authReady = true;
+
+      // Debug token info (only partial info for security)
+      try {
+        // Only decode and log parts of the JWT, never the full token
+        const tokenParts = token.split(".");
+        if (tokenParts.length === 3) {
+          const header = JSON.parse(atob(tokenParts[0]));
+          const payload = JSON.parse(atob(tokenParts[1]));
+
+          // Log non-sensitive parts of the token for debugging
+          console.log("[Convex] Token debug info:", {
+            alg: header.alg,
+            typ: header.typ,
+            iss: payload.iss,
+            aud: payload.aud,
+            exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : "unknown",
+            iat: payload.iat ? new Date(payload.iat * 1000).toISOString() : "unknown",
+            // Add specific fields Convex might require
+            domain: payload.domain || "missing",
+            applicationID: payload.applicationID || "missing"
+          });
+        }
+      } catch (decodeError) {
+        console.warn("[Convex] Could not decode token for debug info:", decodeError);
+      }
+
+      return token;
+    } else {
+      console.warn("[Convex] Clerk returned null token");
+    }
+  } catch (error) {
+    console.error("[Convex] Failed to refresh token:", error);
+  }
+
+  return null;
+}
+
+/**
  * Check if we're operating in offline mode
  * @returns Boolean indicating offline status
  */
