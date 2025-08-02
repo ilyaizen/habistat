@@ -1,23 +1,23 @@
 <script lang="ts">
-import { Globe, RefreshCw, Target } from "@lucide/svelte";
-import { goto } from "$app/navigation";
-import { Button } from "$lib/components/ui/button";
-import { Separator } from "$lib/components/ui/separator";
-import { anonymousUserId } from "$lib/utils/tracking";
-import QuoteOfTheDay from "./quote-of-the-day.svelte";
-// import EnvironmentIndicator from "./environment-indicator-old.svelte";
-import SocialLinks from "./social-links.svelte";
+  import { Globe, RefreshCw, Target } from "@lucide/svelte";
+  import { goto } from "$app/navigation";
+  import { Button } from "$lib/components/ui/button";
+  import { Separator } from "$lib/components/ui/separator";
+  import { anonymousUserId } from "$lib/utils/tracking";
+  import QuoteOfTheDay from "./quote-of-the-day.svelte";
+  // import EnvironmentIndicator from "./environment-indicator-old.svelte";
+  import SocialLinks from "./social-links.svelte";
 
-// Svelte 5: Use callback props instead of createEventDispatcher for events
-let {
-  handleStart,
-  open = $bindable(),
-  onClose
-}: {
-  handleStart: () => void;
-  open?: boolean;
-  onClose?: () => void;
-} = $props();
+  // Svelte 5: Use callback props instead of createEventDispatcher for events
+  let {
+    handleStart,
+    open = $bindable(),
+    onClose
+  }: {
+    handleStart: () => void;
+    open?: boolean;
+    onClose?: () => void;
+  } = $props();
 </script>
 
 <!--
@@ -45,24 +45,16 @@ let {
         <span class="text-base font-semibold">Open-Source</span>
       </div>
       <div class="flex flex-col items-center gap-1">
-        <RefreshCw
-          class="text-primary mb-1 h-7 w-7"
-          aria-label="Cross-Platform"
-        />
+        <RefreshCw class="text-primary mb-1 h-7 w-7" aria-label="Cross-Platform" />
         <span class="text-base font-semibold">Cross-Platform</span>
       </div>
     </div>
-    <p
-      class="text-muted-foreground/90 max-w-2xl text-center text-sm sm:text-lg"
-    >
+    <p class="text-muted-foreground/90 max-w-2xl text-center text-sm sm:text-lg">
       <strong>Habistat</strong> is a free and open-source
-      <strong>habit tracker</strong> focused on privacy and simplicity. It helps
-      you build good habits, break bad ones, and track daily activity, with your
-      data fully under your control.
+      <strong>habit tracker</strong> focused on privacy and simplicity. It helps you build good habits,
+      break bad ones, and track daily activity, with your data fully under your control.
     </p>
-    <p
-      class="text-muted-foreground/90 max-w-2xl text-center text-sm sm:text-lg"
-    >
+    <p class="text-muted-foreground/90 max-w-2xl text-center text-sm sm:text-lg">
       An alternative to apps like <strong>Everyday</strong>,
       <strong>Habitify</strong>, and
       <strong>Habitica</strong>, it is built with the lightweight
@@ -72,8 +64,7 @@ let {
         rel="noopener"
         class="text-primary font-bold hover:underline">Tauri</a
       >
-      framework and runs smoothly on Android, iOS, Windows, macOS, and in any modern
-      browser.
+      framework and runs smoothly on Android, iOS, Windows, macOS, and in any modern browser.
     </p>
   </div>
 

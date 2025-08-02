@@ -72,7 +72,7 @@
     // Allows the current page to register its specific `handleStart` function.
     registerHandleStart: (fn: () => void) => {
       handleStart = fn;
-    },
+    }
   });
 
   // Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
@@ -99,8 +99,7 @@
     if (dev) {
       const warn = console.warn;
       console.warn = (...args: any[]) => {
-        const clerkStartMsg =
-          "Clerk: Clerk has been loaded with development keys.";
+        const clerkStartMsg = "Clerk: Clerk has been loaded with development keys.";
         if (typeof args[0] === "string" && args[0].startsWith(clerkStartMsg)) {
           return;
         }
@@ -124,9 +123,7 @@
 
     // Set a timeout for initialization to prevent infinite loading
     initTimeout = setTimeout(() => {
-      console.warn(
-        "[Layout] Initialization taking longer than expected, enabling fallback mode"
-      );
+      console.warn("[Layout] Initialization taking longer than expected, enabling fallback mode");
       authTimeout = true;
       authFallbackEnabled = true;
       initializationComplete = true;
@@ -184,8 +181,7 @@
       initializationComplete = true;
     } catch (error) {
       console.error("[Layout] Initialization error:", error);
-      initializationError =
-        error instanceof Error ? error.message : "Unknown initialization error";
+      initializationError = error instanceof Error ? error.message : "Unknown initialization error";
       clearTimeout(initTimeout);
       clearTimeout(authFallbackTimeout);
       initializationComplete = true;

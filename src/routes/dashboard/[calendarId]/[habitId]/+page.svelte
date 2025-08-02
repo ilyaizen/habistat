@@ -1,36 +1,36 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { page } from "$app/state";
-import Badge from "$lib/components/ui/badge/badge.svelte";
-import Button from "$lib/components/ui/button/button.svelte";
-import * as Card from "$lib/components/ui/card";
-import { type Habit, habits as habitsStore } from "$lib/stores/habits";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
+  import Badge from "$lib/components/ui/badge/badge.svelte";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import * as Card from "$lib/components/ui/card";
+  import { type Habit, habits as habitsStore } from "$lib/stores/habits";
 
-let habit = $state<Habit | undefined>(undefined);
-let loading = $state(true);
+  let habit = $state<Habit | undefined>(undefined);
+  let loading = $state(true);
 
-const calendarId = $derived(page.params.calendarId);
-const habitId = $derived(page.params.habitId);
+  const calendarId = $derived(page.params.calendarId);
+  const habitId = $derived(page.params.habitId);
 
-// Reactive effect to load habit data and handle updates
-$effect(() => {
-  loading = true;
-  const unsubscribe = habitsStore.subscribe((allHabits) => {
-    const currentHabit = allHabits.find((h) => h.id === habitId);
-    if (currentHabit) {
-      habit = currentHabit;
-    }
-    loading = false;
+  // Reactive effect to load habit data and handle updates
+  $effect(() => {
+    loading = true;
+    const unsubscribe = habitsStore.subscribe((allHabits) => {
+      const currentHabit = allHabits.find((h) => h.id === habitId);
+      if (currentHabit) {
+        habit = currentHabit;
+      }
+      loading = false;
+    });
+
+    habitsStore.refresh();
+
+    return unsubscribe;
   });
 
-  habitsStore.refresh();
-
-  return unsubscribe;
-});
-
-function navigateToEdit() {
-  goto(`/dashboard/${calendarId}/${habitId}/edit`);
-}
+  function navigateToEdit() {
+    goto(`/dashboard/${calendarId}/${habitId}/edit`);
+  }
 </script>
 
 <div class="mx-auto max-w-2xl p-6">

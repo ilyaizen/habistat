@@ -1,84 +1,82 @@
 <script lang="ts">
-import { goto } from "$app/navigation";
-import { page } from "$app/state";
-import Button from "$lib/components/ui/button/button.svelte";
-import Input from "$lib/components/ui/input/input.svelte";
-import Label from "$lib/components/ui/label/label.svelte";
-import * as Select from "$lib/components/ui/select";
-import { type Calendar, calendarsStore } from "$lib/stores/calendars";
-import { type HabitInputData, habits as habitsStore } from "$lib/stores/habits";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import Label from "$lib/components/ui/label/label.svelte";
+  import * as Select from "$lib/components/ui/select";
+  import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+  import { type HabitInputData, habits as habitsStore } from "$lib/stores/habits";
 
-const habitTypeItems = [
-  {
-    value: "positive",
-    label: "Positive",
-    description: "Positive (Build good habits)"
-  },
-  {
-    value: "negative",
-    label: "Negative",
-    description: "Negative (Reduce bad habits)"
-  }
-];
-
-let name = $state("");
-let description = $state("");
-let type = $state("positive");
-const selectedLabel = $derived(habitTypeItems.find((item) => item.value === type)?.label);
-let timerEnabled = $state(false);
-let targetDurationSeconds = $state(0);
-let pointsValue = $state(0);
-let saving = $state(false);
-let calendar = $state<Calendar | undefined>(undefined);
-
-const calendarId = $derived(page.params.calendarId);
-
-// Effect to load calendar details
-$effect(() => {
-  const unsubscribe = calendarsStore.subscribe((calendars) => {
-    calendar = calendars.find((c) => c.id === calendarId);
-  });
-  return unsubscribe;
-});
-
-async function createHabit(event: SubmitEvent) {
-  event.preventDefault();
-  saving = true;
-  try {
-    if (!calendarId) {
-      throw new Error("Calendar ID is required");
+  const habitTypeItems = [
+    {
+      value: "positive",
+      label: "Positive",
+      description: "Positive (Build good habits)"
+    },
+    {
+      value: "negative",
+      label: "Negative",
+      description: "Negative (Reduce bad habits)"
     }
-    const newHabitData: HabitInputData = {
-      calendarId,
-      name,
-      description,
-      type,
-      timerEnabled: timerEnabled ? 1 : 0,
-      targetDurationSeconds: timerEnabled ? Number(targetDurationSeconds) || null : null,
-      pointsValue: Number(pointsValue) || 0
-      // Position will be handled by the store or backend
-    };
-    await habitsStore.add(newHabitData);
-    goto(`/dashboard/${calendarId}`);
-  } catch (error) {
-    console.error("Failed to create habit:", error);
-  } finally {
-    saving = false;
-  }
-}
+  ];
 
-function cancelCreation() {
-  goto(`/dashboard/${calendarId}`);
-}
+  let name = $state("");
+  let description = $state("");
+  let type = $state("positive");
+  const selectedLabel = $derived(habitTypeItems.find((item) => item.value === type)?.label);
+  let timerEnabled = $state(false);
+  let targetDurationSeconds = $state(0);
+  let pointsValue = $state(0);
+  let saving = $state(false);
+  let calendar = $state<Calendar | undefined>(undefined);
+
+  const calendarId = $derived(page.params.calendarId);
+
+  // Effect to load calendar details
+  $effect(() => {
+    const unsubscribe = calendarsStore.subscribe((calendars) => {
+      calendar = calendars.find((c) => c.id === calendarId);
+    });
+    return unsubscribe;
+  });
+
+  async function createHabit(event: SubmitEvent) {
+    event.preventDefault();
+    saving = true;
+    try {
+      if (!calendarId) {
+        throw new Error("Calendar ID is required");
+      }
+      const newHabitData: HabitInputData = {
+        calendarId,
+        name,
+        description,
+        type,
+        timerEnabled: timerEnabled ? 1 : 0,
+        targetDurationSeconds: timerEnabled ? Number(targetDurationSeconds) || null : null,
+        pointsValue: Number(pointsValue) || 0
+        // Position will be handled by the store or backend
+      };
+      await habitsStore.add(newHabitData);
+      goto(`/dashboard/${calendarId}`);
+    } catch (error) {
+      console.error("Failed to create habit:", error);
+    } finally {
+      saving = false;
+    }
+  }
+
+  function cancelCreation() {
+    goto(`/dashboard/${calendarId}`);
+  }
 </script>
 
 <div class="mx-auto max-w-2xl p-6">
   <h1 class="mb-2 text-3xl font-bold">Create New Habit</h1>
   {#if calendar}
     <p class="text-muted-foreground mb-6">
-      Adding to calendar: <span class="text-foreground font-medium"
-        >{calendar.name}</span
-      >
+      Adding to calendar: <span class="text-foreground font-medium">{calendar.name}</span>
     </p>
   {/if}
   <form onsubmit={createHabit} class="flex flex-col gap-6">
@@ -120,9 +118,7 @@ function cancelCreation() {
           </Select.Trigger>
           <Select.Content>
             <Select.Group>
-              <Select.Label class="px-2 py-1.5 text-sm font-semibold"
-                >Habit Type</Select.Label
-              >
+              <Select.Label class="px-2 py-1.5 text-sm font-semibold">Habit Type</Select.Label>
               {#each habitTypeItems as item (item.value)}
                 <Select.Item value={item.value} label={item.label}>
                   {item.description}
@@ -142,9 +138,7 @@ function cancelCreation() {
         class="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
         autocomplete="off"
       />
-      <Label for="timerEnabled" class="text-foreground text-sm font-medium"
-        >Enable Timer</Label
-      >
+      <Label for="timerEnabled" class="text-foreground text-sm font-medium">Enable Timer</Label>
     </div>
     {#if timerEnabled}
       <div class="ml-7">
@@ -179,11 +173,8 @@ function cancelCreation() {
       </Label>
     </div>
     <div class="mt-6 flex justify-end gap-3 border-t pt-6">
-      <Button
-        type="button"
-        variant="outline"
-        onclick={cancelCreation}
-        disabled={saving}>Cancel</Button
+      <Button type="button" variant="outline" onclick={cancelCreation} disabled={saving}
+        >Cancel</Button
       >
       <Button type="submit" disabled={saving}>
         {#if saving}
@@ -193,13 +184,7 @@ function cancelCreation() {
             fill="none"
             viewBox="0 0 24 24"
           >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
             ></circle>
             <path
               class="opacity-75"

@@ -36,16 +36,9 @@
   -->
 
 <header class="border-border/40 relative border-b">
-  <div
-    class="container mx-auto flex h-16 justify-between px-4 rtl:flex-row-reverse"
-  >
+  <div class="container mx-auto flex h-16 justify-between px-4 rtl:flex-row-reverse">
     <div class="flex items-center md:hidden">
-      <Button
-        variant="ghost"
-        size="sm"
-        class="h-9 w-9 px-0"
-        onclick={toggleMobileMenu}
-      >
+      <Button variant="ghost" size="sm" class="h-9 w-9 px-0" onclick={toggleMobileMenu}>
         {#if isMobileMenuOpen}
           <X class="h-4 w-4" />
         {:else}
@@ -57,10 +50,7 @@
 
     <!-- Logo on the left -->
     <div class="hidden items-center md:flex rtl:mr-0 rtl:ml-4">
-      <a
-        href="/"
-        class="nunito-header flex items-center space-x-2 rtl:space-x-reverse"
-      >
+      <a href="/" class="nunito-header flex items-center space-x-2 rtl:space-x-reverse">
         <img src="/logo.svg" alt="Habistat Logo" class="h-6 w-6" />
         <span class="hidden font-bold sm:inline-block">Habistat</span>
       </a>

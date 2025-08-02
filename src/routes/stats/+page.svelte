@@ -1,6 +1,6 @@
 <!-- Stats page placeholder. Add analytics and user statistics here. -->
 <script lang="ts">
-// This page will show user statistics and analytics.
+  // This page will show user statistics and analytics.
 </script>
 
 <main class="container mx-auto max-w-6xl p-8">

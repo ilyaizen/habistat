@@ -1,39 +1,39 @@
 <script lang="ts">
-import ArrowLeftIcon from "@lucide/svelte/icons/arrow-left";
-import { goto } from "$app/navigation";
-import Button from "$lib/components/ui/button/button.svelte";
-import Input from "$lib/components/ui/input/input.svelte";
-import * as Select from "$lib/components/ui/select";
-import { calendarsStore } from "$lib/stores/calendars";
-import { COLOR_PALETTE } from "$lib/utils/colors";
+  import ArrowLeftIcon from "@lucide/svelte/icons/arrow-left";
+  import { goto } from "$app/navigation";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import * as Select from "$lib/components/ui/select";
+  import { calendarsStore } from "$lib/stores/calendars";
+  import { COLOR_PALETTE } from "$lib/utils/colors";
 
-let name = $state("");
-let colorTheme = $state("#84cc16");
-let saving = $state(false);
+  let name = $state("");
+  let colorTheme = $state("#84cc16");
+  let saving = $state(false);
 
-// Derived trigger content: show selected color circle and name
-// const triggerContent = $derived(
-//   COLOR_PALETTE.find((c) => c.value === colorTheme)?.name ?? "Select a color"
-// );
+  // Derived trigger content: show selected color circle and name
+  // const triggerContent = $derived(
+  //   COLOR_PALETTE.find((c) => c.value === colorTheme)?.name ?? "Select a color"
+  // );
 
-async function saveCalendar(event: SubmitEvent) {
-  event.preventDefault();
-  if (!name.trim()) return;
-  saving = true;
-  try {
-    await calendarsStore.add({
-      name,
-      colorTheme
-    });
-    goto(`/dashboard`);
-  } catch (error) {
-    console.error("Failed to save calendar:", error);
-    // Optionally, show an error message to the user
-    // alert("Error saving calendar. Please try again.");
-  } finally {
-    saving = false;
+  async function saveCalendar(event: SubmitEvent) {
+    event.preventDefault();
+    if (!name.trim()) return;
+    saving = true;
+    try {
+      await calendarsStore.add({
+        name,
+        colorTheme
+      });
+      goto(`/dashboard`);
+    } catch (error) {
+      console.error("Failed to save calendar:", error);
+      // Optionally, show an error message to the user
+      // alert("Error saving calendar. Please try again.");
+    } finally {
+      saving = false;
+    }
   }
-}
 </script>
 
 <div class="mx-auto max-w-2xl p-6">

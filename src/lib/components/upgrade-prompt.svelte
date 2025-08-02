@@ -1,24 +1,30 @@
 <script lang="ts">
-import { Badge } from "$lib/components/ui/badge";
-import { Button } from "$lib/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "$lib/components/ui/card";
+  import { Badge } from "$lib/components/ui/badge";
+  import { Button } from "$lib/components/ui/button";
+  import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle
+  } from "$lib/components/ui/card";
 
-let {
-  message,
-  compact = false,
-  showUpgradeButton = true,
-  upgradeUrl = "/premium"
-}: {
-  message: string;
-  compact?: boolean;
-  showUpgradeButton?: boolean;
-  upgradeUrl?: string;
-} = $props();
+  let {
+    message,
+    compact = false,
+    showUpgradeButton = true,
+    upgradeUrl = "/premium"
+  }: {
+    message: string;
+    compact?: boolean;
+    showUpgradeButton?: boolean;
+    upgradeUrl?: string;
+  } = $props();
 
-function handleUpgrade() {
-  // Navigate to upgrade page (or external Stripe link in the future)
-  window.location.href = upgradeUrl;
-}
+  function handleUpgrade() {
+    // Navigate to upgrade page (or external Stripe link in the future)
+    window.location.href = upgradeUrl;
+  }
 </script>
 
 {#if compact}

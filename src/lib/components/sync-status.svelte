@@ -3,70 +3,70 @@
   Shows current sync status with visual indicators
 -->
 <script lang="ts">
-import type { UserResource } from "@clerk/types";
-import { AlertCircle, Cloud, CloudOff, RefreshCw, Wifi, WifiOff } from "@lucide/svelte";
-import { getContext, onDestroy } from "svelte";
-import type { Readable } from "svelte/store";
-import { browser } from "$app/environment";
-import { Badge } from "$lib/components/ui/badge";
-import { Button } from "$lib/components/ui/button";
-import { isSyncing, lastSyncTime, syncError, syncIsOnline, syncStore } from "$lib/stores/sync";
+  import type { UserResource } from "@clerk/types";
+  import { AlertCircle, Cloud, CloudOff, RefreshCw, Wifi, WifiOff } from "@lucide/svelte";
+  import { getContext, onDestroy } from "svelte";
+  import type { Readable } from "svelte/store";
+  import { browser } from "$app/environment";
+  import { Badge } from "$lib/components/ui/badge";
+  import { Button } from "$lib/components/ui/button";
+  import { isSyncing, lastSyncTime, syncError, syncIsOnline, syncStore } from "$lib/stores/sync";
 
-// Get current user from context to only show sync for authenticated users
-const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");
+  // Get current user from context to only show sync for authenticated users
+  const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");
 
-let user = $state<UserResource | null>(null);
-let unsubscribe: (() => void) | undefined;
+  let user = $state<UserResource | null>(null);
+  let unsubscribe: (() => void) | undefined;
 
-// Subscribe to user changes with improved error handling
-$effect(() => {
-  if (!browser) return;
+  // Subscribe to user changes with improved error handling
+  $effect(() => {
+    if (!browser) return;
 
-  try {
-    // Clean up previous subscription if it exists
-    if (unsubscribe) unsubscribe();
+    try {
+      // Clean up previous subscription if it exists
+      if (unsubscribe) unsubscribe();
 
-    // Only subscribe if clerkUserStore is available
-    if (clerkUserStore) {
-      unsubscribe = clerkUserStore.subscribe((u) => {
-        user = u;
-      });
-    } else {
-      console.warn("[SyncStatus] No clerkUserStore found in context");
+      // Only subscribe if clerkUserStore is available
+      if (clerkUserStore) {
+        unsubscribe = clerkUserStore.subscribe((u) => {
+          user = u;
+        });
+      } else {
+        console.warn("[SyncStatus] No clerkUserStore found in context");
+      }
+    } catch (error) {
+      console.error("[SyncStatus] Error subscribing to clerkUserStore:", error);
     }
-  } catch (error) {
-    console.error("[SyncStatus] Error subscribing to clerkUserStore:", error);
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  });
+
+  // Cleanup on component destruction
+  onDestroy(() => {
+    if (unsubscribe) unsubscribe();
+  });
+
+  function formatLastSync(timestamp: number | null): string {
+    if (!timestamp) return "Never";
+
+    const now = Date.now();
+    const diff = now - timestamp;
+
+    if (diff < 60000) return "Just now";
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return `${Math.floor(diff / 86400000)}d ago`;
   }
 
-  return () => {
-    if (unsubscribe) unsubscribe();
-  };
-});
+  function handleSyncClick() {
+    syncStore.triggerSync();
+  }
 
-// Cleanup on component destruction
-onDestroy(() => {
-  if (unsubscribe) unsubscribe();
-});
-
-function formatLastSync(timestamp: number | null): string {
-  if (!timestamp) return "Never";
-
-  const now = Date.now();
-  const diff = now - timestamp;
-
-  if (diff < 60000) return "Just now";
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-  return `${Math.floor(diff / 86400000)}d ago`;
-}
-
-function handleSyncClick() {
-  syncStore.triggerSync();
-}
-
-function handleClearError() {
-  syncStore.clearError();
-}
+  function handleClearError() {
+    syncStore.clearError();
+  }
 </script>
 
 <!-- Only show sync status for authenticated users -->

@@ -1,6 +1,6 @@
 <!-- Premium page placeholder. Add premium plans and payment options here. -->
 <script lang="ts">
-// This page will show premium plans and payment options for users.
+  // This page will show premium plans and payment options for users.
 </script>
 
 <main class="container mx-auto max-w-6xl p-8">

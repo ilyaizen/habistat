@@ -1,159 +1,159 @@
 <script lang="ts">
-import { Languages, LoaderPinwheel, Sun } from "@lucide/svelte";
-import { resetMode, setMode } from "mode-watcher";
-import { onDestroy, onMount } from "svelte";
-import { get } from "svelte/store";
-import { locale } from "svelte-i18n";
-import { browser } from "$app/environment";
-import { Button } from "$lib/components/ui/button";
-import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
-import { Label } from "$lib/components/ui/label";
-import Switch from "$lib/components/ui/switch/switch.svelte";
-import type { ThemeMode } from "$lib/stores/settings";
-import { settings, theme } from "$lib/stores/settings";
+  import { Languages, LoaderPinwheel, Sun } from "@lucide/svelte";
+  import { resetMode, setMode } from "mode-watcher";
+  import { onDestroy, onMount } from "svelte";
+  import { get } from "svelte/store";
+  import { locale } from "svelte-i18n";
+  import { browser } from "$app/environment";
+  import { Button } from "$lib/components/ui/button";
+  import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
+  import { Label } from "$lib/components/ui/label";
+  import Switch from "$lib/components/ui/switch/switch.svelte";
+  import type { ThemeMode } from "$lib/stores/settings";
+  import { settings, theme } from "$lib/stores/settings";
 
-// Reactive state for the current theme, initialized from the store
-let currentTheme = $state(get(theme));
+  // Reactive state for the current theme, initialized from the store
+  let currentTheme = $state(get(theme));
 
-// Subscribe to theme store changes to keep currentTheme updated
-theme.subscribe((val) => {
-  currentTheme = val;
-});
+  // Subscribe to theme store changes to keep currentTheme updated
+  theme.subscribe((val) => {
+    currentTheme = val;
+  });
 
-// Variables to manage system theme media query and listener
-let media: MediaQueryList | null = null;
-let systemListener: (() => void) | null = null;
+  // Variables to manage system theme media query and listener
+  let media: MediaQueryList | null = null;
+  let systemListener: (() => void) | null = null;
 
-// Reactive state for reduced motion preference
-let prefersReducedMotion = $state(false);
-let reducedMotionMediaQuery: MediaQueryList | null = null;
-let reducedMotionListener: ((event: MediaQueryListEvent) => void) | null = null;
+  // Reactive state for reduced motion preference
+  let prefersReducedMotion = $state(false);
+  let reducedMotionMediaQuery: MediaQueryList | null = null;
+  let reducedMotionListener: ((event: MediaQueryListEvent) => void) | null = null;
 
-/**
- * Applies the system's preferred color scheme (dark/light) to the document.
- */
-function applySystemTheme() {
-  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
-}
-
-/**
- * Sets up a listener for changes in the system's color scheme preference.
- */
-function setupSystemListener() {
-  cleanupSystemListener(); // Ensure no duplicate listeners
-  media = window.matchMedia("(prefers-color-scheme: dark)");
-  systemListener = () => applySystemTheme();
-  media.addEventListener("change", systemListener);
-}
-
-/**
- * Removes the system theme change listener.
- */
-function cleanupSystemListener() {
-  if (media && systemListener) {
-    media.removeEventListener("change", systemListener);
-  }
-  media = null;
-  systemListener = null;
-}
-
-/**
- * Sets up a listener for changes in the system's reduced motion preference.
- */
-function setupReducedMotionListener() {
-  cleanupReducedMotionListener();
-  if (browser) {
-    reducedMotionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    prefersReducedMotion = reducedMotionMediaQuery.matches;
-    reducedMotionListener = (event) => {
-      prefersReducedMotion = event.matches;
-    };
-    reducedMotionMediaQuery.addEventListener("change", reducedMotionListener);
-  }
-}
-
-/**
- * Removes the system reduced motion change listener.
- */
-function cleanupReducedMotionListener() {
-  if (reducedMotionMediaQuery && reducedMotionListener) {
-    reducedMotionMediaQuery.removeEventListener("change", reducedMotionListener);
-  }
-  reducedMotionMediaQuery = null;
-  reducedMotionListener = null;
-}
-
-/**
- * Selects and applies a new theme mode.
- * @param mode - The theme mode to apply ('light', 'dark', or 'system').
- */
-function selectTheme(mode: ThemeMode) {
-  if (mode === "system") {
-    resetMode(); // Resets to system theme via mode-watcher
-    applySystemTheme();
-    setupSystemListener();
-  } else {
-    cleanupSystemListener(); // No need for system listener on manual override
-    if (mode === "dark") {
+  /**
+   * Applies the system's preferred color scheme (dark/light) to the document.
+   */
+  function applySystemTheme() {
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
-    setMode(mode); // Persists the selected mode
   }
-  theme.set(mode); // Update the theme store
-}
 
-// Language settings
-const locales = ["en", "he", "es"] as const; // Supported locales
-const languageMap = {
-  // Map locales to names and flag images
-  en: { name: "English", flagSrc: "/flag-us.png" },
-  he: { name: "Hebrew", flagSrc: "/flag-il.png" },
-  es: { name: "Spanish", flagSrc: "/flag-es.png" }
-} as const;
-
-/**
- * Handles language change, updates locale store and document attributes.
- * @param newLocale - The new locale to set.
- */
-function handleLanguageChange(newLocale: string) {
-  locale.set(newLocale);
-  if (browser) {
-    localStorage.setItem("locale", newLocale);
-    const dir = newLocale === "he" ? "rtl" : "ltr"; // Set text direction for RTL languages
-    document.documentElement.setAttribute("dir", dir);
-    document.documentElement.setAttribute("lang", newLocale);
+  /**
+   * Sets up a listener for changes in the system's color scheme preference.
+   */
+  function setupSystemListener() {
+    cleanupSystemListener(); // Ensure no duplicate listeners
+    media = window.matchMedia("(prefers-color-scheme: dark)");
+    systemListener = () => applySystemTheme();
+    media.addEventListener("change", systemListener);
   }
-}
 
-// Initialize theme on mount
-onMount(() => {
-  // Initialize theme based on stored preference
-  if (get(theme) === "system") {
-    applySystemTheme();
-    setupSystemListener();
-  } else {
-    selectTheme(get(theme));
+  /**
+   * Removes the system theme change listener.
+   */
+  function cleanupSystemListener() {
+    if (media && systemListener) {
+      media.removeEventListener("change", systemListener);
+    }
+    media = null;
+    systemListener = null;
   }
-  setupReducedMotionListener();
-});
 
-$effect(() => {
-  if (prefersReducedMotion) {
-    $settings.enableMotion = false;
+  /**
+   * Sets up a listener for changes in the system's reduced motion preference.
+   */
+  function setupReducedMotionListener() {
+    cleanupReducedMotionListener();
+    if (browser) {
+      reducedMotionMediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      prefersReducedMotion = reducedMotionMediaQuery.matches;
+      reducedMotionListener = (event) => {
+        prefersReducedMotion = event.matches;
+      };
+      reducedMotionMediaQuery.addEventListener("change", reducedMotionListener);
+    }
   }
-});
 
-// Cleanup listener when the component is destroyed
-onDestroy(() => {
-  cleanupSystemListener();
-  cleanupReducedMotionListener();
-});
+  /**
+   * Removes the system reduced motion change listener.
+   */
+  function cleanupReducedMotionListener() {
+    if (reducedMotionMediaQuery && reducedMotionListener) {
+      reducedMotionMediaQuery.removeEventListener("change", reducedMotionListener);
+    }
+    reducedMotionMediaQuery = null;
+    reducedMotionListener = null;
+  }
+
+  /**
+   * Selects and applies a new theme mode.
+   * @param mode - The theme mode to apply ('light', 'dark', or 'system').
+   */
+  function selectTheme(mode: ThemeMode) {
+    if (mode === "system") {
+      resetMode(); // Resets to system theme via mode-watcher
+      applySystemTheme();
+      setupSystemListener();
+    } else {
+      cleanupSystemListener(); // No need for system listener on manual override
+      if (mode === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      setMode(mode); // Persists the selected mode
+    }
+    theme.set(mode); // Update the theme store
+  }
+
+  // Language settings
+  const locales = ["en", "he", "es"] as const; // Supported locales
+  const languageMap = {
+    // Map locales to names and flag images
+    en: { name: "English", flagSrc: "/flag-us.png" },
+    he: { name: "Hebrew", flagSrc: "/flag-il.png" },
+    es: { name: "Spanish", flagSrc: "/flag-es.png" }
+  } as const;
+
+  /**
+   * Handles language change, updates locale store and document attributes.
+   * @param newLocale - The new locale to set.
+   */
+  function handleLanguageChange(newLocale: string) {
+    locale.set(newLocale);
+    if (browser) {
+      localStorage.setItem("locale", newLocale);
+      const dir = newLocale === "he" ? "rtl" : "ltr"; // Set text direction for RTL languages
+      document.documentElement.setAttribute("dir", dir);
+      document.documentElement.setAttribute("lang", newLocale);
+    }
+  }
+
+  // Initialize theme on mount
+  onMount(() => {
+    // Initialize theme based on stored preference
+    if (get(theme) === "system") {
+      applySystemTheme();
+      setupSystemListener();
+    } else {
+      selectTheme(get(theme));
+    }
+    setupReducedMotionListener();
+  });
+
+  $effect(() => {
+    if (prefersReducedMotion) {
+      $settings.enableMotion = false;
+    }
+  });
+
+  // Cleanup listener when the component is destroyed
+  onDestroy(() => {
+    cleanupSystemListener();
+    cleanupReducedMotionListener();
+  });
 </script>
 
 <!-- Theme Selection Section -->

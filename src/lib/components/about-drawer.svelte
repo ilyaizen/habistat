@@ -1,14 +1,14 @@
 <script lang="ts">
-import { X } from "@lucide/svelte";
-import { slide } from "svelte/transition";
-import { Button, buttonVariants } from "$lib/components/ui/button";
-import * as Drawer from "$lib/components/ui/drawer";
-import MoreInfo from "./more-info.svelte";
+  import { X } from "@lucide/svelte";
+  import { slide } from "svelte/transition";
+  import { Button, buttonVariants } from "$lib/components/ui/button";
+  import * as Drawer from "$lib/components/ui/drawer";
+  import MoreInfo from "./more-info.svelte";
 
-// import { getContext } from "svelte";
+  // import { getContext } from "svelte";
 
-// Svelte 5 props: make 'open' bindable
-let { showMoreInfoButton = false, open = $bindable(), handleStart } = $props();
+  // Svelte 5 props: make 'open' bindable
+  let { showMoreInfoButton = false, open = $bindable(), handleStart } = $props();
 </script>
 
 <Drawer.Root bind:open>

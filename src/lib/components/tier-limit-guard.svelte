@@ -1,37 +1,37 @@
 <script lang="ts">
-import type { Snippet } from "svelte";
-import { subscriptionStore } from "$lib/stores/subscription";
-import UpgradePrompt from "./upgrade-prompt.svelte";
+  import type { Snippet } from "svelte";
+  import { subscriptionStore } from "$lib/stores/subscription";
+  import UpgradePrompt from "./upgrade-prompt.svelte";
 
-let {
-  type,
-  calendarId,
-  children,
-  showUpgradePrompt = true,
-  upgradePromptCompact = true,
-  disabled = false
-}: {
-  type: "calendars" | "habits";
-  calendarId?: string;
-  children: Snippet;
-  showUpgradePrompt?: boolean;
-  upgradePromptCompact?: boolean;
-  disabled?: boolean;
-} = $props();
+  let {
+    type,
+    calendarId,
+    children,
+    showUpgradePrompt = true,
+    upgradePromptCompact = true,
+    disabled = false
+  }: {
+    type: "calendars" | "habits";
+    calendarId?: string;
+    children: Snippet;
+    showUpgradePrompt?: boolean;
+    upgradePromptCompact?: boolean;
+    disabled?: boolean;
+  } = $props();
 
-// Check if current user can create more items of this type
-const canCreate = $derived.by(() => {
-  if (disabled) return false;
-  return subscriptionStore.checkLimit(type, calendarId);
-});
+  // Check if current user can create more items of this type
+  const canCreate = $derived.by(() => {
+    if (disabled) return false;
+    return subscriptionStore.checkLimit(type, calendarId);
+  });
 
-// Get contextual upgrade message
-const upgradeMessage = $derived.by(() => {
-  return subscriptionStore.getUpgradeMessage(type);
-});
+  // Get contextual upgrade message
+  const upgradeMessage = $derived.by(() => {
+    return subscriptionStore.getUpgradeMessage(type);
+  });
 
-// Check if subscription data is still loading
-const isLoading = subscriptionStore.isLoading();
+  // Check if subscription data is still loading
+  const isLoading = subscriptionStore.isLoading();
 </script>
 
 {#if isLoading}

@@ -9,20 +9,16 @@
     Tooltip,
     TooltipContent,
     TooltipProvider,
-    TooltipTrigger,
+    TooltipTrigger
   } from "$lib/components/ui/tooltip";
   import {
     completionsStore,
-    getCompletionCountForDate,
+    getCompletionCountForDate
     // completionsByDate
   } from "$lib/stores/completions";
   import { triggerFireworks } from "$lib/stores/ui";
   import { formatLocalDate } from "$lib/utils/date";
-  import {
-    getAppOpenHistory,
-    logAppOpenIfNeeded,
-    sessionStore,
-  } from "$lib/utils/tracking";
+  import { getAppOpenHistory, logAppOpenIfNeeded, sessionStore } from "$lib/utils/tracking";
 
   // TODO: 2025-07-23 - Add the activity trend chart back in when it's ready
   // TOFIX: 2025-08-02 - Import the activity trend chart component correctly
@@ -138,9 +134,7 @@
     const today = new SvelteDate();
     today.setHours(0, 0, 0, 0);
     const todayStr = formatLocalDate(today);
-    const sessionStart = sessionStartDate
-      ? new SvelteDate(`${sessionStartDate}T00:00:00`)
-      : null;
+    const sessionStart = sessionStartDate ? new SvelteDate(`${sessionStartDate}T00:00:00`) : null;
     if (sessionStart) sessionStart.setHours(0, 0, 0, 0);
 
     // Get the completion count function from the derived store
@@ -189,7 +183,7 @@
         date: day.date,
         completions: totalActivity,
         // Use the actual date as the label for clarity in the chart and tooltips
-        label: day.date,
+        label: day.date
       };
     });
 
@@ -214,9 +208,7 @@
     if (session && !loadingHistory) {
       // Update session start date if it changed
       if (session.createdAt) {
-        const newSessionStartDate = formatLocalDate(
-          new SvelteDate(session.createdAt)
-        );
+        const newSessionStartDate = formatLocalDate(new SvelteDate(session.createdAt));
         if (newSessionStartDate !== sessionStartDate) {
           sessionStartDate = newSessionStartDate;
           generateActivityData();
@@ -262,10 +254,8 @@
             <TooltipTrigger>
               <div
                 class="h-6 w-[10px] rounded-lg"
-                class:activity-bar-green={day.status === "active" &&
-                  day.completionCount > 0}
-                class:activity-bar-green-half={day.status === "active" &&
-                  day.completionCount === 0}
+                class:activity-bar-green={day.status === "active" && day.completionCount > 0}
+                class:activity-bar-green-half={day.status === "active" && day.completionCount === 0}
                 class:activity-bar-red={day.status === "inactive"}
                 class:bg-secondary={day.status === "pre-registration"}
                 aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""} - ${day.completionCount} completions`}
@@ -287,21 +277,15 @@
         class="text-muted-foreground mt-3 flex flex-wrap items-center gap-2 text-xs sm:flex-row sm:justify-between sm:gap-0"
       >
         <div class="flex items-center space-x-1">
-          <span
-            class="bg-secondary border-border inline-block h-3 w-3 rounded border"
-          ></span>
+          <span class="bg-secondary border-border inline-block h-3 w-3 rounded border"></span>
           <span>Pre-registration</span>
         </div>
         <div class="flex items-center space-x-1">
-          <span
-            class="activity-bar-red border-border inline-block h-3 w-3 rounded border"
-          ></span>
+          <span class="activity-bar-red border-border inline-block h-3 w-3 rounded border"></span>
           <span>Inactive</span>
         </div>
         <div class="flex items-center space-x-1">
-          <span
-            class="activity-bar-green border-border inline-block h-3 w-3 rounded border"
-          ></span>
+          <span class="activity-bar-green border-border inline-block h-3 w-3 rounded border"></span>
           <span>Active</span>
         </div>
       </div>

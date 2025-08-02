@@ -31,7 +31,8 @@
       "!src-tauri/**",
       "!src/.svelte-kit/**",
       "!src/convex/**",
-      "!.svelte-kit/**"
+      "!.svelte-kit/**",
+      "!**/*.svelte"
     ]
   },
   "javascript": {
@@ -50,24 +51,11 @@
   "overrides": [
     {
       "includes": ["**/*.svelte"],
+      "formatter": {
+        "enabled": false
+      },
       "linter": {
-        "rules": {
-          "correctness": {
-            "noUnusedImports": "off",
-            "noUnusedVariables": "off"
-          },
-          "suspicious": {
-            "noExplicitAny": "off",
-            "noArrayIndexKey": "off"
-          },
-          "style": {
-            "useConst": "off",
-            "useImportType": "off"
-          },
-          "nursery": {
-            "useSortedClasses": "on"
-          }
-        }
+        "enabled": false
       }
     }
   ]

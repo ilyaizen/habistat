@@ -1,158 +1,158 @@
 <script lang="ts">
-import { get } from "svelte/store";
-import { toast } from "svelte-sonner";
-import { goto } from "$app/navigation";
-import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-import Button from "$lib/components/ui/button/button.svelte";
-import * as Dialog from "$lib/components/ui/dialog/index.js";
-import Input from "$lib/components/ui/input/input.svelte";
-import Label from "$lib/components/ui/label/label.svelte";
-import * as Select from "$lib/components/ui/select";
-import Switch from "$lib/components/ui/switch/switch.svelte";
-import Textarea from "$lib/components/ui/textarea/textarea.svelte";
-import { type Calendar, calendarsStore } from "$lib/stores/calendars";
-import { type Habit, habits as habitsStore } from "$lib/stores/habits";
+  import { get } from "svelte/store";
+  import { toast } from "svelte-sonner";
+  import { goto } from "$app/navigation";
+  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import * as Dialog from "$lib/components/ui/dialog/index.js";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import Label from "$lib/components/ui/label/label.svelte";
+  import * as Select from "$lib/components/ui/select";
+  import Switch from "$lib/components/ui/switch/switch.svelte";
+  import Textarea from "$lib/components/ui/textarea/textarea.svelte";
+  import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+  import { type Habit, habits as habitsStore } from "$lib/stores/habits";
 
-// Using $bindable for two-way binding of the open prop in Svelte 5
+  // Using $bindable for two-way binding of the open prop in Svelte 5
 
-let {
-  habitId,
-  calendarId,
-  open = $bindable()
-} = $props<{
-  habitId: string;
-  calendarId: string;
-  open: boolean;
-}>();
+  let {
+    habitId,
+    calendarId,
+    open = $bindable()
+  } = $props<{
+    habitId: string;
+    calendarId: string;
+    open: boolean;
+  }>();
 
-const habitTypeItems = [
-  {
-    value: "positive",
-    label: "Positive",
-    description: "Positive (Build good habits)"
-  },
-  {
-    value: "negative",
-    label: "Negative",
-    description: "Negative (Reduce bad habits)"
-  }
-];
+  const habitTypeItems = [
+    {
+      value: "positive",
+      label: "Positive",
+      description: "Positive (Build good habits)"
+    },
+    {
+      value: "negative",
+      label: "Negative",
+      description: "Negative (Reduce bad habits)"
+    }
+  ];
 
-let calendars = $state<Calendar[]>([]);
-let habit = $state<Habit | undefined>(undefined);
-let name = $state("");
-let description = $state("");
-let type = $state("positive");
-const selectedLabel = $derived(habitTypeItems.find((item) => item.value === type)?.label);
-let timerEnabled = $state(false);
-let targetDurationSeconds = $state<number | null>(0);
-let pointsValue = $state(0);
-// let position = $state(0);
-let isEnabled = $state(true);
-let saving = $state(false);
-let deleteDialogOpen = $state(false);
-let selectedCalendarId = $state("");
+  let calendars = $state<Calendar[]>([]);
+  let habit = $state<Habit | undefined>(undefined);
+  let name = $state("");
+  let description = $state("");
+  let type = $state("positive");
+  const selectedLabel = $derived(habitTypeItems.find((item) => item.value === type)?.label);
+  let timerEnabled = $state(false);
+  let targetDurationSeconds = $state<number | null>(0);
+  let pointsValue = $state(0);
+  // let position = $state(0);
+  let isEnabled = $state(true);
+  let saving = $state(false);
+  let deleteDialogOpen = $state(false);
+  let selectedCalendarId = $state("");
 
-$effect(() => {
-  calendarsStore.subscribe((value) => {
-    calendars = value;
-  });
-
-  const allHabits = get(habitsStore);
-  const found = allHabits.find((h) => h.id === habitId);
-
-  function populateState(h: Habit) {
-    habit = h;
-    name = h.name;
-    description = h.description ?? "";
-    type = h.type;
-    selectedCalendarId = h.calendarId;
-    timerEnabled = h.timerEnabled === 1;
-    targetDurationSeconds = h.targetDurationSeconds;
-    pointsValue = h.pointsValue ?? 0;
-    // position = h.position;
-    isEnabled = h.isEnabled === 1;
-  }
-
-  if (found) {
-    populateState(found);
-  } else {
-    habitsStore.refresh().then(() => {
-      const freshHabits = get(habitsStore);
-      const freshFound = freshHabits.find((h) => h.id === habitId);
-      if (freshFound) {
-        populateState(freshFound);
-      } else {
-        console.error("Habit not found, redirecting.");
-        goto(`/dashboard/${calendarId}`);
-      }
+  $effect(() => {
+    calendarsStore.subscribe((value) => {
+      calendars = value;
     });
-  }
-});
 
-/**
- * Handles dialog closing by setting the bindable open prop to false.
- * This automatically updates the parent component's state through two-way binding.
- */
-function handleClose() {
-  open = false;
-}
+    const allHabits = get(habitsStore);
+    const found = allHabits.find((h) => h.id === habitId);
 
-async function saveHabit() {
-  if (!habit) {
-    console.error("Attempted to save a non-existent habit.");
-    return;
-  }
-  saving = true;
-  try {
-    const updatePayload: Partial<Omit<Habit, "id" | "userId" | "createdAt">> = {
-      name,
-      description,
-      type,
-      timerEnabled: timerEnabled ? 1 : 0,
-      targetDurationSeconds: timerEnabled ? Number(targetDurationSeconds) || null : null,
-      pointsValue: Number(pointsValue) || 0,
-      // position: Number(position) || 0,
-      isEnabled: isEnabled ? 1 : 0
-    };
-
-    if (selectedCalendarId !== habit.calendarId) {
-      updatePayload.calendarId = selectedCalendarId;
-      const allHabits = get(habitsStore);
-      const habitsInNewCalendar = allHabits.filter((h) => h.calendarId === selectedCalendarId);
-      const maxPosition =
-        habitsInNewCalendar.length > 0
-          ? Math.max(...habitsInNewCalendar.map((c) => c.position))
-          : -1;
-      updatePayload.position = maxPosition + 1;
+    function populateState(h: Habit) {
+      habit = h;
+      name = h.name;
+      description = h.description ?? "";
+      type = h.type;
+      selectedCalendarId = h.calendarId;
+      timerEnabled = h.timerEnabled === 1;
+      targetDurationSeconds = h.targetDurationSeconds;
+      pointsValue = h.pointsValue ?? 0;
+      // position = h.position;
+      isEnabled = h.isEnabled === 1;
     }
 
-    await habitsStore.update(habit.id, updatePayload);
-    toast.success("Habit saved successfully!");
-    handleClose();
-  } catch (error) {
-    console.error("Failed to save habit:", error);
-    toast.error("Failed to save habit. Please try again.");
-  } finally {
-    saving = false;
-  }
-}
+    if (found) {
+      populateState(found);
+    } else {
+      habitsStore.refresh().then(() => {
+        const freshHabits = get(habitsStore);
+        const freshFound = freshHabits.find((h) => h.id === habitId);
+        if (freshFound) {
+          populateState(freshFound);
+        } else {
+          console.error("Habit not found, redirecting.");
+          goto(`/dashboard/${calendarId}`);
+        }
+      });
+    }
+  });
 
-async function deleteHabit() {
-  if (!habit) return;
-  saving = true;
-  try {
-    await habitsStore.remove(habit.id);
-    toast.success("Habit deleted.");
-    handleClose();
-  } catch (error) {
-    console.error("Failed to delete habit:", error);
-    toast.error("Failed to delete habit.");
-  } finally {
-    saving = false;
-    deleteDialogOpen = false;
+  /**
+   * Handles dialog closing by setting the bindable open prop to false.
+   * This automatically updates the parent component's state through two-way binding.
+   */
+  function handleClose() {
+    open = false;
   }
-}
+
+  async function saveHabit() {
+    if (!habit) {
+      console.error("Attempted to save a non-existent habit.");
+      return;
+    }
+    saving = true;
+    try {
+      const updatePayload: Partial<Omit<Habit, "id" | "userId" | "createdAt">> = {
+        name,
+        description,
+        type,
+        timerEnabled: timerEnabled ? 1 : 0,
+        targetDurationSeconds: timerEnabled ? Number(targetDurationSeconds) || null : null,
+        pointsValue: Number(pointsValue) || 0,
+        // position: Number(position) || 0,
+        isEnabled: isEnabled ? 1 : 0
+      };
+
+      if (selectedCalendarId !== habit.calendarId) {
+        updatePayload.calendarId = selectedCalendarId;
+        const allHabits = get(habitsStore);
+        const habitsInNewCalendar = allHabits.filter((h) => h.calendarId === selectedCalendarId);
+        const maxPosition =
+          habitsInNewCalendar.length > 0
+            ? Math.max(...habitsInNewCalendar.map((c) => c.position))
+            : -1;
+        updatePayload.position = maxPosition + 1;
+      }
+
+      await habitsStore.update(habit.id, updatePayload);
+      toast.success("Habit saved successfully!");
+      handleClose();
+    } catch (error) {
+      console.error("Failed to save habit:", error);
+      toast.error("Failed to save habit. Please try again.");
+    } finally {
+      saving = false;
+    }
+  }
+
+  async function deleteHabit() {
+    if (!habit) return;
+    saving = true;
+    try {
+      await habitsStore.remove(habit.id);
+      toast.success("Habit deleted.");
+      handleClose();
+    } catch (error) {
+      console.error("Failed to delete habit:", error);
+      toast.error("Failed to delete habit.");
+    } finally {
+      saving = false;
+      deleteDialogOpen = false;
+    }
+  }
 </script>
 
 <Dialog.Root {open} onOpenChange={(v) => !v && handleClose()}>
@@ -166,31 +166,21 @@ async function deleteHabit() {
         <p class="text-muted-foreground">Loading habit details...</p>
       {:else if !habit}
         <p class="text-destructive">
-          Habit not found. <a
-            href={`/dashboard/${calendarId}`}
-            class="text-primary hover:underline">Return to calendar.</a
+          Habit not found. <a href={`/dashboard/${calendarId}`} class="text-primary hover:underline"
+            >Return to calendar.</a
           >
         </p>
       {:else}
         <form onsubmit={saveHabit} class="flex flex-col gap-6">
           <div>
-            <Label class="text-foreground mb-2 block text-sm font-medium"
-              >Calendar</Label
-            >
-            <Select.Root
-              name="calendar"
-              bind:value={selectedCalendarId}
-              type="single"
-            >
+            <Label class="text-foreground mb-2 block text-sm font-medium">Calendar</Label>
+            <Select.Root name="calendar" bind:value={selectedCalendarId} type="single">
               <Select.Trigger class="w-full md:w-[200px]">
-                {calendars.find((c) => c.id === selectedCalendarId)?.name ??
-                  "Select calendar"}
+                {calendars.find((c) => c.id === selectedCalendarId)?.name ?? "Select calendar"}
               </Select.Trigger>
               <Select.Content>
                 <Select.Group>
-                  <Select.Label class="px-2 py-1.5 text-sm font-semibold"
-                    >Calendars</Select.Label
-                  >
+                  <Select.Label class="px-2 py-1.5 text-sm font-semibold">Calendars</Select.Label>
                   {#each calendars as cal (cal.id)}
                     <Select.Item value={cal.id} label={cal.name}>
                       {cal.name}
@@ -201,9 +191,8 @@ async function deleteHabit() {
             </Select.Root>
           </div>
           <div>
-            <Label
-              for="habit-name"
-              class="text-foreground mb-2 block text-sm font-medium">Name</Label
+            <Label for="habit-name" class="text-foreground mb-2 block text-sm font-medium"
+              >Name</Label
             >
             <Input
               id="habit-name"
@@ -218,9 +207,7 @@ async function deleteHabit() {
             </div>
           </div>
           <div>
-            <Label
-              for="habit-description"
-              class="text-foreground mb-2 block text-sm font-medium"
+            <Label for="habit-description" class="text-foreground mb-2 block text-sm font-medium"
               >Description</Label
             >
             <Textarea
@@ -237,9 +224,7 @@ async function deleteHabit() {
             </div>
           </div>
           <div>
-            <Label class="text-foreground mb-2 block text-sm font-medium"
-              >Type</Label
-            >
+            <Label class="text-foreground mb-2 block text-sm font-medium">Type</Label>
             <Select.Root name="type" bind:value={type} type="single">
               <Select.Trigger class="w-full md:w-[200px]">
                 {#if selectedLabel}
@@ -250,9 +235,7 @@ async function deleteHabit() {
               </Select.Trigger>
               <Select.Content>
                 <Select.Group>
-                  <Select.Label class="px-2 py-1.5 text-sm font-semibold"
-                    >Habit Type</Select.Label
-                  >
+                  <Select.Label class="px-2 py-1.5 text-sm font-semibold">Habit Type</Select.Label>
                   {#each habitTypeItems as item (item.value)}
                     <Select.Item value={item.value} label={item.label}>
                       {item.description}
@@ -265,9 +248,8 @@ async function deleteHabit() {
 
           <div class="flex items-center gap-3 rounded-md border p-4">
             <Switch id="timerEnabled" bind:checked={timerEnabled} />
-            <Label
-              for="timerEnabled"
-              class="text-foreground text-sm font-medium">Enable Timer</Label
+            <Label for="timerEnabled" class="text-foreground text-sm font-medium"
+              >Enable Timer</Label
             >
           </div>
           {#if timerEnabled}
@@ -290,9 +272,7 @@ async function deleteHabit() {
             </div>
           {/if}
           <div>
-            <Label
-              for="habit-pointsValue"
-              class="text-foreground mb-2 block text-sm font-medium"
+            <Label for="habit-pointsValue" class="text-foreground mb-2 block text-sm font-medium"
               >Points Value</Label
             >
             <Input
@@ -331,11 +311,8 @@ async function deleteHabit() {
           </div>
 
           <div class="mt-6 flex justify-end gap-3 border-t pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onclick={handleClose}
-              disabled={saving}>Cancel</Button
+            <Button type="button" variant="outline" onclick={handleClose} disabled={saving}
+              >Cancel</Button
             >
             <Button
               type="button"
@@ -382,8 +359,8 @@ async function deleteHabit() {
         <AlertDialog.Header>
           <AlertDialog.Title>Delete Habit?</AlertDialog.Title>
           <AlertDialog.Description>
-            This will permanently delete the habit "{habit?.name}" and all its
-            completion data. This action cannot be undone. Are you sure?
+            This will permanently delete the habit "{habit?.name}" and all its completion data. This
+            action cannot be undone. Are you sure?
           </AlertDialog.Description>
         </AlertDialog.Header>
         <AlertDialog.Footer>

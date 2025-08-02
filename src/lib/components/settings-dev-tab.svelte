@@ -1,10 +1,10 @@
 <script lang="ts">
-import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
-import { Label } from "$lib/components/ui/label";
-import Switch from "$lib/components/ui/switch/switch.svelte";
+  import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
+  import { Label } from "$lib/components/ui/label";
+  import Switch from "$lib/components/ui/switch/switch.svelte";
 
-let dummySetting1 = $state(false);
-let dummySetting2 = $state(true);
+  let dummySetting1 = $state(false);
+  let dummySetting2 = $state(true);
 </script>
 
 <Card>

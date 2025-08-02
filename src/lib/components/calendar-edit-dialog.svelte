@@ -1,106 +1,106 @@
 <script lang="ts">
-import { get } from "svelte/store";
-import { goto } from "$app/navigation";
-import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+  import { get } from "svelte/store";
+  import { goto } from "$app/navigation";
+  import { type Calendar, calendarsStore } from "$lib/stores/calendars";
 
-// Using $bindable for two-way binding of the open prop in Svelte 5
+  // Using $bindable for two-way binding of the open prop in Svelte 5
 
-import { toast } from "svelte-sonner";
-import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-import Button from "$lib/components/ui/button/button.svelte";
-import * as Dialog from "$lib/components/ui/dialog/index.js";
-import Input from "$lib/components/ui/input/input.svelte";
-import Label from "$lib/components/ui/label/label.svelte";
-import * as Select from "$lib/components/ui/select";
-import Switch from "$lib/components/ui/switch/switch.svelte";
-import { COLOR_PALETTE } from "$lib/utils/colors";
+  import { toast } from "svelte-sonner";
+  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import * as Dialog from "$lib/components/ui/dialog/index.js";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import Label from "$lib/components/ui/label/label.svelte";
+  import * as Select from "$lib/components/ui/select";
+  import Switch from "$lib/components/ui/switch/switch.svelte";
+  import { COLOR_PALETTE } from "$lib/utils/colors";
 
-let { calendarId, open = $bindable() } = $props<{ calendarId: string; open: boolean }>();
+  let { calendarId, open = $bindable() } = $props<{ calendarId: string; open: boolean }>();
 
-let calendar = $state<Calendar | null>(null);
-let name = $state("");
-let colorTheme = $state("");
+  let calendar = $state<Calendar | null>(null);
+  let name = $state("");
+  let colorTheme = $state("");
 
-// TODO: 2025-07-19 - position is not used in the dialog UI, but it's still in the database
-// let position = $state(0);
-let isEnabled = $state(true);
-let saving = $state(false);
-let deleteDialogOpen = $state(false);
+  // TODO: 2025-07-19 - position is not used in the dialog UI, but it's still in the database
+  // let position = $state(0);
+  let isEnabled = $state(true);
+  let saving = $state(false);
+  let deleteDialogOpen = $state(false);
 
-$effect(() => {
-  const allCalendars = get(calendarsStore);
-  const found = allCalendars.find((c) => c.id === calendarId);
+  $effect(() => {
+    const allCalendars = get(calendarsStore);
+    const found = allCalendars.find((c) => c.id === calendarId);
 
-  function populateForm(cal: Calendar) {
-    calendar = cal;
-    name = cal.name;
-    colorTheme = cal.colorTheme;
-    // position = cal.position;
-    isEnabled = cal.isEnabled === 1;
+    function populateForm(cal: Calendar) {
+      calendar = cal;
+      name = cal.name;
+      colorTheme = cal.colorTheme;
+      // position = cal.position;
+      isEnabled = cal.isEnabled === 1;
+    }
+
+    if (found) {
+      populateForm(found);
+    } else {
+      calendarsStore.refresh().then(() => {
+        const freshCalendars = get(calendarsStore);
+        const freshFound = freshCalendars.find((c) => c.id === calendarId);
+        if (freshFound) {
+          populateForm(freshFound);
+        } else {
+          console.error("Calendar not found, closing dialog.");
+          toast.error("Calendar not found.");
+          handleClose();
+        }
+      });
+    }
+  });
+
+  /**
+   * Handles dialog closing by setting the bindable open prop to false.
+   * This automatically updates the parent component's state through two-way binding.
+   */
+  function handleClose() {
+    open = false;
   }
 
-  if (found) {
-    populateForm(found);
-  } else {
-    calendarsStore.refresh().then(() => {
-      const freshCalendars = get(calendarsStore);
-      const freshFound = freshCalendars.find((c) => c.id === calendarId);
-      if (freshFound) {
-        populateForm(freshFound);
-      } else {
-        console.error("Calendar not found, closing dialog.");
-        toast.error("Calendar not found.");
-        handleClose();
-      }
-    });
+  async function saveChanges() {
+    if (!calendar) return;
+
+    saving = true;
+    try {
+      await calendarsStore.update(calendar.id, {
+        name,
+        colorTheme,
+        // position,
+        isEnabled: isEnabled ? 1 : 0
+      });
+      toast.success("Calendar updated successfully!");
+      handleClose();
+    } catch (error) {
+      console.error("Failed to update calendar:", error);
+      toast.error("Failed to update calendar. Please try again.");
+    } finally {
+      saving = false;
+    }
   }
-});
 
-/**
- * Handles dialog closing by setting the bindable open prop to false.
- * This automatically updates the parent component's state through two-way binding.
- */
-function handleClose() {
-  open = false;
-}
-
-async function saveChanges() {
-  if (!calendar) return;
-
-  saving = true;
-  try {
-    await calendarsStore.update(calendar.id, {
-      name,
-      colorTheme,
-      // position,
-      isEnabled: isEnabled ? 1 : 0
-    });
-    toast.success("Calendar updated successfully!");
-    handleClose();
-  } catch (error) {
-    console.error("Failed to update calendar:", error);
-    toast.error("Failed to update calendar. Please try again.");
-  } finally {
-    saving = false;
+  async function deleteCalendar() {
+    if (!calendar) return;
+    saving = true;
+    try {
+      await calendarsStore.remove(calendar.id);
+      toast.success("Calendar deleted.");
+      goto("/dashboard"); // Navigate to dashboard after deletion
+    } catch (error) {
+      console.error("Failed to delete calendar:", error);
+      toast.error("Failed to delete calendar.");
+    } finally {
+      saving = false;
+      deleteDialogOpen = false;
+      handleClose();
+    }
   }
-}
-
-async function deleteCalendar() {
-  if (!calendar) return;
-  saving = true;
-  try {
-    await calendarsStore.remove(calendar.id);
-    toast.success("Calendar deleted.");
-    goto("/dashboard"); // Navigate to dashboard after deletion
-  } catch (error) {
-    console.error("Failed to delete calendar:", error);
-    toast.error("Failed to delete calendar.");
-  } finally {
-    saving = false;
-    deleteDialogOpen = false;
-    handleClose();
-  }
-}
 </script>
 
 <Dialog.Root {open} onOpenChange={(v) => !v && handleClose()}>

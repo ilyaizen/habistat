@@ -8,247 +8,247 @@
  */ -->
 
 <script lang="ts">
-import { GripVertical } from "@lucide/svelte";
-import { flip } from "svelte/animate";
-import { SvelteDate, SvelteMap } from "svelte/reactivity";
-import { type DndEvent, dndzone } from "svelte-dnd-action";
-import { goto } from "$app/navigation";
-import CalendarEditDialog from "$lib/components/calendar-edit-dialog.svelte";
-import HabitCompletionControl from "$lib/components/habit-completion-control.svelte";
-import HabitEditDialog from "$lib/components/habit-edit-dialog.svelte";
-import HabitHistoryGrid from "$lib/components/habit-history-grid.svelte";
-// --- Component Imports ---
-// UI components for drag-and-drop, habit controls, and visualization
-import Button from "$lib/components/ui/button/button.svelte";
-import { Card } from "$lib/components/ui/card";
-import { IsMobile } from "$lib/hooks/is-mobile";
-// --- Store Imports ---
-// Core data stores for calendars, habits, and completions
-import { type Calendar, calendarsStore } from "$lib/stores/calendars";
-import { completionsByHabit } from "$lib/stores/completions";
-import { type Habit, habits as habitsStore } from "$lib/stores/habits";
-import { formatDate } from "$lib/utils/date";
+  import { GripVertical } from "@lucide/svelte";
+  import { flip } from "svelte/animate";
+  import { SvelteDate, SvelteMap } from "svelte/reactivity";
+  import { type DndEvent, dndzone } from "svelte-dnd-action";
+  import { goto } from "$app/navigation";
+  import CalendarEditDialog from "$lib/components/calendar-edit-dialog.svelte";
+  import HabitCompletionControl from "$lib/components/habit-completion-control.svelte";
+  import HabitEditDialog from "$lib/components/habit-edit-dialog.svelte";
+  import HabitHistoryGrid from "$lib/components/habit-history-grid.svelte";
+  // --- Component Imports ---
+  // UI components for drag-and-drop, habit controls, and visualization
+  import Button from "$lib/components/ui/button/button.svelte";
+  import { Card } from "$lib/components/ui/card";
+  import { IsMobile } from "$lib/hooks/is-mobile";
+  // --- Store Imports ---
+  // Core data stores for calendars, habits, and completions
+  import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+  import { completionsByHabit } from "$lib/stores/completions";
+  import { type Habit, habits as habitsStore } from "$lib/stores/habits";
+  import { formatDate } from "$lib/utils/date";
 
-// --- Component Props ---
-// isReorderMode is controlled by the parent component (DashboardHeader)
-let { isReorderMode } = $props<{ isReorderMode: boolean }>();
+  // --- Component Props ---
+  // isReorderMode is controlled by the parent component (DashboardHeader)
+  let { isReorderMode } = $props<{ isReorderMode: boolean }>();
 
-// --- Mobile Detection ---
-// Reactive mobile detection for responsive UI adjustments
-const isMobile = new IsMobile();
+  // --- Mobile Detection ---
+  // Reactive mobile detection for responsive UI adjustments
+  const isMobile = new IsMobile();
 
-// --- Local State Management ---
-// Local copies of store data for optimistic UI updates during drag operations
-let localCalendars = $state<Calendar[]>([]);
-let localHabitsByCalendar = $state(new SvelteMap<string, Habit[]>());
-let editingHabitId = $state<string | null>(null);
-let editingCalendarId = $state<string | null>(null);
-let editingCalendarIdForDialog = $state<string | null>(null);
-let habitDialogOpen = $state(false);
-let calendarDialogOpen = $state(false);
+  // --- Local State Management ---
+  // Local copies of store data for optimistic UI updates during drag operations
+  let localCalendars = $state<Calendar[]>([]);
+  let localHabitsByCalendar = $state(new SvelteMap<string, Habit[]>());
+  let editingHabitId = $state<string | null>(null);
+  let editingCalendarId = $state<string | null>(null);
+  let editingCalendarIdForDialog = $state<string | null>(null);
+  let habitDialogOpen = $state(false);
+  let calendarDialogOpen = $state(false);
 
-// Drag-and-drop state tracking
-let isCalendarDragging = $state(false); // Tracks if a calendar is being dragged
-let isHabitZoneActive = $state(false); // Prevents calendar reordering when dragging habits
-let activeHabitCalendarId = $state<string | null>(null); // Tracks which calendar's habits are being dragged
+  // Drag-and-drop state tracking
+  let isCalendarDragging = $state(false); // Tracks if a calendar is being dragged
+  let isHabitZoneActive = $state(false); // Prevents calendar reordering when dragging habits
+  let activeHabitCalendarId = $state<string | null>(null); // Tracks which calendar's habits are being dragged
 
-// --- Derived Store Values ---
-// Reactive computed values that automatically update when stores change
+  // --- Derived Store Values ---
+  // Reactive computed values that automatically update when stores change
 
-/**
- * Sorted calendars by position for consistent ordering
- */
-const calendars = $derived(
-  [...($calendarsStore ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-);
+  /**
+   * Sorted calendars by position for consistent ordering
+   */
+  const calendars = $derived(
+    [...($calendarsStore ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+  );
 
-/**
- * Habits grouped by calendar ID and sorted by position within each calendar
- */
-const habitsByCalendar = $derived.by(() => {
-  const allHabits = $habitsStore ?? [];
-  const newMap = new SvelteMap<string, Habit[]>();
+  /**
+   * Habits grouped by calendar ID and sorted by position within each calendar
+   */
+  const habitsByCalendar = $derived.by(() => {
+    const allHabits = $habitsStore ?? [];
+    const newMap = new SvelteMap<string, Habit[]>();
 
-  // Group habits by calendar
-  for (const habit of allHabits) {
-    if (!habit.calendarId) continue;
-    if (!newMap.has(habit.calendarId)) {
-      newMap.set(habit.calendarId, []);
+    // Group habits by calendar
+    for (const habit of allHabits) {
+      if (!habit.calendarId) continue;
+      if (!newMap.has(habit.calendarId)) {
+        newMap.set(habit.calendarId, []);
+      }
+      newMap.get(habit.calendarId)?.push(habit);
     }
-    newMap.get(habit.calendarId)?.push(habit);
+
+    // Sort habits within each calendar by position
+    for (const [key, value] of newMap.entries()) {
+      newMap.set(
+        key,
+        value.sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+      );
+    }
+    return newMap;
+  });
+
+  /**
+   * Today's completion counts per habit for quick access
+   */
+  const completionsTodayByHabit = $derived.by(() => {
+    const todayStr = formatDate(new SvelteDate());
+    const newMap = new SvelteMap<string, number>();
+    const allCompletions = $completionsByHabit;
+
+    for (const [habitId, completions] of allCompletions.entries()) {
+      const todayCount = completions.filter(
+        (c) => formatDate(new SvelteDate(c.completedAt)) === todayStr
+      ).length;
+      newMap.set(habitId, todayCount);
+    }
+    return newMap;
+  });
+
+  // --- Reactive Effects ---
+  // Svelte 5 effects for managing component state and synchronization
+
+  /**
+   * Initialize or update local state when store data changes.
+   * This effect runs whenever the calendars or habits stores are updated.
+   */
+  $effect(() => {
+    localCalendars = [...calendars];
+    const newHabitsMap = new SvelteMap<string, Habit[]>();
+    for (const [key, value] of habitsByCalendar.entries()) {
+      newHabitsMap.set(key, [...value]);
+    }
+    localHabitsByCalendar = newHabitsMap;
+  });
+
+  /**
+   * Reset drag states when no calendars exist
+   * Prevents orphaned drag state
+   */
+  $effect(() => {
+    if (calendars.length === 0) {
+      isHabitZoneActive = false;
+      activeHabitCalendarId = null;
+    }
+  });
+
+  /**
+   * Clean up drag states when exiting reorder mode
+   * Ensures clean state transitions
+   */
+  $effect(() => {
+    if (!isReorderMode) {
+      isHabitZoneActive = false;
+      activeHabitCalendarId = null;
+    }
+  });
+
+  // --- Event Handlers ---
+
+  /**
+   * Handles the 'finalize' event for calendar drag-and-drop.
+   * This is where we commit the new order to our local state and persist it.
+   */
+  function handleCalendarDndFinalize(e: CustomEvent<DndEvent<Calendar>>) {
+    // Prevent calendar reordering when dragging habits
+    if (isHabitZoneActive || activeHabitCalendarId) return;
+
+    // Additional guard against placeholder items from svelte-dnd-action
+    if (e.detail.items.some((item) => item.id.includes("dnd-shadow-placeholder"))) {
+      return;
+    }
+
+    // Update the local state to match the final dropped order
+    localCalendars = e.detail.items;
+
+    // Persist the new order to the database via the store's dedicated method.
+    calendarsStore.updateOrder(e.detail.items);
   }
 
-  // Sort habits within each calendar by position
-  for (const [key, value] of newMap.entries()) {
-    newMap.set(
-      key,
-      value.sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-    );
+  /**
+   * Handles the 'consider' event for calendar drag-and-drop.
+   * We update the local state here to reflect the visual reordering during the drag.
+   * This keeps Svelte's view of the data in sync with what svelte-dnd-action is doing
+   * in the DOM, which is crucial for preventing race conditions and crashes.
+   */
+  function handleCalendarDndConsider(e: CustomEvent<DndEvent<Calendar>>) {
+    // Update local state to show visual reordering during drag
+    localCalendars = e.detail.items;
   }
-  return newMap;
-});
 
-/**
- * Today's completion counts per habit for quick access
- */
-const completionsTodayByHabit = $derived.by(() => {
-  const todayStr = formatDate(new SvelteDate());
-  const newMap = new SvelteMap<string, number>();
-  const allCompletions = $completionsByHabit;
+  /**
+   * Handles habit drag-and-drop reordering within and between calendars.
+   * Uses optimistic updates for smooth UX and persists changes on finalization.
+   */
+  function handleHabitDnd(e: CustomEvent<DndEvent<Habit>>, calendarId: string) {
+    e.stopPropagation(); // Prevent calendar drag events
 
-  for (const [habitId, completions] of allCompletions.entries()) {
-    const todayCount = completions.filter(
-      (c) => formatDate(new SvelteDate(c.completedAt)) === todayStr
-    ).length;
-    newMap.set(habitId, todayCount);
+    const reorderedHabits = e.detail.items;
+
+    // Optimistic UI update: immediately reflect the new state in the local component state.
+    const newMap = new SvelteMap(localHabitsByCalendar);
+    newMap.set(calendarId, [...reorderedHabits]);
+    localHabitsByCalendar = newMap;
+
+    // Only persist changes to the database on the 'finalize' event (i.e., when the user drops the item).
+    if (e.type === "finalize") {
+      const draggedHabitId = e.detail.info.id;
+
+      // This check determines if the current dnd-zone is the destination for the drop.
+      const isDestinationZone = reorderedHabits.some((h) => h.id === draggedHabitId);
+
+      if (isDestinationZone) {
+        // This is the destination calendar.
+        // We update all habits in this list with their new positions.
+        // If a habit was moved from another calendar, its calendarId is also updated.
+        const updatePromises = reorderedHabits.map((habit, index) => {
+          if (habit.id === draggedHabitId && habit.calendarId !== calendarId) {
+            // This is the dragged habit, and it has been moved to a new calendar.
+            // We update its calendarId and its new position in the list.
+            return habitsStore.update(habit.id, { calendarId: calendarId, position: index });
+          } else {
+            // This is a habit being reordered within the same calendar, or another habit in the
+            // destination list that needs its position updated due to the new item.
+            return habitsStore.update(habit.id, { position: index });
+          }
+        });
+        Promise.all(updatePromises).catch(console.error);
+      }
+    }
   }
-  return newMap;
-});
 
-// --- Reactive Effects ---
-// Svelte 5 effects for managing component state and synchronization
-
-/**
- * Initialize or update local state when store data changes.
- * This effect runs whenever the calendars or habits stores are updated.
- */
-$effect(() => {
-  localCalendars = [...calendars];
-  const newHabitsMap = new SvelteMap<string, Habit[]>();
-  for (const [key, value] of habitsByCalendar.entries()) {
-    newHabitsMap.set(key, [...value]);
+  /**
+   * Handles habit drag start events
+   * Ensures proper zone activation for drag operations
+   */
+  function handleHabitDragStart(calendarId: string) {
+    if (!isReorderMode) return;
+    isHabitZoneActive = true;
+    activeHabitCalendarId = calendarId;
   }
-  localHabitsByCalendar = newHabitsMap;
-});
 
-/**
- * Reset drag states when no calendars exist
- * Prevents orphaned drag state
- */
-$effect(() => {
-  if (calendars.length === 0) {
+  /**
+   * Handles habit drag end events
+   * Cleans up drag state after operations complete
+   */
+  function handleHabitDragEnd() {
+    if (!isReorderMode) return;
     isHabitZoneActive = false;
     activeHabitCalendarId = null;
   }
-});
 
-/**
- * Clean up drag states when exiting reorder mode
- * Ensures clean state transitions
- */
-$effect(() => {
-  if (!isReorderMode) {
-    isHabitZoneActive = false;
-    activeHabitCalendarId = null;
-  }
-});
-
-// --- Event Handlers ---
-
-/**
- * Handles the 'finalize' event for calendar drag-and-drop.
- * This is where we commit the new order to our local state and persist it.
- */
-function handleCalendarDndFinalize(e: CustomEvent<DndEvent<Calendar>>) {
-  // Prevent calendar reordering when dragging habits
-  if (isHabitZoneActive || activeHabitCalendarId) return;
-
-  // Additional guard against placeholder items from svelte-dnd-action
-  if (e.detail.items.some((item) => item.id.includes("dnd-shadow-placeholder"))) {
-    return;
+  function openEditDialog(habit: Habit, calendarId: string) {
+    if (isReorderMode) return;
+    editingHabitId = habit.id;
+    editingCalendarId = calendarId;
+    habitDialogOpen = true;
   }
 
-  // Update the local state to match the final dropped order
-  localCalendars = e.detail.items;
-
-  // Persist the new order to the database via the store's dedicated method.
-  calendarsStore.updateOrder(e.detail.items);
-}
-
-/**
- * Handles the 'consider' event for calendar drag-and-drop.
- * We update the local state here to reflect the visual reordering during the drag.
- * This keeps Svelte's view of the data in sync with what svelte-dnd-action is doing
- * in the DOM, which is crucial for preventing race conditions and crashes.
- */
-function handleCalendarDndConsider(e: CustomEvent<DndEvent<Calendar>>) {
-  // Update local state to show visual reordering during drag
-  localCalendars = e.detail.items;
-}
-
-/**
- * Handles habit drag-and-drop reordering within and between calendars.
- * Uses optimistic updates for smooth UX and persists changes on finalization.
- */
-function handleHabitDnd(e: CustomEvent<DndEvent<Habit>>, calendarId: string) {
-  e.stopPropagation(); // Prevent calendar drag events
-
-  const reorderedHabits = e.detail.items;
-
-  // Optimistic UI update: immediately reflect the new state in the local component state.
-  const newMap = new SvelteMap(localHabitsByCalendar);
-  newMap.set(calendarId, [...reorderedHabits]);
-  localHabitsByCalendar = newMap;
-
-  // Only persist changes to the database on the 'finalize' event (i.e., when the user drops the item).
-  if (e.type === "finalize") {
-    const draggedHabitId = e.detail.info.id;
-
-    // This check determines if the current dnd-zone is the destination for the drop.
-    const isDestinationZone = reorderedHabits.some((h) => h.id === draggedHabitId);
-
-    if (isDestinationZone) {
-      // This is the destination calendar.
-      // We update all habits in this list with their new positions.
-      // If a habit was moved from another calendar, its calendarId is also updated.
-      const updatePromises = reorderedHabits.map((habit, index) => {
-        if (habit.id === draggedHabitId && habit.calendarId !== calendarId) {
-          // This is the dragged habit, and it has been moved to a new calendar.
-          // We update its calendarId and its new position in the list.
-          return habitsStore.update(habit.id, { calendarId: calendarId, position: index });
-        } else {
-          // This is a habit being reordered within the same calendar, or another habit in the
-          // destination list that needs its position updated due to the new item.
-          return habitsStore.update(habit.id, { position: index });
-        }
-      });
-      Promise.all(updatePromises).catch(console.error);
-    }
+  function openCalendarEditDialog(calendarId: string) {
+    if (isReorderMode) return;
+    editingCalendarIdForDialog = calendarId;
+    calendarDialogOpen = true;
   }
-}
-
-/**
- * Handles habit drag start events
- * Ensures proper zone activation for drag operations
- */
-function handleHabitDragStart(calendarId: string) {
-  if (!isReorderMode) return;
-  isHabitZoneActive = true;
-  activeHabitCalendarId = calendarId;
-}
-
-/**
- * Handles habit drag end events
- * Cleans up drag state after operations complete
- */
-function handleHabitDragEnd() {
-  if (!isReorderMode) return;
-  isHabitZoneActive = false;
-  activeHabitCalendarId = null;
-}
-
-function openEditDialog(habit: Habit, calendarId: string) {
-  if (isReorderMode) return;
-  editingHabitId = habit.id;
-  editingCalendarId = calendarId;
-  habitDialogOpen = true;
-}
-
-function openCalendarEditDialog(calendarId: string) {
-  if (isReorderMode) return;
-  editingCalendarIdForDialog = calendarId;
-  calendarDialogOpen = true;
-}
 </script>
 
 <!-- Main calendars and habits list -->

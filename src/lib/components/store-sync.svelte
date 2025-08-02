@@ -18,8 +18,7 @@
   import { syncStore } from "$lib/stores/sync";
 
   // Get Clerk user from context with safe fallback
-  const clerkUserStore =
-    getContext<Readable<UserResource | null>>("clerkUser") || undefined;
+  const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser") || undefined;
 
   let currentUserId: string | null = null;
   let hasShownMigrationToast = false;
@@ -41,7 +40,7 @@
 
       console.log("[StoreSync] Clerk user state changed:", {
         previousUserId,
-        newUserId,
+        newUserId
       });
       // Notify the central auth state store about the change
       authState.setClerkState(newUserId, !!user);
@@ -64,10 +63,7 @@
     if (isReady) {
       // Auth is fully ready, now we can safely initialize stores
       if (currentUserId) {
-        console.log(
-          "[StoreSync] Auth ready. Setting user on data stores:",
-          currentUserId
-        );
+        console.log("[StoreSync] Auth ready. Setting user on data stores:", currentUserId);
         calendarsStore.setUser(currentUserId);
         habits.setUser(currentUserId);
 
@@ -77,11 +73,11 @@
           syncStore.migrateAnonymousData().then((migrationResult) => {
             if (migrationResult.success && migrationResult.migratedCount > 0) {
               toast.success("Welcome back!", {
-                description: `Synced ${migrationResult.migratedCount} item(s) to your account.`,
+                description: `Synced ${migrationResult.migratedCount} item(s) to your account.`
               });
             } else if (migrationResult.success) {
               toast.success("Account synced!", {
-                description: "Your data is now synced across devices.",
+                description: "Your data is now synced across devices."
               });
             }
           });
@@ -91,9 +87,7 @@
       // User logged out or auth not ready
       const state = get(authState);
       if (!state.clerkUserId) {
-        console.log(
-          "[StoreSync] User logged out. Clearing user from data stores."
-        );
+        console.log("[StoreSync] User logged out. Clearing user from data stores.");
         calendarsStore.setUser(null);
         habits.setUser(null);
         syncStore.setUserId(null);

@@ -1,75 +1,77 @@
 <script lang="ts">
-import { onMount } from "svelte";
-import { SvelteDate } from "svelte/reactivity";
-import { get } from "svelte/store";
-import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
-import { Label } from "$lib/components/ui/label";
-import Switch from "$lib/components/ui/switch/switch.svelte";
-import { type Completion, completionsStore } from "$lib/stores/completions";
-import { settings } from "$lib/stores/settings";
-import { getAppOpenHistory } from "$lib/utils/tracking";
+  import { onMount } from "svelte";
+  import { SvelteDate } from "svelte/reactivity";
+  import { get } from "svelte/store";
+  import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
+  import { Label } from "$lib/components/ui/label";
+  import Switch from "$lib/components/ui/switch/switch.svelte";
+  import { type Completion, completionsStore } from "$lib/stores/completions";
+  import { settings } from "$lib/stores/settings";
+  import { getAppOpenHistory } from "$lib/utils/tracking";
 
-// Local state for completions
-const completions = $state<Completion[]>([]);
-let loadingCompletions = $state(false);
+  // Local state for completions
+  const completions = $state<Completion[]>([]);
+  let loadingCompletions = $state(false);
 
-// State for usage history
-let usageHistoryTimestamps = $state<number[]>([]);
-let loadingUsageHistory = $state(false);
-let activeDatesSet = $state(new Set<string>());
+  // State for usage history
+  let usageHistoryTimestamps = $state<number[]>([]);
+  let loadingUsageHistory = $state(false);
+  let activeDatesSet = $state(new Set<string>());
 
-/**
- * Helper function to format a Date object into a 'YYYY-MM-DD' string.
- * This uses the local timezone.
- */
-function formatLocalDate(date: SvelteDate): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-// Load data on mount if settings are enabled
-onMount(async () => {
-  if ($settings.verboseLogs) {
-    await loadCompletions();
+  /**
+   * Helper function to format a Date object into a 'YYYY-MM-DD' string.
+   * This uses the local timezone.
+   */
+  function formatLocalDate(date: SvelteDate): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }
-  if ($settings.showUsageHistory) {
-    await loadUsageHistory();
-  }
-});
 
-$effect(() => {
-  if ($settings.verboseLogs) loadCompletions();
-});
+  // Load data on mount if settings are enabled
+  onMount(async () => {
+    if ($settings.verboseLogs) {
+      await loadCompletions();
+    }
+    if ($settings.showUsageHistory) {
+      await loadUsageHistory();
+    }
+  });
 
-$effect(() => {
-  if ($settings.showUsageHistory) loadUsageHistory();
-});
+  $effect(() => {
+    if ($settings.verboseLogs) loadCompletions();
+  });
 
-async function loadCompletions() {
-  loadingCompletions = true;
-  completions.length = 0;
-  completions.push(...get(completionsStore));
-  if (completions.length === 0 && completionsStore.refresh) {
-    await completionsStore.refresh();
+  $effect(() => {
+    if ($settings.showUsageHistory) loadUsageHistory();
+  });
+
+  async function loadCompletions() {
+    loadingCompletions = true;
     completions.length = 0;
     completions.push(...get(completionsStore));
+    if (completions.length === 0 && completionsStore.refresh) {
+      await completionsStore.refresh();
+      completions.length = 0;
+      completions.push(...get(completionsStore));
+    }
+    loadingCompletions = false;
   }
-  loadingCompletions = false;
-}
 
-/**
- * Asynchronously loads app open history and formats it for display.
- */
-async function loadUsageHistory() {
-  loadingUsageHistory = true;
-  usageHistoryTimestamps = await getAppOpenHistory();
-  // Use the local date formatter to prevent timezone issues.
-  activeDatesSet = new Set(usageHistoryTimestamps.map((ts) => formatLocalDate(new SvelteDate(ts))));
-  usageHistoryTimestamps = usageHistoryTimestamps.slice().reverse(); // Show most recent first
-  loadingUsageHistory = false;
-}
+  /**
+   * Asynchronously loads app open history and formats it for display.
+   */
+  async function loadUsageHistory() {
+    loadingUsageHistory = true;
+    usageHistoryTimestamps = await getAppOpenHistory();
+    // Use the local date formatter to prevent timezone issues.
+    activeDatesSet = new Set(
+      usageHistoryTimestamps.map((ts) => formatLocalDate(new SvelteDate(ts)))
+    );
+    usageHistoryTimestamps = usageHistoryTimestamps.slice().reverse(); // Show most recent first
+    loadingUsageHistory = false;
+  }
 </script>
 
 <Card>

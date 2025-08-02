@@ -1,77 +1,77 @@
 <script lang="ts">
-import { ArrowDown, ArrowUp, Edit, PlusCircle } from "@lucide/svelte";
-import { goto } from "$app/navigation";
-import { page } from "$app/state";
-import Button from "$lib/components/ui/button/button.svelte";
-import * as Card from "$lib/components/ui/card";
-import { Separator } from "$lib/components/ui/separator";
-import { type Calendar, calendarsStore } from "$lib/stores/calendars";
-import { type Habit, habits as habitsStore } from "$lib/stores/habits";
+  import { ArrowDown, ArrowUp, Edit, PlusCircle } from "@lucide/svelte";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import * as Card from "$lib/components/ui/card";
+  import { Separator } from "$lib/components/ui/separator";
+  import { type Calendar, calendarsStore } from "$lib/stores/calendars";
+  import { type Habit, habits as habitsStore } from "$lib/stores/habits";
 
-// import type { Writable } from "svelte/store";
+  // import type { Writable } from "svelte/store";
 
-let calendar = $state<Calendar | undefined>(undefined);
-let calendarHabits = $state<Habit[]>([]);
-let loadingCalendar = $state(true);
-let loadingHabits = $state(true);
+  let calendar = $state<Calendar | undefined>(undefined);
+  let calendarHabits = $state<Habit[]>([]);
+  let loadingCalendar = $state(true);
+  let loadingHabits = $state(true);
 
-const calendarId = $derived(page.params.calendarId);
+  const calendarId = $derived(page.params.calendarId);
 
-// Effect to load calendar details
-$effect(() => {
-  loadingCalendar = true;
-  const unsubscribeCalendars = calendarsStore.subscribe((calendars) => {
-    calendar = calendars.find((c) => c.id === calendarId);
-    loadingCalendar = false;
+  // Effect to load calendar details
+  $effect(() => {
+    loadingCalendar = true;
+    const unsubscribeCalendars = calendarsStore.subscribe((calendars) => {
+      calendar = calendars.find((c) => c.id === calendarId);
+      loadingCalendar = false;
+    });
+    return unsubscribeCalendars;
   });
-  return unsubscribeCalendars;
-});
 
-// Effect to load habits for this calendar
-$effect(() => {
-  if (!calendarId) return; // Don't load habits if calendarId isn't available yet
-  loadingHabits = true;
-  const unsubscribeHabits = habitsStore.subscribe((allHabits) => {
-    calendarHabits = allHabits
-      .filter((h) => h.calendarId === calendarId)
-      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-    loadingHabits = false;
+  // Effect to load habits for this calendar
+  $effect(() => {
+    if (!calendarId) return; // Don't load habits if calendarId isn't available yet
+    loadingHabits = true;
+    const unsubscribeHabits = habitsStore.subscribe((allHabits) => {
+      calendarHabits = allHabits
+        .filter((h) => h.calendarId === calendarId)
+        .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      loadingHabits = false;
+    });
+    habitsStore.refresh();
+    return unsubscribeHabits;
   });
-  habitsStore.refresh();
-  return unsubscribeHabits;
-});
 
-function navigateToEditCalendar() {
-  goto(`/dashboard/${calendarId}/edit`);
-}
+  function navigateToEditCalendar() {
+    goto(`/dashboard/${calendarId}/edit`);
+  }
 
-function navigateToHabitDetail(habitId: string) {
-  goto(`/dashboard/${calendarId}/${habitId}`);
-}
+  function navigateToHabitDetail(habitId: string) {
+    goto(`/dashboard/${calendarId}/${habitId}`);
+  }
 
-function navigateToNewHabit() {
-  goto(`/dashboard/${calendarId}/new`);
-}
+  function navigateToNewHabit() {
+    goto(`/dashboard/${calendarId}/new`);
+  }
 
-function navigateToEditHabit(habitId: string) {
-  goto(`/dashboard/${calendarId}/${habitId}/edit`);
-}
+  function navigateToEditHabit(habitId: string) {
+    goto(`/dashboard/${calendarId}/${habitId}/edit`);
+  }
 
-async function moveHabit(idx: number, dir: -1 | 1) {
-  const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= calendarHabits.length) return;
-  // Swap positions
-  const a = calendarHabits[idx];
-  const b = calendarHabits[newIdx];
-  await habitsStore.update(a.id, { position: newIdx });
-  await habitsStore.update(b.id, { position: idx });
-  await habitsStore.refresh();
-}
+  async function moveHabit(idx: number, dir: -1 | 1) {
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= calendarHabits.length) return;
+    // Swap positions
+    const a = calendarHabits[idx];
+    const b = calendarHabits[newIdx];
+    await habitsStore.update(a.id, { position: newIdx });
+    await habitsStore.update(b.id, { position: idx });
+    await habitsStore.refresh();
+  }
 
-function handleStopPropagation(e: MouseEvent, callback: () => void) {
-  e.stopPropagation();
-  callback();
-}
+  function handleStopPropagation(e: MouseEvent, callback: () => void) {
+    e.stopPropagation();
+    callback();
+  }
 </script>
 
 <div class="mx-auto max-w-3xl p-4 md:p-6">
