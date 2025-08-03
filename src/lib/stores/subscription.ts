@@ -65,25 +65,36 @@ function createSubscriptionStore(): SubscriptionStore {
           };
 
           set(status);
-          console.log("Subscription status refreshed:", status);
+          // Only log subscription changes, not all refreshes
+          if (currentStatus?.tier !== status.tier || currentStatus?.isActive !== status.isActive) {
+            console.log(`✅ Subscription: ${status.tier} (${status.isActive ? 'active' : 'inactive'})`);
+          }
         } else {
           // User not found, default to free tier
-          set({
-            tier: "free",
+          const defaultStatus = {
+            tier: "free" as const,
             isActive: true,
             maxCalendars: FREE_TIER_LIMITS.maxCalendars,
             maxHabitsPerCalendar: FREE_TIER_LIMITS.maxHabitsPerCalendar
-          });
+          };
+          set(defaultStatus);
+          if (!currentStatus) {
+            console.log(`✅ Subscription: free (default)`);
+          }
         }
       } catch (error) {
         console.error("Failed to refresh subscription status:", error);
         // Default to free tier on error
-        set({
-          tier: "free",
+        const errorStatus = {
+          tier: "free" as const,
           isActive: true,
           maxCalendars: FREE_TIER_LIMITS.maxCalendars,
           maxHabitsPerCalendar: FREE_TIER_LIMITS.maxHabitsPerCalendar
-        });
+        };
+        set(errorStatus);
+        if (!currentStatus) {
+          console.log(`⚠️ Subscription: free (error fallback)`);
+        }
       } finally {
         setLoading(false);
       }

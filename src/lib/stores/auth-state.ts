@@ -38,7 +38,8 @@ function createAuthStateStore() {
     const state = get({ subscribe });
 
     if (state.clerkReady && state.clerkUserId) {
-      console.log("[Auth] Clerk authenticated, assuming Convex auth is ready");
+      // Debug: Convex auth ready
+      // console.log("[Auth] Clerk authenticated, assuming Convex auth is ready");
       return "authenticated";
     }
 
@@ -88,7 +89,12 @@ function createAuthStateStore() {
         convexAuthStatus: userId ? "authenticated" : "unauthenticated"
       }));
 
-      console.log(`[Auth] Clerk state updated: userId=${userId}, ready=${ready}`);
+      // Only log significant auth state changes
+      const state = get({ subscribe });
+      const hasChanged = state.clerkUserId !== userId || state.clerkReady !== ready;
+      if (hasChanged) {
+        console.log(`🔐 Auth: ${userId ? 'signed in' : 'signed out'}`);
+      }
     },
 
     /**

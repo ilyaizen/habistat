@@ -47,13 +47,14 @@ export async function safeQuery<T = unknown, A = unknown>(
   // Check Clerk auth state first
   const authStateData = get(authState);
   if (!authStateData.clerkUserId) {
-    console.log("[SafeQuery] No user authenticated, skipping query");
+    // Debug: No user authenticated for query
+    // console.log("[SafeQuery] No user authenticated, skipping query");
     return null;
   }
 
   // Wait for Convex authentication to be ready (this is the critical fix for race conditions)
   if (!isAuthReady()) {
-    console.log("[SafeQuery] Convex authentication not ready, waiting for auth to complete");
+    console.log("⏳ Query: Waiting for auth...");
 
     // Give Convex auth some time to complete (up to 10 seconds)
     const maxWaitTime = 10000;
@@ -71,7 +72,7 @@ export async function safeQuery<T = unknown, A = unknown>(
       return null;
     }
 
-    console.log("[SafeQuery] Convex authentication is now ready, proceeding with query");
+    console.log("✅ Query: Auth ready");
   }
 
   let attempt = 0;
@@ -86,7 +87,8 @@ export async function safeQuery<T = unknown, A = unknown>(
 
       // Execute the query - let Convex client handle auth internally
       // This allows the Convex client to retry auth as needed
-      console.log(`[SafeQuery] Executing query attempt ${attempt + 1}/${opts.retries}`);
+      // Debug: Query attempt details
+      if (attempt > 0) console.log(`🔄 Query: Retry ${attempt + 1}/${opts.retries}`);
 
       // Ensure the auth token is fresh before executing the query
       await refreshConvexToken();
@@ -117,7 +119,7 @@ export async function safeQuery<T = unknown, A = unknown>(
           // Handle auth errors specifically
           if (attempt < opts.retries) {
             const delay = BASE_DELAY * 2 ** attempt;
-            console.log(`[SafeQuery] ${errorDetails}, retrying in ${delay}ms...`);
+            console.log(`⚠️ Query: ${errorDetails}, retrying...`);
             await new Promise((resolve) => setTimeout(resolve, delay));
 
             // Trigger a Convex auth check
@@ -172,13 +174,14 @@ export async function safeMutation<T = unknown, A = unknown>(
   // Check Clerk auth state first
   const authStateData = get(authState);
   if (!authStateData.clerkUserId) {
-    console.log("[SafeMutation] No user authenticated, skipping mutation");
+    // Debug: No user authenticated for mutation
+    // console.log("[SafeMutation] No user authenticated, skipping mutation");
     return null;
   }
 
   // Wait for Convex authentication to be ready (this is the critical fix for race conditions)
   if (!isAuthReady()) {
-    console.log("[SafeMutation] Convex authentication not ready, waiting for auth to complete");
+    console.log("⏳ Mutation: Waiting for auth...");
 
     // Give Convex auth some time to complete (up to 10 seconds)
     const maxWaitTime = 10000;
@@ -196,7 +199,7 @@ export async function safeMutation<T = unknown, A = unknown>(
       return null;
     }
 
-    console.log("[SafeMutation] Convex authentication is now ready, proceeding with mutation");
+    console.log("✅ Mutation: Auth ready");
   }
 
   let attempt = 0;
@@ -211,7 +214,8 @@ export async function safeMutation<T = unknown, A = unknown>(
 
       // Execute the mutation - let Convex client handle auth internally
       // This allows the Convex client to retry auth as needed
-      console.log(`[SafeMutation] Executing mutation attempt ${attempt + 1}/${opts.retries}`);
+      // Debug: Mutation attempt details
+      if (attempt > 0) console.log(`🔄 Mutation: Retry ${attempt + 1}/${opts.retries}`);
 
       // Ensure the auth token is fresh before executing the mutation
       await refreshConvexToken();
@@ -242,7 +246,7 @@ export async function safeMutation<T = unknown, A = unknown>(
           // Handle auth errors specifically
           if (attempt < opts.retries) {
             const delay = BASE_DELAY * 2 ** attempt;
-            console.log(`[SafeMutation] ${errorDetails}, retrying in ${delay}ms...`);
+            console.log(`⚠️ Mutation: ${errorDetails}, retrying...`);
             await new Promise((resolve) => setTimeout(resolve, delay));
 
             // Trigger a Convex auth check

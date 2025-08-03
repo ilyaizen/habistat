@@ -38,10 +38,11 @@
       const previousUserId = currentUserId;
       currentUserId = newUserId;
 
-      console.log("[StoreSync] Clerk user state changed:", {
-        previousUserId,
-        newUserId
-      });
+      // Only log significant user changes
+      if (previousUserId !== newUserId) {
+        const action = newUserId ? "signed in" : "signed out";
+        console.log(`🔄 StoreSync: User ${action}`);
+      }
       // Notify the central auth state store about the change
       authState.setClerkState(newUserId, !!user);
 
@@ -58,12 +59,13 @@
 
     const authStateData = get(authState);
     const isReady = authStateData.clerkReady && authStateData.clerkUserId;
-    console.log(`[StoreSync] Coordinated auth ready state: ${isReady}`);
+    // Debug: Auth ready state tracking
+    // console.log(`[StoreSync] Coordinated auth ready state: ${isReady}`);
 
     if (isReady) {
       // Auth is fully ready, now we can safely initialize stores
       if (currentUserId) {
-        console.log("[StoreSync] Auth ready. Setting user on data stores:", currentUserId);
+        console.log("⚙️ Stores initialized for user");
         calendarsStore.setUser(currentUserId);
         habits.setUser(currentUserId);
 
@@ -87,7 +89,7 @@
       // User logged out or auth not ready
       const state = get(authState);
       if (!state.clerkUserId) {
-        console.log("[StoreSync] User logged out. Clearing user from data stores.");
+        console.log("📤 Stores cleared (user signed out)");
         calendarsStore.setUser(null);
         habits.setUser(null);
         syncStore.setUserId(null);

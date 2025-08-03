@@ -19,7 +19,8 @@ export class SyncService {
    */
   setUserId(userId: string | null) {
     this.userId = userId;
-    console.log(`[Sync] User ID set to: ${userId}`);
+    // Debug: User ID set
+    // console.log(`[Sync] User ID set to: ${userId}`);
   }
 
   /**
@@ -56,7 +57,7 @@ export class SyncService {
 
     // Wait for Convex authentication to be ready
     if (!isAuthReady()) {
-      console.log("[Sync] Waiting for Convex authentication to be ready before syncing user...");
+      console.log("⏳ UserSync: Waiting for Convex auth...");
 
       const maxWaitTime = 15000; // Wait up to 15 seconds for auth
       const startTime = Date.now();
@@ -66,16 +67,16 @@ export class SyncService {
       }
 
       if (!isAuthReady()) {
-        console.warn("[Sync] Convex authentication not ready after waiting, aborting user sync");
+        console.warn("⚠️ UserSync: Auth timeout, aborting");
         return { success: false, error: "Authentication not ready - please wait and try again" };
       }
 
-      console.log("[Sync] Convex authentication is ready, proceeding with user sync");
+      console.log("✅ UserSync: Convex auth ready");
     }
 
     try {
       this.userSyncing = true;
-      console.log("🔄 Starting user sync...");
+      console.log("🔄 UserSync: Starting...");
 
       const result = await safeMutation(
         api.users.syncCurrentUser,
@@ -122,7 +123,7 @@ export class SyncService {
 
     // Wait for Convex authentication to be ready before starting sync
     if (!isAuthReady()) {
-      console.log("[Sync] Waiting for Convex authentication to be ready before syncing...");
+      console.log("⏳ DataSync: Waiting for Convex auth...");
 
       const maxWaitTime = 15000; // Wait up to 15 seconds for auth
       const startTime = Date.now();
@@ -136,7 +137,7 @@ export class SyncService {
         return { success: false, error: "Authentication not ready - please wait and try again" };
       }
 
-      console.log("[Sync] Convex authentication is ready, proceeding with sync");
+      console.log("✅ DataSync: Convex auth ready");
     }
 
     try {

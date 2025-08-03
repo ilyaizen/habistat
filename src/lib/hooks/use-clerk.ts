@@ -102,16 +102,16 @@ export function useClerk() {
       if (user) {
         const session = get(sessionStore);
         if (session?.state === "anonymous") {
-          console.log("[Session] Associating anonymous session with Clerk user:", user.id);
+          console.log("🔗 Session: Associating with Clerk user");
           markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
         }
 
         // Sync user to Convex database
-        console.log("[Session] Triggering user sync for:", user.id);
+        console.log("🔄 Session: Triggering user sync");
         await userSyncService.handleAuthChange(user);
       } else {
         // User signed out, handle cleanup
-        console.log("[Session] User signed out, cleaning up sync state");
+        console.log("📤 Session: Cleaning up sync state");
         await userSyncService.handleAuthChange(null);
       }
     });

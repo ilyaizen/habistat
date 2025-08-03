@@ -41,7 +41,8 @@ function createSyncStore() {
 
         // Initialize user sync service
         setupUserSync(syncService);
-        console.log("[Sync] User sync service initialized with SyncService");
+        // Debug: User sync service initialized
+        // console.log("[Sync] User sync service initialized with SyncService");
       }
     }
     return syncService;
@@ -74,18 +75,18 @@ function createSyncStore() {
       if (userId) {
         // Wait for authentication to be fully ready before syncing
         const attemptSyncWhenReady = async () => {
-          console.log("[Sync] Waiting for authentication to be ready...");
+          console.log("⏳ Sync: Waiting for auth...");
 
           const authReady = await authState.waitForAuthReady(15000); // 15 second timeout
 
           if (authReady) {
-            console.log("[Sync] Authentication ready, triggering sync");
+            console.log("✅ Sync: Auth ready, starting sync");
             const state = get({ subscribe });
             if (state.status !== "syncing") {
               await store.triggerSync();
             }
           } else {
-            console.warn("[Sync] Authentication not ready after timeout, skipping initial sync");
+            console.warn("⚠️ Sync: Auth timeout, will retry later");
             update((state) => ({
               ...state,
               error: "Authentication timeout - sync will retry when auth is ready"
@@ -113,7 +114,8 @@ function createSyncStore() {
       // Check if Clerk authentication is ready
       const authStateData = get(authState);
       if (!authStateData.clerkReady || !authStateData.clerkUserId) {
-        console.log("[Sync] Clerk authentication not ready, checking auth status...");
+        // Debug: Clerk auth check
+        // console.log("[Sync] Clerk authentication not ready, checking auth status...");
         authState.setConvexAuthStatus("pending");
 
         const authStateData2 = get(authState);
@@ -129,7 +131,7 @@ function createSyncStore() {
       // Also check if Convex authentication is ready (critical for preventing race conditions)
       const { isAuthReady } = await import("../utils/convex");
       if (!isAuthReady()) {
-        console.log("[Sync] Convex authentication not ready, waiting...");
+        console.log("⏳ Sync: Waiting for Convex auth...");
 
         const maxWaitTime = 10000;
         const startTime = Date.now();
@@ -146,7 +148,7 @@ function createSyncStore() {
           return;
         }
 
-        console.log("[Sync] Convex authentication is ready, proceeding with sync");
+        console.log("✅ Sync: Convex auth ready, proceeding");
       }
 
       const currentState = get({ subscribe });

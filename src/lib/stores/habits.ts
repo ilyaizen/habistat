@@ -113,7 +113,7 @@ function createHabitsStore() {
     }
 
     if (currentClerkUserId) {
-      console.log("User logged in, syncing habits with Convex...");
+      console.log("⚙️ Habits: Syncing with Convex");
       isLoading.set(true);
       isSyncing.set(true);
 

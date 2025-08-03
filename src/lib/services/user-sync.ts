@@ -20,7 +20,8 @@ class UserSyncService {
    */
   initialize(syncService: SyncService) {
     this.syncService = syncService;
-    console.log("[UserSync] Service initialized");
+    // Debug: UserSync service initialized
+    // console.log("[UserSync] Service initialized");
   }
 
   /**
@@ -57,18 +58,19 @@ class UserSyncService {
 
     // Skip if already syncing or if user was already synced (unless forced)
     if (this.syncInProgress) {
-      console.log("[UserSync] Sync already in progress, skipping");
+      // Debug: Sync already in progress
+      // console.log("[UserSync] Sync already in progress, skipping");
       return { success: true, skipped: true };
     }
 
     if (!force && this.lastSyncedUserId === user.id) {
-      console.log("[UserSync] User already synced, skipping");
+      console.log("✅ UserSync: Already synced");
       return { success: true, skipped: true };
     }
 
     try {
       this.syncInProgress = true;
-      console.log(`[UserSync] Starting sync for user: ${user.id}`);
+      console.log(`🔄 UserSync: Starting for ${user.id.slice(-8)}...`);
 
       // Extract user information
       const userInfo = this.extractUserInfo(user);
@@ -81,7 +83,7 @@ class UserSyncService {
 
       if (result.success) {
         this.lastSyncedUserId = user.id;
-        console.log(`[UserSync] Successfully synced user: ${user.id}`);
+        console.log(`✅ UserSync: Complete`);
       } else {
         console.error(`[UserSync] Failed to sync user: ${user.id}`, result.error);
       }
@@ -111,7 +113,7 @@ class UserSyncService {
       if (this.syncService) {
         this.syncService.setUserId(null);
       }
-      console.log("[UserSync] User signed out, cleared sync state");
+      console.log("📤 UserSync: Cleared (sign out)");
       return;
     }
 
@@ -161,7 +163,8 @@ class UserSyncService {
   reset(): void {
     this.lastSyncedUserId = null;
     this.syncInProgress = false;
-    console.log("[UserSync] Sync state reset");
+    // Debug: Sync state reset
+    // console.log("[UserSync] Sync state reset");
   }
 }
 
@@ -178,7 +181,8 @@ export function setupUserSync(syncService: SyncService) {
   // Initialize the user sync service
   userSyncService.initialize(syncService);
 
-  console.log("[UserSync] User sync setup completed");
+  // Debug: User sync setup completed
+  // console.log("[UserSync] User sync setup completed");
 }
 
 /**
