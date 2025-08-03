@@ -1,8 +1,7 @@
-import type { ConvexClient } from "convex/browser";
 import type { InferModel } from "drizzle-orm";
 import { get, writable } from "svelte/store";
-// Use the centralized Convex client that handles authentication properly
-import { getConvexClient } from "$lib/utils/convex";
+// Use centralized Convex operations for DRY principles
+import { convexMutation, convexSubscription } from "$lib/utils/convex-operations";
 import { api } from "../../convex/_generated/api";
 import type { Doc } from "../../convex/_generated/dataModel";
 import type { habits as habitsSchema } from "../db/schema";
@@ -61,13 +60,7 @@ function createHabitsStore() {
 
     for (const habit of anonymousHabits) {
       try {
-        const convexClient = getConvexClient();
-        if (!convexClient) {
-          console.warn("Convex client not available, skipping habit sync");
-          continue;
-        }
-
-        await convexClient.mutation(api.habits.createHabit, {
+        await convexMutation(api.habits.createHabit, {
           localUuid: habit.id,
           calendarId: habit.calendarId,
           name: habit.name,
@@ -112,15 +105,7 @@ function createHabitsStore() {
       await _syncAnonymousHabits(currentClerkUserId);
 
       try {
-        const convexClient = getConvexClient();
-        if (!convexClient) {
-          console.warn("Convex client not available, skipping habit sync for anonymous user");
-          isLoading.set(false);
-          isSyncing.set(false);
-          return;
-        }
-
-        convexUnsubscribe = convexClient.onUpdate(
+        convexUnsubscribe = convexSubscription(
           api.habits.getUserHabits,
           {},
           async (convexHabitsFromServer: any) => {
@@ -172,7 +157,12 @@ function createHabitsStore() {
           }
         );
 
-        console.log("Subscribed to Convex habit updates.");
+        if (convexUnsubscribe) {
+          console.log("Subscribed to Convex habit updates.");
+        } else {
+          console.warn("Failed to subscribe to Convex habit updates");
+          await _loadFromLocalDB();
+        }
       } catch (error) {
         console.error("Convex watch for habits failed:", error);
         await _loadFromLocalDB();
@@ -238,25 +228,24 @@ function createHabitsStore() {
         if (currentClerkUserId) {
           isSyncing.set(true);
           try {
-            const convexClient = getConvexClient();
-            if (convexClient) {
-              await convexClient.mutation(api.habits.createHabit, {
-                localUuid: newHabit.id,
-                calendarId: newHabit.calendarId,
-                name: newHabit.name,
-                description: newHabit.description ?? undefined,
-                type: newHabit.type,
-                timerEnabled: newHabit.timerEnabled === 1,
-                targetDurationSeconds: newHabit.targetDurationSeconds ?? undefined,
-                pointsValue: newHabit.pointsValue ?? undefined,
-                position: newHabit.position,
-                isEnabled: newHabit.isEnabled === 1,
-                clientCreatedAt: newHabit.createdAt,
-                clientUpdatedAt: newHabit.updatedAt
-              });
+            const result = await convexMutation(api.habits.createHabit, {
+              localUuid: newHabit.id,
+              calendarId: newHabit.calendarId,
+              name: newHabit.name,
+              description: newHabit.description ?? undefined,
+              type: newHabit.type,
+              timerEnabled: newHabit.timerEnabled === 1,
+              targetDurationSeconds: newHabit.targetDurationSeconds ?? undefined,
+              pointsValue: newHabit.pointsValue ?? undefined,
+              position: newHabit.position,
+              isEnabled: newHabit.isEnabled === 1,
+              clientCreatedAt: newHabit.createdAt,
+              clientUpdatedAt: newHabit.updatedAt
+            });
+            if (result !== null) {
               console.log(`Habit ${newHabit.id} synced to Convex.`);
             } else {
-              console.warn("Convex client not available, habit saved locally only");
+              console.warn("Failed to sync habit to Convex");
             }
           } catch (error) {
             console.error(`Failed to sync new habit ${newHabit.id} to Convex:`, error);
@@ -287,12 +276,11 @@ function createHabitsStore() {
         if (currentClerkUserId) {
           isSyncing.set(true);
           try {
-            const convexClient = getConvexClient();
-            if (convexClient) {
-              await convexClient.mutation(api.habits.deleteHabit, { localUuid });
+            const result = await convexMutation(api.habits.deleteHabit, { localUuid });
+            if (result !== null) {
               console.log(`Habit ${localUuid} deleted from Convex.`);
             } else {
-              console.warn("Convex client not available, habit deleted locally only");
+              console.warn("Failed to delete habit from Convex");
             }
           } catch (error) {
             console.error(`Failed to delete habit ${localUuid} from Convex:`, error);
@@ -355,15 +343,14 @@ function createHabitsStore() {
               convexPayload.calendarId = data.calendarId;
             }
 
-            const convexClient = getConvexClient();
-            if (convexClient) {
-              await convexClient.mutation(
-                api.habits.updateHabit,
-                convexPayload as unknown as ConvexHabit
-              );
+            const result = await convexMutation(
+              api.habits.updateHabit,
+              convexPayload as unknown as ConvexHabit
+            );
+            if (result !== null) {
               console.log(`Habit ${localUuid} updated in Convex.`);
             } else {
-              console.warn("Convex client not available, habit updated locally only");
+              console.warn("Failed to update habit in Convex");
             }
           } catch (error) {
             console.error(`Failed to update habit ${localUuid} in Convex:`, error);

@@ -3,7 +3,7 @@
  */
 
 import { get, writable } from "svelte/store";
-import { getConvexClient } from "$lib/utils/convex";
+import { convexQuery } from "$lib/utils/convex-operations";
 import {
   FREE_TIER_LIMITS,
   getLimitsForTier,
@@ -40,16 +40,10 @@ function createSubscriptionStore(): SubscriptionStore {
     subscribe,
 
     async refresh() {
-      const convex = getConvexClient();
-      if (!convex) {
-        console.warn("Convex client not available for subscription refresh");
-        return;
-      }
-
       setLoading(true);
       try {
         // Use existing getCurrentUser query from convex/users.ts
-        const userData = await convex.query(api.users.getCurrentUser, {});
+        const userData = await convexQuery(api.users.getCurrentUser, {});
 
         if (userData) {
           const tier: SubscriptionTier = userData.subscriptionTier || "free";

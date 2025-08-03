@@ -274,7 +274,7 @@ function initializeConvexClient() {
       authReady = false; // Reset auth status until we get a successful token
 
       let attempts = 0;
-      const maxAttempts = 3;
+      const maxAttempts = 1;
 
       while (attempts < maxAttempts) {
         try {

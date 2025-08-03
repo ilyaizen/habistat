@@ -9,8 +9,8 @@ import { get } from "svelte/store";
 import { authState } from "$lib/stores/auth-state";
 import { convex, isAuthReady, refreshConvexToken } from "./convex";
 
-// Maximum number of retry attempts
-const MAX_RETRIES = 3;
+// Maximum number of retry attempts (reduced to prevent excessive retries)
+const MAX_RETRIES = 1;
 
 // Base delay for exponential backoff (in ms)
 const BASE_DELAY = 1000;

@@ -153,6 +153,7 @@
 │   │   │   ├── colors.ts
 │   │   │   ├── completions.ts
 │   │   │   ├── context-menu.ts
+│   │   │   ├── convex-operations.ts
 │   │   │   ├── convex.ts
 │   │   │   ├── database-fixer.ts
 │   │   │   ├── date.ts

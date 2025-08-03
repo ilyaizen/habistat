@@ -9,9 +9,8 @@ import { get, writable } from "svelte/store";
 
 // import { eq } from "drizzle-orm";
 
-import type { ConvexClient } from "convex/browser";
-// Use the centralized Convex client that handles authentication properly
-import { getConvexClient } from "$lib/utils/convex";
+// Use centralized Convex operations for DRY principles
+import { convexMutation, convexSubscription } from "$lib/utils/convex-operations";
 // Path to Convex API
 import { api } from "../../convex/_generated/api";
 import type { calendars as calendarsSchema } from "../db/schema";
@@ -72,13 +71,7 @@ function createCalendarsStore() {
     for (const cal of anonymousCalendars) {
       try {
         // Use the local ID as localUuid for Convex to ensure mapping
-        const convexClient = getConvexClient();
-        if (!convexClient) {
-          console.warn("Convex client not available, skipping calendar sync");
-          continue;
-        }
-
-        await convexClient.mutation(api.calendars.createCalendar, {
+        await convexMutation(api.calendars.createCalendar, {
           localUuid: cal.id,
           name: cal.name,
           colorTheme: cal.colorTheme,
@@ -123,14 +116,7 @@ function createCalendarsStore() {
 
       try {
         // Subscribe to the query using onUpdate
-        const convexClient = getConvexClient();
-        if (!convexClient) {
-          console.warn("Convex client not available, skipping sync for anonymous user");
-          isLoading.set(false);
-          isSyncing.set(false);
-          return;
-        }
-        convexUnsubscribe = convexClient.onUpdate(
+        convexUnsubscribe = convexSubscription(
           api.calendars.getUserCalendars,
           {},
           async (convexCalendarsFromServer: any) => {
@@ -181,7 +167,12 @@ function createCalendarsStore() {
           }
         );
 
-        console.log("Subscribed to Convex calendar updates.");
+        if (convexUnsubscribe) {
+          console.log("Subscribed to Convex calendar updates.");
+        } else {
+          console.warn("Failed to subscribe to Convex calendar updates");
+          await _loadFromLocalDB();
+        }
       } catch (error) {
         console.error("Convex watch for calendars failed:", error);
         await _loadFromLocalDB(); // Fallback to local
@@ -254,20 +245,19 @@ function createCalendarsStore() {
         if (currentClerkUserId) {
           isSyncing.set(true);
           try {
-            const convexClient = getConvexClient();
-            if (convexClient) {
-              await convexClient.mutation(api.calendars.createCalendar, {
-                localUuid: newCalendar.id, // local ID is the localUuid
-                name: newCalendar.name,
-                colorTheme: newCalendar.colorTheme,
-                position: newCalendar.position,
-                isEnabled: newCalendar.isEnabled === 1, // Pass boolean to Convex
-                clientCreatedAt: now,
-                clientUpdatedAt: now
-              });
+            const result = await convexMutation(api.calendars.createCalendar, {
+              localUuid: newCalendar.id, // local ID is the localUuid
+              name: newCalendar.name,
+              colorTheme: newCalendar.colorTheme,
+              position: newCalendar.position,
+              isEnabled: newCalendar.isEnabled === 1, // Pass boolean to Convex
+              clientCreatedAt: now,
+              clientUpdatedAt: now
+            });
+            if (result !== null) {
               console.log(`Calendar ${newCalendar.id} synced to Convex.`);
             } else {
-              console.warn("Convex client not available, calendar saved locally only");
+              console.warn("Failed to sync calendar to Convex");
             }
           } catch (error) {
             console.error(`Failed to sync new calendar ${newCalendar.id} to Convex:`, error);
@@ -376,12 +366,11 @@ function createCalendarsStore() {
               if (data.position !== undefined) payload.position = data.position;
               if (data.isEnabled !== undefined) payload.isEnabled = data.isEnabled === 1;
 
-              const convexClient = getConvexClient();
-              if (convexClient) {
-                await convexClient.mutation(api.calendars.updateCalendar, payload);
+              const result = await convexMutation(api.calendars.updateCalendar, payload);
+              if (result !== null) {
                 console.log(`Calendar ${localUuid} update synced to Convex.`);
               } else {
-                console.warn("Convex client not available, calendar updated locally only");
+                console.warn("Failed to update calendar in Convex");
               }
             }
           } catch (error) {
@@ -419,11 +408,11 @@ function createCalendarsStore() {
           )
         );
 
-        if (currentClerkUserId && getConvexClient()) {
+        if (currentClerkUserId) {
           try {
             isSyncing.set(true);
             // Future implementation for Convex sync
-            // await getConvexClient().mutation(api.calendars.updateCalendarOrder, {
+            // const result = await convexMutation(api.calendars.updateCalendarOrder, {
             //   orderedIds: updatedCalendars.map((cal) => cal.id)
             // });
           } catch (err) {
@@ -458,12 +447,11 @@ function createCalendarsStore() {
         if (currentClerkUserId) {
           isSyncing.set(true);
           try {
-            const convexClient = getConvexClient();
-            if (convexClient) {
-              await convexClient.mutation(api.calendars.deleteCalendar, { localUuid });
+            const result = await convexMutation(api.calendars.deleteCalendar, { localUuid });
+            if (result !== null) {
               console.log(`Calendar ${localUuid} delete synced to Convex.`);
             } else {
-              console.warn("Convex client not available, calendar deleted locally only");
+              console.warn("Failed to delete calendar from Convex");
             }
           } catch (error) {
             console.error(`Failed to sync delete for calendar ${localUuid} to Convex:`, error);

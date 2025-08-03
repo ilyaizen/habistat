@@ -73,7 +73,7 @@ export function useClerk() {
     if (!browser) return;
 
     let attempts = 0;
-    const maxAttempts = 50; // Max 5 seconds
+    const maxAttempts = 5; // Max 5 seconds
 
     const interval = setInterval(() => {
       attempts++;
