@@ -93,7 +93,7 @@ function createAuthStateStore() {
       const state = get({ subscribe });
       const hasChanged = state.clerkUserId !== userId || state.clerkReady !== ready;
       if (hasChanged) {
-        console.log(`🔐 Auth: ${userId ? 'signed in' : 'signed out'}`);
+        console.log(`🔐 Auth: ${userId ? "signed in" : "signed out"}`);
       }
     },
 

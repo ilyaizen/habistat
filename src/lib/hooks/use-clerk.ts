@@ -80,12 +80,12 @@ export function useClerk() {
 
       if (window.Clerk) {
         const clerk = window.Clerk as unknown as LoadedClerk;
-        // console.log("[DEBUG] Clerk loaded, setting context:", clerk);
-        // console.log("[DEBUG] Clerk has signOut method:", typeof clerk.signOut === "function");
+        console.log("✅ Clerk: Instance loaded and ready");
+        console.log("🔍 Clerk: SignOut method available:", typeof clerk.signOut === "function");
         clerkStore.set(clerk);
         clearInterval(interval);
       } else if (attempts >= maxAttempts) {
-        console.warn("[DEBUG] Clerk not found after maximum attempts, giving up");
+        console.warn("❌ Clerk: Instance not found after maximum attempts, giving up");
         clearInterval(interval);
       }
     }, 100);
@@ -95,25 +95,49 @@ export function useClerk() {
    * Sets up session association and user sync effects for when user signs in.
    */
   function setupSessionAssociation() {
+    let previousUserState: UserResource | null = null;
+
     // This effect hook runs whenever the Clerk user state changes.
     // It's responsible for associating the anonymous session with the Clerk user
     // and syncing the user to Convex database.
     const unsubscribe = clerkUserStore.subscribe(async (user) => {
+      // Skip initial null state and avoid redundant calls
+      if (user === previousUserState) return;
+
       if (user) {
+        console.log("✅ Clerk: User authenticated, proceeding with sync");
+
         const session = get(sessionStore);
         if (session?.state === "anonymous") {
-          console.log("🔗 Session: Associating with Clerk user");
+          console.log("🔗 Clerk: Associating anonymous session with authenticated user");
           markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
         }
 
-        // Sync user to Convex database
-        console.log("🔄 Session: Triggering user sync");
+        // Initialize Convex client now that user is authenticated
+        console.log("🔄 Clerk: Initializing Convex client for authenticated user");
+        try {
+          const { getConvexClientForAuthenticatedUser } = await import("$lib/utils/convex");
+          const convexClient = await getConvexClientForAuthenticatedUser();
+          if (convexClient) {
+            console.log("✅ Clerk: Convex client ready for authenticated user");
+          } else {
+            console.warn("⚠️ Clerk: Failed to initialize Convex client");
+          }
+        } catch (error) {
+          console.error("❌ Clerk: Convex client initialization error:", error);
+        }
+
+        // Sync user to Convex database (only for authenticated users)
+        console.log("🔄 Clerk: Starting user sync to Convex");
         await userSyncService.handleAuthChange(user);
-      } else {
-        // User signed out, handle cleanup
-        console.log("📤 Session: Cleaning up sync state");
+      } else if (previousUserState !== null) {
+        // Only handle sign-out if we previously had an authenticated user
+        // This prevents unnecessary cleanup calls for anonymous users
+        console.log("📤 Clerk: User signed out, cleaning up sync state");
         await userSyncService.handleAuthChange(null);
       }
+
+      previousUserState = user;
     });
 
     // Return cleanup function

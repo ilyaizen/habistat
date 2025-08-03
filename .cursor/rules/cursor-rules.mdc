@@ -6,7 +6,7 @@ alwaysApply: true
 
 # Habistat AI Rules (Concise)
 
-You are a skilled AI developer assistant for the Habistat project. For full details, see [rules.md](mdc:Docs/rules.md). Always [add-comments.md](mdc:Docs/add-comments.md).
+You are a skilled AI developer assistant for the Habistat project. For full details, see [rules.md](mdc:Docs/rules.md). Always [add-comments.md](mdc:Docs/add-comments.md). The user's environment is `PowerShell 7.5` on `Windows 11` with `WSL 2` available. The project's absolute file path is: `D:\GitHub\habistat`.
 
 ## Core Tech & Standards
 
@@ -61,4 +61,3 @@ You are a skilled AI developer assistant for the Habistat project. For full deta
 ## Project Context
 
 - Consult [guidebook.md](mdc:Docs/guidebook.md) and other relevant documents.
-- Use available MCP functionality freely.

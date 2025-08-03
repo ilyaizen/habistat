@@ -26,7 +26,7 @@
     [key: string]: any;
   };
   import "../app.css";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import AboutDrawer from "$lib/components/about-drawer.svelte";
   import AppFooter from "$lib/components/app-footer.svelte";
   import AppHeader from "$lib/components/app-header.svelte";
@@ -109,7 +109,7 @@
 
     // Check for database errors from layout load
     if (data?.dbError) {
-      console.warn("[Layout] Database error detected:", data.dbError);
+      console.warn("⚠️ Layout: Database error detected");
       initializationError = `Database error: ${data.dbError}`;
     }
 
@@ -123,7 +123,7 @@
 
     // Set a timeout for initialization to prevent infinite loading
     initTimeout = setTimeout(() => {
-      console.warn("[Layout] Initialization taking longer than expected, enabling fallback mode");
+      console.warn("⏰ Layout: Initialization timeout - enabling fallback mode");
       authTimeout = true;
       authFallbackEnabled = true;
       initializationComplete = true;
@@ -132,7 +132,7 @@
     // Set an even shorter timeout for auth-specific issues
     authFallbackTimeout = setTimeout(() => {
       if (!initializationComplete) {
-        console.warn("[Layout] Authentication timeout - enabling fallback");
+        console.warn("🔐 Layout: Authentication timeout - enabling fallback");
         authFallbackEnabled = true;
       }
     }, 5000); // 5 second auth timeout
@@ -149,7 +149,7 @@
       try {
         clerk.initializeClerk();
       } catch (clerkError) {
-        console.error("[Layout] Clerk initialization failed:", clerkError);
+        console.error("❌ Layout: Clerk initialization failed");
         authFallbackEnabled = true;
       }
 
@@ -158,29 +158,16 @@
       // TODO: 2025-07-22 - Add this back in when we have a way to handle it
       // appInit.setupDevelopmentMode();
 
-      // Initialize Convex client with authentication - only in browser
-      if (browser) {
-        try {
-          const client = getConvexClient();
-          if (client) {
-            console.log("[DEBUG] Convex client initialized successfully");
-          } else {
-            console.warn(
-              "[WARN] Failed to initialize Convex client - app will work in offline mode"
-            );
-          }
-        } catch (error) {
-          console.error("[ERROR] Convex client initialization failed:", error);
-          // Don't block the app if Convex fails
-        }
-      }
+      // Convex client will be initialized automatically when user authenticates
+      // via the Clerk authentication flow in use-clerk.ts to prevent timeout
+      // errors for anonymous users
 
       // Clear the timeouts since initialization completed
       clearTimeout(initTimeout);
       clearTimeout(authFallbackTimeout);
       initializationComplete = true;
     } catch (error) {
-      console.error("[Layout] Initialization error:", error);
+      console.error("❌ Layout: Initialization error");
       initializationError = error instanceof Error ? error.message : "Unknown initialization error";
       clearTimeout(initTimeout);
       clearTimeout(authFallbackTimeout);
@@ -234,12 +221,12 @@
   <div
     class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
   >
-    {#if $page.url.pathname !== "/"}
+    {#if page.url.pathname !== "/"}
       <!-- Header is hidden on the landing page ("/") -->
       <AppHeader />
     {/if}
     <main class="flex-1">
-      {#if $page.url.pathname === "/"}
+      {#if page.url.pathname === "/"}
         <div class="absolute top-4 right-4">
           <ThemeToggle />
         </div>
@@ -250,7 +237,7 @@
         {@render children()}
       </MotionWrapper>
     </main>
-    {#if $page.url.pathname !== "/"}
+    {#if page.url.pathname !== "/"}
       <!-- Footer is hidden on the landing page ("/") -->
       <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
     {/if}

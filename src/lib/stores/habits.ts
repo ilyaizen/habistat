@@ -1,27 +1,13 @@
-import { ConvexClient } from "convex/browser";
+import type { ConvexClient } from "convex/browser";
 import type { InferModel } from "drizzle-orm";
 import { get, writable } from "svelte/store";
+// Use the centralized Convex client that handles authentication properly
+import { getConvexClient } from "$lib/utils/convex";
 import { api } from "../../convex/_generated/api";
 import type { Doc } from "../../convex/_generated/dataModel";
 import type { habits as habitsSchema } from "../db/schema";
 import * as localData from "../services/local-data";
 import { subscriptionStore } from "./subscription";
-
-// Lazy initialization of Convex client to avoid undefined deployment address during static build
-let convex: ConvexClient | null = null;
-
-function getConvexClient(): ConvexClient {
-  if (!convex) {
-    // Use PUBLIC_CONVEX_URL for Vercel, fallback to VITE_CONVEX_URL for local dev
-    const convexUrl = import.meta.env.PUBLIC_CONVEX_URL || import.meta.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error("No Convex URL found. Please set PUBLIC_CONVEX_URL or VITE_CONVEX_URL");
-    }
-    console.log("[DEBUG] Creating ConvexClient with URL:", convexUrl);
-    convex = new ConvexClient(convexUrl as string);
-  }
-  return convex;
-}
 
 export type Habit = InferModel<typeof habitsSchema>;
 export type ConvexHabit = Doc<"habits">;
@@ -75,7 +61,13 @@ function createHabitsStore() {
 
     for (const habit of anonymousHabits) {
       try {
-        await getConvexClient().mutation(api.habits.createHabit, {
+        const convexClient = getConvexClient();
+        if (!convexClient) {
+          console.warn("Convex client not available, skipping habit sync");
+          continue;
+        }
+
+        await convexClient.mutation(api.habits.createHabit, {
           localUuid: habit.id,
           calendarId: habit.calendarId,
           name: habit.name,
@@ -121,6 +113,13 @@ function createHabitsStore() {
 
       try {
         const convexClient = getConvexClient();
+        if (!convexClient) {
+          console.warn("Convex client not available, skipping habit sync for anonymous user");
+          isLoading.set(false);
+          isSyncing.set(false);
+          return;
+        }
+
         convexUnsubscribe = convexClient.onUpdate(
           api.habits.getUserHabits,
           {},
@@ -239,21 +238,26 @@ function createHabitsStore() {
         if (currentClerkUserId) {
           isSyncing.set(true);
           try {
-            await getConvexClient().mutation(api.habits.createHabit, {
-              localUuid: newHabit.id,
-              calendarId: newHabit.calendarId,
-              name: newHabit.name,
-              description: newHabit.description ?? undefined,
-              type: newHabit.type,
-              timerEnabled: newHabit.timerEnabled === 1,
-              targetDurationSeconds: newHabit.targetDurationSeconds ?? undefined,
-              pointsValue: newHabit.pointsValue ?? undefined,
-              position: newHabit.position,
-              isEnabled: newHabit.isEnabled === 1,
-              clientCreatedAt: newHabit.createdAt,
-              clientUpdatedAt: newHabit.updatedAt
-            });
-            console.log(`Habit ${newHabit.id} synced to Convex.`);
+            const convexClient = getConvexClient();
+            if (convexClient) {
+              await convexClient.mutation(api.habits.createHabit, {
+                localUuid: newHabit.id,
+                calendarId: newHabit.calendarId,
+                name: newHabit.name,
+                description: newHabit.description ?? undefined,
+                type: newHabit.type,
+                timerEnabled: newHabit.timerEnabled === 1,
+                targetDurationSeconds: newHabit.targetDurationSeconds ?? undefined,
+                pointsValue: newHabit.pointsValue ?? undefined,
+                position: newHabit.position,
+                isEnabled: newHabit.isEnabled === 1,
+                clientCreatedAt: newHabit.createdAt,
+                clientUpdatedAt: newHabit.updatedAt
+              });
+              console.log(`Habit ${newHabit.id} synced to Convex.`);
+            } else {
+              console.warn("Convex client not available, habit saved locally only");
+            }
           } catch (error) {
             console.error(`Failed to sync new habit ${newHabit.id} to Convex:`, error);
           } finally {
@@ -283,8 +287,13 @@ function createHabitsStore() {
         if (currentClerkUserId) {
           isSyncing.set(true);
           try {
-            await getConvexClient().mutation(api.habits.deleteHabit, { localUuid });
-            console.log(`Habit ${localUuid} deleted from Convex.`);
+            const convexClient = getConvexClient();
+            if (convexClient) {
+              await convexClient.mutation(api.habits.deleteHabit, { localUuid });
+              console.log(`Habit ${localUuid} deleted from Convex.`);
+            } else {
+              console.warn("Convex client not available, habit deleted locally only");
+            }
           } catch (error) {
             console.error(`Failed to delete habit ${localUuid} from Convex:`, error);
           } finally {
@@ -346,12 +355,16 @@ function createHabitsStore() {
               convexPayload.calendarId = data.calendarId;
             }
 
-            await getConvexClient().mutation(
-              api.habits.updateHabit,
-              convexPayload as unknown as ConvexHabit
-            );
-
-            console.log(`Habit ${localUuid} updated in Convex.`);
+            const convexClient = getConvexClient();
+            if (convexClient) {
+              await convexClient.mutation(
+                api.habits.updateHabit,
+                convexPayload as unknown as ConvexHabit
+              );
+              console.log(`Habit ${localUuid} updated in Convex.`);
+            } else {
+              console.warn("Convex client not available, habit updated locally only");
+            }
           } catch (error) {
             console.error(`Failed to update habit ${localUuid} in Convex:`, error);
           } finally {

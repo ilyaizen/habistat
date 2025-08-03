@@ -67,7 +67,9 @@ function createSubscriptionStore(): SubscriptionStore {
           set(status);
           // Only log subscription changes, not all refreshes
           if (currentStatus?.tier !== status.tier || currentStatus?.isActive !== status.isActive) {
-            console.log(`✅ Subscription: ${status.tier} (${status.isActive ? 'active' : 'inactive'})`);
+            console.log(
+              `✅ Subscription: ${status.tier} (${status.isActive ? "active" : "inactive"})`
+            );
           }
         } else {
           // User not found, default to free tier

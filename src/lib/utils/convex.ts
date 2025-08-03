@@ -175,13 +175,30 @@ async function waitForClerkUser(): Promise<boolean> {
 }
 
 /**
+ * Check if the current user should have Convex client initialized
+ * Only authenticated users with Clerk should use Convex
+ */
+function shouldInitializeConvex(): boolean {
+  if (!browser) return false;
+
+  // Check if Clerk is loaded and user is authenticated
+  return isClerkReady() && isClerkUserReady();
+}
+
+/**
  * Gets or initializes the Convex client with improved authentication handling
+ * Only initializes for authenticated users to prevent timeout errors for anonymous users
  *
- * @returns The Convex client instance or null if unavailable
+ * @returns The Convex client instance or null if unavailable or user is anonymous
  */
 export function getConvexClient(): ConvexClient | null {
   if (!browser) {
     return null; // SSR safety
+  }
+
+  // Don't initialize Convex for anonymous users
+  if (!shouldInitializeConvex()) {
+    return null;
   }
 
   // Initialize client if not already done
@@ -190,6 +207,27 @@ export function getConvexClient(): ConvexClient | null {
   }
 
   return convexClient;
+}
+
+/**
+ * Gets the Convex client for authenticated users only
+ * This is a safer alternative that ensures the user is authenticated before returning the client
+ *
+ * @returns Promise resolving to the Convex client or null
+ */
+export async function getConvexClientForAuthenticatedUser(): Promise<ConvexClient | null> {
+  if (!browser) {
+    return null;
+  }
+
+  // Wait for user to be authenticated
+  const userReady = await waitForClerkUser();
+  if (!userReady) {
+    return null;
+  }
+
+  // Now get the client
+  return getConvexClient();
 }
 
 /**
@@ -468,20 +506,15 @@ export async function debugConvexAuthState(): Promise<void> {
 
 /**
  * Initialize client with a delay to allow authentication systems to load
+ * Only initialize if there's an authenticated user to prevent timeout errors
  */
 if (browser) {
-  // Small delay to ensure other systems are ready
-  setTimeout(() => {
-    console.log("⚙️ Convex: Initializing...");
-    getConvexClient();
-  }, 100);
-
   // Listen for online/offline events
   window.addEventListener("online", () => {
     console.log("🔌 Convex: Network restored");
     offlineMode = false;
-    // Re-initialize client to trigger auth
-    if (!convexClient) {
+    // Re-initialize client only if user is authenticated
+    if (!convexClient && shouldInitializeConvex()) {
       getConvexClient();
     }
   });
@@ -492,8 +525,8 @@ if (browser) {
   });
 }
 
-// Export the client instance for convenience
-export const convex = getConvexClient();
+// Export the client getter for convenience (lazy initialization)
+export const convex = () => getConvexClient();
 
 // Export debug function to global scope for easy console access
 if (browser && typeof window !== "undefined") {

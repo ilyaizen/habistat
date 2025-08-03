@@ -12,6 +12,8 @@
 - **Package Manager**: Use `bun` exclusively.
 - **Svelte 5**: Adhere to modern Svelte 5 best practices (runes, `$props`, `$effect`). Avoid deprecated features like `export let`, `svelte:component`, or `beforeUpdate`/`afterUpdate`.
 - **Rune Scope**: Svelte Runes (`$effect`, `$state`, etc.) are only valid inside `.svelte` files. Do not use them in plain `.ts` or `.js` modules.
+- **Event Handlers**: Use `onclick` attribute instead of `on:click` directive for HTML elements. Apply this pattern to all event handlers (e.g., `onsubmit`, `onchange`, etc.).
+- **App State**: Use `$app/state` instead of deprecated `$app/stores`. Import `page`, `navigating`, and `updated` from `$app/state` and access them directly without the `$` prefix (e.g., `page.url.pathname`).
 - **Code Quality**: Write correct, modern, readable, type-safe, secure, and efficient code. Prioritize readability.
 - **Styling**: Use utility-first TailwindCSS and `shadcn-svelte` components.
 - **Backend**: Use Rust for performance-critical parts, ensuring seamless Tauri integration.

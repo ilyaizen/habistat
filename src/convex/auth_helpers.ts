@@ -11,25 +11,18 @@ import type { QueryCtx, MutationCtx, ActionCtx } from "./_generated/server";
  * Helps debug authentication issues by providing specific error messages
  */
 export async function getCurrentUserIdentity(ctx: QueryCtx | MutationCtx | ActionCtx) {
-  console.log("[Auth] Checking user identity...");
-
   try {
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
-      console.warn("[Auth] No user identity found - user not authenticated");
+      console.log("🔐 Auth: No user identity found");
       return null;
     }
 
-    console.log("[Auth] User identity found:", {
-      subject: identity.subject,
-      tokenIdentifier: identity.tokenIdentifier,
-      issuer: identity.issuer
-    });
-
+    console.log("✅ Auth: User identity found");
     return identity;
   } catch (error) {
-    console.error("[Auth] Error getting user identity:", error);
+    console.error("❌ Auth: Error getting user identity:", error);
     throw new ConvexError("Authentication system error");
   }
 }
@@ -42,7 +35,7 @@ export async function requireAuth(ctx: QueryCtx | MutationCtx | ActionCtx) {
   const identity = await getCurrentUserIdentity(ctx);
 
   if (!identity) {
-    console.error("[Auth] Authentication required but user not authenticated");
+    console.log("🔒 Auth: Authentication required but user not authenticated");
     throw new ConvexError("Not authenticated - please sign in to continue");
   }
 
@@ -57,7 +50,7 @@ export async function getCurrentUserOptional(ctx: QueryCtx | MutationCtx | Actio
   try {
     return await getCurrentUserIdentity(ctx);
   } catch (error) {
-    console.error("[Auth] System error during authentication check:", error);
+    console.error("❌ Auth: System error during authentication check:", error);
     return null;
   }
 }

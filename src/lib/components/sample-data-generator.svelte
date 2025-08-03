@@ -84,7 +84,7 @@
     try {
       sessionStore.ensure();
       await generateFakeUsageHistory(numDays);
-      const createdCalendars = [];
+      const createdCalendars: string[] = [];
       for (const calendarConfig of SAMPLE_DATA_CONFIG.calendars) {
         const colorTheme =
           COLOR_PALETTE.find((c) => c.name === calendarConfig.colorTheme)?.value || "#3b82f6";
@@ -112,7 +112,7 @@
         throw new Error("Failed to create all calendars");
       }
       // Create habits (assume all are positive)
-      const createdHabits = [];
+      const createdHabits: Array<{ id: string; name: string; type: string }> = [];
       for (const habitConfig of SAMPLE_DATA_CONFIG.habits) {
         const calendarId = calendarIdMap.get(habitConfig.calendarName);
         if (!calendarId) {

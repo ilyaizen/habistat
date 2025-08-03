@@ -92,7 +92,12 @@ export async function safeQuery<T = unknown, A = unknown>(
 
       // Ensure the auth token is fresh before executing the query
       await refreshConvexToken();
-      return await convex.query(queryFn, args as any);
+      const convexClient = convex();
+      if (!convexClient) {
+        console.warn("[SafeQuery] Convex client not available at query time");
+        return null;
+      }
+      return await convexClient.query(queryFn, args as any);
     } catch (error) {
       attempt++;
 
@@ -219,7 +224,12 @@ export async function safeMutation<T = unknown, A = unknown>(
 
       // Ensure the auth token is fresh before executing the mutation
       await refreshConvexToken();
-      return await convex.mutation(mutationFn, args as any);
+      const convexClient = convex();
+      if (!convexClient) {
+        console.warn("[SafeMutation] Convex client not available at mutation time");
+        return null;
+      }
+      return await convexClient.mutation(mutationFn, args as any);
     } catch (error) {
       attempt++;
 

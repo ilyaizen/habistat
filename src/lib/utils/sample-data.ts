@@ -23,11 +23,6 @@ export const SAMPLE_DATA_CONFIG = {
       name: "📈 Skill Development",
       colorTheme: "Indigo",
       position: 2
-    },
-    {
-      name: "🏃 Physical Conditioning",
-      colorTheme: "Green",
-      position: 3
     }
   ],
   habits: [
@@ -103,31 +98,6 @@ export const SAMPLE_DATA_CONFIG = {
         "Engage in deliberate practice of a chosen skill (e.g., coding, language, instrument).",
       type: "positive" as const,
       pointsValue: 35,
-      position: 2
-    },
-    {
-      calendarName: "🏃 Physical Conditioning",
-      name: "🤸 Morning Stretch",
-      description: "Increase blood flow and flexibility to energize your body for the day.",
-      type: "positive" as const,
-      pointsValue: 15,
-      position: 0
-    },
-    {
-      calendarName: "🏃 Physical Conditioning",
-      name: "🚶 Daily Walk",
-      description: "Go for a brisk walk to improve cardiovascular health and clear your mind.",
-      type: "positive" as const,
-      pointsValue: 25,
-      position: 1
-    },
-    {
-      calendarName: "🏃 Physical Conditioning",
-      name: "💪 Strength Session",
-      description:
-        "Perform a short, focused workout (e.g., push-ups, squats, planks) to build muscle.",
-      type: "positive" as const,
-      pointsValue: 40,
       position: 2
     }
   ]

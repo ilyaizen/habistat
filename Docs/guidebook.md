@@ -1,7 +1,7 @@
 # Habistat Guidebook
 
 **Version:** 0.0.1
-**Last Updated:** 2025-07-20
+**Last Updated:** 2025-08-03
 
 ---
 
@@ -28,8 +28,14 @@ bun format             # Biome formatting
 - **TypeScript**: Strict mode; no unused vars/params. Use `PascalCase` for types/interfaces.
 - **Svelte**: Use Svelte 5 syntax. Components are `kebab-case.svelte`.
   - **Rune Scope**: Runes (`$effect`, `$state`, etc.) are only valid inside `.svelte` files. For reactive logic in stores, expose methods that can be called from a component's `$effect`.
+  - **Event Handlers**: Use `onclick` attribute instead of `on:click` directive for HTML elements. Apply this pattern to all event handlers (e.g., `onsubmit`, `onchange`, etc.).
   - **Avoiding Reactive Loops**: To prevent `effect_update_depth_exceeded` errors, use `$derived` for computing new state from existing signals. Avoid chains of `$effect`s that write to signals read by other effects. Remember that derived signals are functions and must be called (e.g., `myDerived()`) in templates to resolve their value, especially for TypeScript.
   - **Performance in Loops**: Avoid rendering many complex components (e.g., `Tooltip` from a UI library) inside an `#each` loop. The overhead from numerous component instances can cause performance bottlenecks and reactive crashes. When possible, use lightweight, native HTML alternatives like the `title` attribute for tooltips.
+  - **Svelte 5 Migration**: Use new imports from `$app/state` instead of deprecated `$app/stores`:
+    - `import { page } from "$app/state"` (not `$app/stores`)
+    - `import { navigating } from "$app/state"` (not `$app/stores`)
+    - `import { updated } from "$app/state"` (not `$app/stores`)
+    - Access stores directly: `page.url.pathname` (not `$page.url.pathname`)
 - **File Names**: `kebab-case` (e.g., `user-profile.ts`).
 - **Variables/Functions**: `camelCase` (e.g., `getUserData`).
 - **Constants**: `UPPER_SNAKE_CASE` (e.g., `MAX_RETRIES`).

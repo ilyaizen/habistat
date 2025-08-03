@@ -9,29 +9,16 @@ import { get, writable } from "svelte/store";
 
 // import { eq } from "drizzle-orm";
 
-import { ConvexClient } from "convex/browser";
+import type { ConvexClient } from "convex/browser";
+// Use the centralized Convex client that handles authentication properly
+import { getConvexClient } from "$lib/utils/convex";
 // Path to Convex API
 import { api } from "../../convex/_generated/api";
 import type { calendars as calendarsSchema } from "../db/schema";
 // All data operations are now done through the local-data service,
 // which handles DB connection and persistence.
 import * as localData from "../services/local-data";
-
-// Lazy initialization of Convex client to avoid undefined deployment address during static build
-let convex: ConvexClient | null = null;
-
-function getConvexClient(): ConvexClient {
-  if (!convex) {
-    // Use PUBLIC_CONVEX_URL for Vercel, fallback to VITE_CONVEX_URL for local dev
-    const convexUrl = import.meta.env.PUBLIC_CONVEX_URL || import.meta.env.VITE_CONVEX_URL;
-    if (!convexUrl) {
-      throw new Error("No Convex URL found. Please set PUBLIC_CONVEX_URL or VITE_CONVEX_URL");
-    }
-    console.log("[DEBUG] Creating ConvexClient with URL:", convexUrl);
-    convex = new ConvexClient(convexUrl);
-  }
-  return convex;
-}
+import { subscriptionStore } from "./subscription";
 
 export type Calendar = InferModel<typeof calendarsSchema>;
 // Input type for creating new calendars via the store's add method
@@ -85,7 +72,13 @@ function createCalendarsStore() {
     for (const cal of anonymousCalendars) {
       try {
         // Use the local ID as localUuid for Convex to ensure mapping
-        await getConvexClient().mutation(api.calendars.createCalendar, {
+        const convexClient = getConvexClient();
+        if (!convexClient) {
+          console.warn("Convex client not available, skipping calendar sync");
+          continue;
+        }
+
+        await convexClient.mutation(api.calendars.createCalendar, {
           localUuid: cal.id,
           name: cal.name,
           colorTheme: cal.colorTheme,
@@ -130,7 +123,13 @@ function createCalendarsStore() {
 
       try {
         // Subscribe to the query using onUpdate
-        const convexClient: ConvexClient = getConvexClient();
+        const convexClient = getConvexClient();
+        if (!convexClient) {
+          console.warn("Convex client not available, skipping sync for anonymous user");
+          isLoading.set(false);
+          isSyncing.set(false);
+          return;
+        }
         convexUnsubscribe = convexClient.onUpdate(
           api.calendars.getUserCalendars,
           {},
@@ -255,16 +254,21 @@ function createCalendarsStore() {
         if (currentClerkUserId) {
           isSyncing.set(true);
           try {
-            await getConvexClient().mutation(api.calendars.createCalendar, {
-              localUuid: newCalendar.id, // local ID is the localUuid
-              name: newCalendar.name,
-              colorTheme: newCalendar.colorTheme,
-              position: newCalendar.position,
-              isEnabled: newCalendar.isEnabled === 1, // Pass boolean to Convex
-              clientCreatedAt: now,
-              clientUpdatedAt: now
-            });
-            console.log(`Calendar ${newCalendar.id} synced to Convex.`);
+            const convexClient = getConvexClient();
+            if (convexClient) {
+              await convexClient.mutation(api.calendars.createCalendar, {
+                localUuid: newCalendar.id, // local ID is the localUuid
+                name: newCalendar.name,
+                colorTheme: newCalendar.colorTheme,
+                position: newCalendar.position,
+                isEnabled: newCalendar.isEnabled === 1, // Pass boolean to Convex
+                clientCreatedAt: now,
+                clientUpdatedAt: now
+              });
+              console.log(`Calendar ${newCalendar.id} synced to Convex.`);
+            } else {
+              console.warn("Convex client not available, calendar saved locally only");
+            }
           } catch (error) {
             console.error(`Failed to sync new calendar ${newCalendar.id} to Convex:`, error);
             // TODO: Implement retry or offline queuing mechanism
@@ -372,8 +376,13 @@ function createCalendarsStore() {
               if (data.position !== undefined) payload.position = data.position;
               if (data.isEnabled !== undefined) payload.isEnabled = data.isEnabled === 1;
 
-              await getConvexClient().mutation(api.calendars.updateCalendar, payload);
-              console.log(`Calendar ${localUuid} update synced to Convex.`);
+              const convexClient = getConvexClient();
+              if (convexClient) {
+                await convexClient.mutation(api.calendars.updateCalendar, payload);
+                console.log(`Calendar ${localUuid} update synced to Convex.`);
+              } else {
+                console.warn("Convex client not available, calendar updated locally only");
+              }
             }
           } catch (error) {
             console.error(`Failed to sync calendar update ${localUuid} to Convex:`, error);
@@ -449,8 +458,13 @@ function createCalendarsStore() {
         if (currentClerkUserId) {
           isSyncing.set(true);
           try {
-            await getConvexClient().mutation(api.calendars.deleteCalendar, { localUuid });
-            console.log(`Calendar ${localUuid} delete synced to Convex.`);
+            const convexClient = getConvexClient();
+            if (convexClient) {
+              await convexClient.mutation(api.calendars.deleteCalendar, { localUuid });
+              console.log(`Calendar ${localUuid} delete synced to Convex.`);
+            } else {
+              console.warn("Convex client not available, calendar deleted locally only");
+            }
           } catch (error) {
             console.error(`Failed to sync delete for calendar ${localUuid} to Convex:`, error);
             // TODO: Implement retry or offline queue
