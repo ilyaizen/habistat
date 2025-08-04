@@ -34,18 +34,13 @@
 │   │   ├── phase3-saas-subscription-management.md
 │   │   └── prp-svelte.md
 │   ├── add-comments.md
-│   ├── authentication-fix-guide.md
 │   ├── clerk-setup.md
 │   ├── contribution-guide.md
-│   ├── convex-auth-testing-guide.md
 │   ├── guidebook.md
 │   ├── implementation-plan.md
-│   ├── llms-convex.txt
-│   ├── llms-small-svelte.txt
 │   ├── rules.md
 │   ├── sample-data.md
-│   ├── tech-stack.md
-│   └── user-sync-implementation.md
+│   └── tech-stack.md
 ├── migrations
 │   ├── 0000_initial.sql
 │   └── 0001_simplify_completions.sql
@@ -87,7 +82,6 @@
 │   │   │   ├── activity-trend.svelte
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
-│   │   │   ├── authenticated-query-example.svelte
 │   │   │   ├── avatar.svelte
 │   │   │   ├── calendar-edit-dialog.svelte
 │   │   │   ├── confetti-effect.svelte
@@ -117,8 +111,7 @@
 │   │   │   ├── tab-motion-wrapper.svelte
 │   │   │   ├── theme-toggle.svelte
 │   │   │   ├── tier-limit-guard.svelte
-│   │   │   ├── upgrade-prompt.svelte
-│   │   │   └── user-sync-debug.svelte
+│   │   │   └── upgrade-prompt.svelte
 │   │   ├── db
 │   │   │   ├── client.ts
 │   │   │   ├── schema.ts
@@ -155,7 +148,6 @@
 │   │   │   ├── context-menu.ts
 │   │   │   ├── convex-operations.ts
 │   │   │   ├── convex.ts
-│   │   │   ├── database-fixer.ts
 │   │   │   ├── date.ts
 │   │   │   ├── environment.ts
 │   │   │   ├── navigation.ts
@@ -196,11 +188,6 @@
 │   │   │   │   └── +page.svelte
 │   │   │   ├── +layout.svelte
 │   │   │   └── +page.svelte
-│   │   ├── debug
-│   │   │   ├── auth
-│   │   │   │   └── +page.svelte
-│   │   │   └── convex
-│   │   │       └── +page.svelte
 │   │   ├── dev
 │   │   │   ├── +layout.server.ts
 │   │   │   └── +page.svelte
@@ -222,7 +209,6 @@
 │   ├── app.css
 │   ├── app.d.ts
 │   ├── app.html
-│   ├── debug-auth-test.ts
 │   ├── env.d.ts
 │   ├── hooks.client.ts
 │   └── hooks.server.ts

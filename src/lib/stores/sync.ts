@@ -32,7 +32,7 @@ function createSyncStore() {
   // Function to get or create sync service
   const getSyncService = () => {
     if (!syncService && browser) {
-      const convexClient = convex;
+      const convexClient = convex();
       if (convexClient) {
         syncService = new SyncService();
         if (currentUserId) {

@@ -4,6 +4,9 @@
   Uses Svelte 5 $effect to react to page data changes and Clerk auth state.
 -->
 <script lang="ts">
+  // Debug configuration - set to true to enable verbose logging
+  const DEBUG_VERBOSE = false;
+
   import type { UserResource } from "@clerk/types";
   import { getContext, onDestroy, onMount } from "svelte";
   import type { Readable } from "svelte/store";
@@ -41,7 +44,9 @@
       // Only log significant user changes
       if (previousUserId !== newUserId) {
         const action = newUserId ? "signed in" : "signed out";
-        console.log(`🔄 StoreSync: User ${action}`);
+        if (DEBUG_VERBOSE) {
+          console.log(`🔄 StoreSync: User ${action}`);
+        }
       }
       // Notify the central auth state store about the change
       authState.setClerkState(newUserId, !!user);
@@ -65,7 +70,9 @@
     if (isReady) {
       // Auth is fully ready, now we can safely initialize stores
       if (currentUserId) {
-        console.log("⚙️ Stores initialized for user");
+        if (DEBUG_VERBOSE) {
+          console.log("⚙️ Stores initialized for user");
+        }
         calendarsStore.setUser(currentUserId);
         habits.setUser(currentUserId);
 
@@ -89,7 +96,9 @@
       // User logged out or auth not ready
       const state = get(authState);
       if (!state.clerkUserId) {
-        console.log("📤 Stores cleared (user signed out)");
+        if (DEBUG_VERBOSE) {
+          console.log("📤 Stores cleared (user signed out)");
+        }
         calendarsStore.setUser(null);
         habits.setUser(null);
         syncStore.setUserId(null);
@@ -112,7 +121,9 @@
 
           // Update stores with page data user (backup mechanism)
           if (pageUserId && pageUserId !== currentUserId) {
-            console.log("[StoreSync] Page data user detected:", pageUserId);
+            if (DEBUG_VERBOSE) {
+              console.log("[StoreSync] Page data user detected:", pageUserId);
+            }
             calendarsStore.setUser(pageUserId);
             habits.setUser(pageUserId);
           }

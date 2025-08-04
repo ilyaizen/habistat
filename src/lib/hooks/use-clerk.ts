@@ -7,6 +7,9 @@ import { authState } from "$lib/stores/auth-state";
 // import { syncIsOnline as networkIsOnline } from "$lib/stores/sync";
 import { markSessionAssociated, sessionStore } from "$lib/utils/tracking";
 
+// Debug configuration - set to true to enable verbose logging
+const DEBUG_VERBOSE = false;
+
 /**
  * Clerk authentication hook for Habistat application.
  * Manages Clerk user state, context setup, and session association.
@@ -80,8 +83,10 @@ export function useClerk() {
 
       if (window.Clerk) {
         const clerk = window.Clerk as unknown as LoadedClerk;
-        console.log("✅ Clerk: Instance loaded and ready");
-        console.log("🔍 Clerk: SignOut method available:", typeof clerk.signOut === "function");
+        if (DEBUG_VERBOSE) {
+          console.log("✅ Clerk: Instance loaded and ready");
+          console.log("🔍 Clerk: SignOut method available:", typeof clerk.signOut === "function");
+        }
         clerkStore.set(clerk);
         clearInterval(interval);
       } else if (attempts >= maxAttempts) {
@@ -105,21 +110,29 @@ export function useClerk() {
       if (user === previousUserState) return;
 
       if (user) {
-        console.log("✅ Clerk: User authenticated, proceeding with sync");
+        if (DEBUG_VERBOSE) {
+          console.log("✅ Clerk: User authenticated, proceeding with sync");
+        }
 
         const session = get(sessionStore);
         if (session?.state === "anonymous") {
-          console.log("🔗 Clerk: Associating anonymous session with authenticated user");
+          if (DEBUG_VERBOSE) {
+            console.log("🔗 Clerk: Associating anonymous session with authenticated user");
+          }
           markSessionAssociated(user.id, user.primaryEmailAddress?.emailAddress);
         }
 
         // Initialize Convex client now that user is authenticated
-        console.log("🔄 Clerk: Initializing Convex client for authenticated user");
+        if (DEBUG_VERBOSE) {
+          console.log("🔄 Clerk: Initializing Convex client for authenticated user");
+        }
         try {
           const { getConvexClientForAuthenticatedUser } = await import("$lib/utils/convex");
           const convexClient = await getConvexClientForAuthenticatedUser();
           if (convexClient) {
-            console.log("✅ Clerk: Convex client ready for authenticated user");
+            if (DEBUG_VERBOSE) {
+              console.log("✅ Clerk: Convex client ready for authenticated user");
+            }
           } else {
             console.warn("⚠️ Clerk: Failed to initialize Convex client");
           }
@@ -128,12 +141,16 @@ export function useClerk() {
         }
 
         // Sync user to Convex database (only for authenticated users)
-        console.log("🔄 Clerk: Starting user sync to Convex");
+        if (DEBUG_VERBOSE) {
+          console.log("🔄 Clerk: Starting user sync to Convex");
+        }
         await userSyncService.handleAuthChange(user);
       } else if (previousUserState !== null) {
         // Only handle sign-out if we previously had an authenticated user
         // This prevents unnecessary cleanup calls for anonymous users
-        console.log("📤 Clerk: User signed out, cleaning up sync state");
+        if (DEBUG_VERBOSE) {
+          console.log("📤 Clerk: User signed out, cleaning up sync state");
+        }
         await userSyncService.handleAuthChange(null);
       }
 

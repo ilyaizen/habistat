@@ -9,6 +9,9 @@ import { get } from "svelte/store";
 import { authState } from "$lib/stores/auth-state";
 import { convex, isAuthReady, refreshConvexToken } from "./convex";
 
+// Debug configuration - reduce console verbosity
+const DEBUG_VERBOSE = false;
+
 // Maximum number of retry attempts (reduced to prevent excessive retries)
 const MAX_RETRIES = 1;
 
@@ -54,7 +57,10 @@ export async function safeQuery<T = unknown, A = unknown>(
 
   // Wait for Convex authentication to be ready (this is the critical fix for race conditions)
   if (!isAuthReady()) {
-    console.log("⏳ Query: Waiting for auth...");
+    // Only log waiting for auth in verbose mode to reduce console noise
+    if (DEBUG_VERBOSE) {
+      console.log("⏳ Query: Waiting for auth...");
+    }
 
     // Give Convex auth some time to complete (up to 10 seconds)
     const maxWaitTime = 10000;
@@ -72,7 +78,10 @@ export async function safeQuery<T = unknown, A = unknown>(
       return null;
     }
 
-    console.log("✅ Query: Auth ready");
+    // Only log auth ready in verbose mode to reduce console noise
+    if (DEBUG_VERBOSE) {
+      console.log("✅ Query: Auth ready");
+    }
   }
 
   let attempt = 0;

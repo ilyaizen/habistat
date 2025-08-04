@@ -3,6 +3,9 @@ import { get } from "svelte/store";
 import { authState } from "../stores/auth-state";
 import type { SyncService } from "./sync";
 
+// Debug configuration - set to true to enable verbose logging
+const DEBUG_VERBOSE = false;
+
 /**
  * User synchronization service for handling Convex/Clerk user sync
  *
@@ -64,13 +67,17 @@ class UserSyncService {
     }
 
     if (!force && this.lastSyncedUserId === user.id) {
-      console.log("✅ UserSync: Already synced");
+      if (DEBUG_VERBOSE) {
+        console.log("✅ UserSync: Already synced");
+      }
       return { success: true, skipped: true };
     }
 
     try {
       this.syncInProgress = true;
-      console.log(`🔄 UserSync: Starting for ${user.id.slice(-8)}...`);
+      if (DEBUG_VERBOSE) {
+        console.log(`🔄 UserSync: Starting for ${user.id.slice(-8)}...`);
+      }
 
       // Extract user information
       const userInfo = this.extractUserInfo(user);
@@ -83,7 +90,9 @@ class UserSyncService {
 
       if (result.success) {
         this.lastSyncedUserId = user.id;
-        console.log(`✅ UserSync: Complete`);
+        if (DEBUG_VERBOSE) {
+          console.log(`✅ UserSync: Complete`);
+        }
       } else {
         console.error(`[UserSync] Failed to sync user: ${user.id}`, result.error);
       }
@@ -113,7 +122,9 @@ class UserSyncService {
       if (this.syncService) {
         this.syncService.setUserId(null);
       }
-      console.log("📤 UserSync: Cleared (sign out)");
+      if (DEBUG_VERBOSE) {
+        console.log("📤 UserSync: Cleared (sign out)");
+      }
       return;
     }
 

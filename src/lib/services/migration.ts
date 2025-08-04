@@ -1,6 +1,10 @@
 import { getDb as getDrizzleDb, persistBrowserDb } from "../db/client";
+
 // import * as schema from "../db/schema";
 // import { isNull, eq } from "drizzle-orm";
+
+// Debug configuration - set to true to enable verbose logging
+const DEBUG_VERBOSE = false;
 
 /**
  * Migration service to handle database schema changes
@@ -10,12 +14,16 @@ export namespace MigrationService {
    * Run all pending migrations
    */
   export async function runMigrations(): Promise<void> {
-    console.log("🔄 Running database migrations...");
+    if (DEBUG_VERBOSE) {
+      console.log("🔄 Running database migrations...");
+    }
 
     try {
       await simplifyCompletionsTable();
       // Note: syncMetadata table is now created via official Drizzle migration (0003_equal_songbird.sql)
-      console.log("✅ Database migrations completed successfully");
+      if (DEBUG_VERBOSE) {
+        console.log("✅ Database migrations completed successfully");
+      }
     } catch (error) {
       console.error("❌ Database migration failed:", error);
       throw error;
@@ -38,7 +46,9 @@ export namespace MigrationService {
 
       // If no table exists, there's nothing to migrate
       if (!testQuery.rows || testQuery.rows.length === 0) {
-        console.log("📝 Completions table doesn't exist yet - no migration needed");
+        if (DEBUG_VERBOSE) {
+          console.log("📝 Completions table doesn't exist yet - no migration needed");
+        }
         return;
       }
 
@@ -52,7 +62,9 @@ export namespace MigrationService {
         tableSchema.includes("createdAt") ||
         tableSchema.includes("updatedAt")
       ) {
-        console.log("📝 Ultra-simplifying completions table structure...");
+        if (DEBUG_VERBOSE) {
+          console.log("📝 Ultra-simplifying completions table structure...");
+        }
 
         // Create new ultra-simplified completions table
         await db.run(`
@@ -79,14 +91,20 @@ export namespace MigrationService {
         await db.run(`ALTER TABLE completions_new RENAME TO completions`);
 
         await persistBrowserDb();
-        console.log("✅ Completions table ultra-simplified successfully");
+        if (DEBUG_VERBOSE) {
+          console.log("✅ Completions table ultra-simplified successfully");
+        }
       } else {
-        console.log("📝 Completions table already ultra-simplified");
+        if (DEBUG_VERBOSE) {
+          console.log("📝 Completions table already ultra-simplified");
+        }
       }
     } catch (error) {
       console.error("❌ Completions table migration failed:", error);
       // If there's an error, it might mean the table doesn't exist or is already in the new format
-      console.log("📝 Completions table migration not needed or already completed");
+      if (DEBUG_VERBOSE) {
+        console.log("📝 Completions table migration not needed or already completed");
+      }
     }
   }
 }

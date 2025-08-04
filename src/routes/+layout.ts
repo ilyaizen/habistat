@@ -11,7 +11,7 @@ export const csr = true; // Enable client-side rendering
 import "../app.css";
 // import { browser } from "$app/environment";
 
-// import { dev } from "$app/environment";
+import { dev } from "$app/environment";
 // import { inject } from "@vercel/analytics";
 
 import { waitLocale } from "svelte-i18n";
@@ -28,7 +28,10 @@ export const load: LayoutLoad = async () => {
 
   // For static builds, authentication is handled entirely on the client side
   // The server-side data will be empty, so we initialize auth state on the client
-  console.log("Root layout load function is running (static build version).");
+  // Reduced verbosity - only log in development
+  if (dev) {
+    console.log("Root layout load function is running (static build version).");
+  }
 
   return {
     isAuthenticated: false, // Will be updated by client-side Clerk

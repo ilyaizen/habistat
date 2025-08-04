@@ -2,6 +2,9 @@
 // - Browser: sql.js (WASM) with IndexedDB persistence
 // - Tauri/Node: better-sqlite3 (via server.ts)
 
+// Debug configuration - set to true to enable verbose logging
+const DEBUG_VERBOSE = false;
+
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import type { SQLJsDatabase } from "drizzle-orm/sql-js";
@@ -155,7 +158,9 @@ async function loadSqlJsDb(SQL: SqlJsStatic): Promise<SqlJsDatabase> {
               stmt.bind([migration.name]);
               stmt.step();
               stmt.free();
-              console.log(`Migration ${migration.name} applied successfully.`);
+              if (DEBUG_VERBOSE) {
+                console.log(`Migration ${migration.name} applied successfully.`);
+              }
             } catch (migrationError: unknown) {
               console.error(`Error applying migration ${migration.name}:`, migrationError);
               // For development, we'll continue with other migrations instead of failing completely
@@ -174,9 +179,13 @@ async function loadSqlJsDb(SQL: SqlJsStatic): Promise<SqlJsDatabase> {
               }
             }
           }
-          console.log("All pending migrations applied.");
+          if (DEBUG_VERBOSE) {
+            console.log("All pending migrations applied.");
+          }
         } else {
-          console.log("No pending migrations to apply.");
+          if (DEBUG_VERBOSE) {
+            console.log("No pending migrations to apply.");
+          }
         }
       }
     } catch (e: unknown) {
@@ -204,7 +213,9 @@ async function loadSqlJsDb(SQL: SqlJsStatic): Promise<SqlJsDatabase> {
       }
     };
     getReq.onerror = (event) => {
-      console.warn("IndexedDB read failed, creating a new database.", event);
+      if (DEBUG_VERBOSE) {
+        console.warn("IndexedDB read failed, creating a new database.", event);
+      }
       try {
         const newDb = new SQL.Database();
         resolve(processDb(newDb, true));

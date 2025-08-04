@@ -6,6 +6,9 @@
 import { ConvexError } from "convex/values";
 import type { QueryCtx, MutationCtx, ActionCtx } from "./_generated/server";
 
+// Debug configuration - reduce console verbosity
+const DEBUG_VERBOSE = false;
+
 /**
  * Get current user identity with detailed error reporting
  * Helps debug authentication issues by providing specific error messages
@@ -19,7 +22,10 @@ export async function getCurrentUserIdentity(ctx: QueryCtx | MutationCtx | Actio
       return null;
     }
 
-    console.log("✅ Auth: User identity found");
+    // Only log auth identity in verbose mode to reduce console noise
+    if (DEBUG_VERBOSE) {
+      console.log("✅ Auth: User identity found");
+    }
     return identity;
   } catch (error) {
     console.error("❌ Auth: Error getting user identity:", error);

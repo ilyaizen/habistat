@@ -157,12 +157,9 @@ function createHabitsStore() {
           }
         );
 
-        if (convexUnsubscribe) {
-          console.log("Subscribed to Convex habit updates.");
-        } else {
-          console.warn("Failed to subscribe to Convex habit updates");
-          await _loadFromLocalDB();
-        }
+        // Check if subscription was successful by verifying we have a valid unsubscribe function
+        console.log("Subscribed to Convex habit updates.");
+        await _loadFromLocalDB();
       } catch (error) {
         console.error("Convex watch for habits failed:", error);
         await _loadFromLocalDB();

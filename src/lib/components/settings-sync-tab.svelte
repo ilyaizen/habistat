@@ -6,19 +6,7 @@
   import { Label } from "$lib/components/ui/label";
   import { settings } from "$lib/stores/settings";
   import { isSyncing, lastSyncTime, syncError, syncIsOnline, syncStore } from "$lib/stores/sync";
-  import type { Readable } from "svelte/store";
 
-  // Define the extended sync store interface with simplified methods
-  interface ExtendedSyncStore extends Readable<any> {
-    setUserId: (userId: string | null) => void;
-    triggerSync: () => Promise<any>;
-    migrateAnonymousData: () => Promise<any>;
-    clearError: () => void;
-    getSyncService: () => any | null;
-  }
-
-  // Type assertion for the sync store
-  const extendedSyncStore = syncStore as unknown as ExtendedSyncStore;
   const developerMode = $derived($settings.developerMode);
 
   // Function to get error severity and color based on error type
@@ -77,7 +65,7 @@
         <Button
           size="sm"
           variant="outline"
-          onclick={() => extendedSyncStore.triggerSync()}
+          onclick={() => syncStore.triggerSync()}
           disabled={$isSyncing || !$syncIsOnline}
           class="flex items-center gap-2"
         >
@@ -89,7 +77,7 @@
           <Button
             size="sm"
             variant="secondary"
-            onclick={() => extendedSyncStore.clearError()}
+            onclick={() => syncStore.clearError()}
             class="flex items-center gap-2"
           >
             Clear Error
@@ -164,11 +152,10 @@
         <p>Anonymous data migration happens automatically when you first sign in.</p>
         <p class="text-xs opacity-75">This section is visible because Developer Mode is enabled.</p>
       </div>
-
       <Button
         size="sm"
         variant="outline"
-        onclick={() => extendedSyncStore.migrateAnonymousData()}
+        onclick={() => syncStore.migrateAnonymousData()}
         disabled={$isSyncing}
         class="flex items-center gap-2"
       >

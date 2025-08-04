@@ -2,6 +2,11 @@ import type { Clerk } from "@clerk/clerk-js";
 import { ConvexClient } from "convex/browser";
 import { browser } from "$app/environment";
 
+// Debug configuration - set to false to reduce console verbosity
+const DEBUG_VERBOSE = false;
+const DEBUG_AUTH = true;
+const DEBUG_ERRORS = true;
+
 /**
  * Convex client singleton and authentication management
  *
@@ -400,7 +405,10 @@ export async function refreshConvexToken(): Promise<string | null> {
   }
 
   try {
-    console.log("🔄 Convex: Refreshing token");
+    // Only log token refresh in verbose mode to reduce console noise
+    if (DEBUG_VERBOSE) {
+      console.log("🔄 Convex: Refreshing token");
+    }
 
     // Get a fresh token from Clerk
     const token = await window.Clerk.session.getToken({

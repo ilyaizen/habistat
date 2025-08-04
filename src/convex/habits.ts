@@ -39,6 +39,28 @@ export const getUserHabits = query({
   }
 });
 
+// Get a habit by its local UUID (used for habit ID mapping in sync)
+export const getHabitByLocalUuid = query({
+  args: {
+    localUuid: v.string()
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const habit = await ctx.db
+      .query("habits")
+      .withIndex("by_user_local_uuid", (q) =>
+        q.eq("userId", identity.subject).eq("localUuid", args.localUuid)
+      )
+      .first();
+
+    return habit;
+  }
+});
+
 // --- Mutations ---
 
 // Create a new habit
