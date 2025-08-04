@@ -75,13 +75,21 @@ export class SyncService {
    * Sync completions bidirectionally with proper habit ID mapping
    */
   async syncCompletions(): Promise<SyncResult> {
-    if (!this.userId || this.isSyncing) {
-      return { success: false, error: "Not authenticated or already syncing" };
+    if (!this.userId) {
+      return { success: false, error: "Not authenticated" };
+    }
+
+    // Check if already syncing - but allow retry after a delay
+    if (this.isSyncing) {
+      if (DEBUG_VERBOSE) {
+        console.log("⏳ Completions: Already syncing, skipping");
+      }
+      return { success: true, error: "Sync already in progress" };
     }
 
     if (!(await waitForConvexAuth())) {
       if (DEBUG_VERBOSE) {
-        console.log("⏳ Sync: Waiting for auth...");
+        console.log("⏳ Completions: Waiting for auth...");
       }
       return { success: false, error: "Authentication not ready - please wait and try again" };
     }
@@ -252,33 +260,86 @@ export class SyncService {
   }
 
   /**
-   * Full sync: sync user then sync all data
+   * Full sync: sync user then sync all data types (calendars, habits, completions)
    */
   async fullSync(userInfo?: {
     email: string;
     name?: string;
     avatarUrl?: string;
   }): Promise<SyncResult & { userSyncResult?: any }> {
-    let userSyncResult: any;
-
-    // Sync user first if user info provided
-    if (userInfo) {
-      userSyncResult = await this.syncCurrentUser(userInfo);
+    if (!this.userId || this.isSyncing) {
+      return { success: false, error: "Not authenticated or already syncing" };
     }
 
-    // Sync completions
-    const result = await this.syncCompletions();
-
-    // Refresh store after successful sync
-    if (result.success) {
-      await completionsStore.refresh();
+    if (!(await waitForConvexAuth())) {
+      return { success: false, error: "Authentication not ready - please wait and try again" };
     }
 
-    return {
-      success: result.success,
-      error: result.error,
-      userSyncResult
-    };
+    return performSafeOperation(async () => {
+      this.isSyncing = true;
+      let userSyncResult: any;
+      const syncResults: { [key: string]: SyncResult } = {};
+
+      try {
+        // 1. Sync user first if user info provided
+        if (userInfo) {
+          userSyncResult = await this.syncCurrentUser(userInfo);
+          if (!userSyncResult.success) {
+            throw new Error(`User sync failed: ${userSyncResult.error}`);
+          }
+        }
+
+        // 2. Sync calendars (trigger store sync)
+        try {
+          const { calendarsStore } = await import("../stores/calendars");
+          await calendarsStore.setUser(this.userId);
+          syncResults.calendars = { success: true };
+          if (DEBUG_VERBOSE) console.log("✅ Calendars synced");
+        } catch (error) {
+          console.warn("Calendar sync failed:", error);
+          syncResults.calendars = { success: false, error: error instanceof Error ? error.message : "Calendar sync failed" };
+        }
+
+        // 3. Sync habits (trigger store sync)
+        try {
+          const { habits } = await import("../stores/habits");
+          await habits.setUser(this.userId);
+          syncResults.habits = { success: true };
+          if (DEBUG_VERBOSE) console.log("✅ Habits synced");
+        } catch (error) {
+          console.warn("Habit sync failed:", error);
+          syncResults.habits = { success: false, error: error instanceof Error ? error.message : "Habit sync failed" };
+        }
+
+        // 4. Sync completions
+        syncResults.completions = await this.syncCompletions();
+        if (syncResults.completions.success) {
+          await completionsStore.refresh();
+          if (DEBUG_VERBOSE) console.log("✅ Completions synced");
+        } else {
+          console.warn("Completion sync failed:", syncResults.completions.error);
+        }
+
+        // Check if any critical syncs failed
+        const failedSyncs = Object.entries(syncResults)
+          .filter(([, result]) => !result.success)
+          .map(([type]) => type);
+
+        if (failedSyncs.length > 0) {
+          console.warn(`Some syncs failed: ${failedSyncs.join(", ")}`);
+          // Don't fail the entire sync if only some parts failed
+        }
+
+        return {
+          userSyncResult,
+          syncResults
+        };
+      } catch (error) {
+        throw error;
+      }
+    }, "Full sync").finally(() => {
+      this.isSyncing = false;
+    });
   }
 
   /**

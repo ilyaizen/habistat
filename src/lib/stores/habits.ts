@@ -138,12 +138,32 @@ function createHabitsStore() {
               };
 
               if (localHabit) {
+                // Update existing habit if server version is newer
                 if (convexHabit.clientUpdatedAt > localHabit.updatedAt) {
-                  await localData.updateHabit(localHabit.id, serverDataForLocal);
+                  try {
+                    await localData.updateHabit(localHabit.id, serverDataForLocal);
+                  } catch (error) {
+                    console.error(`Failed to update habit ${localHabit.id}:`, error);
+                  }
                 }
                 localHabitsMap.delete(convexHabit.localUuid);
               } else {
-                await localData.createHabit({ id: convexHabit.localUuid, ...serverDataForLocal });
+                // Create new habit from server data with duplicate protection
+                try {
+                  // Check if habit already exists before creating (race condition protection)
+                  const existingHabit = await localData.getHabitById(convexHabit.localUuid);
+                  if (!existingHabit) {
+                    await localData.createHabit({ id: convexHabit.localUuid, ...serverDataForLocal });
+                  } else {
+                    // Habit exists, update it instead
+                    if (convexHabit.clientUpdatedAt > existingHabit.updatedAt) {
+                      await localData.updateHabit(existingHabit.id, serverDataForLocal);
+                    }
+                  }
+                } catch (error) {
+                  console.error(`Failed to create/update habit ${convexHabit.localUuid}:`, error);
+                  // Continue processing other habits even if one fails
+                }
               }
             }
 

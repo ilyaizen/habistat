@@ -161,9 +161,9 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 **Tasks**:
 
 - **3.1. Convex Schemas & Functions (Backend)**:
-  - [ ] Finalize/Create Convex schemas for `calendars`, `habits`, `completions`, `activeTimers` mirroring local Drizzle schemas but with Convex types (`v.*`) and `userId` (non-nullable, indexed, based on `clerkId`).
-  - [ ] Implement Convex mutations for CRUD operations on these tables (e.g., `createCalendar`, `logCompletion`, `startTimer`, `stopTimer`).
-  - [ ] Implement Convex queries to fetch all user-specific data.
+  - [x] Finalize/Create Convex schemas for `calendars`, `habits`, `completions`, `activeTimers` mirroring local Drizzle schemas but with Convex types (`v.*`) and `userId` (non-nullable, indexed, based on `clerkId`).
+  - [x] Implement Convex mutations for CRUD operations on these tables (e.g., `createCalendar`, `logCompletion`, `startTimer`, `stopTimer`).
+  - [x] Implement Convex queries to fetch all user-specific data.
 - **3.2. Sync Logic Implementation (Bidirectional)**:
   - [ ] **Initial Sync (Pull):** On app load for an authenticated user (or after login), fetch all data from Convex. Merge with local data (server authoritative for first pull, or more complex merge later).
   - [ ] **Ongoing Sync (Push):** After any local CUD operation, if user is authenticated, queue and call the corresponding Convex mutation. Use optimistic updates in UI.

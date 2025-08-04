@@ -53,6 +53,12 @@ export async function getHabitsByCalendar(calendarId: string) {
   return db.select().from(schema.habits).where(eq(schema.habits.calendarId, calendarId)).all();
 }
 
+export async function getHabitById(id: string): Promise<Habit | null> {
+  const db = await getDrizzleDb();
+  const results = await db.select().from(schema.habits).where(eq(schema.habits.id, id)).limit(1);
+  return results[0] || null;
+}
+
 export async function createHabit(data: typeof schema.habits.$inferInsert) {
   const db = await getDrizzleDb();
   await db.insert(schema.habits).values(data);

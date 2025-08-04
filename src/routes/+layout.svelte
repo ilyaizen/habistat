@@ -32,7 +32,6 @@
   import AppHeader from "$lib/components/app-header.svelte";
 
   import { Toaster } from "$lib/components/ui/sonner";
-  import { getConvexClient } from "$lib/utils/convex";
 
   // import * as ContextMenu from "$lib/components/ui/context-menu";
   // import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
