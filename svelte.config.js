@@ -1,4 +1,7 @@
 import adapter from "@sveltejs/adapter-static";
+
+// Check if the build is running on Vercel
+
 import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -9,7 +12,11 @@ const config = {
 
   kit: {
     adapter: adapter({
-      fallback: 'index.html'
+      // Default options for static deployment
+      pages: 'build',
+      assets: 'build',
+      fallback: 'index.html', // Essential for SPA routing in Tauri
+      precompress: false
     }),
 
     // App-wide settings

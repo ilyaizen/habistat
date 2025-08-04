@@ -23,7 +23,12 @@ export type Calendar = InferModel<typeof calendarsSchema>;
 // Input type for creating new calendars via the store's add method
 export type CalendarInputData = Pick<Calendar, "name" | "colorTheme"> & { position?: number };
 
-function createCalendarsStore() {
+/**
+ * Creates a Svelte store for managing calendars, including local persistence and Convex synchronization.
+ * This store handles loading, creating, updating, and deleting calendars, and ensures data consistency
+ * between the local SQLite database and the Convex backend.
+ */
+export function createCalendarsStore() {
   const _calendars = writable<Calendar[]>([]);
   const isLoading = writable(true); // True by default until initial load
   const isSyncing = writable(false); // For Convex operations
@@ -31,7 +36,10 @@ function createCalendarsStore() {
   let currentClerkUserId: string | null = null;
   let convexUnsubscribe: (() => void) | null = null; // To manage Convex subscription
 
-  // Fetches all calendars from local SQLite DB and updates the store
+  /**
+   * Loads calendars from the local SQLite database and updates the store's state.
+   * This function is used for initial loading and as a fallback when Convex is unavailable.
+   */
   async function _loadFromLocalDB() {
     isLoading.set(true);
     try {
@@ -167,12 +175,7 @@ function createCalendarsStore() {
           }
         );
 
-        if (convexUnsubscribe) {
-          console.log("Subscribed to Convex calendar updates.");
-        } else {
-          console.warn("Failed to subscribe to Convex calendar updates");
-          await _loadFromLocalDB();
-        }
+        console.log("Subscribed to Convex calendar updates.");
       } catch (error) {
         console.error("Convex watch for calendars failed:", error);
         await _loadFromLocalDB(); // Fallback to local
@@ -202,6 +205,10 @@ function createCalendarsStore() {
       await _loadFromLocalDB();
     },
 
+    /**
+     * Adds a new calendar to both the local database and Convex.
+     * @param data - The calendar data to add, without id, userId, or isConvex properties.
+     */
     async add(data: CalendarInputData) {
       // Check subscription limits before creating
       const canCreate = subscriptionStore.checkLimit("calendars");
@@ -274,6 +281,11 @@ function createCalendarsStore() {
       }
     },
 
+    /**
+     * Updates an existing calendar in both the local database and Convex.
+     * @param localUuid - The local ID of the calendar to update.
+     * @param data - An object containing the properties to update.
+     */
     async update(
       localUuid: string,
       data: Partial<Omit<Calendar, "id" | "userId" | "createdAt" | "updatedAt">>

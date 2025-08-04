@@ -5,9 +5,9 @@
   "identifier": "com.habistat.app",
   "build": {
     "beforeDevCommand": "bun run dev",
-    "beforeBuildCommand": "bun run build && node scripts/prepare-dist.js",
+    "beforeBuildCommand": "bun run build",
     "devUrl": "http://localhost:3001",
-    "frontendDist": "../dist-clean"
+    "frontendDist": "../build"
   },
   "app": {
     "windows": [
