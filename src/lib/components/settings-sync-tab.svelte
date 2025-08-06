@@ -6,7 +6,13 @@
   import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
   import { Label } from "$lib/components/ui/label";
   import { settings } from "$lib/stores/settings";
-  import { isSyncing, lastSyncTime, syncError, syncIsOnline, consolidatedSyncStore } from "$lib/stores/sync-consolidated";
+  import {
+    isSyncing,
+    lastSyncTime,
+    syncError,
+    syncIsOnline,
+    consolidatedSyncStore
+  } from "$lib/stores/sync-consolidated";
 
   const developerMode = $derived($settings.developerMode);
 

@@ -5,6 +5,6 @@ export default defineConfig({
   out: "./migrations",
   dialect: "sqlite",
   dbCredentials: {
-    url: "habistat.sqlite"
+    url: "./src/lib/db/habistat.db"
   }
 });

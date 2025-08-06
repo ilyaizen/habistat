@@ -30,51 +30,32 @@
   let clerkUnsubscribe: (() => void) | undefined;
   let pageUnsubscribe: (() => void) | undefined;
 
-  // Effect 1: React to Clerk user changes and notify the central auth store
+  // Unified Effect: React to Clerk user changes and coordinated auth state
   $effect(() => {
     if (!browser || !clerkUserStore) return;
 
     clerkUnsubscribe = clerkUserStore.subscribe((user) => {
       const newUserId = user?.id || null;
-      if (newUserId === currentUserId) return;
-
       const previousUserId = currentUserId;
       currentUserId = newUserId;
 
-      // Only log significant user changes
-      if (previousUserId !== newUserId) {
-        const action = newUserId ? "signed in" : "signed out";
-        if (DEBUG_VERBOSE) {
-          console.log(`🔄 StoreSync: User ${action}`);
-        }
-      }
-      // Notify the central auth state store about the change
+      // 1. Always keep the central auth store up-to-date
       authState.setClerkState(newUserId, !!user);
 
-      // Immediately notify the sync store
-      consolidatedSyncStore.setUserId(newUserId);
-    });
+      if (newUserId === previousUserId) return; // Exit if user ID hasn't changed
 
-    return () => clerkUnsubscribe?.();
-  });
+      if (DEBUG_VERBOSE) {
+        const action = newUserId ? `signed in as ${newUserId}` : "signed out";
+        console.log(`🔄 StoreSync: User state changed: ${action}`);
+      }
 
-  // Effect 2: React to the final, coordinated authentication state
-  $effect(() => {
-    if (!browser) return;
-
-    const authStateData = get(authState);
-    const isReady = authStateData.clerkReady && authStateData.clerkUserId;
-    // Debug: Auth ready state tracking
-    // console.log(`[StoreSync] Coordinated auth ready state: ${isReady}`);
-
-    if (isReady) {
-      // Auth is fully ready, now we can safely initialize stores
-      if (currentUserId) {
-        if (DEBUG_VERBOSE) {
-          console.log("⚙️ Stores initialized for user");
-        }
-        calendarsStore.setUser(currentUserId);
-        habits.setUser(currentUserId);
+      // 2. Now, react to the new user state
+      if (newUserId) {
+        // User is signed in. Initialize stores and trigger sync.
+        if (DEBUG_VERBOSE) console.log("⚙️ Initializing stores and sync for user");
+        calendarsStore.setUser(newUserId);
+        habits.setUser(newUserId);
+        consolidatedSyncStore.setUserId(newUserId); // This triggers the sync flow
 
         // Handle data migration on initial login
         if (!hasShownMigrationToast) {
@@ -85,26 +66,24 @@
                 description: `Synced ${migrationResult.migratedCount} item(s) to your account.`
               });
             } else if (migrationResult.success) {
-              toast.success("Account synced!", {
-                description: "Your data is now synced across devices."
-              });
+              // Optional: show a generic success message even if nothing was migrated
+              // toast.success("Account synced!", {
+              //   description: "Your data is now synced across devices."
+              // });
             }
           });
         }
-      }
-    } else {
-      // User logged out or auth not ready
-      const state = get(authState);
-      if (!state.clerkUserId) {
-        if (DEBUG_VERBOSE) {
-          console.log("📤 Stores cleared (user signed out)");
-        }
+      } else {
+        // User is signed out. Clear all user-specific data.
+        if (DEBUG_VERBOSE) console.log("📤 Clearing user data from stores");
         calendarsStore.setUser(null);
         habits.setUser(null);
-        consolidatedSyncStore.setUserId(null);
+        consolidatedSyncStore.setUserId(null); // Clear sync state
         hasShownMigrationToast = false;
       }
-    }
+    });
+
+    return () => clerkUnsubscribe?.();
   });
 
   // Handle page data changes (for SSR/initial load) safely using onMount

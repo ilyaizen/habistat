@@ -19,7 +19,7 @@ export const createCompletion = mutation({
     // Check if completion with this localUuid already exists
     const existing = await ctx.db
       .query("completions")
-      .withIndex("by_local_uuid", (q) =>
+      .withIndex("by_user_local_uuid", (q) =>
         q.eq("userId", identity.subject).eq("localUuid", args.localUuid)
       )
       .first();
@@ -42,7 +42,8 @@ export const createCompletion = mutation({
       userId: identity.subject,
       localUuid: args.localUuid,
       habitId: args.habitId,
-      completedAt: args.completedAt
+      completedAt: args.completedAt,
+      clientUpdatedAt: args.completedAt // Use completedAt as initial clientUpdatedAt
     });
 
     return completionId;
@@ -63,7 +64,7 @@ export const updateCompletion = mutation({
 
     const completion = await ctx.db
       .query("completions")
-      .withIndex("by_local_uuid", (q) =>
+      .withIndex("by_user_local_uuid", (q) =>
         q.eq("userId", identity.subject).eq("localUuid", args.localUuid)
       )
       .first();
@@ -193,7 +194,7 @@ export const batchUpsertCompletions = mutation({
       // Check if completion already exists
       const existing = await ctx.db
         .query("completions")
-        .withIndex("by_local_uuid", (q) =>
+        .withIndex("by_user_local_uuid", (q) =>
           q.eq("userId", identity.subject).eq("localUuid", completion.localUuid)
         )
         .first();
@@ -213,7 +214,8 @@ export const batchUpsertCompletions = mutation({
           userId: identity.subject,
           localUuid: completion.localUuid,
           habitId: completion.habitId,
-          completedAt: completion.completedAt
+          completedAt: completion.completedAt,
+          clientUpdatedAt: completion.completedAt // Use completedAt as initial clientUpdatedAt
         });
         results.push(completionId);
       }

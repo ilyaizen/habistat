@@ -12,9 +12,11 @@ CREATE TABLE IF NOT EXISTS _migrations (
 );
 
 -- Core application tables
+-- Phase 3.5: Added localUuid for sync correlation, removed convexId
 CREATE TABLE IF NOT EXISTS calendars (
   id TEXT PRIMARY KEY,
   userId TEXT,
+  localUuid TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   colorTheme TEXT NOT NULL,
   position INTEGER NOT NULL,
@@ -23,10 +25,11 @@ CREATE TABLE IF NOT EXISTS calendars (
   updatedAt INTEGER NOT NULL
 );
 
+-- Phase 3.5: Removed convexId field, added localUuid for sync correlation
 CREATE TABLE IF NOT EXISTS habits (
   id TEXT PRIMARY KEY,
-  convexId TEXT,
   userId TEXT,
+  localUuid TEXT NOT NULL UNIQUE,
   calendarId TEXT NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
@@ -41,12 +44,13 @@ CREATE TABLE IF NOT EXISTS habits (
   FOREIGN KEY (calendarId) REFERENCES calendars(id) ON DELETE CASCADE
 );
 
+-- Phase 3.5: Streamlined to essential fields, fixed clientUpdatedAt to INTEGER
 CREATE TABLE IF NOT EXISTS completions (
   id TEXT PRIMARY KEY,
   userId TEXT,
   habitId TEXT NOT NULL,
   completedAt INTEGER NOT NULL,
-  clientUpdatedAt TEXT NOT NULL,
+  clientUpdatedAt INTEGER NOT NULL,
   FOREIGN KEY (habitId) REFERENCES habits(id) ON DELETE CASCADE
 );
 
@@ -63,29 +67,20 @@ CREATE TABLE IF NOT EXISTS activeTimers (
   FOREIGN KEY (habitId) REFERENCES habits(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS activity_history (
+-- Phase 3.5: Unified activity tracking with firstOpenAt field
+CREATE TABLE IF NOT EXISTS activityHistory (
   id TEXT PRIMARY KEY,
   userId TEXT,
+  localUuid TEXT NOT NULL UNIQUE,
   date TEXT NOT NULL,
-  timestamp INTEGER NOT NULL,
+  firstOpenAt INTEGER NOT NULL,
   clientUpdatedAt INTEGER NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS appOpens (
-  id TEXT PRIMARY KEY,
-  timestamp INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS syncMetadata (
   id TEXT PRIMARY KEY,
   lastSyncTimestamp INTEGER DEFAULT 0 NOT NULL
 );
-
--- Mark migrations as applied
-INSERT OR IGNORE INTO _migrations (name) VALUES
-  ('0000_initial.sql'),
-  ('0001_simplify_completions.sql'),
-  ('production_hotfix.sql');
 
 -- Insert initial sync metadata
 INSERT OR IGNORE INTO syncMetadata (id, lastSyncTimestamp) VALUES

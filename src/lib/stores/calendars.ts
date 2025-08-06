@@ -85,8 +85,8 @@ export function createCalendarsStore() {
           colorTheme: cal.colorTheme,
           position: cal.position,
           isEnabled: cal.isEnabled === 1,
-          clientCreatedAt: cal.createdAt,
-          clientUpdatedAt: cal.updatedAt
+          createdAt: cal.createdAt,
+          updatedAt: cal.updatedAt
         });
         // After successful sync, update the local record with the new clerkUserId
         await localData.updateCalendar(cal.id, { userId: clerkUserId, updatedAt: Date.now() });
@@ -143,13 +143,14 @@ export function createCalendarsStore() {
 
               const localCalendar = localCalendarsMap.get(convexCal.localUuid);
               const serverDataForLocal: Omit<Calendar, "id"> = {
+                localUuid: convexCal.localUuid,
                 userId: currentClerkUserId,
                 name: convexCal.name,
                 colorTheme: convexCal.colorTheme,
                 position: convexCal.position,
                 isEnabled: convexCal.isEnabled ? 1 : 0,
-                createdAt: convexCal.clientCreatedAt,
-                updatedAt: convexCal.clientUpdatedAt
+                createdAt: convexCal.createdAt,
+                updatedAt: convexCal.updatedAt
               };
 
               if (localCalendar) {
@@ -221,12 +222,13 @@ export function createCalendarsStore() {
       const maxPosition =
         allCalendars.length > 0 ? Math.max(...allCalendars.map((c) => c.position ?? 0)) : -1;
 
-      const localUuid = crypto.randomUUID();
+      const newUuid = crypto.randomUUID();
       const now = Date.now();
       const calUserId = currentClerkUserId || "";
 
       const newCalendar: Calendar = {
-        id: localUuid,
+        id: newUuid,
+        localUuid: newUuid, // Sync correlation ID
         userId: calUserId,
         name: data.name,
         colorTheme: data.colorTheme,
@@ -245,7 +247,7 @@ export function createCalendarsStore() {
         const createdCal = await localData.createCalendar(newCalendar);
         _calendars.update((current) =>
           current
-            .map((c) => (c.id === localUuid ? createdCal : c))
+            .map((c) => (c.id === newUuid ? createdCal : c))
             .sort((a, b) => a.position - b.position)
         );
 
@@ -362,16 +364,9 @@ export function createCalendarsStore() {
             if (mainUpdatedItem) {
               // Ensure the payload matches the mutation's expected input type precisely.
               // The original `data` object might contain fields not in the mutation args.
-              const payload: {
-                localUuid: string;
-                name?: string;
-                colorTheme?: string;
-                position?: number;
-                isEnabled?: boolean;
-                clientUpdatedAt: number;
-              } = {
+              const payload: any = {
                 localUuid,
-                clientUpdatedAt: mainUpdatedItem.updatedAt
+                updatedAt: mainUpdatedItem.updatedAt
               };
               if (data.name !== undefined) payload.name = data.name;
               if (data.colorTheme !== undefined) payload.colorTheme = data.colorTheme;

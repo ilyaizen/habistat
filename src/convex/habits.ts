@@ -32,7 +32,7 @@ export const getUserHabits = query({
 
     const habits = await ctx.db
       .query("habits")
-      .withIndex("by_user_id_and_pos", (q) => q.eq("userId", identity.subject))
+      .withIndex("by_user_position", (q) => q.eq("userId", identity.subject))
       .collect();
 
     return habits;
@@ -76,8 +76,8 @@ export const createHabit = mutation({
     pointsValue: v.optional(v.number()),
     position: v.number(),
     isEnabled: v.boolean(),
-    clientCreatedAt: v.number(),
-    clientUpdatedAt: v.number()
+    createdAt: v.number(),
+    updatedAt: v.number()
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -97,8 +97,8 @@ export const createHabit = mutation({
       pointsValue: args.pointsValue,
       position: args.position,
       isEnabled: args.isEnabled,
-      clientCreatedAt: args.clientCreatedAt,
-      clientUpdatedAt: args.clientUpdatedAt
+      createdAt: args.createdAt,
+      updatedAt: args.updatedAt
     });
 
     return habitId;
@@ -117,7 +117,7 @@ export const updateHabit = mutation({
     pointsValue: v.optional(v.number()),
     position: v.optional(v.number()),
     isEnabled: v.optional(v.boolean()),
-    clientUpdatedAt: v.number()
+    updatedAt: v.number()
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -144,7 +144,7 @@ export const updateHabit = mutation({
       pointsValue: args.pointsValue,
       position: args.position,
       isEnabled: args.isEnabled,
-      clientUpdatedAt: args.clientUpdatedAt
+      updatedAt: args.updatedAt
     });
 
     return habit._id;

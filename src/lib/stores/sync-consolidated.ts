@@ -95,7 +95,7 @@ function createConsolidatedSyncStore() {
     window.addEventListener("offline", updateOnlineStatus);
   }
 
-  // Initialize the unified sync service
+  // Initialize the unified sync service (singleton pattern ensures single initialization)
   if (browser) {
     unifiedSyncService.initialize();
   }
@@ -187,7 +187,7 @@ function createConsolidatedSyncStore() {
       const currentState = await new Promise<ConsolidatedSyncState>((resolve) => {
         const unsubscribe = subscribe((state) => {
           resolve(state);
-          unsubscribe();
+          if (unsubscribe) unsubscribe();
         });
       });
 
@@ -210,7 +210,7 @@ function createConsolidatedSyncStore() {
       const authStateData = await new Promise<import("./auth-state").AuthState>((resolve) => {
         const unsubscribe = authState.subscribe((state) => {
           resolve(state);
-          unsubscribe();
+          if (unsubscribe) unsubscribe();
         });
       });
 

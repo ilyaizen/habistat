@@ -12,7 +12,7 @@ import { derived, get, writable } from "svelte/store";
 import { v4 as uuidv4 } from "uuid";
 import { browser } from "$app/environment";
 import { getDb, persistBrowserDb } from "$lib/db/client";
-import { appOpens } from "$lib/db/schema";
+import { activityHistory } from "$lib/db/schema";
 
 // import { formatDate } from "./date"; // No longer using the UTC-based formatter
 
@@ -239,12 +239,22 @@ export function getAssociatedSessionDetails(): {
 // type AppOpenRow = { id: string; timestamp: number };
 
 /**
- * Logs an app open event to the database.
+ * Logs an app open event to the database using the new activityHistory schema.
  */
 async function logAppOpenDb(): Promise<void> {
   const db = await getDb();
-  const entry = { id: uuidv4(), timestamp: Date.now() };
-  await db.insert(appOpens).values(entry).execute();
+  const now = Date.now();
+  const todayStr = formatLocalDate(new Date(now));
+  const newId = uuidv4();
+  const entry = {
+    id: newId,
+    localUuid: newId, // Sync correlation ID
+    userId: null, // Anonymous tracking - userId will be null
+    date: todayStr, // YYYY-MM-DD format for the date
+    firstOpenAt: now, // Unix timestamp of first app open for this date
+    clientUpdatedAt: now // Unix timestamp for sync conflict resolution
+  };
+  await db.insert(activityHistory).values(entry).execute();
   await persistBrowserDb(); // Explicitly save the DB after writing.
 }
 
@@ -268,16 +278,16 @@ export async function logAppOpenIfNeeded(): Promise<boolean> {
 }
 
 /**
- * Retrieves the history of app open timestamps from the database.
+ * Retrieves the history of app open timestamps from the database using activityHistory.
  * @param sinceTimestamp Optional timestamp to limit history to recent opens.
  * @returns An array of timestamps.
  */
 export async function getAppOpenHistory(): Promise<number[]> {
   const db = await getDb();
   try {
-    const query = db.select().from(appOpens).orderBy(desc(appOpens.timestamp));
+    const query = db.select().from(activityHistory).orderBy(desc(activityHistory.firstOpenAt));
     const results = await query.execute();
-    const timestamps = results.map((row: { timestamp: number }) => row.timestamp);
+    const timestamps = results.map((row: { firstOpenAt: number }) => row.firstOpenAt);
     return timestamps;
   } catch (error) {
     console.error("Failed to retrieve app open history:", error);
@@ -297,21 +307,21 @@ export function getSessionId(): string | null {
  * Clears all app open history from the database.
  * Used when generating sample data to start fresh.
  */
-export async function clearAppOpenHistory(): Promise<void> {
-  const db = await getDb();
-  try {
-    await db.delete(appOpens).execute();
-    await persistBrowserDb();
+// export async function clearAppOpenHistory(): Promise<void> {
+//   const db = await getDb();
+//   try {
+//     await db.delete(appOpens).execute();
+//     await persistBrowserDb();
 
-    // Also clear localStorage tracking
-    if (browser) {
-      localStorage.removeItem(LAST_LOGGED_OPEN_KEY);
-      localStorage.removeItem(APP_OPEN_HISTORY_KEY);
-    }
-  } catch (error) {
-    console.error("Failed to clear app open history:", error);
-  }
-}
+//     // Also clear localStorage tracking
+//     if (browser) {
+//       localStorage.removeItem(LAST_LOGGED_OPEN_KEY);
+//       localStorage.removeItem(APP_OPEN_HISTORY_KEY);
+//     }
+//   } catch (error) {
+//     console.error("Failed to clear app open history:", error);
+//   }
+// }
 
 /**
  * Generates fake app open history for testing/demo purposes.
@@ -326,7 +336,7 @@ export async function generateFakeAppOpenHistory(numDays: number = 7): Promise<v
 
   try {
     // Clear existing history first
-    await clearAppOpenHistory();
+    // await clearAppOpenHistory();
 
     // Generate app open records for the past numDays
     for (let i = numDays - 1; i >= 0; i--) {
@@ -338,11 +348,16 @@ export async function generateFakeAppOpenHistory(numDays: number = 7): Promise<v
       const randomMinute = Math.floor(Math.random() * 60);
       date.setHours(randomHour, randomMinute, 0, 0);
 
+      const newId = uuidv4();
       await db
-        .insert(appOpens)
+        .insert(activityHistory)
         .values({
-          id: uuidv4(),
-          timestamp: date.getTime()
+          id: newId,
+          localUuid: newId, // Sync correlation ID
+          userId: null, // Initially anonymous
+          date: formatLocalDate(date),
+          firstOpenAt: date.getTime(),
+          clientUpdatedAt: date.getTime()
         })
         .execute();
     }

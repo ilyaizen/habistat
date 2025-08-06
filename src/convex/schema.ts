@@ -1,14 +1,24 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
+/**
+ * Minimal, essential Convex schema for Habistat
+ * Focus: Efficient bidirectional sync with local SQLite database
+ * Principles:
+ * - Use localUuid for mapping to local records (no separate convexId needed)
+ * - Consistent field naming with local schema
+ * - Essential indexing for sync performance
+ * - Last-Write-Wins conflict resolution via clientUpdatedAt timestamps
+ */
+
 export default defineSchema({
-  // Define the 'users' table (SaaS-ready)
+  // Users table - manages authenticated user profiles
   users: defineTable({
-    clerkId: v.string(), // From Clerk
+    clerkId: v.string(), // From Clerk authentication
     email: v.string(),
     name: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
-    subscriptionId: v.optional(v.string()), // Stripe Subscription ID
+    subscriptionId: v.optional(v.string()), // Stripe subscription ID
     subscriptionTier: v.optional(
       v.union(
         v.literal("free"),
@@ -16,29 +26,31 @@ export default defineSchema({
         v.literal("premium_lifetime")
       )
     ),
-    subscriptionExpiresAt: v.optional(v.number()), // Timestamp
+    subscriptionExpiresAt: v.optional(v.number()), // Unix timestamp
   })
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"])
     .index("by_subscription_id", ["subscriptionId"]),
 
+  // Calendars table - organizational containers for habits
   calendars: defineTable({
     userId: v.string(), // Clerk User ID (from identity.subject)
-    localUuid: v.string(), // The original UUID from the client/local DB for mapping
+    localUuid: v.string(), // Maps to local calendars.id for sync correlation
     name: v.string(),
     colorTheme: v.string(),
     position: v.number(),
     isEnabled: v.boolean(),
-    clientCreatedAt: v.number(), // Timestamp from client for LWW
-    clientUpdatedAt: v.number(), // Timestamp from client for LWW
+    createdAt: v.number(), // Unix timestamp from client
+    updatedAt: v.number(), // Unix timestamp from client for Last-Write-Wins
   })
-    .index("by_user_id_and_pos", ["userId", "position"]) // For sorted fetching by user
-    .index("by_user_local_uuid", ["userId", "localUuid"]), // For finding/updating specific item by its local ID
+    .index("by_user_position", ["userId", "position"]) // For sorted fetching
+    .index("by_user_local_uuid", ["userId", "localUuid"]), // For sync operations
 
+  // Habits table - core habit definitions
   habits: defineTable({
     userId: v.string(), // Clerk User ID (from identity.subject)
-    localUuid: v.string(), // The original UUID from the client/local DB for mapping
-    calendarId: v.string(), // Reference to the calendar this habit belongs to
+    localUuid: v.string(), // Maps to local habits.id for sync correlation
+    calendarId: v.string(), // References local calendar UUID
     name: v.string(),
     description: v.optional(v.string()),
     type: v.string(), // 'positive' | 'negative'
@@ -47,46 +59,51 @@ export default defineSchema({
     pointsValue: v.optional(v.number()),
     position: v.number(),
     isEnabled: v.boolean(),
-    clientCreatedAt: v.number(), // Timestamp from client for LWW
-    clientUpdatedAt: v.number(), // Timestamp from client for LWW
+    createdAt: v.number(), // Unix timestamp from client
+    updatedAt: v.number(), // Unix timestamp from client for Last-Write-Wins
   })
-    .index("by_user_id_and_pos", ["userId", "position"]) // For sorted fetching by user
-    .index("by_user_local_uuid", ["userId", "localUuid"]), // For finding/updating specific item by its local ID
+    .index("by_user_position", ["userId", "position"]) // For sorted fetching
+    .index("by_user_local_uuid", ["userId", "localUuid"]) // For sync operations
+    .index("by_user_calendar", ["userId", "calendarId"]), // For calendar-based queries
 
-  // Completions table - ultra-simplified for basic habit tracking
+  // Completions table - minimal habit completion tracking
   completions: defineTable({
     userId: v.string(), // Clerk User ID (from identity.subject)
-    localUuid: v.string(), // Maps to local completion.id
-    habitId: v.string(), // Maps to the Convex habit ID
-    completedAt: v.number(), // The only timestamp we need - when habit was completed
+    localUuid: v.string(), // Maps to local completions.id for sync correlation
+    habitId: v.string(), // References local habit UUID
+    completedAt: v.number(), // Unix timestamp when habit was completed
+    clientUpdatedAt: v.number(), // Unix timestamp for Last-Write-Wins conflict resolution
   })
-    .index("by_user_habit", ["userId", "habitId"])
-    .index("by_local_uuid", ["userId", "localUuid"])
-    .index("by_user_completed_at", ["userId", "completedAt"]), // For sync conflict resolution
+    .index("by_user_habit", ["userId", "habitId"]) // For habit-specific queries
+    .index("by_user_local_uuid", ["userId", "localUuid"]) // For sync operations
+    .index("by_user_completed_at", ["userId", "completedAt"]) // For time-based queries
+    .index("by_user_updated_at", ["userId", "clientUpdatedAt"]), // For sync conflict resolution
 
+  // Active timers table - tracks running habit timers
   activeTimers: defineTable({
     userId: v.string(), // Clerk User ID (from identity.subject)
-    localUuid: v.string(), // Maps to local activeTimer.id
-    habitId: v.string(), // Maps to the Convex habit ID
-    startTime: v.number(), // Timestamp when timer started
-    pausedTime: v.optional(v.number()), // Timestamp when timer was paused
+    localUuid: v.string(), // Maps to local activeTimers.id for sync correlation
+    habitId: v.string(), // References local habit UUID
+    startTime: v.number(), // Unix timestamp when timer started
+    pausedTime: v.optional(v.number()), // Unix timestamp when timer was paused
     totalPausedDurationSeconds: v.number(),
     status: v.string(), // 'running' | 'paused'
-    clientCreatedAt: v.number(), // Timestamp from client for LWW
-    clientUpdatedAt: v.number(), // Timestamp from client for LWW
+    createdAt: v.number(), // Unix timestamp from client
+    updatedAt: v.number(), // Unix timestamp from client for Last-Write-Wins
   })
-    .index("by_user_habit", ["userId", "habitId"])
-    .index("by_local_uuid", ["userId", "localUuid"])
-    .index("by_status", ["userId", "status"]),
+    .index("by_user_habit", ["userId", "habitId"]) // For habit-specific queries
+    .index("by_user_local_uuid", ["userId", "localUuid"]) // For sync operations
+    .index("by_user_status", ["userId", "status"]), // For status-based queries
 
-  // Activity History table for tracking daily app usage
+  // Activity history table - daily app usage tracking
   activityHistory: defineTable({
-    userId: v.string(), // Clerk User ID
-    localUuid: v.string(), // Maps to local activity entry ID
-    date: v.string(), // YYYY-MM-DD format
-    timestamp: v.number(), // Unix timestamp of first app open
-    clientUpdatedAt: v.number(), // For conflict resolution
+    userId: v.string(), // Clerk User ID (from identity.subject)
+    localUuid: v.string(), // Maps to local activityHistory.id for sync correlation
+    date: v.string(), // YYYY-MM-DD format for easy querying
+    firstOpenAt: v.number(), // Unix timestamp of first app open for this date
+    clientUpdatedAt: v.number(), // Unix timestamp for Last-Write-Wins conflict resolution
   })
-    .index("by_user_date", ["userId", "date"])
-    .index("by_local_uuid", ["userId", "localUuid"]),
+    .index("by_user_date", ["userId", "date"]) // For date-specific queries
+    .index("by_user_local_uuid", ["userId", "localUuid"]) // For sync operations
+    .index("by_user_updated_at", ["userId", "clientUpdatedAt"]), // For sync conflict resolution
 });

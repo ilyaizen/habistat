@@ -140,18 +140,15 @@ export function useClerk() {
           console.error("❌ Clerk: Convex client initialization error:", error);
         }
 
-        // Sync user to Convex database (only for authenticated users)
-        if (DEBUG_VERBOSE) {
-          console.log("🔄 Clerk: Starting user sync to Convex");
-        }
-        await unifiedSyncService.handleUserSignIn(user.id);
+        // Note: User sync is automatically handled by UnifiedSyncService auth state subscription
+        // No need to manually trigger sync here to avoid duplication
       } else if (previousUserState !== null) {
         // Only handle sign-out if we previously had an authenticated user
         // This prevents unnecessary cleanup calls for anonymous users
         if (DEBUG_VERBOSE) {
-          console.log("📤 Clerk: User signed out, cleaning up sync state");
+          console.log("📤 Clerk: User signed out, sync cleanup handled by UnifiedSyncService");
         }
-        await unifiedSyncService.handleUserSignOut();
+        // Note: Sign-out cleanup is automatically handled by UnifiedSyncService auth state subscription
       }
 
       previousUserState = user;

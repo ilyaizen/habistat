@@ -17,6 +17,8 @@
     "format:check": "biome check --write . && prettier --check \"**/*.svelte\"",
     "tauri": "tauri",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:push": "drizzle-kit push",
     "generate:sample-data": "node scripts/generate-sample-data.mjs",
     "bump": "node scripts/version-bumper.mjs",
     "bump:patch": "bun run bump patch",

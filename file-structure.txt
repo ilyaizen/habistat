@@ -39,16 +39,10 @@
 │   ├── rules.md
 │   ├── sample-data.md
 │   └── tech-stack.md
-├── migrations
-│   ├── meta
-│   │   ├── 0000_snapshot.json
-│   │   └── _journal.json
-│   ├── 0000_initial.sql
-│   ├── 0001_simplify_completions.sql
-│   └── 0002_add_activity_history.sql
 ├── scripts
 │   ├── fix-production-issues.mjs
 │   ├── generate-sample-data.mjs
+│   ├── migrate.mjs
 │   ├── prepare-dist.js
 │   ├── production-hotfix.mjs
 │   └── version-bumper.mjs
@@ -119,6 +113,7 @@
 │   │   │   └── upgrade-prompt.svelte
 │   │   ├── db
 │   │   │   ├── client.ts
+│   │   │   ├── habistat.db
 │   │   │   ├── schema.ts
 │   │   │   └── server.ts
 │   │   ├── hooks
@@ -132,9 +127,7 @@
 │   │   ├── services
 │   │   │   ├── local-data.ts
 │   │   │   ├── migration.ts
-│   │   │   ├── sync-manager.ts
-│   │   │   ├── sync.ts
-│   │   │   └── user-sync.ts
+│   │   │   └── sync-unified.ts
 │   │   ├── stores
 │   │   │   ├── active-timers.ts
 │   │   │   ├── auth-state.ts
@@ -146,8 +139,8 @@
 │   │   │   ├── platform.ts
 │   │   │   ├── settings.ts
 │   │   │   ├── subscription.ts
+│   │   │   ├── sync-consolidated.ts
 │   │   │   ├── sync-status.ts
-│   │   │   ├── sync.ts
 │   │   │   └── ui.ts
 │   │   ├── utils
 │   │   │   ├── auth.ts

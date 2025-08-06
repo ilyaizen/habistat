@@ -127,16 +127,11 @@
       // If it's a new day log, trigger the fireworks
       triggerFireworks.set(true);
 
-      // Trigger background sync for activity history if user is authenticated
+      // Note: Activity history sync is automatically handled by UnifiedSyncService
+      // during the main sync flow. No need to trigger separately to avoid conflicts.
       const clerkUserId = getAssociatedUserId();
       if (clerkUserId) {
-        // Use unified sync service and trigger activity history sync in background
-        unifiedSyncService.setUserId(clerkUserId);
-
-        // Trigger sync in background without blocking UI
-        unifiedSyncService.syncActivityHistory().catch((error) => {
-          console.warn("Background activity history sync failed:", error);
-        });
+        console.log("Activity monitor: User authenticated, sync handled by UnifiedSyncService");
       }
     }
 

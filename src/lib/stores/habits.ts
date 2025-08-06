@@ -71,8 +71,8 @@ function createHabitsStore() {
           pointsValue: habit.pointsValue ?? undefined,
           position: habit.position,
           isEnabled: habit.isEnabled === 1,
-          clientCreatedAt: habit.createdAt,
-          clientUpdatedAt: habit.updatedAt
+          createdAt: habit.createdAt,
+          updatedAt: habit.updatedAt
         });
         await localData.updateHabit(habit.id, { userId: clerkUserId, updatedAt: Date.now() });
       } catch (error) {
@@ -123,6 +123,7 @@ function createHabitsStore() {
 
               const localHabit = localHabitsMap.get(convexHabit.localUuid);
               const serverDataForLocal: Omit<Habit, "id"> = {
+                localUuid: convexHabit.localUuid,
                 userId: currentClerkUserId,
                 calendarId: convexHabit.calendarId,
                 name: convexHabit.name,
@@ -133,8 +134,8 @@ function createHabitsStore() {
                 pointsValue: convexHabit.pointsValue ?? null,
                 position: convexHabit.position,
                 isEnabled: convexHabit.isEnabled ? 1 : 0,
-                createdAt: convexHabit.clientCreatedAt,
-                updatedAt: convexHabit.clientUpdatedAt
+                createdAt: convexHabit.createdAt,
+                updatedAt: convexHabit.updatedAt
               };
 
               if (localHabit) {
@@ -226,6 +227,7 @@ function createHabitsStore() {
 
       const newHabit: Habit = {
         id: localUuid,
+        localUuid: localUuid, // Sync correlation ID
         userId: habitUserId,
         calendarId: data.calendarId,
         name: data.name,
@@ -339,12 +341,9 @@ function createHabitsStore() {
         if (currentClerkUserId) {
           isSyncing.set(true);
           try {
-            const convexPayload: Partial<Omit<ConvexHabit, "_id" | "_creationTime">> & {
-              localUuid: string;
-              clientUpdatedAt: number;
-            } = {
+            const convexPayload: any = {
               localUuid,
-              clientUpdatedAt: now
+              updatedAt: now
             };
             if ("name" in data && data.name !== undefined) convexPayload.name = data.name;
             if ("description" in data) convexPayload.description = data.description ?? undefined;

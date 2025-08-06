@@ -22,17 +22,8 @@ export const getActivityHistorySince = query({
       throw new Error("Not authenticated");
     }
     
-    // Get user from database using clerkId
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-    
-    if (!user) {
-      throw new Error("User not found in database");
-    }
-    
-    const userId = user._id;
+    // Use Clerk user ID directly as userId (no database lookup needed)
+    const userId = identity.subject;
     
     // Build the base query
     let query = ctx.db
@@ -63,7 +54,7 @@ export const batchUpsertActivityHistory = mutation({
     entries: v.array(v.object({
       localUuid: v.string(),
       date: v.string(),
-      timestamp: v.number(),
+      firstOpenAt: v.number(),
       clientUpdatedAt: v.number()
     }))
   },
@@ -74,24 +65,15 @@ export const batchUpsertActivityHistory = mutation({
       throw new Error("Not authenticated");
     }
     
-    // Get user from database using clerkId
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-    
-    if (!user) {
-      throw new Error("User not found in database");
-    }
-    
-    const userId = user._id;
+    // Use Clerk user ID directly as userId (no database lookup needed)
+    const userId = identity.subject;
     const results: { localUuid: string; action: string }[] = [];
 
     for (const entry of entries) {
       // Check if entry already exists
       const existing = await ctx.db
         .query("activityHistory")
-        .withIndex("by_local_uuid", (q) => 
+        .withIndex("by_user_local_uuid", (q) => 
           q.eq("userId", userId).eq("localUuid", entry.localUuid)
         )
         .first();
@@ -101,7 +83,7 @@ export const batchUpsertActivityHistory = mutation({
         if (entry.clientUpdatedAt > existing.clientUpdatedAt) {
           await ctx.db.patch(existing._id, {
             date: entry.date,
-            timestamp: entry.timestamp,
+            firstOpenAt: entry.firstOpenAt,
             clientUpdatedAt: entry.clientUpdatedAt
           });
           results.push({ localUuid: entry.localUuid, action: "updated" });
@@ -114,7 +96,7 @@ export const batchUpsertActivityHistory = mutation({
           userId,
           localUuid: entry.localUuid,
           date: entry.date,
-          timestamp: entry.timestamp,
+          firstOpenAt: entry.firstOpenAt,
           clientUpdatedAt: entry.clientUpdatedAt
         });
         results.push({ localUuid: entry.localUuid, action: "created" });
@@ -137,17 +119,8 @@ export const getAllActivityHistory = query({
       throw new Error("Not authenticated");
     }
     
-    // Get user from database using clerkId
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-    
-    if (!user) {
-      throw new Error("User not found in database");
-    }
-    
-    const userId = user._id;
+    // Use Clerk user ID directly as userId (no database lookup needed)
+    const userId = identity.subject;
     
     return await ctx.db
       .query("activityHistory")
@@ -171,21 +144,12 @@ export const deleteActivityHistory = mutation({
       throw new Error("Not authenticated");
     }
     
-    // Get user from database using clerkId
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-    
-    if (!user) {
-      throw new Error("User not found in database");
-    }
-    
-    const userId = user._id;
+    // Use Clerk user ID directly as userId (no database lookup needed)
+    const userId = identity.subject;
     
     const entry = await ctx.db
       .query("activityHistory")
-      .withIndex("by_local_uuid", (q) => 
+      .withIndex("by_user_local_uuid", (q) => 
         q.eq("userId", userId).eq("localUuid", localUuid)
       )
       .first();

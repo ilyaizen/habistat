@@ -93,6 +93,8 @@ export class UnifiedSyncService {
   private userSyncing = false;
   private isInitialized = false;
   private lastClerkId: string | null = null;
+  private authUnsubscribe: (() => void) | null = null;
+  private syncInProgress = false;
 
   /**
    * Private constructor to enforce the singleton pattern. Initializes the service
@@ -119,22 +121,32 @@ export class UnifiedSyncService {
   /**
    * Initialize the sync service and set up auth listeners
    * Replaces SyncManager.initialize()
-   */
-  /**
-   * Subscribes to authentication and network status stores to automatically
-   * trigger sync operations when the user's state changes (e.g., signs in) or
-   * when the network connection is restored.
+   *
+   * IMPORTANT: This method includes guards to prevent multiple initializations
+   * and duplicate auth subscriptions that were causing sync duplication issues.
    */
   public initialize(): void {
-    if (this.isInitialized) return;
+    // Prevent multiple initializations
+    if (this.isInitialized) {
+      if (DEBUG_VERBOSE) {
+        console.log("UnifiedSyncService: Already initialized, skipping...");
+      }
+      return;
+    }
+
     this.isInitialized = true;
 
     if (DEBUG_VERBOSE) {
       console.log("UnifiedSyncService: Initializing and listening for auth changes...");
     }
 
-    // Listen for auth state changes
-    authState.subscribe(async (state) => {
+    // Clean up any existing subscription before creating a new one
+    if (this.authUnsubscribe) {
+      this.authUnsubscribe();
+    }
+
+    // Listen for auth state changes with proper cleanup
+    this.authUnsubscribe = authState.subscribe(async (state) => {
       if (!state.clerkReady) {
         if (DEBUG_VERBOSE) console.log("UnifiedSyncService: Auth state not ready yet.");
         return;
@@ -173,30 +185,51 @@ export class UnifiedSyncService {
   /**
    * Handle user sign-in events
    * Replaces SyncManager.handleUserSignIn()
-   */
-  /**
-   * Migrates local data from an anonymous user profile to a newly authenticated user profile.
-   * This ensures that data created offline or before sign-in is not lost.
    *
-   * @param {string} userId - The ID of the newly authenticated user.
+   * IMPORTANT: Added sync deduplication to prevent multiple concurrent syncs
+   * that were causing the 4x sync duplication issue.
+   *
+   * FIXED: Now properly creates user records in Convex during sign-in
    */
   public async handleUserSignIn(userId: string): Promise<void> {
-    if (DEBUG_VERBOSE) {
-      console.log(`UnifiedSyncService: User signed in with ID: ${userId}. Starting full sync.`);
+    // Prevent concurrent sign-in handling
+    if (this.syncInProgress) {
+      if (DEBUG_VERBOSE) {
+        console.log(
+          `UnifiedSyncService: Sign-in sync already in progress for user ${userId}, skipping...`
+        );
+      }
+      return;
     }
 
-    this.setUserId(userId);
+    this.syncInProgress = true;
 
-    // First, migrate any anonymous data to the new user's account
-    await this.migrateAnonymousData();
+    try {
+      if (DEBUG_VERBOSE) {
+        console.log(
+          `UnifiedSyncService: User signed in with ID: ${userId}. Starting user sync and full sync.`
+        );
+      }
 
-    // Then, perform a full sync
-    const result = await this.fullSync();
+      this.setUserId(userId);
 
-    if (result.success) {
-      if (DEBUG_VERBOSE) console.log("UnifiedSyncService: Full sync completed successfully.");
-    } else {
-      console.error("UnifiedSyncService: Full sync failed.", result.error);
+      // CRITICAL FIX: Sync user to Convex database first
+      // This creates the user record that other sync operations depend on
+      await this.syncUserToConvex(userId);
+
+      // First, migrate any anonymous data to the new user's account
+      await this.migrateAnonymousData();
+
+      // Then, perform a full sync
+      const result = await this.fullSync();
+
+      if (result.success) {
+        if (DEBUG_VERBOSE) console.log("UnifiedSyncService: Full sync completed successfully.");
+      } else {
+        console.error("UnifiedSyncService: Full sync failed.", result.error);
+      }
+    } finally {
+      this.syncInProgress = false;
     }
   }
 
@@ -260,6 +293,63 @@ export class UnifiedSyncService {
     }, "User sync").finally(() => {
       this.userSyncing = false;
     });
+  }
+
+  /**
+   * Sync user to Convex database using Clerk user information
+   * This method retrieves user info from Clerk and creates/updates the user record in Convex
+   *
+   * @param {string} clerkUserId - The Clerk user ID
+   * @returns {Promise<SyncResult>} The result of the user sync operation
+   */
+  private async syncUserToConvex(clerkUserId: string): Promise<SyncResult> {
+    try {
+      if (DEBUG_VERBOSE) {
+        console.log(`UnifiedSyncService: Syncing user ${clerkUserId} to Convex...`);
+      }
+
+      // Get Clerk user information from the window object
+      // This is available after Clerk has loaded and user is authenticated
+      const clerk = (window as any).Clerk;
+      if (!clerk || !clerk.user) {
+        console.warn("UnifiedSyncService: Clerk user not available for sync");
+        return { success: false, error: "Clerk user not available" };
+      }
+
+      const clerkUser = clerk.user;
+      const userInfo = {
+        email: clerkUser.primaryEmailAddress?.emailAddress || "",
+        name: clerkUser.fullName || clerkUser.firstName || undefined,
+        avatarUrl: clerkUser.imageUrl || undefined
+      };
+
+      // Validate that we have at least an email
+      if (!userInfo.email) {
+        console.warn("UnifiedSyncService: No email found for user, cannot sync");
+        return { success: false, error: "User email not available" };
+      }
+
+      if (DEBUG_VERBOSE) {
+        console.log(`UnifiedSyncService: Syncing user with email: ${userInfo.email}`);
+      }
+
+      // Call the existing syncCurrentUser method with the user info
+      const result = await this.syncCurrentUser(userInfo);
+
+      if (result.success) {
+        if (DEBUG_VERBOSE) {
+          console.log(`UnifiedSyncService: User sync completed successfully for ${clerkUserId}`);
+        }
+      } else {
+        console.error(`UnifiedSyncService: User sync failed for ${clerkUserId}:`, result.error);
+      }
+
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error(`UnifiedSyncService: Error syncing user ${clerkUserId}:`, errorMessage);
+      return { success: false, error: errorMessage };
+    }
   }
 
   /**
@@ -348,15 +438,16 @@ export class UnifiedSyncService {
           // Create new local activity entry
           await localData.createActivityHistory({
             id: serverActivity.localUuid,
+            localUuid: serverActivity.localUuid, // Sync correlation ID
             userId: this.userId,
             date: serverActivity.date,
-            timestamp: serverActivity.timestamp,
+            firstOpenAt: serverActivity.firstOpenAt,
             clientUpdatedAt: serverActivity.clientUpdatedAt
           });
         } else if (serverActivity.clientUpdatedAt > localActivity.clientUpdatedAt) {
           // Update local entry if server is newer (Last-Write-Wins)
           await localData.updateActivityHistory(localActivity.id, {
-            timestamp: serverActivity.timestamp,
+            firstOpenAt: serverActivity.firstOpenAt,
             clientUpdatedAt: serverActivity.clientUpdatedAt
           });
         }
@@ -391,15 +482,15 @@ export class UnifiedSyncService {
     const activitiesToSync = localActivities.map((activity) => ({
       localUuid: activity.id,
       date: activity.date,
-      timestamp: activity.timestamp,
+      firstOpenAt: activity.firstOpenAt,
       clientUpdatedAt: activity.clientUpdatedAt
     }));
 
     // Batch upsert to server
     await safeMutation(
       api.activityHistory.batchUpsertActivityHistory,
-      { activityHistory: activitiesToSync },
-      { retries: 3, logErrors: true }
+      { entries: activitiesToSync },
+      { logErrors: true }
     );
 
     if (DEBUG_VERBOSE) {
@@ -476,7 +567,7 @@ export class UnifiedSyncService {
             userId: this.userId,
             habitId: serverCompletion.habitId,
             completedAt: serverCompletion.completedAt,
-            clientUpdatedAt: new Date().toISOString() // Ensure clientUpdatedAt is set
+            clientUpdatedAt: Date.now() // Ensure clientUpdatedAt is set as Unix timestamp
           });
         } else if (serverCompletion.completedAt > localCompletion.completedAt) {
           // Update local completion if server is newer (Last-Write-Wins)
@@ -726,12 +817,22 @@ export class UnifiedSyncService {
 
   /**
    * Reset sync state (useful for testing or manual reset)
+   * Enhanced to properly clean up subscriptions and prevent memory leaks
    */
   public reset(): void {
     this.lastClerkId = null;
     this.isSyncing = false;
     this.userSyncing = false;
     this.userId = null;
+    this.syncInProgress = false;
+
+    // Clean up auth subscription
+    if (this.authUnsubscribe) {
+      this.authUnsubscribe();
+      this.authUnsubscribe = null;
+    }
+
+    this.isInitialized = false;
   }
 }
 

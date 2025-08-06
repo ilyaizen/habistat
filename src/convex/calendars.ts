@@ -3,6 +3,7 @@ import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 
 // Helper to get user ID from auth context
+// Returns Clerk user ID directly (no database lookup needed)
 async function getUserId(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
@@ -18,8 +19,8 @@ export const createCalendar = mutation({
     colorTheme: v.string(),
     position: v.number(),
     isEnabled: v.boolean(),
-    clientCreatedAt: v.number(),
-    clientUpdatedAt: v.number()
+    createdAt: v.number(),
+    updatedAt: v.number()
   },
   handler: async (ctx: MutationCtx, args) => {
     const userId = await getUserId(ctx);
@@ -32,13 +33,13 @@ export const createCalendar = mutation({
       .unique();
 
     if (existing) {
-      if (args.clientUpdatedAt > existing.clientUpdatedAt) {
+      if (args.updatedAt > existing.updatedAt) {
         await ctx.db.patch(existing._id, {
           name: args.name,
           colorTheme: args.colorTheme,
           position: args.position,
           isEnabled: args.isEnabled,
-          clientUpdatedAt: args.clientUpdatedAt
+          updatedAt: args.updatedAt
         });
         return existing._id;
       }
@@ -52,8 +53,8 @@ export const createCalendar = mutation({
       colorTheme: args.colorTheme,
       position: args.position,
       isEnabled: args.isEnabled,
-      clientCreatedAt: args.clientCreatedAt,
-      clientUpdatedAt: args.clientUpdatedAt
+      createdAt: args.createdAt,
+      updatedAt: args.updatedAt
     });
     return calendarId;
   }
@@ -66,7 +67,7 @@ export const updateCalendar = mutation({
     colorTheme: v.optional(v.string()),
     position: v.optional(v.number()),
     isEnabled: v.optional(v.boolean()),
-    clientUpdatedAt: v.number()
+    updatedAt: v.number()
   },
   handler: async (ctx: MutationCtx, args) => {
     const userId = await getUserId(ctx);
@@ -81,7 +82,7 @@ export const updateCalendar = mutation({
       throw new Error(`Calendar with localUuid '''${localUuid}''' not found for user.`);
     }
 
-    if (args.clientUpdatedAt <= existingCalendar.clientUpdatedAt) {
+    if (args.updatedAt <= existingCalendar.updatedAt) {
       return existingCalendar._id;
     }
 
@@ -121,7 +122,7 @@ export const getUserCalendars = query({
     const userId = identity.subject;
     return await ctx.db
       .query("calendars")
-      .withIndex("by_user_id_and_pos", (q) => q.eq("userId", userId))
+      .withIndex("by_user_position", (q) => q.eq("userId", userId))
       .collect();
   }
 });

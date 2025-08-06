@@ -12,11 +12,8 @@ import { convex, isAuthReady, refreshConvexToken } from "./convex";
 // Debug configuration - reduce console verbosity
 const DEBUG_VERBOSE = false;
 
-// Maximum number of retry attempts (reduced to prevent excessive retries)
-const MAX_RETRIES = 1;
-
-// Base delay for exponential backoff (in ms)
-const BASE_DELAY = 1000;
+// No retries - single attempt only to prevent app overload
+const MAX_RETRIES = 0;
 
 /**
  * Safe wrapper for Convex query operations with error handling and retries
@@ -84,76 +81,45 @@ export async function safeQuery<T = unknown, A = unknown>(
     }
   }
 
-  let attempt = 0;
+  // Single attempt execution - no retries to prevent app overload
+  try {
+    // Ensure the auth token is fresh before executing the query
+    await refreshConvexToken();
+    const convexClient = convex();
+    if (!convexClient) {
+      console.warn("[SafeQuery] Convex client not available at query time");
+      return null;
+    }
+    return await convexClient.query(queryFn, args as any);
+  } catch (error) {
+    if (opts.logErrors) {
+      console.error("[SafeQuery] Error:", error);
+    }
 
-  while (attempt < opts.retries) {
-    try {
-      // Add a small delay before executing the query to ensure auth is ready
-      if (attempt > 0) {
-        const delay = BASE_DELAY * 2 ** attempt;
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
+    if (error instanceof Error) {
+      // Extract more detailed error information
+      let errorDetails = "";
+      if (error.message.includes("Not authenticated")) {
+        errorDetails = "Authentication error: JWT token may be invalid or expired";
 
-      // Execute the query - let Convex client handle auth internally
-      // This allows the Convex client to retry auth as needed
-      // Debug: Query attempt details
-      if (attempt > 0) console.log(`🔄 Query: Retry ${attempt + 1}/${opts.retries}`);
-
-      // Ensure the auth token is fresh before executing the query
-      await refreshConvexToken();
-      const convexClient = convex();
-      if (!convexClient) {
-        console.warn("[SafeQuery] Convex client not available at query time");
-        return null;
-      }
-      return await convexClient.query(queryFn, args as any);
-    } catch (error) {
-      attempt++;
-
-      if (opts.logErrors) {
-        console.error(`[SafeQuery] Error on attempt ${attempt}/${opts.retries}:`, error);
-      }
-
-      if (error instanceof Error) {
-        // Extract more detailed error information
-        let errorDetails = "";
-        if (error.message.includes("Not authenticated")) {
-          errorDetails = "Authentication error: JWT token may be invalid or expired";
-
-          // Check for more specific error details
-          if (error.message.includes("JWT")) {
-            errorDetails = `JWT validation error: ${error.message}`;
-          } else if (error.message.includes("token")) {
-            errorDetails = `Token error: ${error.message}`;
-          }
-
-          // Record the error in auth state for UI display
-          authState.setError(errorDetails);
-
-          // Handle auth errors specifically
-          if (attempt < opts.retries) {
-            const delay = BASE_DELAY * 2 ** attempt;
-            console.log(`⚠️ Query: ${errorDetails}, retrying...`);
-            await new Promise((resolve) => setTimeout(resolve, delay));
-
-            // Trigger a Convex auth check
-            authState.setConvexAuthStatus("pending");
-            continue;
-          }
+        // Check for more specific error details
+        if (error.message.includes("JWT")) {
+          errorDetails = `JWT validation error: ${error.message}`;
+        } else if (error.message.includes("token")) {
+          errorDetails = `Token error: ${error.message}`;
         }
-      }
 
-      if (attempt >= opts.retries || !opts.throwErrors) {
-        return null;
-      }
-
-      if (opts.throwErrors) {
-        throw error;
+        // Record the error in auth state for UI display
+        authState.setError(errorDetails);
       }
     }
-  }
 
-  return null;
+    if (opts.throwErrors) {
+      throw error;
+    }
+
+    return null;
+  }
 }
 
 /**
@@ -216,74 +182,43 @@ export async function safeMutation<T = unknown, A = unknown>(
     console.log("✅ Mutation: Auth ready");
   }
 
-  let attempt = 0;
+  // Single attempt execution - no retries to prevent app overload
+  try {
+    // Ensure the auth token is fresh before executing the mutation
+    await refreshConvexToken();
+    const convexClient = convex();
+    if (!convexClient) {
+      console.warn("[SafeMutation] Convex client not available at mutation time");
+      return null;
+    }
+    return await convexClient.mutation(mutationFn, args as any);
+  } catch (error) {
+    if (opts.logErrors) {
+      console.error("[SafeMutation] Error:", error);
+    }
 
-  while (attempt < opts.retries) {
-    try {
-      // Add a small delay before executing the mutation to ensure auth is ready
-      if (attempt > 0) {
-        const delay = BASE_DELAY * 2 ** attempt;
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
+    if (error instanceof Error) {
+      // Extract more detailed error information
+      let errorDetails = "";
+      if (error.message.includes("Not authenticated")) {
+        errorDetails = "Authentication error: JWT token may be invalid or expired";
 
-      // Execute the mutation - let Convex client handle auth internally
-      // This allows the Convex client to retry auth as needed
-      // Debug: Mutation attempt details
-      if (attempt > 0) console.log(`🔄 Mutation: Retry ${attempt + 1}/${opts.retries}`);
-
-      // Ensure the auth token is fresh before executing the mutation
-      await refreshConvexToken();
-      const convexClient = convex();
-      if (!convexClient) {
-        console.warn("[SafeMutation] Convex client not available at mutation time");
-        return null;
-      }
-      return await convexClient.mutation(mutationFn, args as any);
-    } catch (error) {
-      attempt++;
-
-      if (opts.logErrors) {
-        console.error(`[SafeMutation] Error on attempt ${attempt}/${opts.retries}:`, error);
-      }
-
-      if (error instanceof Error) {
-        // Extract more detailed error information
-        let errorDetails = "";
-        if (error.message.includes("Not authenticated")) {
-          errorDetails = "Authentication error: JWT token may be invalid or expired";
-
-          // Check for more specific error details
-          if (error.message.includes("JWT")) {
-            errorDetails = `JWT validation error: ${error.message}`;
-          } else if (error.message.includes("token")) {
-            errorDetails = `Token error: ${error.message}`;
-          }
-
-          // Record the error in auth state for UI display
-          authState.setError(errorDetails);
-
-          // Handle auth errors specifically
-          if (attempt < opts.retries) {
-            const delay = BASE_DELAY * 2 ** attempt;
-            console.log(`⚠️ Mutation: ${errorDetails}, retrying...`);
-            await new Promise((resolve) => setTimeout(resolve, delay));
-
-            // Trigger a Convex auth check
-            authState.setConvexAuthStatus("pending");
-            continue;
-          }
+        // Check for more specific error details
+        if (error.message.includes("JWT")) {
+          errorDetails = `JWT validation error: ${error.message}`;
+        } else if (error.message.includes("token")) {
+          errorDetails = `Token error: ${error.message}`;
         }
-      }
 
-      if (attempt >= opts.retries || !opts.throwErrors) {
-        return null;
-      }
-
-      if (opts.throwErrors) {
-        throw error;
+        // Record the error in auth state for UI display
+        authState.setError(errorDetails);
       }
     }
-  }
 
-  return null;
+    if (opts.throwErrors) {
+      throw error;
+    }
+
+    return null;
+  }
 }

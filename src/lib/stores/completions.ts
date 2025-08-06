@@ -25,7 +25,7 @@ function createCompletionsStore() {
         id: uuid(),
         habitId,
         completedAt: now,
-        clientUpdatedAt: new Date(now).toISOString(),
+        clientUpdatedAt: now,
         userId: userId || null // Associate with user if provided
       };
       await localData.createCompletion(newCompletion);

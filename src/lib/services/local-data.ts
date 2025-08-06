@@ -59,14 +59,11 @@ export async function getHabitById(id: string): Promise<Habit | null> {
   return results[0] || null;
 }
 
-export async function getHabitByConvexId(convexId: string): Promise<Habit | null> {
-  const db = await getDrizzleDb();
-  const results = await db
-    .select()
-    .from(schema.habits)
-    .where(eq(schema.habits.convexId, convexId))
-    .limit(1);
-  return results[0] || null;
+// Note: convexId field was removed from schema - sync now uses localUuid for mapping
+// This function is deprecated and should be replaced with getHabitByLocalUuid if needed
+export async function getHabitByConvexId(_convexId: string): Promise<Habit | null> {
+  console.warn("getHabitByConvexId is deprecated - convexId field removed from schema");
+  return null;
 }
 
 export async function createHabit(data: typeof schema.habits.$inferInsert) {

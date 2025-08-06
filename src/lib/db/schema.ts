@@ -1,23 +1,34 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-// Calendars table
+/**
+ * Minimal, essential database schema for Habistat
+ * Focus: Local-first with efficient bidirectional sync
+ * Principles:
+ * - Remove unnecessary fields (convexId removed - localUuid handles mapping)
+ * - Consistent integer timestamps throughout
+ * - Streamlined completions table with only essential data
+ * - Consolidated activity tracking
+ */
+
+// Calendars table - organizational containers for habits
 export const calendars = sqliteTable("calendars", {
-  id: text("id").primaryKey(),
-  userId: text("userId"), // nullable for anonymous/local
+  id: text("id").primaryKey(), // Local UUID
+  userId: text("userId"), // Nullable for anonymous/local users
+  localUuid: text("localUuid").notNull().unique(), // UUID for sync correlation with Convex
   name: text("name").notNull(),
   colorTheme: text("colorTheme").notNull(),
   position: integer("position").notNull(),
-  isEnabled: integer("isEnabled").notNull().default(1), // 0/1 boolean, default true
-  createdAt: integer("createdAt").notNull(),
-  updatedAt: integer("updatedAt").notNull()
+  isEnabled: integer("isEnabled").notNull().default(1), // 0/1 boolean
+  createdAt: integer("createdAt").notNull(), // Unix timestamp
+  updatedAt: integer("updatedAt").notNull() // Unix timestamp
 });
 
-// Habits table
+// Habits table - core habit definitions
 export const habits = sqliteTable("habits", {
-  id: text("id").primaryKey(),
-  convexId: text("convexId"), // Nullable until synced
-  userId: text("userId"),
-  calendarId: text("calendarId").notNull(),
+  id: text("id").primaryKey(), // Local UUID
+  userId: text("userId"), // Nullable for anonymous/local users
+  localUuid: text("localUuid").notNull().unique(), // UUID for sync correlation with Convex
+  calendarId: text("calendarId").notNull(), // References calendars.id
   name: text("name").notNull(),
   description: text("description"),
   type: text("type").notNull(), // 'positive' | 'negative'
@@ -25,50 +36,45 @@ export const habits = sqliteTable("habits", {
   targetDurationSeconds: integer("targetDurationSeconds"),
   pointsValue: integer("pointsValue").default(0),
   position: integer("position").notNull(),
-  isEnabled: integer("isEnabled").notNull().default(1),
-  createdAt: integer("createdAt").notNull(),
-  updatedAt: integer("updatedAt").notNull()
+  isEnabled: integer("isEnabled").notNull().default(1), // 0/1 boolean
+  createdAt: integer("createdAt").notNull(), // Unix timestamp
+  updatedAt: integer("updatedAt").notNull() // Unix timestamp
 });
 
-// Completions table - ultra-simplified for basic habit tracking
+// Completions table - minimal habit completion tracking
 export const completions = sqliteTable("completions", {
-  id: text("id").primaryKey(),
-  userId: text("userId"), // nullable for anonymous/local
-  habitId: text("habitId").notNull(),
-  completedAt: integer("completedAt").notNull(), // The only timestamp we need
-  clientUpdatedAt: text("clientUpdatedAt").notNull() // For conflict resolution (Last-Write-Wins)
+  id: text("id").primaryKey(), // Local UUID (no separate localUuid needed - id serves as correlation)
+  userId: text("userId"), // Nullable for anonymous/local users
+  habitId: text("habitId").notNull(), // References habits.id
+  completedAt: integer("completedAt").notNull(), // Unix timestamp when habit was completed
+  clientUpdatedAt: integer("clientUpdatedAt").notNull() // Unix timestamp for Last-Write-Wins conflict resolution
 });
 
-// ActiveTimers table
+// Active timers table - tracks running habit timers
 export const activeTimers = sqliteTable("activeTimers", {
-  id: text("id").primaryKey(),
-  userId: text("userId"),
-  habitId: text("habitId").notNull(),
-  startTime: integer("startTime").notNull(),
-  pausedTime: integer("pausedTime"),
+  id: text("id").primaryKey(), // Local UUID
+  userId: text("userId"), // Nullable for anonymous/local users
+  habitId: text("habitId").notNull(), // References habits.id
+  startTime: integer("startTime").notNull(), // Unix timestamp
+  pausedTime: integer("pausedTime"), // Unix timestamp when paused
   totalPausedDurationSeconds: integer("totalPausedDurationSeconds").notNull().default(0),
   status: text("status").notNull(), // 'running' | 'paused'
-  createdAt: integer("createdAt").notNull(),
-  updatedAt: integer("updatedAt").notNull()
+  createdAt: integer("createdAt").notNull(), // Unix timestamp
+  updatedAt: integer("updatedAt").notNull() // Unix timestamp
 });
 
-// App Opens table (tracks app open events)
-export const appOpens = sqliteTable("appOpens", {
-  id: text("id").primaryKey(), // uuid
-  timestamp: integer("timestamp").notNull() // ms since epoch
+// Activity history table - daily app usage tracking (replaces appOpens)
+export const activityHistory = sqliteTable("activityHistory", {
+  id: text("id").primaryKey(), // Local UUID
+  userId: text("userId"), // Nullable for anonymous/local users
+  localUuid: text("localUuid").notNull().unique(), // UUID for sync correlation with Convex
+  date: text("date").notNull(), // YYYY-MM-DD format for easy querying
+  firstOpenAt: integer("firstOpenAt").notNull(), // Unix timestamp of first app open for this date
+  clientUpdatedAt: integer("clientUpdatedAt").notNull() // Unix timestamp for Last-Write-Wins conflict resolution
 });
 
-// Activity History table (for sync with Convex - daily app usage tracking)
-export const activityHistory = sqliteTable("activity_history", {
-  id: text("id").primaryKey(), // localUuid for sync correlation
-  userId: text("userId"), // nullable for anonymous/local, maps to Clerk user ID
-  date: text("date").notNull(), // YYYY-MM-DD format
-  timestamp: integer("timestamp").notNull(), // Unix timestamp of first app open for this date
-  clientUpdatedAt: integer("clientUpdatedAt").notNull() // For conflict resolution (Last-Write-Wins)
-});
-
-// Sync metadata table (tracks last sync timestamps for tables)
+// Sync metadata table - tracks sync state per table
 export const syncMetadata = sqliteTable("syncMetadata", {
-  id: text("id").primaryKey(), // table name
-  lastSyncTimestamp: integer("lastSyncTimestamp").notNull().default(0)
+  id: text("id").primaryKey(), // Table name (calendars, habits, completions, activityHistory)
+  lastSyncTimestamp: integer("lastSyncTimestamp").notNull().default(0) // Unix timestamp of last successful sync
 });
