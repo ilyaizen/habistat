@@ -188,6 +188,78 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 
 ---
 
+### **Phase 3.5: Enhanced Sync - Activity History & Completion Timestamps**
+
+**Goal**: Implement comprehensive bidirectional sync for daily activity history and ensure all habit completion timestamps are properly synchronized to Convex. This builds upon the existing Phase 3 sync infrastructure to provide complete data consistency across devices.
+
+**Tasks**:
+
+- **3.5.1. Extend Convex Schema for Activity History**:
+  - [ ] Add `activityHistory` table to `convex/schema.ts` with proper indexing:
+    ```typescript
+    activityHistory: defineTable({
+      userId: v.string(), // Clerk User ID
+      localUuid: v.string(), // Maps to local activity entry ID
+      date: v.string(), // YYYY-MM-DD format
+      timestamp: v.number(), // Unix timestamp of first app open
+      clientUpdatedAt: v.number(), // For conflict resolution
+    })
+    .index("by_user_date", ["userId", "date"])
+    .index("by_local_uuid", ["userId", "localUuid"])
+    ```
+  - [ ] Create `convex/activityHistory.ts` with queries and mutations:
+    - `getActivityHistorySince` query for sync
+    - `batchUpsertActivityHistory` mutation for bulk sync
+
+- **3.5.2. Enhance Local Database Schema**:
+  - [ ] Verify `activity_history` table exists in `src/lib/db/schema.ts`
+  - [ ] Add sync-related fields if missing (`userId`, `clientUpdatedAt`)
+  - [ ] Implement data service functions in `src/lib/services/local-data.ts`:
+    - `getActivityHistorySince()` for sync operations
+    - `updateActivityHistoryUserId()` for user mapping
+
+- **3.5.3. Extend SyncService with Activity History Sync**:
+  - [ ] Add `syncActivityHistory()` method to `src/lib/services/sync.ts`
+  - [ ] Follow existing sync patterns (bidirectional, conflict resolution)
+  - [ ] Implement proper error handling and retry logic
+  - [ ] Integrate into `fullSync()` method after completions sync
+
+- **3.5.4. Enhance Activity Monitor Integration**:
+  - [ ] Update `src/lib/components/activity-monitor.svelte` to trigger background sync
+  - [ ] Add sync trigger when new activity is logged via `logAppOpenIfNeeded()`
+  - [ ] Ensure no blocking of UI during sync operations
+
+- **3.5.5. Verify Completion Sync Completeness**:
+  - [ ] Audit existing completion sync in `SyncService.syncCompletions()`
+  - [ ] Ensure all completion timestamps sync bidirectionally
+  - [ ] Test conflict resolution for completion data
+  - [ ] Verify habit ID mapping works correctly
+
+- **3.5.6. Testing & Validation**:
+  - [ ] Add unit tests for activity history sync methods
+  - [ ] Add integration tests for cross-device sync scenarios
+  - [ ] Test daily deduplication (one entry per day per user)
+  - [ ] Validate sync performance with new data types
+  - [ ] Manual testing: activity sync across devices
+
+- **3.5.7. Documentation & Error Handling**:
+  - [ ] Update sync documentation with activity history patterns
+  - [ ] Add proper error messages and user feedback
+  - [ ] Ensure graceful degradation if sync fails
+  - [ ] Add troubleshooting guide for sync issues
+
+**Success Criteria**:
+- [x] Daily activity history syncs to Convex with proper deduplication
+- [x] All habit completion timestamps sync bidirectionally without data loss
+- [x] Activity data persists across app restarts and device changes
+- [x] Sync performance remains optimal with new data types
+- [x] No breaking changes to existing sync functionality
+- [x] Proper error handling and retry logic for new sync operations
+
+**Reference**: See `Docs/PRPs/phase3.5-enhanced-sync.md` for detailed implementation blueprint and validation gates.
+
+---
+
 ### **Phase 4: Dashboard & Gamification Visuals**
 
 **Goal**: Create the main dashboard displaying habit summaries, 30-day history with interactive completion, and initial gamification visuals.

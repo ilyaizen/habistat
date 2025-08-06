@@ -1,10 +1,9 @@
 import type { UserResource } from "@clerk/types";
-import { get } from "svelte/store";
 import { authState } from "../stores/auth-state";
 import type { SyncService } from "./sync";
 
 // Debug configuration - set to true to enable verbose logging
-const DEBUG_VERBOSE = false;
+const DEBUG_VERBOSE = true;
 
 /**
  * User synchronization service for handling Convex/Clerk user sync
@@ -23,8 +22,7 @@ class UserSyncService {
    */
   initialize(syncService: SyncService) {
     this.syncService = syncService;
-    // Debug: UserSync service initialized
-    // console.log("[UserSync] Service initialized");
+    console.log("[UserSync] Service initialized");
   }
 
   /**
@@ -61,8 +59,7 @@ class UserSyncService {
 
     // Skip if already syncing or if user was already synced (unless forced)
     if (this.syncInProgress) {
-      // Debug: Sync already in progress
-      // console.log("[UserSync] Sync already in progress, skipping");
+      console.log("[UserSync] Sync already in progress, skipping");
       return { success: true, skipped: true };
     }
 
