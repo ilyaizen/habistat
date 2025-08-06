@@ -18,7 +18,7 @@
     open: boolean;
     onComplete?: (migrated: boolean) => void;
   }
-  
+
   let { open = $bindable(), onComplete }: Props = $props();
 
   // State using Svelte 5 syntax
@@ -26,7 +26,9 @@
   let isMigrating = $state(false);
   let hasAnonymousData = $state(false);
   let anonymousDataCount = $state(0);
-  let migrationResult = $state<{ success: boolean; migratedCount: number; error?: string } | null>(null);
+  let migrationResult = $state<{ success: boolean; migratedCount: number; error?: string } | null>(
+    null
+  );
   let exceedsLimits = $state(false);
   let limitWarning = $state("");
 
@@ -45,35 +47,38 @@
     try {
       // Check for anonymous completions (main indicator of usage)
       const anonymousCompletions = await localData.getAnonymousCompletions();
-      
+
       // Also check for anonymous calendars and habits
       const allCalendars = await localData.getAllCalendars();
       const allHabits = await localData.getAllHabits();
-      
-      const anonymousCalendars = allCalendars.filter(c => !c.userId);
-      const anonymousHabits = allHabits.filter(h => !h.userId);
-      
-      anonymousDataCount = anonymousCompletions.length + anonymousCalendars.length + anonymousHabits.length;
+
+      const anonymousCalendars = allCalendars.filter((c) => !c.userId);
+      const anonymousHabits = allHabits.filter((h) => !h.userId);
+
+      anonymousDataCount =
+        anonymousCompletions.length + anonymousCalendars.length + anonymousHabits.length;
       hasAnonymousData = anonymousDataCount > 0;
 
       // Check if migration would exceed free tier limits
       if (hasAnonymousData) {
         const subscription = get(subscriptionStore);
         if (subscription && subscription.tier === "free") {
-          const currentCalendars = allCalendars.filter(c => c.userId);
-          const currentHabits = allHabits.filter(h => h.userId);
-          
+          const currentCalendars = allCalendars.filter((c) => c.userId);
+          const currentHabits = allHabits.filter((h) => h.userId);
+
           const totalCalendarsAfterMigration = currentCalendars.length + anonymousCalendars.length;
           const wouldExceedCalendarLimit = totalCalendarsAfterMigration > subscription.maxCalendars;
-          
+
           // Check habits per calendar (simplified check)
-          const wouldExceedHabitLimit = anonymousHabits.length > 0 && 
-            (currentHabits.length + anonymousHabits.length) > (subscription.maxHabitsPerCalendar * subscription.maxCalendars);
-          
+          const wouldExceedHabitLimit =
+            anonymousHabits.length > 0 &&
+            currentHabits.length + anonymousHabits.length >
+              subscription.maxHabitsPerCalendar * subscription.maxCalendars;
+
           exceedsLimits = wouldExceedCalendarLimit || wouldExceedHabitLimit;
-          
+
           if (exceedsLimits) {
-            limitWarning = wouldExceedCalendarLimit 
+            limitWarning = wouldExceedCalendarLimit
               ? `You have ${anonymousCalendars.length} calendars to migrate, but your free plan allows only ${subscription.maxCalendars} total calendars.`
               : `You have ${anonymousHabits.length} habits to migrate, which may exceed your free plan limits.`;
           }
@@ -99,7 +104,7 @@
     try {
       // Set user ID for sync service
       syncService.setUserId(auth.clerkUserId);
-      
+
       // Perform migration
       const result = await syncService.migrateAnonymousData();
       migrationResult = result;
@@ -109,12 +114,8 @@
         const { calendarsStore } = await import("$lib/stores/calendars");
         const { habits } = await import("$lib/stores/habits");
         const { completionsStore } = await import("$lib/stores/completions");
-        
-        await Promise.all([
-          calendarsStore.refresh(),
-          habits.refresh(),
-          completionsStore.refresh()
-        ]);
+
+        await Promise.all([calendarsStore.refresh(), habits.refresh(), completionsStore.refresh()]);
 
         // Auto-close dialog after successful migration
         setTimeout(() => {
@@ -166,13 +167,11 @@
         <Alert.Root>
           <CheckCircle class="h-4 w-4" />
           <Alert.Title>No Data to Migrate</Alert.Title>
-          <Alert.Description>
-            All your data is already synced to your account.
-          </Alert.Description>
+          <Alert.Description>All your data is already synced to your account.</Alert.Description>
         </Alert.Root>
       {:else}
         <div class="space-y-3">
-          <p class="text-sm text-muted-foreground">
+          <p class="text-muted-foreground text-sm">
             Found <strong>{anonymousDataCount}</strong> items that can be synced to your account:
           </p>
 
@@ -182,7 +181,9 @@
               <Alert.Title>Free Plan Limit</Alert.Title>
               <Alert.Description class="space-y-2">
                 <p>{limitWarning}</p>
-                <p class="text-xs">Consider upgrading to Premium for unlimited calendars and habits.</p>
+                <p class="text-xs">
+                  Consider upgrading to Premium for unlimited calendars and habits.
+                </p>
               </Alert.Description>
             </Alert.Root>
           {/if}
@@ -214,26 +215,18 @@
       {#if isChecking}
         <!-- Show nothing while checking -->
       {:else if !hasAnonymousData}
-        <Button onclick={handleSkip} class="w-full">
-          Continue
-        </Button>
+        <Button onclick={handleSkip} class="w-full">Continue</Button>
       {:else if migrationResult?.success}
-        <Button onclick={handleSkip} class="w-full">
-          Continue
-        </Button>
+        <Button onclick={handleSkip} class="w-full">Continue</Button>
       {:else}
-        <Button variant="outline" onclick={handleSkip} disabled={isMigrating}>
-          Skip for Now
-        </Button>
-        
+        <Button variant="outline" onclick={handleSkip} disabled={isMigrating}>Skip for Now</Button>
+
         {#if exceedsLimits}
-          <Button onclick={handleUpgrade} disabled={isMigrating}>
-            Upgrade Plan
-          </Button>
+          <Button onclick={handleUpgrade} disabled={isMigrating}>Upgrade Plan</Button>
         {:else}
           <Button onclick={handleMigrate} disabled={isMigrating}>
             {#if isMigrating}
-              <Loader2 class="h-4 w-4 animate-spin mr-2" />
+              <Loader2 class="mr-2 h-4 w-4 animate-spin" />
               Migrating...
             {:else}
               Migrate Data

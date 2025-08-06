@@ -1,12 +1,9 @@
 import type { InferModel } from "drizzle-orm";
-import { get } from "svelte/store";
-import { getConvexClient, isAuthReady } from "$lib/utils/convex";
 import { safeMutation, safeQuery } from "$lib/utils/safe-query";
 import { api } from "../../convex/_generated/api";
 import type { completions as completionsSchema } from "../db/schema";
 import { completionsStore } from "../stores/completions";
 import {
-  type CompletionSyncData,
   getAuthError,
   getLastSyncTimestamp,
   mapCompletionHabitIds,
@@ -18,9 +15,7 @@ import {
 import * as localData from "./local-data";
 
 // Debug configuration - reduce console verbosity
-const DEBUG_VERBOSE = false;
-
-type Completion = InferModel<typeof completionsSchema>;
+const DEBUG_VERBOSE = true;
 
 /**
  * Simplified sync service with cleaner error handling and proper habit ID mapping
@@ -69,6 +64,145 @@ export class SyncService {
     }, "User sync").finally(() => {
       this.userSyncing = false;
     });
+  }
+
+  /**
+   * Sync activity history bidirectionally following established patterns
+   */
+  async syncActivityHistory(): Promise<SyncResult> {
+    if (!this.userId) {
+      return { success: false, error: "Not authenticated" };
+    }
+
+    // Check if already syncing
+    if (this.isSyncing) {
+      if (DEBUG_VERBOSE) {
+        console.log("⏳ Activity History: Already syncing, skipping");
+      }
+      return { success: true, error: "Sync already in progress" };
+    }
+
+    if (!(await waitForConvexAuth())) {
+      if (DEBUG_VERBOSE) {
+        console.log("⏳ Activity History: Waiting for auth...");
+      }
+      return { success: false, error: "Authentication not ready - please wait and try again" };
+    }
+
+    return performSafeOperation(async () => {
+      this.isSyncing = true;
+
+      // Pull and push with graceful error handling
+      await Promise.allSettled([this.pullActivityHistory(), this.pushActivityHistory()]);
+
+      return {};
+    }, "Activity History sync").finally(() => {
+      this.isSyncing = false;
+    });
+  }
+
+  /**
+   * Pull activity history changes from server
+   */
+  private async pullActivityHistory(): Promise<void> {
+    if (!this.userId) throw new Error("No user ID");
+
+    const lastSync = await getLastSyncTimestamp("activityHistory");
+    let cursor: string | undefined;
+    let totalProcessed = 0;
+
+    do {
+      const response = (await safeQuery(
+        api.activityHistory.getActivityHistorySince,
+        { timestamp: lastSync, limit: 100, cursor },
+        { retries: 3, logErrors: true }
+      )) as { activityHistory: any[]; nextCursor?: string; isDone: boolean } | null;
+
+      if (!response) {
+        throw new Error(getAuthError());
+      }
+
+      if (response.activityHistory.length === 0) break;
+
+      totalProcessed += response.activityHistory.length;
+
+      // Process server activity history efficiently
+      for (const serverActivity of response.activityHistory) {
+        const localActivity = await localData.getActivityHistoryByDate(serverActivity.date);
+
+        if (!localActivity) {
+          // Create new local activity entry
+          await localData.createActivityHistory({
+            id: serverActivity.localUuid,
+            userId: this.userId,
+            date: serverActivity.date,
+            timestamp: serverActivity.timestamp,
+            clientUpdatedAt: serverActivity.clientUpdatedAt
+          });
+        } else if (serverActivity.clientUpdatedAt > localActivity.clientUpdatedAt) {
+          // Update local entry if server is newer (Last-Write-Wins)
+          if (this.userId) {
+            await localData.updateActivityHistoryUserId(localActivity.id, this.userId);
+          }
+        }
+      }
+
+      cursor = response.nextCursor;
+    } while (cursor);
+
+    if (totalProcessed > 0) {
+      await updateLastSyncTimestamp("activityHistory", Date.now());
+      if (DEBUG_VERBOSE) {
+        console.log(`✅ Activity History: Pulled ${totalProcessed} entries`);
+      }
+    }
+  }
+
+  /**
+   * Push local activity history changes to server
+   */
+  private async pushActivityHistory(): Promise<void> {
+    if (!this.userId) throw new Error("No user ID");
+
+    const lastSync = await getLastSyncTimestamp("activityHistory");
+    const localActivities = await localData.getActivityHistorySince(lastSync);
+
+    if (localActivities.length === 0) {
+      if (DEBUG_VERBOSE) {
+        console.log("✅ Activity History: No local changes to push");
+      }
+      return;
+    }
+
+    // Map to Convex format
+    const activitiesToSync = localActivities.map((activity) => ({
+      localUuid: activity.id,
+      date: activity.date,
+      timestamp: activity.timestamp,
+      clientUpdatedAt: activity.clientUpdatedAt
+    }));
+
+    // Batch upsert to server
+    const result = await safeMutation(
+      api.activityHistory.batchUpsertActivityHistory,
+      { entries: activitiesToSync },
+      { retries: 3 }
+    );
+
+    if (!result) {
+      throw new Error(getAuthError());
+    }
+
+    // Update local records with userId if they don't have it
+    for (const activity of localActivities) {
+      if (!activity.userId) {
+        await localData.updateActivityHistoryUserId(activity.id, this.userId);
+      }
+    }
+
+    if (DEBUG_VERBOSE) {
+      console.log(`✅ Activity History: Pushed ${localActivities.length} entries`);
+    }
   }
 
   /**
@@ -232,24 +366,37 @@ export class SyncService {
 
     const result = await performSafeOperation(async () => {
       const anonymousCompletions = await localData.getAnonymousCompletions();
+      const anonymousActivityHistory = await localData.getAnonymousActivityHistory();
 
-      if (anonymousCompletions.length === 0) {
-        return { migratedCount: 0 };
+      let totalMigrated = 0;
+
+      // Migrate completions
+      if (anonymousCompletions.length > 0) {
+        for (const completion of anonymousCompletions) {
+          await localData.updateCompletion(completion.id, {
+            userId: this.userId
+          });
+        }
+        totalMigrated += anonymousCompletions.length;
+
+        // Push migrated completions to server
+        await this.pushCompletions();
       }
 
-      // Update local completions with user ID
-      for (const completion of anonymousCompletions) {
-        await localData.updateCompletion(completion.id, {
-          userId: this.userId
-        });
+      // Migrate activity history
+      if (anonymousActivityHistory.length > 0 && this.userId) {
+        for (const activity of anonymousActivityHistory) {
+          await localData.updateActivityHistoryUserId(activity.id, this.userId);
+        }
+        totalMigrated += anonymousActivityHistory.length;
+
+        // Push migrated activity history to server
+        await this.pushActivityHistory();
       }
 
       await completionsStore.refresh();
 
-      // Push migrated data to server
-      await this.pushCompletions();
-
-      return { migratedCount: anonymousCompletions.length };
+      return { migratedCount: totalMigrated };
     }, "Anonymous data migration");
 
     return {
@@ -279,64 +426,73 @@ export class SyncService {
       this.isSyncing = true;
       let userSyncResult: any;
       const syncResults: { [key: string]: SyncResult } = {};
-
-      try {
-        // 1. Sync user first if user info provided
-        if (userInfo) {
-          userSyncResult = await this.syncCurrentUser(userInfo);
-          if (!userSyncResult.success) {
-            throw new Error(`User sync failed: ${userSyncResult.error}`);
-          }
+      // 1. Sync user first if user info provided
+      if (userInfo) {
+        userSyncResult = await this.syncCurrentUser(userInfo);
+        if (!userSyncResult.success) {
+          throw new Error(`User sync failed: ${userSyncResult.error}`);
         }
-
-        // 2. Sync calendars (trigger store sync)
-        try {
-          const { calendarsStore } = await import("../stores/calendars");
-          await calendarsStore.setUser(this.userId);
-          syncResults.calendars = { success: true };
-          if (DEBUG_VERBOSE) console.log("✅ Calendars synced");
-        } catch (error) {
-          console.warn("Calendar sync failed:", error);
-          syncResults.calendars = { success: false, error: error instanceof Error ? error.message : "Calendar sync failed" };
-        }
-
-        // 3. Sync habits (trigger store sync)
-        try {
-          const { habits } = await import("../stores/habits");
-          await habits.setUser(this.userId);
-          syncResults.habits = { success: true };
-          if (DEBUG_VERBOSE) console.log("✅ Habits synced");
-        } catch (error) {
-          console.warn("Habit sync failed:", error);
-          syncResults.habits = { success: false, error: error instanceof Error ? error.message : "Habit sync failed" };
-        }
-
-        // 4. Sync completions
-        syncResults.completions = await this.syncCompletions();
-        if (syncResults.completions.success) {
-          await completionsStore.refresh();
-          if (DEBUG_VERBOSE) console.log("✅ Completions synced");
-        } else {
-          console.warn("Completion sync failed:", syncResults.completions.error);
-        }
-
-        // Check if any critical syncs failed
-        const failedSyncs = Object.entries(syncResults)
-          .filter(([, result]) => !result.success)
-          .map(([type]) => type);
-
-        if (failedSyncs.length > 0) {
-          console.warn(`Some syncs failed: ${failedSyncs.join(", ")}`);
-          // Don't fail the entire sync if only some parts failed
-        }
-
-        return {
-          userSyncResult,
-          syncResults
-        };
-      } catch (error) {
-        throw error;
       }
+
+      // 2. Sync calendars (trigger store sync)
+      try {
+        const { calendarsStore } = await import("../stores/calendars");
+        await calendarsStore.setUser(this.userId);
+        syncResults.calendars = { success: true };
+        if (DEBUG_VERBOSE) console.log("✅ Calendars synced");
+      } catch (error) {
+        console.warn("Calendar sync failed:", error);
+        syncResults.calendars = {
+          success: false,
+          error: error instanceof Error ? error.message : "Calendar sync failed"
+        };
+      }
+
+      // 3. Sync habits (trigger store sync)
+      try {
+        const { habits } = await import("../stores/habits");
+        await habits.setUser(this.userId);
+        syncResults.habits = { success: true };
+        if (DEBUG_VERBOSE) console.log("✅ Habits synced");
+      } catch (error) {
+        console.warn("Habit sync failed:", error);
+        syncResults.habits = {
+          success: false,
+          error: error instanceof Error ? error.message : "Habit sync failed"
+        };
+      }
+
+      // 4. Sync completions
+      syncResults.completions = await this.syncCompletions();
+      if (syncResults.completions.success) {
+        await completionsStore.refresh();
+        if (DEBUG_VERBOSE) console.log("✅ Completions synced");
+      } else {
+        console.warn("Completion sync failed:", syncResults.completions.error);
+      }
+
+      // 5. Sync activity history
+      syncResults.activityHistory = await this.syncActivityHistory();
+      if (syncResults.activityHistory.success) {
+        if (DEBUG_VERBOSE) console.log("✅ Activity History synced");
+      } else {
+        console.warn("Activity History sync failed:", syncResults.activityHistory.error);
+      }
+
+      // Check if any critical syncs failed
+      const failedSyncs = Object.entries(syncResults)
+        .filter(([, result]) => !result.success)
+        .map(([type]) => type);
+
+      if (failedSyncs.length > 0) {
+        console.warn(`Some syncs failed: ${failedSyncs.join(", ")}`);
+        // Don't fail the entire sync if only some parts failed
+      }
+
+      return {
+        userSyncResult,
+        syncResults
+      };
     }, "Full sync").finally(() => {
       this.isSyncing = false;
     });

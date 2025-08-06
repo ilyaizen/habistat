@@ -228,6 +228,51 @@ export async function setSyncMetadata(tableName: string, lastSyncTimestamp: numb
   await persistBrowserDb(); // Persist changes
 }
 
+// Activity History (for sync operations)
+export async function getActivityHistorySince(timestamp: number = 0) {
+  const db = await getDrizzleDb();
+  return db
+    .select()
+    .from(schema.activityHistory)
+    .where(gte(schema.activityHistory.clientUpdatedAt, timestamp))
+    .all();
+}
+
+export async function updateActivityHistoryUserId(localUuid: string, userId: string) {
+  const db = await getDrizzleDb();
+  await db
+    .update(schema.activityHistory)
+    .set({ userId })
+    .where(eq(schema.activityHistory.id, localUuid));
+  await persistBrowserDb();
+}
+
+export async function getAnonymousActivityHistory() {
+  const db = await getDrizzleDb();
+  return db
+    .select()
+    .from(schema.activityHistory)
+    .where(isNull(schema.activityHistory.userId))
+    .all();
+}
+
+export async function createActivityHistory(data: typeof schema.activityHistory.$inferInsert) {
+  const db = await getDrizzleDb();
+  await db.insert(schema.activityHistory).values(data);
+  await persistBrowserDb();
+  return data.id;
+}
+
+export async function getActivityHistoryByDate(date: string) {
+  const db = await getDrizzleDb();
+  const results = await db
+    .select()
+    .from(schema.activityHistory)
+    .where(eq(schema.activityHistory.date, date))
+    .limit(1);
+  return results[0] || null;
+}
+
 // --- Notes ---
 // - All functions are async and safe for browser/tauri.
 // - Use Svelte stores to reactively update UI after CRUD operations.

@@ -56,6 +56,15 @@ export const appOpens = sqliteTable("appOpens", {
   timestamp: integer("timestamp").notNull() // ms since epoch
 });
 
+// Activity History table (for sync with Convex - daily app usage tracking)
+export const activityHistory = sqliteTable("activity_history", {
+  id: text("id").primaryKey(), // localUuid for sync correlation
+  userId: text("userId"), // nullable for anonymous/local, maps to Clerk user ID
+  date: text("date").notNull(), // YYYY-MM-DD format
+  timestamp: integer("timestamp").notNull(), // Unix timestamp of first app open for this date
+  clientUpdatedAt: integer("clientUpdatedAt").notNull() // For conflict resolution (Last-Write-Wins)
+});
+
 // Sync metadata table (tracks last sync timestamps for tables)
 export const syncMetadata = sqliteTable("syncMetadata", {
   id: text("id").primaryKey(), // table name

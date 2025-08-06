@@ -89,7 +89,7 @@
         <Button
           size="sm"
           variant="outline"
-          onclick={() => showMigrationDialog = true}
+          onclick={() => (showMigrationDialog = true)}
           disabled={$isSyncing}
           class="flex items-center gap-2"
         >
@@ -179,7 +179,7 @@
       <Button
         size="sm"
         variant="outline"
-        onclick={() => showMigrationDialog = true}
+        onclick={() => (showMigrationDialog = true)}
         disabled={$isSyncing}
         class="flex items-center gap-2"
       >
@@ -192,7 +192,7 @@
 
 <!-- Anonymous Data Migration Dialog -->
 <!-- TODO: 2025-08-06 - This is not appearing anywhere... -->
-<AnonymousDataMigrationDialog 
+<AnonymousDataMigrationDialog
   bind:open={showMigrationDialog}
   onComplete={(migrated) => {
     if (migrated) {

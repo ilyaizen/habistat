@@ -22,7 +22,7 @@
     "bump:patch": "bun run bump patch",
     "bump:minor": "bun run bump minor",
     "bump:major": "bun run bump major",
-    "tree": "wsl bash -c \"tree -a -I 'node_modules|.next|src-tauri/target|.git|dist|out|gen|target|.svelte-kit|.obsidian|dist-clean|ui|build|icons' --noreport --dirsfirst > file-structure.txt\""
+    "tree": "wsl bash -c \"tree -a -I 'node_modules|.next|src-tauri/target|.git|.vercel|dist|out|gen|target|.svelte-kit|.obsidian|dist-clean|ui|build|icons' --noreport --dirsfirst > file-structure.txt\""
   },
   "license": "MIT",
   "dependencies": {

@@ -24,7 +24,7 @@ function createNetworkStore() {
   // Set up event listeners in browser environment
   if (browser) {
     const handleOnline = () => {
-      update(status => ({
+      update((status) => ({
         ...status,
         isOnline: true,
         lastOnlineAt: Date.now()
@@ -32,7 +32,7 @@ function createNetworkStore() {
     };
 
     const handleOffline = () => {
-      update(status => ({
+      update((status) => ({
         ...status,
         isOnline: false
       }));
@@ -46,17 +46,17 @@ function createNetworkStore() {
     if ("connection" in navigator) {
       const connection = (navigator as any).connection;
       const handleConnectionChange = () => {
-        update(status => ({
+        update((status) => ({
           ...status,
           connectionType: connection.effectiveType || connection.type
         }));
       };
-      
+
       connection.addEventListener("change", handleConnectionChange);
-      
+
       // Set initial connection type
       if (connection.effectiveType || connection.type) {
-        update(status => ({
+        update((status) => ({
           ...status,
           connectionType: connection.effectiveType || connection.type
         }));
@@ -77,7 +77,7 @@ function createNetworkStore() {
     refresh: () => {
       if (browser) {
         const isOnline = navigator.onLine;
-        update(status => ({
+        update((status) => ({
           ...status,
           isOnline,
           lastOnlineAt: isOnline ? Date.now() : status.lastOnlineAt
@@ -92,6 +92,6 @@ export const networkStore = createNetworkStore();
 // Export a derived store for simple online/offline checking
 export const isOnline = {
   subscribe: (callback: (value: boolean) => void) => {
-    return networkStore.subscribe(status => callback(status.isOnline));
+    return networkStore.subscribe((status) => callback(status.isOnline));
   }
 };

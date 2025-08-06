@@ -15,9 +15,6 @@
 │       ├── product.md
 │       ├── structure.md
 │       └── tech.md
-├── .vercel
-│   ├── README.txt
-│   └── project.json
 ├── .vscode
 │   ├── extensions.json
 │   └── settings.json
@@ -32,6 +29,7 @@
 │   │   ├── SV-review-general.md
 │   │   ├── SV-review-staged-unstaged.md
 │   │   ├── phase3-saas-subscription-management.md
+│   │   ├── phase3.5-enhanced-sync.md
 │   │   └── prp-svelte.md
 │   ├── add-comments.md
 │   ├── clerk-setup.md
@@ -40,6 +38,7 @@
 │   ├── implementation-plan.md
 │   ├── rules.md
 │   ├── sample-data.md
+│   ├── sync-fix-plan.md
 │   └── tech-stack.md
 ├── migrations
 │   ├── 0000_initial.sql
@@ -59,6 +58,7 @@
 │   │   │   ├── server.d.ts
 │   │   │   └── server.js
 │   │   ├── README.md
+│   │   ├── activityHistory.ts
 │   │   ├── auth.config.ts
 │   │   ├── auth_helpers.ts
 │   │   ├── calendars.ts
@@ -80,6 +80,7 @@
 │   │   │   ├── about-drawer.svelte
 │   │   │   ├── activity-monitor.svelte
 │   │   │   ├── activity-trend.svelte
+│   │   │   ├── anonymous-data-migration-dialog.svelte
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
 │   │   │   ├── avatar.svelte
@@ -107,6 +108,7 @@
 │   │   │   ├── store-sync.svelte
 │   │   │   ├── subscription-badge.svelte
 │   │   │   ├── sync-indicator.svelte
+│   │   │   ├── sync-status-indicator.svelte
 │   │   │   ├── sync-status.svelte
 │   │   │   ├── tab-motion-wrapper.svelte
 │   │   │   ├── theme-toggle.svelte
@@ -136,9 +138,11 @@
 │   │   │   ├── completions.ts
 │   │   │   ├── gamification.ts
 │   │   │   ├── habits.ts
+│   │   │   ├── network.ts
 │   │   │   ├── platform.ts
 │   │   │   ├── settings.ts
 │   │   │   ├── subscription.ts
+│   │   │   ├── sync-status.ts
 │   │   │   ├── sync.ts
 │   │   │   └── ui.ts
 │   │   ├── utils
@@ -269,7 +273,6 @@
 ├── drizzle.config.ts
 ├── file-structure.txt
 ├── package.json
-├── plan.md
 ├── postcss.config.cjs
 ├── production-init.sql
 ├── svelte.config.js

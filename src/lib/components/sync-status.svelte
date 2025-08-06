@@ -4,7 +4,15 @@
 -->
 <script lang="ts">
   import type { UserResource } from "@clerk/types";
-  import { AlertCircle, Cloud, CloudOff, RefreshCw, Wifi, WifiOff, CheckCircle } from "@lucide/svelte";
+  import {
+    AlertCircle,
+    Cloud,
+    CloudOff,
+    RefreshCw,
+    Wifi,
+    WifiOff,
+    CheckCircle
+  } from "@lucide/svelte";
   import { getContext, onDestroy } from "svelte";
   import type { Readable } from "svelte/store";
   import { browser } from "$app/environment";
@@ -21,7 +29,7 @@
     size?: "sm" | "md" | "lg";
     onRetry?: () => void;
   }
-  
+
   let { variant = "badges", showText = false, size = "md", onRetry }: Props = $props();
 
   // Get current user from context to only show sync for authenticated users
@@ -92,41 +100,53 @@
   // Get appropriate icon for current status
   const statusIcon = $derived(() => {
     switch (syncStatus()) {
-      case "syncing": return "🔄";
-      case "synced": return "✅";
-      case "error": return "❌";
-      case "offline": return "📴";
-      default: return "⏸️";
+      case "syncing":
+        return "🔄";
+      case "synced":
+        return "✅";
+      case "error":
+        return "❌";
+      case "offline":
+        return "📴";
+      default:
+        return "⏸️";
     }
   });
 
   // Get status message
   const statusMessage = $derived(() => {
     switch (syncStatus()) {
-      case "syncing": return "Syncing data...";
-      case "synced": return `Last synced ${formatLastSync($lastSyncTime)}`;
-      case "error": return $syncError || "Sync error occurred";
-      case "offline": return "Offline - changes saved locally";
-      default: return "Ready to sync";
+      case "syncing":
+        return "Syncing data...";
+      case "synced":
+        return `Last synced ${formatLastSync($lastSyncTime)}`;
+      case "error":
+        return $syncError || "Sync error occurred";
+      case "offline":
+        return "Offline - changes saved locally";
+      default:
+        return "Ready to sync";
     }
   });
 
   // Style classes for indicator variants
-  const statusClasses = $derived(cn(
-    "inline-flex items-center gap-1 transition-colors duration-200",
-    {
-      "text-muted-foreground": syncStatus() === "idle",
-      "text-blue-600": syncStatus() === "syncing",
-      "text-green-600": syncStatus() === "synced",
-      "text-red-600": syncStatus() === "error",
-      "text-orange-600": syncStatus() === "offline"
-    },
-    {
-      "text-xs": size === "sm",
-      "text-sm": size === "md",
-      "text-base": size === "lg"
-    }
-  ));
+  const statusClasses = $derived(
+    cn(
+      "inline-flex items-center gap-1 transition-colors duration-200",
+      {
+        "text-muted-foreground": syncStatus() === "idle",
+        "text-blue-600": syncStatus() === "syncing",
+        "text-green-600": syncStatus() === "synced",
+        "text-red-600": syncStatus() === "error",
+        "text-orange-600": syncStatus() === "offline"
+      },
+      {
+        "text-xs": size === "sm",
+        "text-sm": size === "md",
+        "text-base": size === "lg"
+      }
+    )
+  );
 
   // Handle retry action
   function handleRetry() {
@@ -199,14 +219,13 @@
         {$syncError}
       </div>
     {/if}
-
   {:else if variant === "minimal"}
     <!-- Minimal icon-based display with tooltip -->
     <div class={statusClasses}>
       <Tooltip.Root>
         <Tooltip.Trigger>
           <button
-            class="inline-flex items-center hover:opacity-80 transition-opacity"
+            class="inline-flex items-center transition-opacity hover:opacity-80"
             disabled={syncStatus() === "syncing"}
             onclick={syncStatus() === "error" ? handleRetry : undefined}
           >
@@ -215,7 +234,15 @@
             </span>
             {#if showText}
               <span class="ml-1 font-medium">
-                {syncStatus() === "synced" ? "Synced" : syncStatus() === "syncing" ? "Syncing..." : syncStatus() === "error" ? "Error" : syncStatus() === "offline" ? "Offline" : "Ready"}
+                {syncStatus() === "synced"
+                  ? "Synced"
+                  : syncStatus() === "syncing"
+                    ? "Syncing..."
+                    : syncStatus() === "error"
+                      ? "Error"
+                      : syncStatus() === "offline"
+                        ? "Offline"
+                        : "Ready"}
               </span>
             {/if}
           </button>
@@ -223,12 +250,11 @@
         <Tooltip.Content>
           <p>{statusMessage}</p>
           {#if syncStatus() === "error"}
-            <p class="text-xs text-muted-foreground mt-1">Click to retry</p>
+            <p class="text-muted-foreground mt-1 text-xs">Click to retry</p>
           {/if}
         </Tooltip.Content>
       </Tooltip.Root>
     </div>
-
   {:else if variant === "detailed"}
     <!-- Detailed view with progress and retry button -->
     <div class={statusClasses}>
@@ -236,33 +262,26 @@
         <span class="text-lg" class:animate-spin={syncStatus() === "syncing"}>
           {statusIcon}
         </span>
-        
+
         <div class="flex flex-col">
-          <span class="font-medium text-sm">{statusMessage}</span>
-          
+          <span class="text-sm font-medium">{statusMessage}</span>
+
           {#if syncStatus() === "syncing"}
-            <div class="flex items-center gap-2 text-xs text-muted-foreground">
-              <div class="w-16 h-1 bg-muted rounded-full overflow-hidden">
-                <div class="h-full bg-blue-600 animate-pulse"></div>
+            <div class="text-muted-foreground flex items-center gap-2 text-xs">
+              <div class="bg-muted h-1 w-16 overflow-hidden rounded-full">
+                <div class="h-full animate-pulse bg-blue-600"></div>
               </div>
               <span>Syncing...</span>
             </div>
           {/if}
-          
+
           {#if syncStatus() === "error" && $syncError}
-            <span class="text-xs text-red-600 mt-1">{$syncError}</span>
+            <span class="mt-1 text-xs text-red-600">{$syncError}</span>
           {/if}
         </div>
-        
+
         {#if syncStatus() === "error"}
-          <Button
-            variant="outline"
-            size="sm"
-            onclick={handleRetry}
-            class="ml-2"
-          >
-            Retry
-          </Button>
+          <Button variant="outline" size="sm" onclick={handleRetry} class="ml-2">Retry</Button>
         {/if}
       </div>
     </div>

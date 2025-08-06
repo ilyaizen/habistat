@@ -153,7 +153,10 @@ function createHabitsStore() {
                   // Check if habit already exists before creating (race condition protection)
                   const existingHabit = await localData.getHabitById(convexHabit.localUuid);
                   if (!existingHabit) {
-                    await localData.createHabit({ id: convexHabit.localUuid, ...serverDataForLocal });
+                    await localData.createHabit({
+                      id: convexHabit.localUuid,
+                      ...serverDataForLocal
+                    });
                   } else {
                     // Habit exists, update it instead
                     if (convexHabit.clientUpdatedAt > existingHabit.updatedAt) {

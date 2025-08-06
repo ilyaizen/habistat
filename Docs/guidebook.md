@@ -82,7 +82,7 @@ bun format             # Biome formatting
 
 - **Available shadcn-svelte UI Components**:
 ```
-alert-dialog, avatar, badge, button, calendar, card, chart, checkbox, context-menu, dialog, drawer, dropdown-menu, form, input, label, p5-canvas, popover, progress, radio-group, select, separator, skeleton, slider, sonner, switch, table, tabs, textarea, toggle, toggle-group, tooltip
+alert, alert-dialog, avatar, badge, button, calendar, card, chart, checkbox, context-menu, dialog, drawer, dropdown-menu, form, input, label, p5-canvas, popover, progress, radio-group, select, separator, skeleton, slider, sonner, switch, table, tabs, textarea, toggle, toggle-group, tooltip
 ```
 
 For usage examples and API details, see the [shadcn-svelte documentation](https://shadcn-svelte.com/docs/components).

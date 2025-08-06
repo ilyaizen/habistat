@@ -18,7 +18,13 @@
   } from "$lib/stores/completions";
   import { triggerFireworks } from "$lib/stores/ui";
   import { formatLocalDate } from "$lib/utils/date";
-  import { getAppOpenHistory, logAppOpenIfNeeded, sessionStore } from "$lib/utils/tracking";
+  import {
+    getAppOpenHistory,
+    logAppOpenIfNeeded,
+    sessionStore,
+    getAssociatedUserId
+  } from "$lib/utils/tracking";
+  import { SyncService } from "$lib/services/sync";
 
   // TODO: 2025-07-23 - Add the activity trend chart back in when it's ready
   // TOFIX: 2025-08-02 - Import the activity trend chart component correctly
@@ -120,6 +126,19 @@
     if (wasJustLogged) {
       // If it's a new day log, trigger the fireworks
       triggerFireworks.set(true);
+
+      // Trigger background sync for activity history if user is authenticated
+      const clerkUserId = getAssociatedUserId();
+      if (clerkUserId) {
+        // Create sync service instance and trigger activity history sync in background
+        const syncService = new SyncService();
+        syncService.setUserId(clerkUserId);
+
+        // Trigger sync in background without blocking UI
+        syncService.syncActivityHistory().catch((error) => {
+          console.warn("Background activity history sync failed:", error);
+        });
+      }
     }
 
     // Load the initial activity data

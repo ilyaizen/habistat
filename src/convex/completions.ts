@@ -187,7 +187,7 @@ export const batchUpsertCompletions = mutation({
   handler: async (ctx, args) => {
     const identity = await requireAuth(ctx);
 
-    const results = [];
+    const results: any[] = [];
 
     for (const completion of args.completions) {
       // Check if completion already exists

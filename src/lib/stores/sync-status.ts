@@ -3,7 +3,7 @@
  * Integrates with SyncService to show sync progress and status
  */
 
-import { writable, derived } from "svelte/store";
+import { derived, writable } from "svelte/store";
 import { networkStore } from "./network";
 
 export type SyncStatus = "idle" | "syncing" | "synced" | "error" | "offline";
@@ -30,7 +30,7 @@ function createSyncStatusStore() {
 
     // Start sync operation
     startSync: (items: string[] = []) => {
-      update(status => ({
+      update((status) => ({
         ...status,
         status: "syncing",
         syncingItems: items,
@@ -42,7 +42,7 @@ function createSyncStatusStore() {
 
     // Update sync progress
     updateProgress: (completedItems: number, currentItem?: string) => {
-      update(status => ({
+      update((status) => ({
         ...status,
         completedItems,
         syncingItems: currentItem ? [currentItem] : status.syncingItems
@@ -51,7 +51,7 @@ function createSyncStatusStore() {
 
     // Complete sync successfully
     completeSync: () => {
-      update(status => ({
+      update((status) => ({
         ...status,
         status: "synced",
         lastSyncAt: Date.now(),
@@ -64,7 +64,7 @@ function createSyncStatusStore() {
 
     // Handle sync error
     errorSync: (errorMessage: string) => {
-      update(status => ({
+      update((status) => ({
         ...status,
         status: "error",
         lastErrorAt: Date.now(),
@@ -77,7 +77,7 @@ function createSyncStatusStore() {
 
     // Set offline status
     setOffline: () => {
-      update(status => ({
+      update((status) => ({
         ...status,
         status: "offline",
         syncingItems: undefined,
@@ -93,7 +93,7 @@ function createSyncStatusStore() {
 
     // Manual status update
     setStatus: (status: SyncStatus, message?: string) => {
-      update(current => ({
+      update((current) => ({
         ...current,
         status,
         errorMessage: status === "error" ? message : undefined,
@@ -106,10 +106,7 @@ function createSyncStatusStore() {
 export const syncStatusStore = createSyncStatusStore();
 
 // Derived store for simple status checking
-export const syncStatus = derived(
-  syncStatusStore,
-  ($syncStatus) => $syncStatus.status
-);
+export const syncStatus = derived(syncStatusStore, ($syncStatus) => $syncStatus.status);
 
 // Derived store that combines network and sync status
 export const overallSyncStatus = derived(

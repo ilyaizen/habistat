@@ -85,7 +85,7 @@ export const batchUpsertActivityHistory = mutation({
     }
     
     const userId = user._id;
-    const results = [];
+    const results: { localUuid: string; action: string }[] = [];
 
     for (const entry of entries) {
       // Check if entry already exists

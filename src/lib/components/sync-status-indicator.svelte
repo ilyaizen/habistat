@@ -3,7 +3,11 @@
   Shows current sync status with visual feedback and tooltip
 -->
 <script lang="ts">
-  import { syncStatusStore, getSyncStatusIcon, getSyncStatusMessage } from "$lib/stores/sync-status";
+  import {
+    syncStatusStore,
+    getSyncStatusIcon,
+    getSyncStatusMessage
+  } from "$lib/stores/sync-status";
   import { networkStore } from "$lib/stores/network";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import { Button } from "$lib/components/ui/button";
@@ -16,7 +20,7 @@
     variant?: "minimal" | "detailed";
     onRetry?: () => void;
   }
-  
+
   let { showText = false, size = "md", variant = "minimal", onRetry }: Props = $props();
 
   // Reactive values using Svelte 5 syntax
@@ -27,21 +31,23 @@
   let message = $derived(getSyncStatusMessage(status, syncInfo));
 
   // Style classes based on status
-  let statusClasses = $derived(cn(
-    "inline-flex items-center gap-1 transition-colors duration-200",
-    {
-      "text-muted-foreground": status === "idle",
-      "text-blue-600 animate-spin": status === "syncing",
-      "text-green-600": status === "synced",
-      "text-red-600": status === "error",
-      "text-orange-600": status === "offline"
-    },
-    {
-      "text-xs": size === "sm",
-      "text-sm": size === "md",
-      "text-base": size === "lg"
-    }
-  ));
+  let statusClasses = $derived(
+    cn(
+      "inline-flex items-center gap-1 transition-colors duration-200",
+      {
+        "text-muted-foreground": status === "idle",
+        "text-blue-600 animate-spin": status === "syncing",
+        "text-green-600": status === "synced",
+        "text-red-600": status === "error",
+        "text-orange-600": status === "offline"
+      },
+      {
+        "text-xs": size === "sm",
+        "text-sm": size === "md",
+        "text-base": size === "lg"
+      }
+    )
+  );
 
   // Handle retry action
   function handleRetry() {
@@ -57,7 +63,7 @@
     <Tooltip.Root>
       <Tooltip.Trigger>
         <button
-          class="inline-flex items-center hover:opacity-80 transition-opacity"
+          class="inline-flex items-center transition-opacity hover:opacity-80"
           disabled={status === "syncing"}
           onclick={status === "error" && onRetry ? handleRetry : undefined}
         >
@@ -66,7 +72,15 @@
           </span>
           {#if showText}
             <span class="ml-1 font-medium">
-              {status === "synced" ? "Synced" : status === "syncing" ? "Syncing..." : status === "error" ? "Error" : status === "offline" ? "Offline" : "Ready"}
+              {status === "synced"
+                ? "Synced"
+                : status === "syncing"
+                  ? "Syncing..."
+                  : status === "error"
+                    ? "Error"
+                    : status === "offline"
+                      ? "Offline"
+                      : "Ready"}
             </span>
           {/if}
         </button>
@@ -74,7 +88,7 @@
       <Tooltip.Content>
         <p>{message}</p>
         {#if status === "error" && onRetry}
-          <p class="text-xs text-muted-foreground mt-1">Click to retry</p>
+          <p class="text-muted-foreground mt-1 text-xs">Click to retry</p>
         {/if}
       </Tooltip.Content>
     </Tooltip.Root>
@@ -84,14 +98,14 @@
       <span class="text-lg" class:animate-spin={status === "syncing"}>
         {icon}
       </span>
-      
+
       <div class="flex flex-col">
-        <span class="font-medium text-sm">{message}</span>
-        
+        <span class="text-sm font-medium">{message}</span>
+
         {#if status === "syncing" && syncInfo.totalItems && syncInfo.completedItems !== undefined}
-          <div class="flex items-center gap-2 text-xs text-muted-foreground">
-            <div class="w-16 h-1 bg-muted rounded-full overflow-hidden">
-              <div 
+          <div class="text-muted-foreground flex items-center gap-2 text-xs">
+            <div class="bg-muted h-1 w-16 overflow-hidden rounded-full">
+              <div
                 class="h-full bg-blue-600 transition-all duration-300"
                 style="width: {(syncInfo.completedItems / syncInfo.totalItems) * 100}%"
               ></div>
@@ -99,21 +113,14 @@
             <span>{syncInfo.completedItems}/{syncInfo.totalItems}</span>
           </div>
         {/if}
-        
+
         {#if status === "error" && syncInfo.errorMessage}
-          <span class="text-xs text-red-600 mt-1">{syncInfo.errorMessage}</span>
+          <span class="mt-1 text-xs text-red-600">{syncInfo.errorMessage}</span>
         {/if}
       </div>
-      
+
       {#if status === "error" && onRetry}
-        <Button
-          variant="outline"
-          size="sm"
-          onclick={handleRetry}
-          class="ml-2"
-        >
-          Retry
-        </Button>
+        <Button variant="outline" size="sm" onclick={handleRetry} class="ml-2">Retry</Button>
       {/if}
     </div>
   {/if}
