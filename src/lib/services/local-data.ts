@@ -273,6 +273,24 @@ export async function getActivityHistoryByDate(date: string) {
   return results[0] || null;
 }
 
+/**
+ * Clears all user-specific data from the local database.
+ * This is a destructive operation used when a user signs out.
+ */
+export async function clearAllLocalData() {
+  const db = await getDrizzleDb();
+  console.log("Clearing all local data...");
+  // The order is important to respect foreign key constraints if they were enforced.
+  await db.delete(schema.completions);
+  await db.delete(schema.activeTimers);
+  await db.delete(schema.habits);
+  await db.delete(schema.calendars);
+  await db.delete(schema.activityHistory);
+  await db.delete(schema.syncMetadata);
+  await persistBrowserDb();
+  console.log("Local data cleared successfully.");
+}
+
 // --- Notes ---
 // - All functions are async and safe for browser/tauri.
 // - Use Svelte stores to reactively update UI after CRUD operations.

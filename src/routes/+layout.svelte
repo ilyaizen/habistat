@@ -137,6 +137,9 @@
     }, 5000); // 5 second auth timeout
 
     try {
+      // Dynamically import and initialize the sync manager on the client
+      import("$lib/services/sync-manager");
+
       // Initialize core functionalities when the component mounts in the browser.
       appInit.initializeAppCore();
       theme.initializeTheme();

@@ -1,7 +1,7 @@
 import { derived, get, writable } from "svelte/store";
 import { browser } from "$app/environment";
 import { SyncService } from "../services/sync";
-import { setupUserSync } from "../services/user-sync";
+
 import { convex } from "../utils/convex";
 import { authState } from "./auth-state";
 import { completionsStore } from "./completions";
@@ -40,7 +40,7 @@ function createSyncStore() {
         }
 
         // Initialize user sync service
-        setupUserSync(syncService);
+
         // Debug: User sync service initialized
         // console.log("[Sync] User sync service initialized with SyncService");
       }

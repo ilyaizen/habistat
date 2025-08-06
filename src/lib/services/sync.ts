@@ -1,5 +1,8 @@
 import type { InferModel } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
+import { formatLocalDate } from "$lib/utils/date";
 import { safeMutation, safeQuery } from "$lib/utils/safe-query";
+import { getAppOpenHistory } from "$lib/utils/tracking";
 import { api } from "../../convex/_generated/api";
 import type { completions as completionsSchema } from "../db/schema";
 import { completionsStore } from "../stores/completions";
@@ -74,14 +77,6 @@ export class SyncService {
       return { success: false, error: "Not authenticated" };
     }
 
-    // Check if already syncing
-    if (this.isSyncing) {
-      if (DEBUG_VERBOSE) {
-        console.log("⏳ Activity History: Already syncing, skipping");
-      }
-      return { success: true, error: "Sync already in progress" };
-    }
-
     if (!(await waitForConvexAuth())) {
       if (DEBUG_VERBOSE) {
         console.log("⏳ Activity History: Waiting for auth...");
@@ -90,15 +85,9 @@ export class SyncService {
     }
 
     return performSafeOperation(async () => {
-      this.isSyncing = true;
-
-      // Pull and push with graceful error handling
       await Promise.allSettled([this.pullActivityHistory(), this.pushActivityHistory()]);
-
       return {};
-    }, "Activity History sync").finally(() => {
-      this.isSyncing = false;
-    });
+    }, "Activity History sync");
   }
 
   /**
@@ -165,22 +154,31 @@ export class SyncService {
     if (!this.userId) throw new Error("No user ID");
 
     const lastSync = await getLastSyncTimestamp("activityHistory");
-    const localActivities = await localData.getActivityHistorySince(lastSync);
 
-    if (localActivities.length === 0) {
+    // Directly use the function that reads from the correct 'appOpens' table.
+    const allLocalTimestamps = await getAppOpenHistory();
+
+    // Filter timestamps that are newer than the last sync.
+    const newLocalTimestamps = allLocalTimestamps.filter((ts) => ts > lastSync);
+
+    if (newLocalTimestamps.length === 0) {
       if (DEBUG_VERBOSE) {
-        console.log("✅ Activity History: No local changes to push");
+        console.log("✅ Activity History: No local changes to push since", new Date(lastSync));
       }
       return;
     }
 
-    // Map to Convex format
-    const activitiesToSync = localActivities.map((activity) => ({
-      localUuid: activity.id,
-      date: activity.date,
-      timestamp: activity.timestamp,
-      clientUpdatedAt: activity.clientUpdatedAt
-    }));
+    // Map to Convex format. Note that the local 'appOpens' table only has id and timestamp.
+    // We will generate the other fields required by the backend.
+    const activitiesToSync = newLocalTimestamps.map((ts) => {
+      const date = new Date(ts);
+      return {
+        localUuid: uuidv4(), // The local table doesn't have a stable UUID, so we generate one.
+        date: formatLocalDate(date), // 'YYYY-MM-DD' format
+        timestamp: ts,
+        clientUpdatedAt: ts // Use timestamp as the updated-at marker
+      };
+    });
 
     // Batch upsert to server
     const result = await safeMutation(
@@ -193,15 +191,8 @@ export class SyncService {
       throw new Error(getAuthError());
     }
 
-    // Update local records with userId if they don't have it
-    for (const activity of localActivities) {
-      if (!activity.userId) {
-        await localData.updateActivityHistoryUserId(activity.id, this.userId);
-      }
-    }
-
     if (DEBUG_VERBOSE) {
-      console.log(`✅ Activity History: Pushed ${localActivities.length} entries`);
+      console.log(`✅ Activity History: Pushed ${activitiesToSync.length} entries`);
     }
   }
 
@@ -213,14 +204,6 @@ export class SyncService {
       return { success: false, error: "Not authenticated" };
     }
 
-    // Check if already syncing - but allow retry after a delay
-    if (this.isSyncing) {
-      if (DEBUG_VERBOSE) {
-        console.log("⏳ Completions: Already syncing, skipping");
-      }
-      return { success: true, error: "Sync already in progress" };
-    }
-
     if (!(await waitForConvexAuth())) {
       if (DEBUG_VERBOSE) {
         console.log("⏳ Completions: Waiting for auth...");
@@ -229,15 +212,9 @@ export class SyncService {
     }
 
     return performSafeOperation(async () => {
-      this.isSyncing = true;
-
-      // Pull and push with graceful error handling
       await Promise.allSettled([this.pullCompletions(), this.pushCompletions()]);
-
       return {};
-    }, "Completions sync").finally(() => {
-      this.isSyncing = false;
-    });
+    }, "Completions sync");
   }
 
   /**
