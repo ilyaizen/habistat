@@ -16,7 +16,7 @@
         "width": 800,
         "height": 600,
         "devtools": true,
-        "additionalBrowserArgs": "--enable-smooth-scrolling --allow-file-access-from-files --allow-universal-access-from-files --disable-features=VizDisplayCompositor",
+        "additionalBrowserArgs": "--force-prefers-no-reduced-motion --enable-smooth-scrolling --allow-file-access-from-files --allow-universal-access-from-files --disable-features=VizDisplayCompositor",
         "url": "index.html",
         "center": true,
         "resizable": true
