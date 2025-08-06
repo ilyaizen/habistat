@@ -165,26 +165,26 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [x] Implement Convex mutations for CRUD operations on these tables (e.g., `createCalendar`, `logCompletion`, `startTimer`, `stopTimer`).
   - [x] Implement Convex queries to fetch all user-specific data.
 - **3.2. Sync Logic Implementation (Bidirectional)**:
-  - [ ] **Initial Sync (Pull):** On app load for an authenticated user (or after login), fetch all data from Convex. Merge with local data (server authoritative for first pull, or more complex merge later).
-  - [ ] **Ongoing Sync (Push):** After any local CUD operation, if user is authenticated, queue and call the corresponding Convex mutation. Use optimistic updates in UI.
-  - [ ] **Ongoing Sync (Pull):** Subscribe to Convex queries to receive real-time updates from the server and update local stores/DB.
-  - [ ] **Conflict Resolution (Basic):** ~~Start with "last write wins" based on `updatedAt` timestamp. Server timestamp preferred.~~ **UPDATED:** For completions, use `completedAt` timestamp for conflict resolution since completions are ultra-simplified. Other entities still use createdAt/updatedAt.
+  - [x] **Initial Sync (Pull):** On app load for an authenticated user (or after login), fetch all data from Convex. Merge with local data (server authoritative for first pull, or more complex merge later).
+  - [x] **Ongoing Sync (Push):** After any local CUD operation, if user is authenticated, queue and call the corresponding Convex mutation. Use optimistic updates in UI.
+  - [x] **Ongoing Sync (Pull):** Subscribe to Convex queries to receive real-time updates from the server and update local stores/DB.
+  - [x] **Conflict Resolution (Basic):** ~~Start with "last write wins" based on `updatedAt` timestamp. Server timestamp preferred.~~ **UPDATED:** For completions, use `completedAt` timestamp for conflict resolution since completions are ultra-simplified. Other entities still use createdAt/updatedAt.
   - [x] **Habit Calendar Reassignment Sync:** Backend and store logic now support updating a habit's `calendarId` and syncing this change to Convex. Position is recalculated on reassignment to prevent conflicts.
 - **3.3. Anonymous Data Migration to Cloud**:
-  - [ ] On first sign-in/sign-up for a user with existing local anonymous data:
+  - [x] On first sign-in/sign-up for a user with existing local anonymous data:
     - Prompt to sync local data.
     - If confirmed, iterate through local data and call Convex mutations to create items in cloud, associating with the authenticated `userId`.
     - Update local records with `userId` and mark as synced.
 - **3.4. Subscription Store (`src/lib/stores/subscription.ts`)**:
-  - [ ] Create a writable Svelte store (`subscriptionStatus`) holding `tier`, `expiresAt`, `isActive`.
-  - [ ] Populate this store by calling `convex.users.getCurrentUser` when an authenticated user loads the app.
+  - [x] Create a writable Svelte store (`subscriptionStatus`) holding `tier`, `expiresAt`, `isActive`.
+  - [x] Populate this store by calling `convex.users.getCurrentUser` when an authenticated user loads the app.
 - **3.5. UI Logic for Free Tier Limits & Entitlements**:
-  - [ ] Define free tier limits (e.g., 3 calendars, 7 habits per calendar).
-  - [ ] In UI components for creating items, check against limits from `subscriptionStatus` store. Disable "Create" buttons if limit reached on "free" tier.
-  - [ ] Show tooltips/messages prompting upgrade.
-  - [ ] Apply "disabled" visual state (e.g., grayscale, reduced opacity) to items exceeding free limits if a subscription expires or for migrated data exceeding limits. These items should not be interactable for completion/timing but can be edited/deleted.
+  - [x] Define free tier limits (e.g., 3 calendars, 7 habits per calendar).
+  - [x] In UI components for creating items, check against limits from `subscriptionStatus` store. Disable "Create" buttons if limit reached on "free" tier.
+  - [x] Show tooltips/messages prompting upgrade.
+  - [x] Apply "disabled" visual state (e.g., grayscale, reduced opacity) to items exceeding free limits if a subscription expires or for migrated data exceeding limits. These items should not be interactable for completion/timing but can be edited/deleted.
 - **3.6. UI Feedback for Sync**:
-  - [ ] Visual indicators for sync status (Offline, Syncing, Synced). Utilize `isOnline` store (`src/lib/stores/network.ts`).
+  - [x] Visual indicators for sync status (Offline, Syncing, Synced). Utilize `isOnline` store (`src/lib/stores/network.ts`).
 
 ---
 
@@ -195,7 +195,7 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 **Tasks**:
 
 - **3.5.1. Extend Convex Schema for Activity History**:
-  - [ ] Add `activityHistory` table to `convex/schema.ts` with proper indexing:
+  - [x] Add `activityHistory` table to `convex/schema.ts` with proper indexing:
     ```typescript
     activityHistory: defineTable({
       userId: v.string(), // Clerk User ID
@@ -207,7 +207,7 @@ This document outlines the phased implementation plan for Habistat, evolving it 
     .index("by_user_date", ["userId", "date"])
     .index("by_local_uuid", ["userId", "localUuid"])
     ```
-  - [ ] Create `convex/activityHistory.ts` with queries and mutations:
+  - [x] Create `convex/activityHistory.ts` with queries and mutations:
     - `getActivityHistorySince` query for sync
     - `batchUpsertActivityHistory` mutation for bulk sync
 

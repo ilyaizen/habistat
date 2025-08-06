@@ -78,4 +78,15 @@ export default defineSchema({
     .index("by_user_habit", ["userId", "habitId"])
     .index("by_local_uuid", ["userId", "localUuid"])
     .index("by_status", ["userId", "status"]),
+
+  // Activity History table for tracking daily app usage
+  activityHistory: defineTable({
+    userId: v.string(), // Clerk User ID
+    localUuid: v.string(), // Maps to local activity entry ID
+    date: v.string(), // YYYY-MM-DD format
+    timestamp: v.number(), // Unix timestamp of first app open
+    clientUpdatedAt: v.number(), // For conflict resolution
+  })
+    .index("by_user_date", ["userId", "date"])
+    .index("by_local_uuid", ["userId", "localUuid"]),
 });

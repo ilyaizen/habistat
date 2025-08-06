@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Cloud, Database, RefreshCw } from "@lucide/svelte";
   import SyncStatus from "$lib/components/sync-status.svelte";
+  import AnonymousDataMigrationDialog from "$lib/components/anonymous-data-migration-dialog.svelte";
   import { Button } from "$lib/components/ui/button";
   import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
   import { Label } from "$lib/components/ui/label";
@@ -8,6 +9,9 @@
   import { isSyncing, lastSyncTime, syncError, syncIsOnline, syncStore } from "$lib/stores/sync";
 
   const developerMode = $derived($settings.developerMode);
+
+  // State for migration dialog
+  let showMigrationDialog = $state(false);
 
   // Function to get error severity and color based on error type
   function getErrorSeverity(errorMessage: string | null) {
@@ -155,13 +159,25 @@
       <Button
         size="sm"
         variant="outline"
-        onclick={() => syncStore.migrateAnonymousData()}
+        onclick={() => showMigrationDialog = true}
         disabled={$isSyncing}
         class="flex items-center gap-2"
       >
         <Database class="h-3 w-3" />
-        Trigger Migration
+        Open Migration Dialog
       </Button>
     </CardContent>
   </Card>
 {/if}
+
+<!-- Anonymous Data Migration Dialog -->
+ <!-- TODO: 2025-08-06 - This is not appearing anywhere... -->
+<AnonymousDataMigrationDialog 
+  bind:open={showMigrationDialog}
+  onComplete={(migrated) => {
+    if (migrated) {
+      // Trigger a sync after successful migration to ensure data is up to date
+      syncStore.triggerSync();
+    }
+  }}
+/>

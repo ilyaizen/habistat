@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as activityHistory from "../activityHistory.js";
 import type * as auth_helpers from "../auth_helpers.js";
 import type * as calendars from "../calendars.js";
 import type * as cleanup from "../cleanup.js";
@@ -31,6 +32,7 @@ import type * as users from "../users.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  activityHistory: typeof activityHistory;
   auth_helpers: typeof auth_helpers;
   calendars: typeof calendars;
   cleanup: typeof cleanup;
