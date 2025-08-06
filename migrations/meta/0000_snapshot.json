@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6a61b4ff-9688-40ab-bf6c-0a217e31eae2",
+  "id": "2f7ca7d3-f0bc-4e02-a25b-5921f48d4f74",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activeTimers": {
@@ -244,6 +244,13 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "clientUpdatedAt": {
+          "name": "clientUpdatedAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -260,6 +267,13 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true,
+          "autoincrement": false
+        },
+        "convexId": {
+          "name": "convexId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "userId": {

@@ -2,7 +2,7 @@ import { get, type Writable, writable } from "svelte/store";
 
 export type ConvexAuthStatus = "pending" | "authenticated" | "unauthenticated" | "error";
 
-interface AuthState {
+export interface AuthState {
   clerkReady: boolean;
   clerkUserId: string | null;
   convexAuthStatus: ConvexAuthStatus;

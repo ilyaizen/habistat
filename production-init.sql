@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS calendars (
 
 CREATE TABLE IF NOT EXISTS habits (
   id TEXT PRIMARY KEY,
+  convexId TEXT,
   userId TEXT,
   calendarId TEXT NOT NULL,
   name TEXT NOT NULL,
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS completions (
   userId TEXT,
   habitId TEXT NOT NULL,
   completedAt INTEGER NOT NULL,
+  clientUpdatedAt TEXT NOT NULL,
   FOREIGN KEY (habitId) REFERENCES habits(id) ON DELETE CASCADE
 );
 
@@ -59,6 +61,14 @@ CREATE TABLE IF NOT EXISTS activeTimers (
   createdAt INTEGER NOT NULL,
   updatedAt INTEGER NOT NULL,
   FOREIGN KEY (habitId) REFERENCES habits(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS activity_history (
+  id TEXT PRIMARY KEY,
+  userId TEXT,
+  date TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+  clientUpdatedAt INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS appOpens (

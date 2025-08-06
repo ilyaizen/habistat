@@ -15,6 +15,7 @@ export const calendars = sqliteTable("calendars", {
 // Habits table
 export const habits = sqliteTable("habits", {
   id: text("id").primaryKey(),
+  convexId: text("convexId"), // Nullable until synced
   userId: text("userId"),
   calendarId: text("calendarId").notNull(),
   name: text("name").notNull(),
@@ -34,7 +35,8 @@ export const completions = sqliteTable("completions", {
   id: text("id").primaryKey(),
   userId: text("userId"), // nullable for anonymous/local
   habitId: text("habitId").notNull(),
-  completedAt: integer("completedAt").notNull() // The only timestamp we need
+  completedAt: integer("completedAt").notNull(), // The only timestamp we need
+  clientUpdatedAt: text("clientUpdatedAt").notNull() // For conflict resolution (Last-Write-Wins)
 });
 
 // ActiveTimers table

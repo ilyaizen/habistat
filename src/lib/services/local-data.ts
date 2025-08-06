@@ -59,6 +59,16 @@ export async function getHabitById(id: string): Promise<Habit | null> {
   return results[0] || null;
 }
 
+export async function getHabitByConvexId(convexId: string): Promise<Habit | null> {
+  const db = await getDrizzleDb();
+  const results = await db
+    .select()
+    .from(schema.habits)
+    .where(eq(schema.habits.convexId, convexId))
+    .limit(1);
+  return results[0] || null;
+}
+
 export async function createHabit(data: typeof schema.habits.$inferInsert) {
   const db = await getDrizzleDb();
   await db.insert(schema.habits).values(data);
@@ -271,6 +281,18 @@ export async function getActivityHistoryByDate(date: string) {
     .where(eq(schema.activityHistory.date, date))
     .limit(1);
   return results[0] || null;
+}
+
+/**
+ * Update activity history entry (for sync conflict resolution)
+ */
+export async function updateActivityHistory(
+  id: string,
+  data: Partial<typeof schema.activityHistory.$inferInsert>
+) {
+  const db = await getDrizzleDb();
+  await db.update(schema.activityHistory).set(data).where(eq(schema.activityHistory.id, id));
+  await persistBrowserDb();
 }
 
 /**
