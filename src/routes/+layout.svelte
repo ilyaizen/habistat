@@ -137,8 +137,8 @@
     }, 5000); // 5 second auth timeout
 
     try {
-      // Dynamically import and initialize the sync manager on the client
-      import("$lib/services/sync-manager");
+      // Sync manager functionality is now handled by the unified sync service
+      // which is automatically initialized in the consolidated sync store
 
       // Initialize core functionalities when the component mounts in the browser.
       appInit.initializeAppCore();

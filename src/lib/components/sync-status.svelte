@@ -19,7 +19,7 @@
   import { Badge } from "$lib/components/ui/badge";
   import { Button } from "$lib/components/ui/button";
   import * as Tooltip from "$lib/components/ui/tooltip";
-  import { isSyncing, lastSyncTime, syncError, syncIsOnline, syncStore } from "$lib/stores/sync";
+  import { isSyncing, lastSyncTime, syncError, syncIsOnline, consolidatedSyncStore } from "$lib/stores/sync-consolidated";
   import { cn } from "$lib/utils";
 
   // Props using Svelte 5 syntax
@@ -81,11 +81,11 @@
   }
 
   function handleSyncClick() {
-    syncStore.triggerSync();
+    consolidatedSyncStore.triggerFullSync();
   }
 
   function handleClearError() {
-    syncStore.clearError();
+    consolidatedSyncStore.clearError();
   }
 
   // Get sync status for indicator variants
@@ -153,7 +153,7 @@
     if (onRetry) {
       onRetry();
     } else {
-      syncStore.triggerSync();
+      consolidatedSyncStore.triggerFullSync();
     }
   }
 </script>

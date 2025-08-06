@@ -4,10 +4,10 @@
 -->
 <script lang="ts">
   import {
-    syncStatusStore,
+    consolidatedSyncStore,
     getSyncStatusIcon,
     getSyncStatusMessage
-  } from "$lib/stores/sync-status";
+  } from "$lib/stores/sync-consolidated";
   import { networkStore } from "$lib/stores/network";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import { Button } from "$lib/components/ui/button";
@@ -24,7 +24,7 @@
   let { showText = false, size = "md", variant = "minimal", onRetry }: Props = $props();
 
   // Reactive values using Svelte 5 syntax
-  let syncInfo = $derived($syncStatusStore);
+  let syncInfo = $derived($consolidatedSyncStore);
   let networkInfo = $derived($networkStore);
   let status = $derived(networkInfo.isOnline ? syncInfo.status : "offline");
   let icon = $derived(getSyncStatusIcon(status));
@@ -114,8 +114,8 @@
           </div>
         {/if}
 
-        {#if status === "error" && syncInfo.errorMessage}
-          <span class="mt-1 text-xs text-red-600">{syncInfo.errorMessage}</span>
+        {#if status === "error" && syncInfo.error}
+          <span class="mt-1 text-xs text-red-600">{syncInfo.error}</span>
         {/if}
       </div>
 

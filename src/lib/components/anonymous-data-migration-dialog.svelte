@@ -8,7 +8,7 @@
   import Button from "$lib/components/ui/button/button.svelte";
   import * as Alert from "$lib/components/ui/alert";
   import { Loader2, Upload, AlertTriangle, CheckCircle } from "@lucide/svelte";
-  import { SyncService } from "$lib/services/sync";
+  import { unifiedSyncService } from "$lib/services/sync-unified";
   import { authState } from "$lib/stores/auth-state";
   import { subscriptionStore } from "$lib/stores/subscription";
   import * as localData from "$lib/services/local-data";
@@ -33,7 +33,7 @@
   let limitWarning = $state("");
 
   // Sync service instance
-  const syncService = new SyncService();
+  const syncService = unifiedSyncService;
 
   // Check for anonymous data when dialog opens
   $effect(() => {

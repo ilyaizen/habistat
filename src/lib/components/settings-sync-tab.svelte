@@ -6,7 +6,7 @@
   import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
   import { Label } from "$lib/components/ui/label";
   import { settings } from "$lib/stores/settings";
-  import { isSyncing, lastSyncTime, syncError, syncIsOnline, syncStore } from "$lib/stores/sync";
+  import { isSyncing, lastSyncTime, syncError, syncIsOnline, consolidatedSyncStore } from "$lib/stores/sync-consolidated";
 
   const developerMode = $derived($settings.developerMode);
 
@@ -77,7 +77,7 @@
         <Button
           size="sm"
           variant="outline"
-          onclick={() => syncStore.triggerSync()}
+          onclick={() => consolidatedSyncStore.triggerFullSync()}
           disabled={$isSyncing || !$syncIsOnline}
           class="flex items-center gap-2"
         >
@@ -101,7 +101,7 @@
           <Button
             size="sm"
             variant="secondary"
-            onclick={() => syncStore.clearError()}
+            onclick={() => consolidatedSyncStore.clearError()}
             class="flex items-center gap-2"
           >
             Clear Error

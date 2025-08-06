@@ -2,7 +2,7 @@ import type { LoadedClerk, UserResource } from "@clerk/types";
 import { setContext } from "svelte";
 import { get, readable, writable } from "svelte/store";
 import { browser } from "$app/environment";
-import { userSyncService } from "$lib/services/user-sync";
+import { unifiedSyncService } from "$lib/services/sync-unified";
 import { authState } from "$lib/stores/auth-state";
 // import { syncIsOnline as networkIsOnline } from "$lib/stores/sync";
 import { markSessionAssociated, sessionStore } from "$lib/utils/tracking";
@@ -144,14 +144,14 @@ export function useClerk() {
         if (DEBUG_VERBOSE) {
           console.log("🔄 Clerk: Starting user sync to Convex");
         }
-        await userSyncService.handleAuthChange(user);
+        await unifiedSyncService.handleUserSignIn(user.id);
       } else if (previousUserState !== null) {
         // Only handle sign-out if we previously had an authenticated user
         // This prevents unnecessary cleanup calls for anonymous users
         if (DEBUG_VERBOSE) {
           console.log("📤 Clerk: User signed out, cleaning up sync state");
         }
-        await userSyncService.handleAuthChange(null);
+        await unifiedSyncService.handleUserSignOut();
       }
 
       previousUserState = user;

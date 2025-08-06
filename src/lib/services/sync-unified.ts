@@ -1,17 +1,29 @@
 /**
  * @file Unified Sync Service - Consolidated sync logic with DRY principles
- * @description Single source of truth for all sync operations, replacing multiple services
+ * @description Single source of truth for all sync operations, replacing multiple legacy services
  *
- * This service consolidates:
- * - SyncService (sync.ts)
- * - UserSyncService (user-sync.ts)
- * - SyncManager (sync-manager.ts)
+ * REPLACES THE FOLLOWING DEPRECATED FILES:
+ * - src/lib/services/sync.ts (SyncService class)
+ * - src/lib/services/user-sync.ts (UserSyncService and related functions)
+ * - src/lib/services/sync-manager.ts (SyncManager initialization)
  *
- * Key principles:
- * - Local-first: SQLite is source of truth
- * - Last-Write-Wins: Uses clientUpdatedAt for conflict resolution
- * - Bidirectional sync: Pull and push operations for all data types
+ * CONSOLIDATION BENEFITS:
+ * - Eliminates code duplication across sync services
+ * - Provides unified error handling and logging
+ * - Simplifies sync state management
+ * - Reduces complexity in component integration
+ *
+ * KEY ARCHITECTURAL PRINCIPLES:
+ * - Local-first: SQLite database is the authoritative source of truth
+ * - Last-Write-Wins: Uses clientUpdatedAt timestamps for conflict resolution
+ * - Bidirectional sync: Supports both pull (server→local) and push (local→server) operations
  * - Atomic operations: All sync operations are wrapped in safe error handling
+ * - Authentication-aware: Automatically handles auth state changes and user transitions
+ * - Network-resilient: Gracefully handles offline/online state transitions
+ *
+ * USAGE:
+ * Import the singleton instance: `import { unifiedSyncService } from './sync-unified';`
+ * The service is automatically initialized when imported by sync-consolidated.ts
  */
 
 import type { InferModel } from "drizzle-orm";
@@ -168,7 +180,7 @@ export class UnifiedSyncService {
    *
    * @param {string} userId - The ID of the newly authenticated user.
    */
-  private async handleUserSignIn(userId: string): Promise<void> {
+  public async handleUserSignIn(userId: string): Promise<void> {
     if (DEBUG_VERBOSE) {
       console.log(`UnifiedSyncService: User signed in with ID: ${userId}. Starting full sync.`);
     }
@@ -195,7 +207,7 @@ export class UnifiedSyncService {
   /**
    * Clears local data when the user signs out.
    */
-  private async handleUserSignOut(): Promise<void> {
+  public async handleUserSignOut(): Promise<void> {
     if (DEBUG_VERBOSE) {
       console.log("UnifiedSyncService: User signed out. Clearing local data.");
     }

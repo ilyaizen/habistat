@@ -1,17 +1,29 @@
 /**
  * @file Consolidated Sync Store - Unified sync state management
- * @description Replaces both sync.ts and sync-status.ts with a single, DRY implementation
+ * @description Single Svelte store for all sync-related state, replacing multiple legacy stores
  *
- * This store consolidates:
- * - SyncStore (sync.ts) - Main sync operations and state
- * - SyncStatusStore (sync-status.ts) - UI feedback and status tracking
+ * REPLACES THE FOLLOWING DEPRECATED FILES:
+ * - src/lib/stores/sync.ts (SyncStore - main sync operations and state)
+ * - src/lib/stores/sync-status.ts (SyncStatusStore - UI feedback and status tracking)
  *
- * Key features:
- * - Single source of truth for all sync state
- * - Unified status management for UI components
- * - Integration with UnifiedSyncService
- * - Network status awareness
- * - Progress tracking for sync operations
+ * CONSOLIDATION BENEFITS:
+ * - Eliminates duplicate state management across multiple stores
+ * - Provides unified API for components to access sync state
+ * - Reduces complexity in component sync integration
+ * - Centralizes all sync-related reactive state in one place
+ *
+ * KEY FEATURES:
+ * - Single source of truth for all sync state (status, progress, errors, timing)
+ * - Unified status management for UI components with consistent interfaces
+ * - Seamless integration with UnifiedSyncService for actual sync operations
+ * - Network status awareness with automatic offline/online state handling
+ * - Progress tracking for sync operations with detailed completion metrics
+ * - Backward compatibility through derived stores for existing component APIs
+ *
+ * USAGE:
+ * Import the main store: `import { consolidatedSyncStore } from './sync-consolidated';`
+ * Or use derived stores for specific needs: `import { isSyncing, syncError } from './sync-consolidated';`
+ * The store automatically initializes the UnifiedSyncService when imported
  */
 
 import { derived, writable } from "svelte/store";

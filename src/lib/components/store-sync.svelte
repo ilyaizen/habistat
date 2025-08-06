@@ -18,7 +18,7 @@
   import { authState } from "$lib/stores/auth-state";
   import { calendarsStore } from "$lib/stores/calendars";
   import { habits } from "$lib/stores/habits";
-  import { syncStore } from "$lib/stores/sync";
+  import { consolidatedSyncStore } from "$lib/stores/sync-consolidated";
 
   // Get Clerk user from context with safe fallback
   const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser") || undefined;
@@ -52,7 +52,7 @@
       authState.setClerkState(newUserId, !!user);
 
       // Immediately notify the sync store
-      syncStore.setUserId(newUserId);
+      consolidatedSyncStore.setUserId(newUserId);
     });
 
     return () => clerkUnsubscribe?.();
@@ -79,7 +79,7 @@
         // Handle data migration on initial login
         if (!hasShownMigrationToast) {
           hasShownMigrationToast = true;
-          syncStore.migrateAnonymousData().then((migrationResult) => {
+          consolidatedSyncStore.migrateAnonymousData().then((migrationResult) => {
             if (migrationResult.success && migrationResult.migratedCount > 0) {
               toast.success("Welcome back!", {
                 description: `Synced ${migrationResult.migratedCount} item(s) to your account.`
@@ -101,7 +101,7 @@
         }
         calendarsStore.setUser(null);
         habits.setUser(null);
-        syncStore.setUserId(null);
+        consolidatedSyncStore.setUserId(null);
         hasShownMigrationToast = false;
       }
     }
