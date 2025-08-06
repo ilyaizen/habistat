@@ -27,6 +27,7 @@
  */
 
 import type { InferModel } from "drizzle-orm";
+import { get } from "svelte/store";
 import { v4 as uuidv4 } from "uuid";
 import { formatLocalDate } from "$lib/utils/date";
 import { safeMutation, safeQuery } from "$lib/utils/safe-query";
@@ -441,13 +442,13 @@ export class UnifiedSyncService {
             localUuid: serverActivity.localUuid, // Sync correlation ID
             userId: this.userId,
             date: serverActivity.date,
-            firstOpenAt: serverActivity.firstOpenAt,
+            openedAt: serverActivity.openedAt,
             clientUpdatedAt: serverActivity.clientUpdatedAt
           });
         } else if (serverActivity.clientUpdatedAt > localActivity.clientUpdatedAt) {
           // Update local entry if server is newer (Last-Write-Wins)
           await localData.updateActivityHistory(localActivity.id, {
-            firstOpenAt: serverActivity.firstOpenAt,
+            openedAt: serverActivity.openedAt,
             clientUpdatedAt: serverActivity.clientUpdatedAt
           });
         }
@@ -482,7 +483,7 @@ export class UnifiedSyncService {
     const activitiesToSync = localActivities.map((activity) => ({
       localUuid: activity.id,
       date: activity.date,
-      firstOpenAt: activity.firstOpenAt,
+      openedAt: activity.openedAt,
       clientUpdatedAt: activity.clientUpdatedAt
     }));
 
@@ -549,10 +550,16 @@ export class UnifiedSyncService {
         if (!localHabit) {
           if (DEBUG_VERBOSE) {
             console.warn(
-              `Skipping completion for unknown habit with Convex ID: ${serverCompletion.habitId}`
+              `❌ Skipping completion for unknown habit with Convex ID: ${serverCompletion.habitId}`
             );
           }
           continue;
+        }
+
+        if (DEBUG_VERBOSE) {
+          console.log(
+            `🔄 Processing completion: ${serverCompletion.localUuid} for habit: ${localHabit.name}`
+          );
         }
 
         serverCompletion.habitId = localHabit.id; // Replace with local ID
@@ -569,11 +576,19 @@ export class UnifiedSyncService {
             completedAt: serverCompletion.completedAt,
             clientUpdatedAt: Date.now() // Ensure clientUpdatedAt is set as Unix timestamp
           });
+          if (DEBUG_VERBOSE) {
+            console.log(`✅ Created new completion: ${serverCompletion.localUuid}`);
+          }
         } else if (serverCompletion.completedAt > localCompletion.completedAt) {
           // Update local completion if server is newer (Last-Write-Wins)
           await localData.updateCompletion(localCompletion.id, {
             completedAt: serverCompletion.completedAt
           });
+          if (DEBUG_VERBOSE) {
+            console.log(`🔄 Updated completion: ${localCompletion.id}`);
+          }
+        } else if (DEBUG_VERBOSE) {
+          console.log(`⏭️ Skipped completion (local is newer): ${localCompletion.id}`);
         }
       }
 
@@ -709,8 +724,24 @@ export class UnifiedSyncService {
     name?: string;
     avatarUrl?: string;
   }): Promise<SyncResult & { userSyncResult?: any }> {
-    if (!this.userId || this.isSyncing) {
-      return { success: false, error: "Not authenticated or already syncing" };
+    // Check if already syncing first
+    if (this.isSyncing) {
+      return { success: false, error: "Sync already in progress" };
+    }
+
+    // If userId is not set, try to get it from auth state
+    if (!this.userId) {
+      const currentAuthState = get({ subscribe: authState.subscribe });
+      if (currentAuthState?.clerkUserId) {
+        this.setUserId(currentAuthState.clerkUserId);
+        if (DEBUG_VERBOSE) {
+          console.log(
+            `UnifiedSyncService: Set userId from auth state: ${currentAuthState.clerkUserId}`
+          );
+        }
+      } else {
+        return { success: false, error: "Not authenticated - no user ID available" };
+      }
     }
 
     if (!(await waitForConvexAuth())) {
@@ -731,9 +762,11 @@ export class UnifiedSyncService {
       }
 
       // 2. Sync calendars (trigger store sync)
+      // Pass isInitialSync=true during user sign-in to ensure server data overwrites local data
       try {
         const { calendarsStore } = await import("../stores/calendars");
-        await calendarsStore.setUser(this.userId);
+        const isInitialSync = userInfo !== undefined; // Initial sync if user info provided (sign-in)
+        await calendarsStore.setUser(this.userId, isInitialSync);
         syncResults.calendars = { success: true };
         if (DEBUG_VERBOSE) console.log("✅ Calendars synced");
       } catch (error) {
@@ -745,9 +778,11 @@ export class UnifiedSyncService {
       }
 
       // 3. Sync habits (trigger store sync)
+      // Pass isInitialSync=true during user sign-in to ensure server data overwrites local data
       try {
         const { habits } = await import("../stores/habits");
-        await habits.setUser(this.userId);
+        const isInitialSync = userInfo !== undefined; // Initial sync if user info provided (sign-in)
+        await habits.setUser(this.userId, isInitialSync);
         syncResults.habits = { success: true };
         if (DEBUG_VERBOSE) console.log("✅ Habits synced");
       } catch (error) {

@@ -63,13 +63,22 @@ export const activeTimers = sqliteTable("activeTimers", {
   updatedAt: integer("updatedAt").notNull() // Unix timestamp
 });
 
-// Activity history table - daily app usage tracking (replaces appOpens)
+// User profile table - stores global user settings and first app open timestamp
+export const userProfile = sqliteTable("userProfile", {
+  id: text("id").primaryKey(), // User session ID or "anonymous"
+  userId: text("userId"), // Clerk user ID when authenticated
+  firstAppOpenAt: integer("firstAppOpenAt"), // Unix timestamp of very first app open (stored once)
+  createdAt: integer("createdAt").notNull(), // Unix timestamp
+  updatedAt: integer("updatedAt").notNull() // Unix timestamp
+});
+
+// Activity history table - simplified daily app usage tracking
 export const activityHistory = sqliteTable("activityHistory", {
   id: text("id").primaryKey(), // Local UUID
   userId: text("userId"), // Nullable for anonymous/local users
   localUuid: text("localUuid").notNull().unique(), // UUID for sync correlation with Convex
   date: text("date").notNull(), // YYYY-MM-DD format for easy querying
-  firstOpenAt: integer("firstOpenAt").notNull(), // Unix timestamp of first app open for this date
+  openedAt: integer("openedAt").notNull(), // Unix timestamp of this specific app open
   clientUpdatedAt: integer("clientUpdatedAt").notNull() // Unix timestamp for Last-Write-Wins conflict resolution
 });
 

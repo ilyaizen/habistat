@@ -1,7 +1,7 @@
 # **Habistat Implementation Plan**
 
-**Version:** 0.0.1
-**Last Updated:** 2025-07-08
+**Version:** 0.0.2
+**Last Updated:** 2025-08-07
 
 ---
 
@@ -170,6 +170,25 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [x] **Ongoing Sync (Pull):** Subscribe to Convex queries to receive real-time updates from the server and update local stores/DB.
   - [x] **Conflict Resolution (Basic):** ~~Start with "last write wins" based on `updatedAt` timestamp. Server timestamp preferred.~~ **UPDATED:** For completions, use `completedAt` timestamp for conflict resolution since completions are ultra-simplified. Other entities still use createdAt/updatedAt.
   - [x] **Habit Calendar Reassignment Sync:** Backend and store logic now support updating a habit's `calendarId` and syncing this change to Convex. Position is recalculated on reassignment to prevent conflicts.
+  - [x] **Unified Sync Service Architecture**:
+    - **REFACTORED**: Replaced legacy `SyncService` with `unifiedSyncService` across all components
+    - **CONSOLIDATED**: Merged sync-related state into single `consolidatedSyncStore`
+    - **REMOVED**: Deprecated sync manager and user sync service files
+    - **ENHANCED**: Improved background sync operations and error handling
+    - Implement conflict resolution (Last-Write-Wins based on `clientUpdatedAt` timestamps)
+    - Handle network connectivity checks before attempting sync
+  - [x] **Anonymous User Migration**:
+    - **ENHANCED**: Added anonymous data migration dialog for better UX
+    - On first sign-in, check if local data exists (calendars, habits, completions)
+    - Prompt to sync local data with improved dialog interface
+    - If confirmed, iterate through local data and call Convex mutations to create items in cloud
+    - Update local records with `userId` and mark as synced
+  - [x] **Database Schema Updates**:
+    - **UPDATED**: Changed database connection URL in `drizzle.config.ts` to new local path
+    - **REMOVED**: Deprecated migration files for cleaner structure
+    - **ADDED**: `convexId` column to `habits` table for improved synchronization
+    - **ADDED**: `clientUpdatedAt` column to `completions` table for conflict resolution
+    - **CREATED**: `activity_history` table to track user activity with timestamps
 - **3.3. Anonymous Data Migration to Cloud**:
   - [x] On first sign-in/sign-up for a user with existing local anonymous data:
     - Prompt to sync local data.
@@ -194,25 +213,34 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 
 **Tasks**:
 
-- **3.5.1. Extend Convex Schema for Activity History**:
-  - [x] Add `activityHistory` table to `convex/schema.ts` with proper indexing:
+- **3.5.1. Simplify Activity History Schema (COMPLETED)**:
+  - [x] **SIMPLIFIED**: Moved `firstAppOpenAt` to `users` table in Convex schema (stored once globally)
+  - [x] **ADDED**: `userProfile` table to local schema for global first app open tracking
+  - [x] **UPDATED**: `activityHistory` table to use `openedAt` instead of `firstOpenAt`:
     ```typescript
-    activityHistory: defineTable({
-      userId: v.string(), // Clerk User ID
-      localUuid: v.string(), // Maps to local activity entry ID
-      date: v.string(), // YYYY-MM-DD format
-      timestamp: v.number(), // Unix timestamp of first app open
-      clientUpdatedAt: v.number(), // For conflict resolution
-    })
-    .index("by_user_date", ["userId", "date"])
-    .index("by_local_uuid", ["userId", "localUuid"])
+    // Local Schema
+    userProfile: sqliteTable("userProfile", {
+      id: text("id").primaryKey(),
+      userId: text("userId"),
+      firstAppOpenAt: integer("firstAppOpenAt"), // Stored once globally
+      createdAt: integer("createdAt").notNull(),
+      updatedAt: integer("updatedAt").notNull()
+    });
+    
+    activityHistory: sqliteTable("activityHistory", {
+      // ... other fields
+      openedAt: integer("openedAt").notNull(), // Individual app open timestamp
+      // ... removed firstOpenAt field
+    });
     ```
-  - [x] Create `convex/activityHistory.ts` with queries and mutations:
-    - `getActivityHistorySince` query for sync
-    - `batchUpsertActivityHistory` mutation for bulk sync
+  - [x] **UPDATED**: Convex schema to match simplified local schema
+  - [x] **FIXED**: All Convex functions to use `openedAt` field
 
-- **3.5.2. Enhance Local Database Schema**:
-  - [ ] Verify `activity_history` table exists in `src/lib/db/schema.ts`
+- **3.5.2. Update Tracking Utilities (COMPLETED)**:
+  - [x] **ENHANCED**: `logAppOpenDb()` to use `ensureUserProfile()` for global first open tracking
+  - [x] **UPDATED**: `getAppOpenHistory()` to use `openedAt` field
+  - [x] **ADDED**: `getFirstAppOpenTimestamp()` helper function
+  - [x] **FIXED**: All field references from `firstOpenAt` to `openedAt`
 
 - **3.5.4. Enhance Activity Monitor Integration**:
   - [x] Update `src/lib/components/activity-monitor.svelte` to trigger background sync
@@ -232,27 +260,97 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [x] **Fix implementation**: Corrected faulty import logic in `sync-manager.ts` to properly use the `authState` store, resolving runtime errors.
   - [x] Ensure sync is triggered automatically on app startup if user is already logged in.
 
-- **3.5.7. Documentation & Error Handling**:
+- **3.5.7. Documentation & Error Handling (COMPLETED)**:
   - [x] Update sync documentation with activity history patterns
   - [x] Add proper error messages and user feedback
   - [x] Ensure graceful degradation if sync fails
   - [x] Add troubleshooting guide for sync issues
-  - [ ] Ensure graceful degradation if sync fails
-  - [ ] Add troubleshooting guide for sync issues
+  - [x] **SCHEMA SIMPLIFICATION**: Completed major refactoring to eliminate redundant `firstOpenAt` per daily entry
+  - [x] **IMPROVED DATA MODEL**: First app open now stored once globally in user profile
+  - [x] **MAINTAINED FUNCTIONALITY**: Usage history UI continues to work with simplified schema
 
 **Success Criteria**:
 - [x] Daily activity history syncs to Convex with proper deduplication
 - [x] All habit completion timestamps sync bidirectionally without data loss
 - [x] Activity data persists across app restarts and device changes
 - [x] Sync performance remains optimal with new data types
+- [x] **SIMPLIFIED SCHEMA**: Activity history schema complexity reduced while maintaining all functionality
+- [x] **GLOBAL FIRST OPEN**: First app open timestamp stored once in user profile instead of per daily entry
 - [x] No breaking changes to existing sync functionality
 - [x] Proper error handling and retry logic for new sync operations
 
 **Reference**: See `Docs/PRPs/phase3.5-enhanced-sync.md` for detailed implementation blueprint and validation gates.
 
+- **3.5.1. Database Schema & Sync Architecture Overhaul**:
+  - [x] **COMPLETED**: Extended Convex schema with `activityHistory` table and proper indexing
+  - [x] **COMPLETED**: Updated local database schema with `activity_history` table
+  - [x] **COMPLETED**: Added `convexId` to habits and `clientUpdatedAt` to completions tables
+  - [x] **COMPLETED**: Streamlined database structure by removing unnecessary fields
+  - [x] **COMPLETED**: Consolidated activity tracking with unified `activityHistory` table
+  - [x] **COMPLETED**: Enhanced schema documentation with comprehensive comments
+
+- **3.5.2. Unified Sync Service Implementation**:
+  - [x] **COMPLETED**: Replaced all instances of legacy `SyncService` with `unifiedSyncService`
+  - [x] **COMPLETED**: Consolidated sync state management into `consolidatedSyncStore`
+  - [x] **COMPLETED**: Implemented bidirectional activity history sync with conflict resolution
+  - [x] **COMPLETED**: Enhanced background sync triggers on auth state changes
+  - [x] **COMPLETED**: Added automated sync functionality for improved UX
+  - [x] **COMPLETED**: Updated `fullSync()` to handle all data types including activity history
+
+- **3.5.3. Local Data Service Enhancements**:
+  - [x] **COMPLETED**: Updated local data service methods to reflect schema changes
+  - [x] **COMPLETED**: Added functions for retrieving habits by `convexId`
+  - [x] **COMPLETED**: Implemented activity history entry management functions
+  - [x] **COMPLETED**: Added `clearAllLocalData` function for proper sign-out handling
+  - [x] **COMPLETED**: Enhanced data handling for improved sync performance
+
+- **3.5.4. Component & Store Updates**:
+  - [x] **COMPLETED**: Refactored components to utilize new unified sync architecture
+  - [x] **COMPLETED**: Updated activity monitor to trigger background sync
+  - [x] **COMPLETED**: Enhanced completions store to include `clientUpdatedAt` during creation
+  - [x] **COMPLETED**: Improved sync status indicators and error handling throughout UI
+
+- **3.5.5. File Structure & Documentation**:
+  - [x] **COMPLETED**: Cleaned up file structure by removing deprecated sync files
+  - [x] **COMPLETED**: Removed `.vercel` directory and updated package.json exclusions
+  - [x] **COMPLETED**: Added comprehensive documentation for new sync architecture
+  - [x] **COMPLETED**: Created migration files with proper meta directory structure
+  - [x] **COMPLETED**: Enhanced implementation plan to reflect all changes
+
+- **3.5.6. Production Readiness & Quality Assurance**:
+  - [x] **COMPLETED**: Implemented automated sync triggers on authentication state changes
+  - [x] **COMPLETED**: Enhanced sign-out flow with proper local data clearing via `clearAllLocalData`
+  - [x] **COMPLETED**: Added comprehensive error handling and retry logic
+  - [x] **COMPLETED**: Implemented user-friendly sync status indicators
+  - [x] **COMPLETED**: Added network status monitoring and sync state management
+
+- **3.5.7. Validation & Testing Results**:
+  - [x] **COMPLETED**: All TypeScript errors resolved across sync architecture
+  - [x] **COMPLETED**: Database schema migration tested and validated
+  - [x] **COMPLETED**: Cross-component integration verified with unified sync service
+  - [x] **COMPLETED**: Activity history sync functionality validated end-to-end
+  - [x] **COMPLETED**: Conflict resolution tested with `clientUpdatedAt` timestamps
+  - [x] **COMPLETED**: Performance optimization confirmed with streamlined schema
+
+**✅ SUCCESS CRITERIA ACHIEVED FOR PHASE 3.5**:
+- ✅ **Database Architecture**: Unified, streamlined schema with essential fields only
+- ✅ **Sync Architecture**: Complete refactor to unified sync service with consolidated state
+- ✅ **Activity History**: Bidirectional sync implemented and validated
+- ✅ **Completion Sync**: Enhanced with proper conflict resolution via `clientUpdatedAt`
+- ✅ **Local-First Integrity**: SQLite remains source of truth with improved sync correlation
+- ✅ **Performance**: Optimized with focused indexing and reduced complexity
+- ✅ **Error Handling**: Comprehensive logging and user-friendly error management
+- ✅ **Code Quality**: All TypeScript errors resolved, deprecated code removed
+
+**📋 PHASE 3.5 STATUS: COMPLETE**
+
+**Reference**: Implementation based on `Docs/PRPs/phase3.5-enhanced-sync.md` with all validation gates passed.
+
 ---
 
-### **Phase 4: Dashboard & Gamification Visuals**
+### ~~**Phase 4: Dashboard & Gamification Visuals**~~ (Deferred)
+
+**Update**: 2025-08-07 - This feature has been deferred and will not be implemented at this time.
 
 **Goal**: Create the main dashboard displaying habit summaries, 30-day history with interactive completion, and initial gamification visuals.
 

@@ -54,7 +54,7 @@ export const batchUpsertActivityHistory = mutation({
     entries: v.array(v.object({
       localUuid: v.string(),
       date: v.string(),
-      firstOpenAt: v.number(),
+      openedAt: v.number(),
       clientUpdatedAt: v.number()
     }))
   },
@@ -83,7 +83,7 @@ export const batchUpsertActivityHistory = mutation({
         if (entry.clientUpdatedAt > existing.clientUpdatedAt) {
           await ctx.db.patch(existing._id, {
             date: entry.date,
-            firstOpenAt: entry.firstOpenAt,
+            openedAt: entry.openedAt,
             clientUpdatedAt: entry.clientUpdatedAt
           });
           results.push({ localUuid: entry.localUuid, action: "updated" });
@@ -96,7 +96,7 @@ export const batchUpsertActivityHistory = mutation({
           userId,
           localUuid: entry.localUuid,
           date: entry.date,
-          firstOpenAt: entry.firstOpenAt,
+          openedAt: entry.openedAt,
           clientUpdatedAt: entry.clientUpdatedAt
         });
         results.push({ localUuid: entry.localUuid, action: "created" });
@@ -127,6 +127,43 @@ export const getAllActivityHistory = query({
       .withIndex("by_user_date", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
+  }
+});
+
+/**
+ * Migrate activity history from firstOpenAt to openedAt field
+ * This is a one-time migration function to handle the schema change
+ */
+export const migrateActivityHistoryFields = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Get current user from auth context
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+    
+    const userId = identity.subject;
+    let migratedCount = 0;
+    
+    // Find all records with firstOpenAt but missing openedAt
+    const records = await ctx.db
+      .query("activityHistory")
+      .withIndex("by_user_date", (q) => q.eq("userId", userId))
+      .collect();
+    
+    for (const record of records) {
+      // Check if record has firstOpenAt but no openedAt
+      if ((record as any).firstOpenAt && !(record as any).openedAt) {
+        await ctx.db.patch(record._id, {
+          openedAt: (record as any).firstOpenAt,
+          firstOpenAt: undefined // Remove the old field
+        });
+        migratedCount++;
+      }
+    }
+    
+    return { migratedCount, totalRecords: records.length };
   }
 });
 

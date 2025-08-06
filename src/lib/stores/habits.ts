@@ -84,7 +84,7 @@ function createHabitsStore() {
   }
 
   // Set user for the store - to be called from Svelte components
-  async function setUser(newClerkUserId: string | null) {
+  async function setUser(newClerkUserId: string | null, isInitialSync: boolean = false) {
     if (newClerkUserId === currentClerkUserId) {
       return;
     }
@@ -139,10 +139,16 @@ function createHabitsStore() {
               };
 
               if (localHabit) {
-                // Update existing habit if server version is newer
-                if (convexHabit.clientUpdatedAt > localHabit.updatedAt) {
+                // During initial sync (user sign-in), always overwrite local data with server data
+                // During ongoing sync, use Last-Write-Wins conflict resolution
+                if (isInitialSync || convexHabit.clientUpdatedAt > localHabit.updatedAt) {
                   try {
                     await localData.updateHabit(localHabit.id, serverDataForLocal);
+                    if (isInitialSync) {
+                      console.log(
+                        `📥 Initial sync: Overwriting local habit ${localHabit.id} with server data`
+                      );
+                    }
                   } catch (error) {
                     console.error(`Failed to update habit ${localHabit.id}:`, error);
                   }
@@ -158,10 +164,20 @@ function createHabitsStore() {
                       id: convexHabit.localUuid,
                       ...serverDataForLocal
                     });
+                    if (isInitialSync) {
+                      console.log(
+                        `📥 Initial sync: Creating habit ${convexHabit.localUuid} from server data`
+                      );
+                    }
                   } else {
                     // Habit exists, update it instead
-                    if (convexHabit.clientUpdatedAt > existingHabit.updatedAt) {
+                    if (isInitialSync || convexHabit.clientUpdatedAt > existingHabit.updatedAt) {
                       await localData.updateHabit(existingHabit.id, serverDataForLocal);
+                      if (isInitialSync) {
+                        console.log(
+                          `📥 Initial sync: Updating existing habit ${existingHabit.id} with server data`
+                        );
+                      }
                     }
                   }
                 } catch (error) {
@@ -171,8 +187,15 @@ function createHabitsStore() {
               }
             }
 
+            // During initial sync, delete any local habits not present on server
+            // During ongoing sync, only delete if they were removed from server
             for (const localIdToDelete of localHabitsMap.keys()) {
               await localData.deleteHabit(localIdToDelete);
+              if (isInitialSync) {
+                console.log(
+                  `📥 Initial sync: Deleting local habit ${localIdToDelete} not found on server`
+                );
+              }
             }
 
             await _loadFromLocalDB();

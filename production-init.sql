@@ -67,14 +67,23 @@ CREATE TABLE IF NOT EXISTS activeTimers (
   FOREIGN KEY (habitId) REFERENCES habits(id) ON DELETE CASCADE
 );
 
--- Phase 3.5: Unified activity tracking with firstOpenAt field
+-- Phase 3.5: Unified activity tracking with openedAt field
 CREATE TABLE IF NOT EXISTS activityHistory (
   id TEXT PRIMARY KEY,
   userId TEXT,
   localUuid TEXT NOT NULL UNIQUE,
   date TEXT NOT NULL,
-  firstOpenAt INTEGER NOT NULL,
+  openedAt INTEGER NOT NULL,
   clientUpdatedAt INTEGER NOT NULL
+);
+
+-- User profile table - stores global user settings and first app open timestamp
+CREATE TABLE IF NOT EXISTS userProfile (
+  id TEXT PRIMARY KEY,
+  userId TEXT,
+  firstAppOpenAt INTEGER,
+  createdAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS syncMetadata (

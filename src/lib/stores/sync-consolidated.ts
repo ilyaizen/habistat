@@ -115,27 +115,9 @@ function createConsolidatedSyncStore() {
       authState.setClerkState(userId, true);
 
       if (userId) {
-        // Wait for authentication to be fully ready before syncing
-        const attemptSyncWhenReady = async () => {
-          console.log("⏳ ConsolidatedSync: Waiting for auth...");
-
-          const authReady = await authState.waitForAuthReady(15000); // 15 second timeout
-
-          if (authReady) {
-            console.log("✅ ConsolidatedSync: Auth ready, starting sync");
-            await store.triggerFullSync();
-          } else {
-            console.warn("⚠️ ConsolidatedSync: Auth timeout, will retry later");
-            update((state) => ({
-              ...state,
-              status: "error",
-              error: "Authentication timeout - sync will retry when auth is ready",
-              lastErrorAt: Date.now()
-            }));
-          }
-        };
-
-        attemptSyncWhenReady();
+        // Note: Sync is handled by UnifiedSyncService.handleUserSignIn() via auth listener
+        // No need to trigger sync here to avoid duplicate sync calls
+        console.log("✅ ConsolidatedSync: User ID set, sync will be handled by UnifiedSyncService");
       }
     },
 
@@ -187,7 +169,7 @@ function createConsolidatedSyncStore() {
       const currentState = await new Promise<ConsolidatedSyncState>((resolve) => {
         const unsubscribe = subscribe((state) => {
           resolve(state);
-          if (unsubscribe) unsubscribe();
+          unsubscribe();
         });
       });
 
@@ -210,7 +192,7 @@ function createConsolidatedSyncStore() {
       const authStateData = await new Promise<import("./auth-state").AuthState>((resolve) => {
         const unsubscribe = authState.subscribe((state) => {
           resolve(state);
-          if (unsubscribe) unsubscribe();
+          unsubscribe();
         });
       });
 

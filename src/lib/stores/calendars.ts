@@ -101,7 +101,7 @@ export function createCalendarsStore() {
   }
 
   // Set user for the store - to be called from Svelte components
-  async function setUser(newClerkUserId: string | null) {
+  async function setUser(newClerkUserId: string | null, isInitialSync: boolean = false) {
     if (newClerkUserId === currentClerkUserId) {
       return; // Auth state hasn't changed relevantly
     }
@@ -154,20 +154,40 @@ export function createCalendarsStore() {
               };
 
               if (localCalendar) {
-                if (convexCal.clientUpdatedAt > localCalendar.updatedAt) {
+                // During initial sync (user sign-in), always overwrite local data with server data
+                // During ongoing sync, use Last-Write-Wins conflict resolution
+                if (isInitialSync || convexCal.clientUpdatedAt > localCalendar.updatedAt) {
                   await localData.updateCalendar(localCalendar.id, serverDataForLocal);
+                  if (isInitialSync) {
+                    console.log(
+                      `📥 Initial sync: Overwriting local calendar ${localCalendar.id} with server data`
+                    );
+                  }
                 }
                 localCalendarsMap.delete(convexCal.localUuid);
               } else {
+                // Create new calendar from server data
                 await localData.createCalendar({
                   id: convexCal.localUuid,
                   ...serverDataForLocal
                 });
+                if (isInitialSync) {
+                  console.log(
+                    `📥 Initial sync: Creating calendar ${convexCal.localUuid} from server data`
+                  );
+                }
               }
             }
 
+            // During initial sync, delete any local calendars not present on server
+            // During ongoing sync, only delete if they were removed from server
             for (const localIdToDelete of localCalendarsMap.keys()) {
               await localData.deleteCalendar(localIdToDelete);
+              if (isInitialSync) {
+                console.log(
+                  `📥 Initial sync: Deleting local calendar ${localIdToDelete} not found on server`
+                );
+              }
             }
 
             await _loadFromLocalDB();

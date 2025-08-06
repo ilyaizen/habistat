@@ -7,12 +7,12 @@
  * - Marking the transition from anonymous to associated state
  */
 
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { derived, get, writable } from "svelte/store";
 import { v4 as uuidv4 } from "uuid";
 import { browser } from "$app/environment";
 import { getDb, persistBrowserDb } from "$lib/db/client";
-import { activityHistory } from "$lib/db/schema";
+import { activityHistory, userProfile } from "$lib/db/schema";
 
 // import { formatDate } from "./date"; // No longer using the UTC-based formatter
 
@@ -239,19 +239,52 @@ export function getAssociatedSessionDetails(): {
 // type AppOpenRow = { id: string; timestamp: number };
 
 /**
- * Logs an app open event to the database using the new activityHistory schema.
+ * Ensures user profile exists and tracks first app open timestamp globally.
+ */
+async function ensureUserProfile(): Promise<void> {
+  const db = await getDb();
+  const sessionId = getSessionId() || "anonymous";
+
+  // Check if user profile exists
+  const existing = await db
+    .select()
+    .from(userProfile)
+    .where(eq(userProfile.id, sessionId))
+    .limit(1)
+    .execute();
+
+  if (existing.length === 0) {
+    // Create user profile with first app open timestamp
+    const now = Date.now();
+    const newProfile = {
+      id: sessionId,
+      userId: null, // Will be updated when user authenticates
+      firstAppOpenAt: now, // This is the very first app open
+      createdAt: now,
+      updatedAt: now
+    } as const;
+    await db.insert(userProfile).values(newProfile).execute();
+  }
+}
+
+/**
+ * Logs an app open event to the database using the simplified activityHistory schema.
  */
 async function logAppOpenDb(): Promise<void> {
   const db = await getDb();
   const now = Date.now();
   const todayStr = formatLocalDate(new Date(now));
   const newId = uuidv4();
+
+  // Ensure user profile exists (tracks first app open globally)
+  await ensureUserProfile();
+
   const entry = {
     id: newId,
     localUuid: newId, // Sync correlation ID
     userId: null, // Anonymous tracking - userId will be null
     date: todayStr, // YYYY-MM-DD format for the date
-    firstOpenAt: now, // Unix timestamp of first app open for this date
+    openedAt: now, // Unix timestamp of this specific app open
     clientUpdatedAt: now // Unix timestamp for sync conflict resolution
   };
   await db.insert(activityHistory).values(entry).execute();
@@ -285,9 +318,9 @@ export async function logAppOpenIfNeeded(): Promise<boolean> {
 export async function getAppOpenHistory(): Promise<number[]> {
   const db = await getDb();
   try {
-    const query = db.select().from(activityHistory).orderBy(desc(activityHistory.firstOpenAt));
+    const query = db.select().from(activityHistory).orderBy(desc(activityHistory.openedAt));
     const results = await query.execute();
-    const timestamps = results.map((row: { firstOpenAt: number }) => row.firstOpenAt);
+    const timestamps = results.map((row: { openedAt: number }) => row.openedAt);
     return timestamps;
   } catch (error) {
     console.error("Failed to retrieve app open history:", error);
@@ -301,6 +334,28 @@ export async function getAppOpenHistory(): Promise<number[]> {
  */
 export function getSessionId(): string | null {
   return get(anonymousUserId);
+}
+
+/**
+ * Retrieves the first app open timestamp from the user profile.
+ * @returns The first app open timestamp or null if not found.
+ */
+export async function getFirstAppOpenTimestamp(): Promise<number | null> {
+  const db = await getDb();
+  const sessionId = getSessionId() || "anonymous";
+
+  try {
+    const profile = await db
+      .select()
+      .from(userProfile)
+      .where(eq(userProfile.id, sessionId))
+      .limit(1)
+      .execute();
+    return profile[0]?.firstAppOpenAt || null;
+  } catch (error) {
+    console.error("Failed to retrieve first app open timestamp:", error);
+    return null;
+  }
 }
 
 /**
@@ -356,7 +411,7 @@ export async function generateFakeAppOpenHistory(numDays: number = 7): Promise<v
           localUuid: newId, // Sync correlation ID
           userId: null, // Initially anonymous
           date: formatLocalDate(date),
-          firstOpenAt: date.getTime(),
+          openedAt: date.getTime(),
           clientUpdatedAt: date.getTime()
         })
         .execute();

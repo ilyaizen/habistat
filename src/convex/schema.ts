@@ -27,6 +27,7 @@ export default defineSchema({
       )
     ),
     subscriptionExpiresAt: v.optional(v.number()), // Unix timestamp
+    firstAppOpenAt: v.optional(v.number()), // Unix timestamp of very first app open (stored once)
   })
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"])
@@ -95,12 +96,13 @@ export default defineSchema({
     .index("by_user_local_uuid", ["userId", "localUuid"]) // For sync operations
     .index("by_user_status", ["userId", "status"]), // For status-based queries
 
-  // Activity history table - daily app usage tracking
+  // Activity history table - simplified daily app usage tracking
   activityHistory: defineTable({
     userId: v.string(), // Clerk User ID (from identity.subject)
     localUuid: v.string(), // Maps to local activityHistory.id for sync correlation
     date: v.string(), // YYYY-MM-DD format for easy querying
-    firstOpenAt: v.number(), // Unix timestamp of first app open for this date
+    openedAt: v.optional(v.number()), // Unix timestamp of this specific app open (optional during migration)
+    firstOpenAt: v.optional(v.number()), // Legacy field name - will be migrated to openedAt
     clientUpdatedAt: v.number(), // Unix timestamp for Last-Write-Wins conflict resolution
   })
     .index("by_user_date", ["userId", "date"]) // For date-specific queries

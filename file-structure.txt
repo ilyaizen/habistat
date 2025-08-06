@@ -39,12 +39,20 @@
 │   ├── rules.md
 │   ├── sample-data.md
 │   └── tech-stack.md
+├── backups
+│   └── habistat-backup-2025-08-07T01-32-46-851Z.db
+├── migrations
+│   ├── meta
+│   │   ├── 0000_snapshot.json
+│   │   └── _journal.json
+│   └── 0000_flimsy_zombie.sql
 ├── scripts
 │   ├── fix-production-issues.mjs
 │   ├── generate-sample-data.mjs
 │   ├── migrate.mjs
 │   ├── prepare-dist.js
 │   ├── production-hotfix.mjs
+│   ├── reset-db.mjs
 │   └── version-bumper.mjs
 ├── src
 │   ├── convex

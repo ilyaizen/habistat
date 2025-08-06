@@ -60,10 +60,17 @@ export async function getHabitById(id: string): Promise<Habit | null> {
 }
 
 // Note: convexId field was removed from schema - sync now uses localUuid for mapping
-// This function is deprecated and should be replaced with getHabitByLocalUuid if needed
-export async function getHabitByConvexId(_convexId: string): Promise<Habit | null> {
-  console.warn("getHabitByConvexId is deprecated - convexId field removed from schema");
-  return null;
+// This function maps Convex habit IDs back to local habits using localUuid
+export async function getHabitByConvexId(convexId: string): Promise<Habit | null> {
+  const db = await getDrizzleDb();
+  // In the new schema, we use localUuid to correlate with Convex records
+  // The convexId parameter is actually the localUuid from the server
+  const results = await db
+    .select()
+    .from(schema.habits)
+    .where(eq(schema.habits.localUuid, convexId))
+    .limit(1);
+  return results[0] || null;
 }
 
 export async function createHabit(data: typeof schema.habits.$inferInsert) {
