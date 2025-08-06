@@ -62,7 +62,15 @@
   <CardContent class="space-y-4">
     <!-- Current sync status display -->
     <div class="flex flex-col space-y-3">
-      <SyncStatus />
+      <!-- Enhanced sync status with indicator -->
+      <div class="flex items-center justify-between">
+        <SyncStatus variant="badges" />
+        <!-- <SyncStatus 
+          variant="detailed"
+          showText={true} 
+          onRetry={() => syncStore.triggerSync()}
+        /> -->
+      </div>
 
       <!-- Sync controls -->
       <div class="flex flex-wrap gap-2 pt-2">
@@ -75,6 +83,18 @@
         >
           <RefreshCw class="h-3 w-3 {$isSyncing ? 'animate-spin' : ''}" />
           {$isSyncing ? "Syncing..." : "Sync Now"}
+        </Button>
+
+        <!-- Migration Dialog Button -->
+        <Button
+          size="sm"
+          variant="outline"
+          onclick={() => showMigrationDialog = true}
+          disabled={$isSyncing}
+          class="flex items-center gap-2"
+        >
+          <Database class="h-3 w-3" />
+          Migrate Data
         </Button>
 
         {#if $syncError}
@@ -171,7 +191,7 @@
 {/if}
 
 <!-- Anonymous Data Migration Dialog -->
- <!-- TODO: 2025-08-06 - This is not appearing anywhere... -->
+<!-- TODO: 2025-08-06 - This is not appearing anywhere... -->
 <AnonymousDataMigrationDialog 
   bind:open={showMigrationDialog}
   onComplete={(migrated) => {
