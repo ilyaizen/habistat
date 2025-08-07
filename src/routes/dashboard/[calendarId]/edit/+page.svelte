@@ -14,7 +14,11 @@
   import Switch from "$lib/components/ui/switch/switch.svelte";
   // Import stores and types for managing calendar data.
   import { type Calendar, calendarsStore } from "$lib/stores/calendars";
-  import { COLOR_PALETTE } from "$lib/utils/colors";
+  import {
+    ALLOWED_CALENDAR_COLORS,
+    normalizeCalendarColor,
+    colorNameToCss
+  } from "$lib/utils/colors";
 
   /**
    * Extracts the calendar ID from the page parameters using Svelte 5 runes.
@@ -31,6 +35,9 @@
   let saving = $state(false);
   let deleteDialogOpen = $state(false);
 
+  // Helper to display a capitalized label for the selected color name.
+  const displayName = (n: string) => (n ? n.charAt(0).toUpperCase() + n.slice(1) : n);
+
   $effect(() => {
     const allCalendars = get(calendarsStore);
     const found = allCalendars.find((c) => c.id === calendarId);
@@ -38,7 +45,8 @@
     function populateForm(cal: Calendar) {
       calendar = cal;
       name = cal.name;
-      colorTheme = cal.colorTheme;
+      // Normalize to an allowed NAME; DB stores names, UI renders via hex mapping.
+      colorTheme = normalizeCalendarColor(cal.colorTheme);
       position = cal.position;
       isEnabled = cal.isEnabled === 1;
     }
@@ -136,9 +144,9 @@
               <span class="inline-flex items-center gap-2">
                 <span
                   class="inline-block size-4 rounded-full border border-gray-200"
-                  style="background:{colorTheme}"
+                  style="background:{colorNameToCss(colorTheme)}"
                 ></span>
-                {COLOR_PALETTE.find((c) => c.value === colorTheme)?.name}
+                {displayName(colorTheme)}
               </span>
             {:else}
               Select a color
@@ -146,14 +154,14 @@
           </Select.Trigger>
           <Select.Content class="h-60 overflow-y-auto">
             <Select.Group>
-              {#each COLOR_PALETTE as color (color.value)}
-                <Select.Item value={color.value} label={color.name}>
+              {#each ALLOWED_CALENDAR_COLORS as cName (cName)}
+                <Select.Item value={cName} label={displayName(cName)}>
                   <span class="inline-flex items-center gap-2">
                     <span
                       class="inline-block size-4 rounded-full border border-gray-200"
-                      style="background:{color.value}"
+                      style="background:{colorNameToCss(cName)}"
                     ></span>
-                    {color.name}
+                    {displayName(cName)}
                   </span>
                 </Select.Item>
               {/each}

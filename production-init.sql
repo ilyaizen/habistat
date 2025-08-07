@@ -77,6 +77,12 @@ CREATE TABLE IF NOT EXISTS activityHistory (
   clientUpdatedAt INTEGER NOT NULL
 );
 
+-- Enforce at most one entry per (userId, date)
+-- Note: SQLite UNIQUE treats NULLs as distinct, so anonymous rows (userId IS NULL)
+-- are additionally guarded by app-level upsert helpers.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_activityHistory_user_date
+  ON activityHistory (userId, date);
+
 -- User profile table - stores global user settings and first app open timestamp
 CREATE TABLE IF NOT EXISTS userProfile (
   id TEXT PRIMARY KEY,

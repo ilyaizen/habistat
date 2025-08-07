@@ -9,7 +9,7 @@
   import { type Calendar, calendarsStore } from "$lib/stores/calendars";
   import { completionsStore } from "$lib/stores/completions";
   import { habits as habitsStore } from "$lib/stores/habits";
-  import { COLOR_PALETTE } from "$lib/utils/colors";
+  import { normalizeCalendarColor } from "$lib/utils/colors";
   import { SAMPLE_DATA_CONFIG } from "$lib/utils/sample-data";
   import {
     generateFakeAppOpenHistory,
@@ -66,6 +66,9 @@
             id: uuid(),
             habitId: habit.id,
             completedAt: completionTime.getTime(),
+            // Use the completion's timestamp for initial clientUpdatedAt so
+            // historical samples keep stable LWW ordering during sync.
+            clientUpdatedAt: completionTime.getTime(),
             userId: currentUserId
           });
         }
@@ -86,8 +89,8 @@
       await generateFakeUsageHistory(numDays);
       const createdCalendars: string[] = [];
       for (const calendarConfig of SAMPLE_DATA_CONFIG.calendars) {
-        const colorTheme =
-          COLOR_PALETTE.find((c) => c.name === calendarConfig.colorTheme)?.value || "#3b82f6";
+        // Persist allowed color NAME; UI will map to hex for display.
+        const colorTheme = normalizeCalendarColor(calendarConfig.colorTheme);
         await calendarsStore.add({
           name: calendarConfig.name,
           colorTheme,

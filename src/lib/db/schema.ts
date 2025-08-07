@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 /**
  * Minimal, essential database schema for Habistat
@@ -80,7 +80,13 @@ export const activityHistory = sqliteTable("activityHistory", {
   date: text("date").notNull(), // YYYY-MM-DD format for easy querying
   openedAt: integer("openedAt").notNull(), // Unix timestamp of this specific app open
   clientUpdatedAt: integer("clientUpdatedAt").notNull() // Unix timestamp for Last-Write-Wins conflict resolution
-});
+},
+// Add composite uniqueness to enforce at most one entry per (userId, date).
+// Note: SQLite treats NULLs as distinct in UNIQUE constraints; anonymous entries
+// (userId IS NULL) are additionally guarded by app-level upsert helpers.
+(table) => ({
+  userDateUnique: uniqueIndex("idx_activityHistory_user_date").on(table.userId, table.date)
+}));
 
 // Sync metadata table - tracks sync state per table
 export const syncMetadata = sqliteTable("syncMetadata", {

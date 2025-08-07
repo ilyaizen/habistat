@@ -8,6 +8,7 @@
   import TierLimitGuard from "$lib/components/tier-limit-guard.svelte";
   import { type Calendar, calendarsStore } from "$lib/stores/calendars";
   import { type Habit, habits as habitsStore } from "$lib/stores/habits";
+  import { colorNameToCss } from "$lib/utils/colors";
 
   // import type { Writable } from "svelte/store";
 
@@ -88,7 +89,7 @@
       <div class="flex items-center gap-4">
         <div
           class="border-border h-12 w-12 rounded-lg border-2 shadow-sm"
-          style="background-color: {calendar.colorTheme || '#2563eb'};"
+          style="background-color: {colorNameToCss(calendar.colorTheme)};"
           aria-label="Calendar color theme"
         ></div>
         <div>

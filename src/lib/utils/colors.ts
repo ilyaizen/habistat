@@ -126,29 +126,98 @@ export function generateColorShades(
 }
 
 /**
- * Color palette for consistent theming across the application.
- * Used for calendar colors, UI components, and sample data generation.
+ * Tailwind v4 OKLCH 500-shade palette.
+ * We store color NAMES in the DB. UI renders via OKLCH strings only.
+ * Values below are approximations of 500 shades; replace with precise Tailwind v4
+ * OKLCH numbers if desired. Keeping them here centralizes visual palette.
  */
-
-export const COLOR_PALETTE = [
-  { name: "Lime", value: "#84cc16" },
-  { name: "Green", value: "#22c55e" },
-  { name: "Emerald", value: "#10b981" },
-  { name: "Teal", value: "#14b8a6" },
-  { name: "Cyan", value: "#06b6d4" },
-  { name: "Sky", value: "#0ea5e9" },
-  { name: "Blue", value: "#3b82f6" },
-  { name: "Indigo", value: "#6366f1" },
-  { name: "Violet", value: "#8b5cf6" },
-  { name: "Purple", value: "#a21caf" },
-  { name: "Fuchsia", value: "#d946ef" },
-  { name: "Pink", value: "#ec4899" },
-  { name: "Rose", value: "#f43f5e" },
-  { name: "Red", value: "#ef4444" },
-  { name: "Orange", value: "#f97316" },
-  { name: "Amber", value: "#f59e42" },
-  { name: "Yellow", value: "#eab308" }
+export const ALLOWED_CALENDAR_COLORS = [
+  "lime",
+  "green",
+  "emerald",
+  "teal",
+  "cyan",
+  "sky",
+  "blue",
+  "indigo",
+  "violet",
+  "purple",
+  "fuchsia",
+  "pink",
+  "rose",
+  "red",
+  "orange",
+  "amber",
+  "yellow"
 ] as const;
 
-// Type definition for color palette items
-export type ColorPaletteItem = (typeof COLOR_PALETTE)[0];
+export type CalendarColor = (typeof ALLOWED_CALENDAR_COLORS)[number];
+
+export const OKLCH_500: Record<CalendarColor, string> = {
+  lime: "oklch(.85 .17 129)",
+  green: "oklch(.78 .17 137)",
+  emerald: "oklch(.75 .16 149)",
+  teal: "oklch(.75 .14 187)",
+  cyan: "oklch(.8 .14 205)",
+  sky: "oklch(.78 .14 230)",
+  blue: "oklch(.7 .2 255)",
+  indigo: "oklch(.65 .21 265)",
+  violet: "oklch(.66 .22 290)",
+  purple: "oklch(.6 .22 327)",
+  fuchsia: "oklch(.71 .24 330)",
+  pink: "oklch(.78 .21 350)",
+  rose: "oklch(.73 .22 18)",
+  red: "oklch(.64 .24 25)",
+  orange: "oklch(.77 .2 60)",
+  amber: "oklch(.82 .17 75)",
+  yellow: "oklch(.9 .14 100)"
+};
+
+/**
+ * Map a color NAME to its OKLCH 500 CSS color string.
+ * Defaults to indigo-500 when not found.
+ */
+export function colorNameToCss(name: string | null | undefined): string {
+  const DEFAULT = OKLCH_500.indigo;
+  if (!name) return DEFAULT;
+  const n = name.trim().toLowerCase();
+  return (OKLCH_500 as Record<string, string>)[n] ?? DEFAULT;
+}
+
+// Temporary compatibility alias: legacy callers used colorNameToHex for swatches.
+// We now return OKLCH strings instead; callers should switch to colorNameToCss.
+export const colorNameToHex = colorNameToCss;
+
+// Deprecated: Hex-based APIs are no longer used.
+// Kept as no-op for compatibility during transition.
+export function hexToColorName(_hex: string | null | undefined): string | null {
+  return null;
+}
+
+export function isAllowedCalendarColor(value: string | null | undefined): value is CalendarColor {
+  if (!value) return false;
+  const v = value.trim().toLowerCase();
+  return (ALLOWED_CALENDAR_COLORS as readonly string[]).includes(v);
+}
+
+/**
+ * Normalize arbitrary inputs (name or Tailwind-like token) to an allowed color NAME.
+ * - If value is already an allowed name, returns it lowercased.
+ * - If value is a token like "indigo-500", maps base to allowed if present.
+ * - Otherwise defaults to a stable choice ("indigo").
+ */
+export function normalizeCalendarColor(value: string | null | undefined): CalendarColor {
+  const DEFAULT_NAME: CalendarColor = "indigo";
+  if (!value) return DEFAULT_NAME;
+  const raw = value.trim().toLowerCase();
+
+  // Already an allowed name
+  if ((ALLOWED_CALENDAR_COLORS as readonly string[]).includes(raw)) return raw as CalendarColor;
+
+  // Tailwind-like token: "indigo-500" -> "indigo"
+  const base = raw.includes("-") ? raw.split("-")[0] : raw;
+  if ((ALLOWED_CALENDAR_COLORS as readonly string[]).includes(base)) return base as CalendarColor;
+
+  // Fallback
+  return DEFAULT_NAME;
+}

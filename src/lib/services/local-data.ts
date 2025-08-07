@@ -3,6 +3,10 @@ import { and, desc, eq, gte, isNull } from "drizzle-orm";
 import { getDb as getDrizzleDb, persistBrowserDb } from "../db/client";
 import * as schema from "../db/schema";
 import type { Calendar } from "../stores/calendars";
+// Enforce and normalize calendar color themes at the data layer to guarantee
+// consistency regardless of the caller. This supports Phase 3.7 R1 (normalize
+// invalid values) while allowing us to later harden server validation (R2).
+import { normalizeCalendarColor } from "../utils/colors";
 
 // --- Types ---
 type Habit = InferModel<typeof schema.habits>;
@@ -22,7 +26,12 @@ export async function getAllCalendars(): Promise<Calendar[]> {
 
 export async function createCalendar(data: typeof schema.calendars.$inferInsert) {
   const db = await getDrizzleDb();
-  const [newCal] = await db.insert(schema.calendars).values(data).returning();
+  // Normalize color theme to an allowed value before persisting.
+  const values: typeof schema.calendars.$inferInsert = {
+    ...data,
+    colorTheme: normalizeCalendarColor(data.colorTheme)
+  };
+  const [newCal] = await db.insert(schema.calendars).values(values).returning();
   await persistBrowserDb(); // Persist changes
   return newCal;
 }
@@ -32,7 +41,12 @@ export async function updateCalendar(
   data: Partial<typeof schema.calendars.$inferInsert>
 ) {
   const db = await getDrizzleDb();
-  await db.update(schema.calendars).set(data).where(eq(schema.calendars.id, id));
+  const nextData: Partial<typeof schema.calendars.$inferInsert> = { ...data };
+  // If colorTheme is being updated, normalize it to the nearest/default allowed name.
+  if (typeof nextData.colorTheme === "string") {
+    nextData.colorTheme = normalizeCalendarColor(nextData.colorTheme);
+  }
+  await db.update(schema.calendars).set(nextData).where(eq(schema.calendars.id, id));
   await persistBrowserDb(); // Persist changes
 }
 
@@ -289,6 +303,90 @@ export async function getActivityHistoryByDate(date: string) {
     .where(eq(schema.activityHistory.date, date))
     .limit(1);
   return results[0] || null;
+}
+
+/**
+ * Returns activity history for a given (userId, date) pair.
+ * - When userId is null/empty, we treat it as anonymous and search with IS NULL.
+ * - This function underpins app-level uniqueness guarantees for anonymous rows,
+ *   since SQLite UNIQUE treats NULLs as distinct values.
+ */
+export async function getActivityHistoryByUserAndDate(
+  userId: string | null,
+  date: string
+) {
+  const db = await getDrizzleDb();
+  const normalizedUserId = userId && userId.trim() !== "" ? userId : null;
+  const results = await db
+    .select()
+    .from(schema.activityHistory)
+    .where(
+      and(
+        eq(schema.activityHistory.date, date),
+        normalizedUserId === null
+          ? isNull(schema.activityHistory.userId)
+          : eq(schema.activityHistory.userId, normalizedUserId)
+      )
+    )
+    .limit(1);
+  return results[0] || null;
+}
+
+/**
+ * Upserts an activityHistory row keyed by (userId, date).
+ * Behavior:
+ * - Insert when no row exists for (userId, date). For anonymous users, userId is stored as NULL.
+ * - Update when a row exists and the incoming clientUpdatedAt is strictly newer (LWW).
+ * - openedAt is considered canonical for the row and will be replaced on newer updates.
+ *
+ * Notes:
+ * - We intentionally implement this at the app layer to handle the NULL semantics of SQLite
+ *   UNIQUE constraints for anonymous rows. The DB-level unique index enforces uniqueness for
+ *   non-NULL userIds; this function closes the gap for NULL.
+ */
+export async function upsertActivityHistoryByDate(params: {
+  id?: string; // optional explicit local row id
+  localUuid?: string; // optional explicit sync correlation id
+  userId: string | null;
+  date: string; // YYYY-MM-DD
+  openedAt: number; // Unix timestamp
+  clientUpdatedAt: number; // Unix timestamp (LWW)
+}) {
+  const db = await getDrizzleDb();
+  const normalizedUserId = params.userId && params.userId.trim() !== "" ? params.userId : null;
+
+  const existing = await getActivityHistoryByUserAndDate(normalizedUserId, params.date);
+
+  if (!existing) {
+    const genId =
+      params.localUuid ??
+      params.id ??
+      (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
+    await db.insert(schema.activityHistory).values({
+      id: genId,
+      localUuid: genId,
+      userId: normalizedUserId,
+      date: params.date,
+      openedAt: params.openedAt,
+      clientUpdatedAt: params.clientUpdatedAt
+    });
+    await persistBrowserDb();
+    return genId;
+  }
+
+  // Last-Write-Wins on clientUpdatedAt. Only update when incoming is newer.
+  if (params.clientUpdatedAt > (existing as any).clientUpdatedAt) {
+    await db
+      .update(schema.activityHistory)
+      .set({ openedAt: params.openedAt, clientUpdatedAt: params.clientUpdatedAt })
+      .where(eq(schema.activityHistory.id, (existing as any).id));
+    await persistBrowserDb();
+  }
+
+  return (existing as any).id as string;
 }
 
 /**

@@ -1,7 +1,7 @@
 # **Habistat Implementation Plan**
 
 **Version:** 0.0.2
-**Last Updated:** 2025-08-07
+**Last Updated:** 2025-08-08
 
 ---
 
@@ -345,6 +345,74 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 **📋 PHASE 3.5 STATUS: COMPLETE**
 
 **Reference**: Implementation based on `Docs/PRPs/phase3.5-enhanced-sync.md` with all validation gates passed.
+
+---
+
+### **Phase 3.7: Sync & Schema Simplification (KISS + YAGNI)**
+
+References
+- PRP: `Docs/PRPs/phase3.7-sync-schema-simplification.md`
+- Process baseline: `Docs/PRPs/SV-execute-base-prp.md`
+
+Goal
+- Simplify sync logic and schemas to improve reliability and maintainability prior to Phase 4.
+- Enforce named `colorTheme` values for calendars; remove hex acceptance end-to-end.
+- Guarantee `activityHistory` is a daily log with at most one entry per `(userId, date)`.
+- Implement per-type initial sync overwrite; subsequent cycles use LWW.
+
+Success Criteria
+- Calendars only persist allowed named colors; invalid values normalized (R1) and rejected after hardening (R2).
+- `activityHistory` contains at most one row per `(userId, date)` locally and in Convex after migration.
+- On first sign-in (per data type), local data is overwritten by server data; subsequent syncs use LWW by `clientUpdatedAt`.
+- No regression to offline-first behavior or anon→auth migration flows.
+
+Work Items
+- Constants & Types
+  - [x] Create `src/lib/constants/colors.ts` exporting `ALLOWED_CALENDAR_COLORS` and `export type CalendarColor`. (R1 normalization helpers implemented)
+  - [ ] Update calendar UI components to restrict choices to allowed colors only.
+- Local DB (SQLite via Drizzle)
+  - [x] Add unique index on `activityHistory(userId, date)` and provide `upsertActivityHistoryByDate(userId, date, openedAt, clientUpdatedAt)` helper.
+  - [x] Ensure `production-init.sql` mirrors Drizzle schema (unique index present).
+  - [ ] Add local cleanup on startup: consolidate duplicate day rows by LWW if any pre-index duplicates exist.
+- Convex (Server)
+  - [ ] Mutations normalize `colorTheme` to nearest/default allowed name (Step 1) and log telemetry when normalization occurs.
+  - [ ] `activityHistory.batchUpsertActivityHistory(entries)` upserts by `(userId, date)`; keep `openedAt` canonical. Accept legacy `firstOpenAt` during migration but ignore after.
+  - [ ] After normalization is stable, tighten `colorTheme` to `v.union([...literals])` (Step 2).
+- Unified Sync
+  - [ ] Implement per-type initial sync detection: `initialSync(type) := getLastSyncTimestamp(type) === 0`.
+  - [ ] During initial pull, always overwrite local with server for conflicts; set last sync timestamp after completion.
+  - [ ] Verify/align pull paths for `calendars`, `habits`, `completions`, `activityHistory`.
+- Migration Strategy
+  - [ ] Step 1: Calendar color normalization in Convex mutations + one-off server job to normalize existing records.
+  - [ ] Step 2: ActivityHistory dedupe on server by `(userId, date)` keeping max `clientUpdatedAt`; add local unique index and run local consolidation.
+  - [ ] Step 3: Ship initial sync flags; E2E validate initial overwrite behavior; monitor metrics.
+  - [ ] Step 4: Remove legacy `firstOpenAt` after 2 successful releases with 0 legacy writes.
+
+Validation Gates (Executable)
+- VG1: Color enforcement
+  - [ ] Create calendars using each allowed color; writes succeed.
+  - [ ] Attempt to write hex/invalid; normalized and warns in R1; rejected in R2.
+- VG2: ActivityHistory uniqueness
+  - [ ] 3 writes for same `(userId, date)` locally result in 1 row.
+  - [ ] Pull from Convex with duplicate day records ends with 1 row locally (LWW).
+- VG3: Initial sync overwrite
+  - [ ] Seed Convex with data vs newer local timestamps; on first login, server overwrites local for all types; subsequent cycles use LWW.
+- VG4: Offline-first + migration
+  - [ ] Start offline, create data, sign in later; anon→auth migration preserves data; no duplicate daily rows.
+- VG5: Browser vs node SQLite parity
+  - [ ] Drizzle vs `production-init.sql` schemas match (CI check).
+
+Rollout & Monitoring
+- R1: Ship normalization + initial sync overwrite; add unique index locally; run server cleanup jobs.
+- R2: Tighten Convex schema; remove legacy fields post-stability.
+- Monitoring: log normalized color writes, activityHistory dedupe counts, initial sync metrics by type.
+
+Rollback Plan
+- If `colorTheme` hardening causes issues, revert to `v.string()` but keep normalization.
+- If unique index causes local errors, revert migration and fallback to app-level upsert-by-date while investigating.
+
+Status
+- [ ] Planned  •  [ ] In Progress  •  [ ] Validated  •  [ ] Released
 
 ---
 

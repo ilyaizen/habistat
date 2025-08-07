@@ -1,5 +1,6 @@
 <script lang="ts">
   import { triggerConfetti } from "$lib/stores/ui";
+  import { colorNameToCss } from "$lib/utils/colors";
 
   interface ConfettiBurst {
     id: number;
@@ -26,30 +27,16 @@
    * Creates lighter, darker, and complementary color variations.
    */
   function generateColorVariants(baseColor: string): string[] {
-    const variants = [baseColor];
-    const hex = baseColor.replace("#", "");
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-
-    const lighten = (val: number, amount: number) => Math.min(255, Math.floor(val + amount));
-    const darken = (val: number, amount: number) => Math.max(0, Math.floor(val - amount));
-
-    variants.push(`rgb(${lighten(r, 60)}, ${lighten(g, 60)}, ${lighten(b, 60)})`);
-    variants.push(`rgb(${lighten(r, 30)}, ${lighten(g, 30)}, ${lighten(b, 30)})`);
-    variants.push(`rgb(${darken(r, 30)}, ${darken(g, 30)}, ${darken(b, 30)})`);
-    variants.push(
-      `rgb(${Math.min(255, r + 80)}, ${Math.max(0, g - 20)}, ${Math.min(255, b + 80)})`
-    );
-    variants.push(
-      `rgb(${Math.max(0, r - 20)}, ${Math.min(255, g + 80)}, ${Math.min(255, b + 80)})`
-    );
-    variants.push(
-      `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.max(0, b - 20)})`
-    );
-    variants.push("#FFD700", "#FFA500", "#FFFF00", "#FF69B4", "#ADD8E6", "#C0C0C0");
-
-    return variants;
+    // Accept any CSS color string (OKLCH, rgb, etc.).
+    // Generate visually distinct mixes using OKLab space.
+    const base = baseColor && baseColor.trim() !== "" ? baseColor : colorNameToCss("indigo");
+    return [
+      base,
+      `color-mix(in oklab, ${base}, white 35%)`,
+      `color-mix(in oklab, ${base}, white 20%)`,
+      `color-mix(in oklab, ${base}, black 8%)`,
+      `color-mix(in oklab, ${base}, black 16%)`
+    ];
   }
 
   /**
@@ -59,7 +46,7 @@
   $effect(() => {
     const triggerValue = $triggerConfetti;
     if (triggerValue) {
-      let color = "#3b82f6";
+      let color = colorNameToCss("indigo");
       let intensity = 1;
       let originX = window.innerWidth / 2;
       let originY = window.innerHeight / 2;

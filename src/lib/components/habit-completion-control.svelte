@@ -17,6 +17,7 @@
   import type { Habit } from "$lib/stores/habits";
   import { triggerConfetti } from "$lib/stores/ui";
   import NumberFlow from "$lib/vendor/number-flow/NumberFlow.svelte";
+  import { colorNameToCss } from "$lib/utils/colors";
 
   // --- Component Properties ---
   let { habit, completionsToday = 0 } = $props<{
@@ -34,12 +35,13 @@
   // Determine if this is a negative habit (e.g., something to avoid).
   const isNegativeHabit = $derived(habit.type === "negative");
 
-  // Get the associated calendar's color theme, defaulting to blue if not found.
-  // This is used for theming elements like confetti.
+  // Get the associated calendar's color theme NAME and map to HEX for UI effects.
+  // Stored in DB as a name; convert here purely for rendering/effects.
   const calendarColor = $derived(() => {
     const calendars = $calendarsStore;
     const calendar = calendars.find((c) => c.id === habit.calendarId);
-    return calendar?.colorTheme || "#3b82f6"; // Default to blue
+    // Return OKLCH CSS color string based on stored name. Defaults to indigo internally.
+    return colorNameToCss(calendar?.colorTheme ?? "");
   });
 
   // Store the screen position of the add button, used for positioning UI effects like confetti.

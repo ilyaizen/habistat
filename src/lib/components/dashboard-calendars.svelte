@@ -8,7 +8,7 @@
  */ -->
 
 <script lang="ts">
-  import { GripVertical } from "@lucide/svelte";
+  import { colorNameToCss } from "$lib/utils/colors";
   import { flip } from "svelte/animate";
   import { SvelteDate, SvelteMap } from "svelte/reactivity";
   import { type DndEvent, dndzone } from "svelte-dnd-action";
@@ -28,6 +28,7 @@
   import { completionsByHabit } from "$lib/stores/completions";
   import { type Habit, habits as habitsStore } from "$lib/stores/habits";
   import { formatDate } from "$lib/utils/date";
+  import { GripVertical } from "@lucide/svelte";
 
   // --- Component Props ---
   // isReorderMode is controlled by the parent component (DashboardHeader)
@@ -386,7 +387,7 @@
                     <!-- Visual history grid with responsive day count -->
                     <HabitHistoryGrid
                       completions={habitCompletions}
-                      calendarColor={cal.colorTheme || "#3b82f6"}
+                      calendarColor={colorNameToCss(cal.colorTheme)}
                       numDays={isMobile.current ? 14 : 30}
                     />
 

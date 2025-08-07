@@ -5,16 +5,19 @@
   import Input from "$lib/components/ui/input/input.svelte";
   import * as Select from "$lib/components/ui/select";
   import { calendarsStore } from "$lib/stores/calendars";
-  import { COLOR_PALETTE } from "$lib/utils/colors";
+  import {
+    ALLOWED_CALENDAR_COLORS,
+    normalizeCalendarColor,
+    colorNameToCss
+  } from "$lib/utils/colors";
 
   let name = $state("");
-  let colorTheme = $state("#84cc16");
+  // Store colorTheme as a NAME (lowercase). UI renders swatches via colorNameToHex.
+  let colorTheme = $state("lime");
   let saving = $state(false);
 
-  // Derived trigger content: show selected color circle and name
-  // const triggerContent = $derived(
-  //   COLOR_PALETTE.find((c) => c.value === colorTheme)?.name ?? "Select a color"
-  // );
+  // Helper to display a capitalized label for the selected color name.
+  const displayName = (n: string) => (n ? n.charAt(0).toUpperCase() + n.slice(1) : n);
 
   async function saveCalendar(event: SubmitEvent) {
     event.preventDefault();
@@ -23,7 +26,7 @@
     try {
       await calendarsStore.add({
         name,
-        colorTheme
+        colorTheme: normalizeCalendarColor(colorTheme)
       });
       goto(`/dashboard`);
     } catch (error) {
@@ -61,9 +64,9 @@
               <span class="inline-flex items-center gap-2">
                 <span
                   class="inline-block size-4 rounded-full border border-gray-200"
-                  style="background:{colorTheme}"
+                  style="background:{colorNameToCss(colorTheme)}"
                 ></span>
-                {COLOR_PALETTE.find((c) => c.value === colorTheme)?.name}
+                {displayName(colorTheme)}
               </span>
             {:else}
               Select a color
@@ -71,14 +74,14 @@
           </Select.Trigger>
           <Select.Content class="h-60 overflow-y-auto">
             <Select.Group>
-              {#each COLOR_PALETTE as color (color.value)}
-                <Select.Item value={color.value} label={color.name}>
+              {#each ALLOWED_CALENDAR_COLORS as cName (cName)}
+                <Select.Item value={cName} label={displayName(cName)}>
                   <span class="inline-flex items-center gap-2">
                     <span
                       class="inline-block size-4 rounded-full border border-gray-200"
-                      style="background:{color.value}"
+                      style="background:{colorNameToCss(cName)}"
                     ></span>
-                    {color.name}
+                    {displayName(cName)}
                   </span>
                 </Select.Item>
               {/each}
