@@ -48,6 +48,17 @@ export async function getAllHabits(): Promise<Habit[]> {
   return db.select().from(schema.habits).all();
 }
 
+/**
+ * Create a new habit in the local database
+ * This function is called by the habits store when creating new habits
+ */
+export async function createHabit(data: typeof schema.habits.$inferInsert) {
+  const db = await getDrizzleDb();
+  await db.insert(schema.habits).values(data);
+  await persistBrowserDb(); // Persist changes to browser storage
+  return data.id;
+}
+
 export async function getHabitsByCalendar(calendarId: string) {
   const db = await getDrizzleDb();
   return db.select().from(schema.habits).where(eq(schema.habits.calendarId, calendarId)).all();
@@ -71,13 +82,6 @@ export async function getHabitByConvexId(convexId: string): Promise<Habit | null
     .where(eq(schema.habits.localUuid, convexId))
     .limit(1);
   return results[0] || null;
-}
-
-export async function createHabit(data: typeof schema.habits.$inferInsert) {
-  const db = await getDrizzleDb();
-  await db.insert(schema.habits).values(data);
-  await persistBrowserDb(); // Persist changes
-  return data.id;
 }
 
 export async function updateHabit(id: string, data: Partial<typeof schema.habits.$inferInsert>) {

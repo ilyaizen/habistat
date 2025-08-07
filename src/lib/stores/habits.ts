@@ -284,8 +284,8 @@ function createHabitsStore() {
               pointsValue: newHabit.pointsValue ?? undefined,
               position: newHabit.position,
               isEnabled: newHabit.isEnabled === 1,
-              clientCreatedAt: newHabit.createdAt,
-              clientUpdatedAt: newHabit.updatedAt
+              createdAt: newHabit.createdAt,
+              updatedAt: newHabit.updatedAt
             });
             if (result !== null) {
               console.log(`Habit ${newHabit.id} synced to Convex.`);
