@@ -73,20 +73,23 @@ export const userProfile = sqliteTable("userProfile", {
 });
 
 // Activity history table - simplified daily app usage tracking
-export const activityHistory = sqliteTable("activityHistory", {
-  id: text("id").primaryKey(), // Local UUID
-  userId: text("userId"), // Nullable for anonymous/local users
-  localUuid: text("localUuid").notNull().unique(), // UUID for sync correlation with Convex
-  date: text("date").notNull(), // YYYY-MM-DD format for easy querying
-  openedAt: integer("openedAt").notNull(), // Unix timestamp of this specific app open
-  clientUpdatedAt: integer("clientUpdatedAt").notNull() // Unix timestamp for Last-Write-Wins conflict resolution
-},
-// Add composite uniqueness to enforce at most one entry per (userId, date).
-// Note: SQLite treats NULLs as distinct in UNIQUE constraints; anonymous entries
-// (userId IS NULL) are additionally guarded by app-level upsert helpers.
-(table) => ({
-  userDateUnique: uniqueIndex("idx_activityHistory_user_date").on(table.userId, table.date)
-}));
+export const activityHistory = sqliteTable(
+  "activityHistory",
+  {
+    id: text("id").primaryKey(), // Local UUID
+    userId: text("userId"), // Nullable for anonymous/local users
+    localUuid: text("localUuid").notNull().unique(), // UUID for sync correlation with Convex
+    date: text("date").notNull(), // YYYY-MM-DD format for easy querying
+    openedAt: integer("openedAt").notNull(), // Unix timestamp of this specific app open
+    clientUpdatedAt: integer("clientUpdatedAt").notNull() // Unix timestamp for Last-Write-Wins conflict resolution
+  },
+  // Add composite uniqueness to enforce at most one entry per (userId, date).
+  // Note: SQLite treats NULLs as distinct in UNIQUE constraints; anonymous entries
+  // (userId IS NULL) are additionally guarded by app-level upsert helpers.
+  (table) => ({
+    userDateUnique: uniqueIndex("idx_activityHistory_user_date").on(table.userId, table.date)
+  })
+);
 
 // Sync metadata table - tracks sync state per table
 export const syncMetadata = sqliteTable("syncMetadata", {

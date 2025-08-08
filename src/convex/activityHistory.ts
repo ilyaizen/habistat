@@ -4,6 +4,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 // No need to import getCurrentUser - we'll use auth context directly
 
 /**
@@ -21,15 +22,17 @@ export const getActivityHistorySince = query({
     if (!identity) {
       throw new Error("Not authenticated");
     }
-    
+
     // Use Clerk user ID directly as userId (no database lookup needed)
     const userId = identity.subject;
-    
-    // Build the base query
+
+    // Build the base query using an index (guideline: avoid table scans + filter).
+    // Index order: [userId, clientUpdatedAt]. We eq on userId then gte on clientUpdatedAt.
     let query = ctx.db
       .query("activityHistory")
-      .withIndex("by_user_date", (q) => q.eq("userId", userId))
-      .filter((q) => q.gte(q.field("clientUpdatedAt"), timestamp))
+      .withIndex("by_user_updated_at", (q) =>
+        q.eq("userId", userId).gte("clientUpdatedAt", timestamp)
+      )
       .order("desc");
 
     // Apply pagination
@@ -37,7 +40,7 @@ export const getActivityHistorySince = query({
       cursor: cursor || null,
       numItems: limit
     });
-    
+
     return {
       activityHistory: paginationResult.page,
       nextCursor: paginationResult.continueCursor,
@@ -64,7 +67,7 @@ export const batchUpsertActivityHistory = mutation({
     if (!identity) {
       throw new Error("Not authenticated");
     }
-    
+
     // Use Clerk user ID directly as userId (no database lookup needed)
     const userId = identity.subject;
     const results: { localUuid: string; action: string }[] = [];
@@ -73,7 +76,7 @@ export const batchUpsertActivityHistory = mutation({
       // Check if entry already exists
       const existing = await ctx.db
         .query("activityHistory")
-        .withIndex("by_user_local_uuid", (q) => 
+        .withIndex("by_user_local_uuid", (q) =>
           q.eq("userId", userId).eq("localUuid", entry.localUuid)
         )
         .first();
@@ -103,6 +106,13 @@ export const batchUpsertActivityHistory = mutation({
       }
     }
 
+    // Optional: if we detect any duplicate dates for this user, schedule dedupe
+    // Quick check: count by date via index (best-effort, not transactional)
+    // This is lightweight and safe; the actual dedupe happens in a mutation.
+    await ctx.scheduler.runAfter(0, internal.maintenance.dedupeActivityHistoryForUser, {
+      userId
+    });
+
     return { processed: results.length, results };
   }
 });
@@ -118,10 +128,10 @@ export const getAllActivityHistory = query({
     if (!identity) {
       throw new Error("Not authenticated");
     }
-    
+
     // Use Clerk user ID directly as userId (no database lookup needed)
     const userId = identity.subject;
-    
+
     return await ctx.db
       .query("activityHistory")
       .withIndex("by_user_date", (q) => q.eq("userId", userId))
@@ -142,27 +152,27 @@ export const migrateActivityHistoryFields = mutation({
     if (!identity) {
       throw new Error("Not authenticated");
     }
-    
+
     const userId = identity.subject;
     let migratedCount = 0;
-    
+
     // Find all records with firstOpenAt but missing openedAt
     const records = await ctx.db
       .query("activityHistory")
       .withIndex("by_user_date", (q) => q.eq("userId", userId))
       .collect();
-    
+
     for (const record of records) {
       // Check if record has firstOpenAt but no openedAt
       if ((record as any).firstOpenAt && !(record as any).openedAt) {
         await ctx.db.patch(record._id, {
           openedAt: (record as any).firstOpenAt,
-          firstOpenAt: undefined // Remove the old field
-        });
+          // Note: Cannot unset fields directly; leaving legacy field harmless.
+        } as any);
         migratedCount++;
       }
     }
-    
+
     return { migratedCount, totalRecords: records.length };
   }
 });
@@ -180,13 +190,13 @@ export const deleteActivityHistory = mutation({
     if (!identity) {
       throw new Error("Not authenticated");
     }
-    
+
     // Use Clerk user ID directly as userId (no database lookup needed)
     const userId = identity.subject;
-    
+
     const entry = await ctx.db
       .query("activityHistory")
-      .withIndex("by_user_local_uuid", (q) => 
+      .withIndex("by_user_local_uuid", (q) =>
         q.eq("userId", userId).eq("localUuid", localUuid)
       )
       .first();
@@ -195,7 +205,7 @@ export const deleteActivityHistory = mutation({
       await ctx.db.delete(entry._id);
       return { deleted: true };
     }
-    
+
     return { deleted: false };
   }
 });

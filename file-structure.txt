@@ -30,17 +30,20 @@
 │   │   ├── SV-review-staged-unstaged.md
 │   │   ├── phase3-saas-subscription-management.md
 │   │   ├── phase3.5-enhanced-sync.md
+│   │   ├── phase3.7-sync-schema-simplification.md
 │   │   └── prp-svelte.md
 │   ├── add-comments.md
 │   ├── clerk-setup.md
 │   ├── contribution-guide.md
 │   ├── guidebook.md
 │   ├── implementation-plan.md
+│   ├── plan.md
 │   ├── rules.md
 │   ├── sample-data.md
 │   └── tech-stack.md
 ├── backups
-│   └── habistat-backup-2025-08-07T01-32-46-851Z.db
+│   ├── habistat-backup-2025-08-07T01-32-46-851Z.db
+│   └── habistat-backup-2025-08-07T02-42-01-087Z.db
 ├── migrations
 │   ├── meta
 │   │   ├── 0000_snapshot.json
@@ -49,6 +52,7 @@
 ├── scripts
 │   ├── fix-production-issues.mjs
 │   ├── generate-sample-data.mjs
+│   ├── migrate-activity-history.mjs
 │   ├── migrate.mjs
 │   ├── prepare-dist.js
 │   ├── production-hotfix.mjs
@@ -69,9 +73,12 @@
 │   │   ├── calendars.ts
 │   │   ├── cleanup.ts
 │   │   ├── completions.ts
+│   │   ├── constants.ts
+│   │   ├── crons.ts
 │   │   ├── debug.ts
 │   │   ├── habits.ts
 │   │   ├── http.ts
+│   │   ├── maintenance.ts
 │   │   ├── schema.ts
 │   │   ├── tsconfig.json
 │   │   └── users.ts
@@ -119,6 +126,8 @@
 │   │   │   ├── theme-toggle.svelte
 │   │   │   ├── tier-limit-guard.svelte
 │   │   │   └── upgrade-prompt.svelte
+│   │   ├── constants
+│   │   │   └── colors.ts
 │   │   ├── db
 │   │   │   ├── client.ts
 │   │   │   ├── habistat.db
@@ -256,6 +265,9 @@
 │   ├── offline.html
 │   ├── site.webmanifest
 │   └── sql-wasm.wasm
+├── tests
+│   └── convex
+│       └── vg-tests.spec.ts
 ├── .cursorignore
 ├── .dockerignore
 ├── .env
@@ -266,6 +278,7 @@
 ├── .prettierignore
 ├── .prettierrc
 ├── .vercelignore
+├── CHANGELOG.md
 ├── CLAUDE.md
 ├── Dockerfile
 ├── GEMINI.md

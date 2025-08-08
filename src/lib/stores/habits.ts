@@ -112,6 +112,11 @@ function createHabitsStore() {
             if (convexHabitsFromServer === undefined) return;
 
             isSyncing.set(true);
+            // Phase 3.7: Determine initial sync per-type using local sync metadata if not explicitly provided
+            const { getLastSyncTimestamp, updateLastSyncTimestamp } = await import(
+              "../utils/convex-operations"
+            );
+            const initialFlag = isInitialSync || (await getLastSyncTimestamp("habits")) === 0;
             const localUserHabits = (await localData.getAllHabits()).filter(
               (h) => h.userId === currentClerkUserId
             );
@@ -141,10 +146,10 @@ function createHabitsStore() {
               if (localHabit) {
                 // During initial sync (user sign-in), always overwrite local data with server data
                 // During ongoing sync, use Last-Write-Wins conflict resolution
-                if (isInitialSync || convexHabit.clientUpdatedAt > localHabit.updatedAt) {
+                if (initialFlag || convexHabit.clientUpdatedAt > localHabit.updatedAt) {
                   try {
                     await localData.updateHabit(localHabit.id, serverDataForLocal);
-                    if (isInitialSync) {
+                    if (initialFlag) {
                       console.log(
                         `📥 Initial sync: Overwriting local habit ${localHabit.id} with server data`
                       );
@@ -164,16 +169,16 @@ function createHabitsStore() {
                       id: convexHabit.localUuid,
                       ...serverDataForLocal
                     });
-                    if (isInitialSync) {
+                    if (initialFlag) {
                       console.log(
                         `📥 Initial sync: Creating habit ${convexHabit.localUuid} from server data`
                       );
                     }
                   } else {
                     // Habit exists, update it instead
-                    if (isInitialSync || convexHabit.clientUpdatedAt > existingHabit.updatedAt) {
+                    if (initialFlag || convexHabit.clientUpdatedAt > existingHabit.updatedAt) {
                       await localData.updateHabit(existingHabit.id, serverDataForLocal);
-                      if (isInitialSync) {
+                      if (initialFlag) {
                         console.log(
                           `📥 Initial sync: Updating existing habit ${existingHabit.id} with server data`
                         );
@@ -191,7 +196,7 @@ function createHabitsStore() {
             // During ongoing sync, only delete if they were removed from server
             for (const localIdToDelete of localHabitsMap.keys()) {
               await localData.deleteHabit(localIdToDelete);
-              if (isInitialSync) {
+              if (initialFlag) {
                 console.log(
                   `📥 Initial sync: Deleting local habit ${localIdToDelete} not found on server`
                 );
@@ -201,6 +206,9 @@ function createHabitsStore() {
             await _loadFromLocalDB();
             isSyncing.set(false);
             console.log("Local habits updated from Convex.");
+
+            // Mark habits as synced now that pull/merge completed
+            await updateLastSyncTimestamp("habits", Date.now());
           }
         );
 

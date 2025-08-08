@@ -1,6 +1,39 @@
 import { v } from "convex/values";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import type { CalendarColor } from "./constants";
+
+// Phase 3.7: Allowed calendar color names and normalization (server-side Step 1)
+const ALLOWED_CALENDAR_COLORS = [
+  "lime",
+  "green",
+  "emerald",
+  "teal",
+  "cyan",
+  "sky",
+  "blue",
+  "indigo",
+  "violet",
+  "purple",
+  "fuchsia",
+  "pink",
+  "rose",
+  "red",
+  "orange",
+  "amber",
+  "yellow"
+];
+
+function normalizeCalendarColorServer(value: string | null | undefined): CalendarColor {
+  const DEFAULT_NAME: CalendarColor = "indigo";
+  if (!value) return DEFAULT_NAME;
+  const raw = value.trim().toLowerCase();
+  if (ALLOWED_CALENDAR_COLORS.includes(raw)) return raw as CalendarColor;
+  const base = raw.includes("-") ? raw.split("-")[0] : raw;
+  if (ALLOWED_CALENDAR_COLORS.includes(base)) return base as CalendarColor;
+  return DEFAULT_NAME;
+}
 
 // Helper to get user ID from auth context
 // Returns Clerk user ID directly (no database lookup needed)
@@ -16,7 +49,7 @@ export const createCalendar = mutation({
   args: {
     localUuid: v.string(),
     name: v.string(),
-    colorTheme: v.string(),
+    colorTheme: v.string(), // Accept string input; normalized & schema enforces union
     position: v.number(),
     isEnabled: v.boolean(),
     createdAt: v.number(),
@@ -24,6 +57,18 @@ export const createCalendar = mutation({
   },
   handler: async (ctx: MutationCtx, args) => {
     const userId = await getUserId(ctx);
+
+    // Normalize colorTheme (Step 1). Log when normalization occurs.
+    const normalizedColor = normalizeCalendarColorServer(args.colorTheme);
+    if (normalizedColor !== args.colorTheme) {
+      console.warn(
+        `calendars.createCalendar: normalized colorTheme '${args.colorTheme}' -> '${normalizedColor}'`
+      );
+      // Telemetry counter for normalization events
+      await ctx.scheduler.runAfter(0, internal.maintenance.incrementMetric, {
+        key: "color_normalized"
+      });
+    }
 
     const existing = await ctx.db
       .query("calendars")
@@ -34,13 +79,20 @@ export const createCalendar = mutation({
 
     if (existing) {
       if (args.updatedAt > existing.updatedAt) {
-        await ctx.db.patch(existing._id, {
+        const patchData: {
+          name: string;
+          colorTheme: CalendarColor;
+          position: number;
+          isEnabled: boolean;
+          updatedAt: number;
+        } = {
           name: args.name,
-          colorTheme: args.colorTheme,
+          colorTheme: normalizedColor,
           position: args.position,
           isEnabled: args.isEnabled,
           updatedAt: args.updatedAt
-        });
+        };
+        await ctx.db.patch(existing._id, patchData);
         return existing._id;
       }
       return existing._id;
@@ -50,7 +102,7 @@ export const createCalendar = mutation({
       userId,
       localUuid: args.localUuid,
       name: args.name,
-      colorTheme: args.colorTheme,
+      colorTheme: normalizedColor,
       position: args.position,
       isEnabled: args.isEnabled,
       createdAt: args.createdAt,
@@ -86,7 +138,27 @@ export const updateCalendar = mutation({
       return existingCalendar._id;
     }
 
-    await ctx.db.patch(existingCalendar._id, updates);
+    // Normalize color if present
+    if (typeof updates.colorTheme === "string") {
+      const normalized = normalizeCalendarColorServer(updates.colorTheme);
+      if (normalized !== updates.colorTheme) {
+        console.warn(
+          `calendars.updateCalendar: normalized colorTheme '${updates.colorTheme}' -> '${normalized}'`
+        );
+        await ctx.scheduler.runAfter(0, internal.maintenance.incrementMetric, {
+          key: "color_normalized"
+        });
+      }
+      (updates as any).colorTheme = normalized as CalendarColor;
+    }
+    const patchData: {
+      name?: string;
+      colorTheme?: CalendarColor;
+      position?: number;
+      isEnabled?: boolean;
+      updatedAt: number;
+    } = updates as any;
+    await ctx.db.patch(existingCalendar._id, patchData);
     return existingCalendar._id;
   }
 });

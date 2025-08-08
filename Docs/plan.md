@@ -1,6 +1,6 @@
 # Plan
 
-Current plan is: Finish Phase 3.7 on the implementation plan `@Docs/implementation-plan.md`, and read PRP `@Docs/PRPs/phase3.7-sync-schema-simplification.md`.
+Current plan is: Finish Phase 3.7 of the implementation plan at `@Docs/implementation-plan.md`, and read PRP `@Docs/PRPs/phase3.7-sync-schema-simplification.md`.
 
 # Recent Changes
 
@@ -11,7 +11,6 @@ Current plan is: Finish Phase 3.7 on the implementation plan `@Docs/implementati
 
 ## Dev Workflow Preferences
 - Uses `bun`; user runs their own dev server (`bun dev`). Do not auto-run dev server.
-- Note: Another memory says dev runs via `pnpm dev` and shadcn-svelte is installed. Resolve per current project usage.
 
 ## Sync: Initial Overwrite Bug
 - Problem: On first sign-in, local DB not overwritten by server due to LWW check.

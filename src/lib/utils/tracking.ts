@@ -271,24 +271,21 @@ async function ensureUserProfile(): Promise<void> {
  * Logs an app open event to the database using the simplified activityHistory schema.
  */
 async function logAppOpenDb(): Promise<void> {
-  const db = await getDb();
   const now = Date.now();
   const todayStr = formatLocalDate(new Date(now));
-  const newId = uuidv4();
 
   // Ensure user profile exists (tracks first app open globally)
   await ensureUserProfile();
 
-  const entry = {
-    id: newId,
-    localUuid: newId, // Sync correlation ID
-    userId: null, // Anonymous tracking - userId will be null
-    date: todayStr, // YYYY-MM-DD format for the date
-    openedAt: now, // Unix timestamp of this specific app open
-    clientUpdatedAt: now // Unix timestamp for sync conflict resolution
-  };
-  await db.insert(activityHistory).values(entry).execute();
-  await persistBrowserDb(); // Explicitly save the DB after writing.
+  // Phase 3.7: Use app-level upsert-by-date helper to guarantee a single
+  // row per (userId, date). Anonymous users use NULL userId.
+  const { upsertActivityHistoryByDate } = await import("$lib/services/local-data");
+  await upsertActivityHistoryByDate({
+    userId: null,
+    date: todayStr,
+    openedAt: now,
+    clientUpdatedAt: now
+  });
 }
 
 /**

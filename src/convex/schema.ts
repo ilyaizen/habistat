@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { calendarColorValidator } from "./constants";
 
 /**
  * Minimal, essential Convex schema for Habistat
@@ -38,7 +39,8 @@ export default defineSchema({
     userId: v.string(), // Clerk User ID (from identity.subject)
     localUuid: v.string(), // Maps to local calendars.id for sync correlation
     name: v.string(),
-    colorTheme: v.string(),
+    // Phase 3.7 Step 2: tighten to allowed named colors only
+    colorTheme: calendarColorValidator,
     position: v.number(),
     isEnabled: v.boolean(),
     createdAt: v.number(), // Unix timestamp from client
@@ -108,4 +110,11 @@ export default defineSchema({
     .index("by_user_date", ["userId", "date"]) // For date-specific queries
     .index("by_user_local_uuid", ["userId", "localUuid"]) // For sync operations
     .index("by_user_updated_at", ["userId", "clientUpdatedAt"]), // For sync conflict resolution
+
+  // Maintenance metrics - lightweight counters for server-side telemetry
+  maintenanceMetrics: defineTable({
+    key: v.string(), // e.g., "color_normalized", "activity_dedupe_deleted"
+    count: v.number(),
+    lastUpdatedAt: v.number(),
+  }).index("by_key", ["key"]),
 });

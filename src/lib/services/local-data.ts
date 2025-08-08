@@ -311,10 +311,7 @@ export async function getActivityHistoryByDate(date: string) {
  * - This function underpins app-level uniqueness guarantees for anonymous rows,
  *   since SQLite UNIQUE treats NULLs as distinct values.
  */
-export async function getActivityHistoryByUserAndDate(
-  userId: string | null,
-  date: string
-) {
+export async function getActivityHistoryByUserAndDate(userId: string | null, date: string) {
   const db = await getDrizzleDb();
   const normalizedUserId = userId && userId.trim() !== "" ? userId : null;
   const results = await db

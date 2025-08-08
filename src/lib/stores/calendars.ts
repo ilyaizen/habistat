@@ -17,6 +17,10 @@ import type { calendars as calendarsSchema } from "../db/schema";
 // All data operations are now done through the local-data service,
 // which handles DB connection and persistence.
 import * as localData from "../services/local-data";
+// Phase 3.7: Enforce allowed color names at the store boundary to guard non-UI callers
+import { normalizeCalendarColor } from "../utils/colors";
+// Phase 3.7: Per-type initial sync detection via local sync metadata
+import { getLastSyncTimestamp, updateLastSyncTimestamp } from "../utils/convex-operations";
 import { subscriptionStore } from "./subscription";
 
 export type Calendar = InferModel<typeof calendarsSchema>;
@@ -132,6 +136,8 @@ export function createCalendarsStore() {
 
             // --- MERGE LOGIC ---
             isSyncing.set(true);
+            // Phase 3.7: Determine initial sync per-type using local sync metadata if not explicitly provided
+            const initialFlag = isInitialSync || (await getLastSyncTimestamp("calendars")) === 0;
             const localUserCalendars = (await localData.getAllCalendars()).filter(
               (c) => c.userId === currentClerkUserId
             );
@@ -146,7 +152,8 @@ export function createCalendarsStore() {
                 localUuid: convexCal.localUuid,
                 userId: currentClerkUserId,
                 name: convexCal.name,
-                colorTheme: convexCal.colorTheme,
+                // Ensure normalized name even if server is still in normalization step
+                colorTheme: normalizeCalendarColor(convexCal.colorTheme),
                 position: convexCal.position,
                 isEnabled: convexCal.isEnabled ? 1 : 0,
                 createdAt: convexCal.createdAt,
@@ -156,9 +163,9 @@ export function createCalendarsStore() {
               if (localCalendar) {
                 // During initial sync (user sign-in), always overwrite local data with server data
                 // During ongoing sync, use Last-Write-Wins conflict resolution
-                if (isInitialSync || convexCal.clientUpdatedAt > localCalendar.updatedAt) {
+                if (initialFlag || convexCal.clientUpdatedAt > localCalendar.updatedAt) {
                   await localData.updateCalendar(localCalendar.id, serverDataForLocal);
-                  if (isInitialSync) {
+                  if (initialFlag) {
                     console.log(
                       `📥 Initial sync: Overwriting local calendar ${localCalendar.id} with server data`
                     );
@@ -171,7 +178,7 @@ export function createCalendarsStore() {
                   id: convexCal.localUuid,
                   ...serverDataForLocal
                 });
-                if (isInitialSync) {
+                if (initialFlag) {
                   console.log(
                     `📥 Initial sync: Creating calendar ${convexCal.localUuid} from server data`
                   );
@@ -183,7 +190,7 @@ export function createCalendarsStore() {
             // During ongoing sync, only delete if they were removed from server
             for (const localIdToDelete of localCalendarsMap.keys()) {
               await localData.deleteCalendar(localIdToDelete);
-              if (isInitialSync) {
+              if (initialFlag) {
                 console.log(
                   `📥 Initial sync: Deleting local calendar ${localIdToDelete} not found on server`
                 );
@@ -193,6 +200,9 @@ export function createCalendarsStore() {
             await _loadFromLocalDB();
             isSyncing.set(false);
             console.log("Local calendars updated from Convex.");
+
+            // Mark calendars as synced now that pull/merge completed
+            await updateLastSyncTimestamp("calendars", Date.now());
           }
         );
 
@@ -251,7 +261,8 @@ export function createCalendarsStore() {
         localUuid: newUuid, // Sync correlation ID
         userId: calUserId,
         name: data.name,
-        colorTheme: data.colorTheme,
+        // Enforce allowed color names on create
+        colorTheme: normalizeCalendarColor(data.colorTheme),
         position: data.position ?? maxPosition + 1,
         isEnabled: 1,
         createdAt: now,
@@ -277,7 +288,8 @@ export function createCalendarsStore() {
             const result = await convexMutation(api.calendars.createCalendar, {
               localUuid: newCalendar.id, // local ID is the localUuid
               name: newCalendar.name,
-              colorTheme: newCalendar.colorTheme,
+              // Send normalized color name to server
+              colorTheme: normalizeCalendarColor(newCalendar.colorTheme),
               position: newCalendar.position,
               isEnabled: newCalendar.isEnabled === 1, // Pass boolean to Convex
               clientCreatedAt: now,
@@ -364,7 +376,8 @@ export function createCalendarsStore() {
             updatePromises.push(
               localData.updateCalendar(finalCal.id, {
                 name: finalCal.name,
-                colorTheme: finalCal.colorTheme,
+                // Always keep color normalized locally
+                colorTheme: normalizeCalendarColor(finalCal.colorTheme),
                 position: finalCal.position,
                 isEnabled: finalCal.isEnabled,
                 updatedAt: finalCal.updatedAt
@@ -389,7 +402,8 @@ export function createCalendarsStore() {
                 updatedAt: mainUpdatedItem.updatedAt
               };
               if (data.name !== undefined) payload.name = data.name;
-              if (data.colorTheme !== undefined) payload.colorTheme = data.colorTheme;
+              if (data.colorTheme !== undefined)
+                payload.colorTheme = normalizeCalendarColor(data.colorTheme);
               if (data.position !== undefined) payload.position = data.position;
               if (data.isEnabled !== undefined) payload.isEnabled = data.isEnabled === 1;
 

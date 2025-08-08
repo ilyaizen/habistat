@@ -382,7 +382,14 @@ export class UnifiedSyncService {
     }
 
     return performSafeOperation(async () => {
-      await Promise.allSettled([pullFn(), pushFn()]);
+      // Phase 3.7: Ensure pull happens before push on initial sync to guarantee overwrite semantics
+      const last = await getLastSyncTimestamp(dataType);
+      if (last === 0) {
+        await pullFn();
+        await pushFn();
+      } else {
+        await Promise.allSettled([pullFn(), pushFn()]);
+      }
       return {};
     }, `${dataType} sync`);
   }
@@ -412,6 +419,7 @@ export class UnifiedSyncService {
   private async pullActivityHistory(): Promise<void> {
     if (!this.userId) throw new Error("No user ID");
 
+    // Phase 3.7: Guarantee pull-first on initial sync; existing logic already uses lastSync
     const lastSync = await getLastSyncTimestamp("activityHistory");
     let cursor: string | undefined;
     let totalProcessed = 0;
@@ -457,7 +465,7 @@ export class UnifiedSyncService {
       cursor = response.nextCursor;
     } while (cursor);
 
-    // Update last sync timestamp
+    // Update last sync timestamp after successful pull
     await updateLastSyncTimestamp("activityHistory", Date.now());
 
     if (DEBUG_VERBOSE && totalProcessed > 0) {

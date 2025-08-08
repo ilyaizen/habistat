@@ -20,6 +20,7 @@ export namespace MigrationService {
 
     try {
       await simplifyCompletionsTable();
+      await dedupeActivityHistoryByUserDate();
       // Note: syncMetadata table is now created via official Drizzle migration (0003_equal_songbird.sql)
       if (DEBUG_VERBOSE) {
         console.log("✅ Database migrations completed successfully");
@@ -105,6 +106,47 @@ export namespace MigrationService {
       if (DEBUG_VERBOSE) {
         console.log("📝 Completions table migration not needed or already completed");
       }
+    }
+  }
+
+  /**
+   * Phase 3.7: Ensure one row per (userId, date) in activityHistory locally.
+   * If duplicates exist from pre-index data, consolidate by keeping the row
+   * with the maximum clientUpdatedAt (LWW) and removing others.
+   */
+  async function dedupeActivityHistoryByUserDate(): Promise<void> {
+    const db = await getDrizzleDb();
+    try {
+      // Create a temporary table with deduped rows
+      await db.run(`
+        CREATE TABLE IF NOT EXISTS _activityHistory_dedup AS
+        SELECT id, userId, localUuid, date, openedAt, clientUpdatedAt
+        FROM (
+          SELECT *,
+                 ROW_NUMBER() OVER (
+                   PARTITION BY userId, date
+                   ORDER BY clientUpdatedAt DESC
+                 ) AS rn
+          FROM activityHistory
+        )
+        WHERE rn = 1;
+      `);
+
+      // Replace original table if duplicates existed
+      await db.run(`
+        DELETE FROM activityHistory WHERE id NOT IN (
+          SELECT id FROM _activityHistory_dedup
+        );
+      `);
+
+      // Clean up temp table
+      await db.run(`DROP TABLE IF EXISTS _activityHistory_dedup;`);
+
+      await persistBrowserDb();
+      if (DEBUG_VERBOSE) console.log("✅ Dedupe activityHistory by (userId, date) completed");
+    } catch (error) {
+      // On environments lacking window functions, skip silently.
+      if (DEBUG_VERBOSE) console.warn("⚠️ Skipped activityHistory dedupe:", error);
     }
   }
 }
