@@ -198,6 +198,20 @@ export const deleteHabit = mutation({
       throw new Error("Habit not found");
     }
 
+    // Cascade-delete: remove all completions for this habit for the current user.
+    // We don't have a dedicated index by (userId, habitId), so we leverage the
+    // by_user_completed_at index and filter by habitId. This keeps correctness with
+    // acceptable performance for typical user datasets.
+    const completionsForHabit = await ctx.db
+      .query("completions")
+      .withIndex("by_user_completed_at", (q) => q.eq("userId", identity.subject))
+      .filter((q) => q.eq(q.field("habitId"), habit._id))
+      .collect();
+
+    for (const c of completionsForHabit) {
+      await ctx.db.delete(c._id);
+    }
+
     await ctx.db.delete(habit._id);
     return habit._id;
   }

@@ -375,23 +375,43 @@ export class SyncService {
 
       totalProcessed += response.completions.length;
 
-      for (const serverCompletion of response.completions) {
-        let localHabit = await localData.getHabitByConvexId(serverCompletion.habitId);
-        if (!localHabit) {
-          try {
-            const map = (await safeQuery(
-              api.habits.mapLocalUuidsByConvexIds,
-              { habitIds: [serverCompletion.habitId] },
-              { retries: 2, logErrors: false }
-            )) as Record<string, string> | null;
-            const localUuid = map ? map[serverCompletion.habitId] : undefined;
-            if (localUuid) {
-              localHabit = await localData.getHabitById(localUuid);
+      // Optimization: batch map unknown Convex habit IDs to local UUIDs once per page
+      // to avoid O(N) Convex queries when many completions reference the same habits.
+      const localHabitByConvexId = new Map<string, Awaited<ReturnType<typeof localData.getHabitByConvexId>> | null>();
+      const unknownConvexHabitIds = new Set<string>();
+
+      // First pass: try to resolve habits locally and collect unknowns
+      for (const sc of response.completions) {
+        const known = await localData.getHabitByConvexId(sc.habitId);
+        localHabitByConvexId.set(sc.habitId, known || null);
+        if (!known) unknownConvexHabitIds.add(sc.habitId);
+      }
+
+      // Batch map unknown Convex IDs -> local UUIDs and resolve locally
+      if (unknownConvexHabitIds.size > 0) {
+        try {
+          const idMap = (await safeQuery(
+            api.habits.mapLocalUuidsByConvexIds,
+            { habitIds: Array.from(unknownConvexHabitIds) },
+            { retries: 2, logErrors: false }
+          )) as Record<string, string> | null;
+
+          if (idMap) {
+            for (const [convexId, localUuid] of Object.entries(idMap)) {
+              if (!localHabitByConvexId.get(convexId)) {
+                const localHabit = await localData.getHabitById(localUuid);
+                localHabitByConvexId.set(convexId, localHabit || null);
+              }
             }
-          } catch (e) {
-            if (DEBUG_VERBOSE) console.warn("Habit ID mapping fallback failed", e);
           }
+        } catch (e) {
+          if (DEBUG_VERBOSE) console.warn("Habit ID batch mapping failed", e);
         }
+      }
+
+      // Second pass: process completions using resolved habit mapping
+      for (const serverCompletion of response.completions) {
+        const localHabit = localHabitByConvexId.get(serverCompletion.habitId) || null;
         if (!localHabit) {
           if (DEBUG_VERBOSE) {
             console.warn(

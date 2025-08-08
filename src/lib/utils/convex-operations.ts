@@ -83,20 +83,31 @@ export async function mapLocalHabitIdToConvexId(localHabitId: string): Promise<s
 export async function mapCompletionHabitIds(
   completions: CompletionSyncData[]
 ): Promise<CompletionSyncData[]> {
+  /**
+   * Reduce Convex calls by caching local->Convex habit ID mapping per unique habitId.
+   * Before: O(N) Convex lookups for N completions (one per completion).
+   * After:  O(U) lookups, where U = number of unique habit IDs in the batch.
+   */
   const mapped: CompletionSyncData[] = [];
+  const idCache = new Map<string, string | null>(); // localHabitId -> convexHabitId|null
 
   for (const completion of completions) {
-    const convexHabitId = await mapLocalHabitIdToConvexId(completion.habitId);
+    const localHabitId = completion.habitId;
+
+    // Check cache first to avoid duplicate Convex queries for the same habit
+    let convexHabitId = idCache.get(localHabitId) ?? null;
+    if (!idCache.has(localHabitId)) {
+      convexHabitId = await mapLocalHabitIdToConvexId(localHabitId);
+      idCache.set(localHabitId, convexHabitId);
+    }
 
     if (convexHabitId) {
-      mapped.push({
-        ...completion,
-        habitId: convexHabitId
-      });
+      mapped.push({ ...completion, habitId: convexHabitId });
     } else {
+      // We intentionally keep this as a warn to surface missing mappings during sync
       console.warn(
         `Skipping completion ${completion.localUuid} - habit not found in Convex:`,
-        completion.habitId
+        localHabitId
       );
     }
   }
