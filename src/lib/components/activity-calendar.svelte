@@ -1,0 +1,215 @@
+<!-- /**
+  * Activity Calendar Component
+  *
+  * A calendar-like display of recent activity (last N days), styled similarly to
+  * the calendars section in `dashboard-calendars.svelte` but without any
+  * drag-and-drop. This is a new visual shell around the existing activity data
+  * used by `activity-monitor.svelte`, intended to replace it.
+  *
+  * Key points:
+  * - Local-first: loads from local DB/stores and does not force a server sync
+  * - No DnD: purely presentational, matches the dashboard's card aesthetics
+  * - Accessible tooltips showing day status and completion counts
+  */ -->
+
+<script lang="ts">
+  import { onMount } from "svelte";
+  import { SvelteDate, SvelteSet } from "svelte/reactivity";
+
+  // UI components and utilities
+  import { Card } from "$lib/components/ui/card";
+  import * as Tooltip from "$lib/components/ui/tooltip";
+
+  // Activity + completion sources (local-first)
+  import { formatLocalDate } from "$lib/utils/date";
+  import { getAppOpenHistory, sessionStore } from "$lib/utils/tracking";
+
+  // Props
+  const { numDays = 30 } = $props<{ numDays?: number }>();
+
+  // Local state
+  let loading = $state(true);
+  let activityDays: DayStatus[] = $state([]);
+  let activeDates = new SvelteSet<string>();
+  let sessionStartDate: string | null = $state(null);
+
+  // Day model for the bar row
+  interface DayStatus {
+    date: string; // YYYY-MM-DD
+    status: "active" | "inactive" | "pre-registration";
+    isToday: boolean;
+  }
+
+  /**
+   * Load activity metadata and completions from local DB/stores.
+   * This function is local-first and avoids triggering server sync here.
+   */
+  async function loadActivity() {
+    loading = true;
+    try {
+      // Ensure we derive session metadata if present; avoid forcing any sync here
+
+      // Derive the session start date if present
+      const session = $sessionStore;
+      if (session?.createdAt) {
+        const created = new SvelteDate(session.createdAt);
+        sessionStartDate = formatLocalDate(created);
+      }
+
+      // Read full app-open history from local storage
+      const history = await getAppOpenHistory();
+      const newActiveDates = new SvelteSet(
+        (history ?? []).map((ts) => formatLocalDate(new SvelteDate(ts)))
+      );
+
+      // Always mark today as active for visualization
+      newActiveDates.add(formatLocalDate(new SvelteDate()));
+      activeDates = newActiveDates;
+
+      // Generate the day bars
+      generateActivityDays();
+    } catch (err) {
+      console.error("[ActivityCalendar] loadActivity failed:", err);
+    } finally {
+      loading = false;
+    }
+  }
+
+  /**
+   * Compute the day-by-day status model for the last `numDays`.
+   */
+  function generateActivityDays() {
+    const today = new SvelteDate();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = formatLocalDate(today);
+
+    const days: DayStatus[] = [];
+    for (let i = 0; i < numDays; i++) {
+      const d = new SvelteDate(today);
+      d.setDate(today.getDate() - i);
+      const dStr = formatLocalDate(d);
+
+      const isToday = dStr === todayStr;
+      const inSession = !sessionStartDate || dStr >= sessionStartDate;
+      const isActive = activeDates.has(dStr);
+      let status: DayStatus["status"]; // derive status
+      if (!inSession) status = "pre-registration";
+      else if (isActive) status = "active";
+      else status = "inactive";
+
+      days.push({ date: dStr, status, isToday });
+    }
+
+    activityDays = days.reverse();
+  }
+
+  // Refresh the activity days whenever active dates are updated and not loading
+  $effect(() => {
+    if (!loading && activeDates.size > 0) {
+      generateActivityDays();
+    }
+  });
+
+  onMount(loadActivity);
+</script>
+
+<!--
+  Presentation: mimic a calendar group section (title + card row) similar to
+  `dashboard-calendars.svelte` but without any DnD affordances.
+-->
+<Tooltip.Provider>
+  <div class="flex flex-col">
+    <!-- Title area, styled like calendar titles -->
+    <div class="flex items-start">
+      <h2 class="nunito-header mb-2 text-left text-xl font-semibold">Activity</h2>
+    </div>
+
+    <!-- Card row with activity bars -->
+    <div class="flex flex-col gap-1" role="list">
+      {#if loading}
+        <Card class="bg-card w-full min-w-0 rounded-3xl border p-1 shadow-xs" role="listitem">
+          <div class="space-y-3 p-2">
+            <div class="flex space-x-0.5 p-0.5">
+              {#each Array(numDays), i (i)}
+                <div class="h-6 w-[10px] rounded-lg bg-secondary animate-pulse"></div>
+              {/each}
+            </div>
+          </div>
+        </Card>
+      {:else}
+        <Card class="bg-card w-full min-w-0 rounded-3xl border p-1 shadow-xs" role="listitem">
+          <div class="flex items-center justify-between gap-2 p-2">
+            <!-- Left: Bars row -->
+            <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
+              {#each activityDays as day (day.date)}
+                <Tooltip.Root>
+                  <Tooltip.Trigger>
+                    <div
+                      class="h-6 w-[10px] rounded-lg"
+                      class:activity-bar-green={day.status === "active"}
+                      class:activity-bar-green-half={false}
+                      class:activity-bar-red={day.status === "inactive"}
+                      class:bg-secondary={day.status === "pre-registration"}
+                      aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""}`}
+                    ></div>
+                  </Tooltip.Trigger>
+                  <Tooltip.Content>
+                    <div class="text-center">
+                      <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
+                    </div>
+                  </Tooltip.Content>
+                </Tooltip.Root>
+              {/each}
+            </div>
+
+            <!-- Right: Legend (compact) -->
+            <div class="text-muted-foreground hidden items-center gap-3 text-xs sm:flex">
+              <div class="flex items-center gap-1">
+                <span class="bg-secondary border-border inline-block h-3 w-3 rounded border"></span>
+                <span>Pre-registration</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="activity-bar-red border-border inline-block h-3 w-3 rounded border"></span>
+                <span>Inactive</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="activity-bar-green border-border inline-block h-3 w-3 rounded border"></span>
+                <span>Active</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      {/if}
+    </div>
+  </div>
+</Tooltip.Provider>
+
+<style>
+  .activity-bar-green {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary), white 20%) 0%,
+      var(--primary) 50%,
+      color-mix(in oklab, var(--primary), black 10%) 100%
+    );
+    transition: transform 0.2s, background 0.2s;
+  }
+  .activity-bar-green-half {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary), white 20%) 0%,
+      var(--primary) 50%,
+      color-mix(in oklab, var(--primary), black 10%) 100%
+    );
+    opacity: 0.5;
+    transition: transform 0.2s, background 0.2s, opacity 0.2s;
+  }
+  .activity-bar-red {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--destructive), white 20%) 0%,
+      var(--destructive) 50%,
+      color-mix(in oklab, var(--destructive), black 10%) 100%
+    );
+  }
+</style>

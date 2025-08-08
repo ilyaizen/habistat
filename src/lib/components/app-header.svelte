@@ -68,21 +68,29 @@
         >
           Habits
         </a>
-        <!-- Stats navigation item for user statistics and analytics -->
+        <!-- Temporary link to the new hybrid dashboard page -->
         <a
+          href="/dashboard-new"
+          class="text-muted-foreground hover:text-foreground transition-colors"
+          class:font-medium={page.url.pathname.includes("/dashboard-new")}
+        >
+          New
+        </a>
+        <!-- Stats navigation item for user statistics and analytics -->
+        <!-- <a
           href="/stats"
           class="text-muted-foreground hover:text-foreground transition-colors"
           class:font-medium={page.url.pathname.includes("/stats")}
         >
           Stats
-        </a>
-        <a
+        </a> -->
+        <!-- <a
           href="/premium"
           class="text-muted-foreground hover:text-foreground transition-colors"
           class:font-medium={page.url.pathname.includes("/premium")}
         >
           Upgrade
-        </a>
+        </a> -->
         <a
           href="/settings"
           class="text-muted-foreground hover:text-foreground transition-colors"
@@ -93,13 +101,13 @@
 
         <!-- Dev navigation item for developers -->
         {#if $settings.developerMode}
-          <a
+          <!-- <a
             href="/dev"
             class="text-muted-foreground hover:text-foreground transition-colors"
             class:font-medium={page.url.pathname.includes("/dev")}
           >
             Dev
-          </a>
+          </a> -->
         {/if}
       </div>
     </nav>
@@ -126,19 +134,26 @@
         >
           Habits
         </button>
-        <!-- Stats navigation item for user statistics and analytics -->
+        <!-- Temporary mobile link to the new hybrid dashboard page -->
         <button
+          class="text-muted-foreground hover:text-foreground text-left font-medium"
+          onclick={() => handleNavigation("/dashboard-new")}
+        >
+          New
+        </button>
+        <!-- Stats navigation item for user statistics and analytics -->
+        <!-- <button
           class="text-muted-foreground hover:text-foreground text-left font-medium"
           onclick={() => handleNavigation("/stats")}
         >
           Stats
-        </button>
-        <button
+        </button> -->
+        <!-- <button
           class="text-muted-foreground hover:text-foreground text-left font-medium"
           onclick={() => handleNavigation("/premium")}
         >
           Upgrade
-        </button>
+        </button> -->
         <button
           class="text-muted-foreground hover:text-foreground text-left font-medium"
           onclick={() => handleNavigation("/settings")}
@@ -146,12 +161,12 @@
           Settings
         </button>
         {#if $settings.developerMode}
-          <button
+          <!-- <button
             class="text-muted-foreground hover:text-foreground text-left font-medium"
             onclick={() => handleNavigation("/dev")}
           >
             Dev
-          </button>
+          </button> -->
         {/if}
       </div>
     </div>
