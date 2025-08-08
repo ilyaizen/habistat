@@ -261,13 +261,10 @@ export async function setSyncMetadata(tableName: string, lastSyncTimestamp: numb
 }
 
 // Activity History (for sync operations)
-export async function getActivityHistorySince(timestamp: number = 0) {
+export async function getActivityHistorySince(_timestamp: number = 0) {
   const db = await getDrizzleDb();
-  return db
-    .select()
-    .from(schema.activityHistory)
-    .where(gte(schema.activityHistory.clientUpdatedAt, timestamp))
-    .all();
+  // Minimal schema: no clientUpdatedAt locally. Return all; caller filters by date or handles timestamps externally.
+  return db.select().from(schema.activityHistory).all();
 }
 
 export async function updateActivityHistoryUserId(localUuid: string, userId: string) {
@@ -331,23 +328,21 @@ export async function getActivityHistoryByUserAndDate(userId: string | null, dat
 
 /**
  * Upserts an activityHistory row keyed by (userId, date).
- * Behavior:
- * - Insert when no row exists for (userId, date). For anonymous users, userId is stored as NULL.
- * - Update when a row exists and the incoming clientUpdatedAt is strictly newer (LWW).
- * - openedAt is considered canonical for the row and will be replaced on newer updates.
+ * Behavior (minimal schema):
+ * - Insert when no row exists for (userId, date). Anonymous uses NULL userId.
+ * - If a row exists, no-op (no per-row timestamps locally; server uses _creationTime).
  *
  * Notes:
- * - We intentionally implement this at the app layer to handle the NULL semantics of SQLite
- *   UNIQUE constraints for anonymous rows. The DB-level unique index enforces uniqueness for
- *   non-NULL userIds; this function closes the gap for NULL.
+ * - Implemented at the app layer to handle SQLite UNIQUE + NULL semantics for anonymous rows.
+ * - DB-level UNIQUE(userId, date) enforces uniqueness for non-NULL userIds; this helper closes
+ *   the gap for NULL (anonymous) by checking existence first.
  */
 export async function upsertActivityHistoryByDate(params: {
   id?: string; // optional explicit local row id
   localUuid?: string; // optional explicit sync correlation id
   userId: string | null;
   date: string; // YYYY-MM-DD
-  openedAt: number; // Unix timestamp
-  clientUpdatedAt: number; // Unix timestamp (LWW)
+  // Minimal schema: no openedAt/clientUpdatedAt required
 }) {
   const db = await getDrizzleDb();
   const normalizedUserId = params.userId && params.userId.trim() !== "" ? params.userId : null;
@@ -366,23 +361,13 @@ export async function upsertActivityHistoryByDate(params: {
       id: genId,
       localUuid: genId,
       userId: normalizedUserId,
-      date: params.date,
-      openedAt: params.openedAt,
-      clientUpdatedAt: params.clientUpdatedAt
+      date: params.date
     });
     await persistBrowserDb();
     return genId;
   }
 
-  // Last-Write-Wins on clientUpdatedAt. Only update when incoming is newer.
-  if (params.clientUpdatedAt > (existing as any).clientUpdatedAt) {
-    await db
-      .update(schema.activityHistory)
-      .set({ openedAt: params.openedAt, clientUpdatedAt: params.clientUpdatedAt })
-      .where(eq(schema.activityHistory.id, (existing as any).id));
-    await persistBrowserDb();
-  }
-
+  // Nothing to update in minimal schema; ensure row exists
   return (existing as any).id as string;
 }
 

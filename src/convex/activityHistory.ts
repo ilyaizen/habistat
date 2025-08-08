@@ -26,13 +26,10 @@ export const getActivityHistorySince = query({
     // Use Clerk user ID directly as userId (no database lookup needed)
     const userId = identity.subject;
 
-    // Build the base query using an index (guideline: avoid table scans + filter).
-    // Index order: [userId, clientUpdatedAt]. We eq on userId then gte on clientUpdatedAt.
+    // Build query by user/date and rely on _creationTime for incremental paging
     let query = ctx.db
       .query("activityHistory")
-      .withIndex("by_user_updated_at", (q) =>
-        q.eq("userId", userId).gte("clientUpdatedAt", timestamp)
-      )
+      .withIndex("by_user_date", (q) => q.eq("userId", userId))
       .order("desc");
 
     // Apply pagination
@@ -41,8 +38,14 @@ export const getActivityHistorySince = query({
       numItems: limit
     });
 
+    const filtered = paginationResult.page.filter((row) => row._creationTime >= timestamp);
     return {
-      activityHistory: paginationResult.page,
+      activityHistory: filtered.map((row) => ({
+        _id: row._id,
+        _creationTime: row._creationTime,
+        localUuid: row.localUuid,
+        date: row.date
+      })),
       nextCursor: paginationResult.continueCursor,
       isDone: paginationResult.isDone
     };
@@ -54,12 +57,12 @@ export const getActivityHistorySince = query({
  */
 export const batchUpsertActivityHistory = mutation({
   args: {
-    entries: v.array(v.object({
-      localUuid: v.string(),
-      date: v.string(),
-      openedAt: v.number(),
-      clientUpdatedAt: v.number()
-    }))
+    entries: v.array(
+      v.object({
+        localUuid: v.string(),
+        date: v.string()
+      })
+    )
   },
   handler: async (ctx, { entries }) => {
     // Get current user from auth context
@@ -82,36 +85,21 @@ export const batchUpsertActivityHistory = mutation({
         .first();
 
       if (existing) {
-        // Update if client timestamp is newer (Last Write Wins)
-        if (entry.clientUpdatedAt > existing.clientUpdatedAt) {
-          await ctx.db.patch(existing._id, {
-            date: entry.date,
-            openedAt: entry.openedAt,
-            clientUpdatedAt: entry.clientUpdatedAt
-          });
-          results.push({ localUuid: entry.localUuid, action: "updated" });
-        } else {
-          results.push({ localUuid: entry.localUuid, action: "skipped" });
-        }
+        // Replace localUuid/date to reflect latest association (idempotent)
+        await ctx.db.patch(existing._id, { date: entry.date, localUuid: entry.localUuid });
+        results.push({ localUuid: entry.localUuid, action: "updated" });
       } else {
-        // Create new entry
         await ctx.db.insert("activityHistory", {
           userId,
           localUuid: entry.localUuid,
-          date: entry.date,
-          openedAt: entry.openedAt,
-          clientUpdatedAt: entry.clientUpdatedAt
+          date: entry.date
         });
         results.push({ localUuid: entry.localUuid, action: "created" });
       }
     }
 
-    // Optional: if we detect any duplicate dates for this user, schedule dedupe
-    // Quick check: count by date via index (best-effort, not transactional)
-    // This is lightweight and safe; the actual dedupe happens in a mutation.
-    await ctx.scheduler.runAfter(0, internal.maintenance.dedupeActivityHistoryForUser, {
-      userId
-    });
+    // Schedule dedupe to enforce one row per (userId, date)
+    await ctx.scheduler.runAfter(0, internal.maintenance.dedupeActivityHistoryForUser, { userId });
 
     return { processed: results.length, results };
   }
@@ -156,7 +144,7 @@ export const migrateActivityHistoryFields = mutation({
     const userId = identity.subject;
     let migratedCount = 0;
 
-    // Find all records with firstOpenAt but missing openedAt
+    // Legacy migration retained for compatibility (no-op after R2)
     const records = await ctx.db
       .query("activityHistory")
       .withIndex("by_user_date", (q) => q.eq("userId", userId))
@@ -164,13 +152,7 @@ export const migrateActivityHistoryFields = mutation({
 
     for (const record of records) {
       // Check if record has firstOpenAt but no openedAt
-      if ((record as any).firstOpenAt && !(record as any).openedAt) {
-        await ctx.db.patch(record._id, {
-          openedAt: (record as any).firstOpenAt,
-          // Note: Cannot unset fields directly; leaving legacy field harmless.
-        } as any);
-        migratedCount++;
-      }
+      // No field migration needed in minimal schema
     }
 
     return { migratedCount, totalRecords: records.length };

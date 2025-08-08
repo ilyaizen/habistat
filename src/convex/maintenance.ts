@@ -51,7 +51,7 @@ export const dedupeActivityHistoryForUser = internalMutation({
 
     if (rows.length === 0) return { deleted: 0, kept: 0, touchedDates: 0 };
 
-    // Group by date and choose winner by clientUpdatedAt
+    // Group by date and choose winner by latest _creationTime
     const byDate = new Map<string, typeof rows>();
     for (const row of rows) {
       const list = (byDate.get(row.date) as typeof rows | undefined) ?? [];
@@ -66,14 +66,11 @@ export const dedupeActivityHistoryForUser = internalMutation({
         kept += 1;
         continue;
       }
-      // Pick the row with highest clientUpdatedAt; if tie, keep the newest _creationTime
+      // Pick newest by _creationTime
       let winner = list[0];
       for (let i = 1; i < list.length; i++) {
         const row = list[i];
-        if (
-          row.clientUpdatedAt > winner.clientUpdatedAt ||
-          (row.clientUpdatedAt === winner.clientUpdatedAt && row._creationTime > winner._creationTime)
-        ) {
+        if (row._creationTime > winner._creationTime) {
           winner = row;
         }
       }

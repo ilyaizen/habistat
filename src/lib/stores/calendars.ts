@@ -292,8 +292,9 @@ export function createCalendarsStore() {
               colorTheme: normalizeCalendarColor(newCalendar.colorTheme),
               position: newCalendar.position,
               isEnabled: newCalendar.isEnabled === 1, // Pass boolean to Convex
-              clientCreatedAt: now,
-              clientUpdatedAt: now
+              // Phase 3.7: server expects createdAt/updatedAt
+              createdAt: now,
+              updatedAt: now
             });
             if (result !== null) {
               console.log(`Calendar ${newCalendar.id} synced to Convex.`);

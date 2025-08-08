@@ -5,6 +5,8 @@
 
   let dummySetting1 = $state(false);
   let dummySetting2 = $state(true);
+
+  // Dev settings state
 </script>
 
 <Card>
@@ -23,5 +25,7 @@
     <div>
       <p class="text-sm text-gray-500">More dev settings will go here.</p>
     </div>
+
+    <!-- Schema tools removed for alpha: manual reset will be used -->
   </CardContent>
 </Card>

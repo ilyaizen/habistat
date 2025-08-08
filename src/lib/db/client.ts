@@ -13,28 +13,9 @@ import wasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 import * as schema from "$lib/db/schema";
 import productionInitSql from "../../../production-init.sql?raw";
 
-// This is a dynamic import that Vite will handle.
-// It imports the content of all migration files as raw strings.
-// The migration files are sorted by name to ensure they are applied in order.
-const migrationModules = import.meta.glob("../../../migrations/*.sql", {
-  query: "?raw",
-  import: "default",
-  eager: true
-});
-export const migrationQueries = Object.entries(migrationModules)
-  .map(([path, query]) => ({
-    path,
-    query: query as string,
-    name: path.split("/").pop() ?? path
-  }))
-  .sort((a, b) => {
-    const aPrefix = parseInt(a.name.split("_")[0], 10);
-    const bPrefix = parseInt(b.name.split("_")[0], 10);
-    return aPrefix - bPrefix;
-  });
-
-// Use a global variable to hold the db instance, which will be set by
-// the platform-specific initialization code.
+// Use global variables to hold the db instance and readiness flags.
+// We delay marking migrations as complete to avoid race conditions where
+// callers obtain a usable db instance before migrations/guards run.
 declare global {
   var dbInstance:
     | LibSQLDatabase<typeof schema>
@@ -67,9 +48,8 @@ export async function getDb(): Promise<
   | BetterSQLite3Database<typeof schema>
   | SQLJsDatabase<typeof schema>
 > {
-  if (globalThis.dbInstance) {
-    return globalThis.dbInstance;
-  }
+  // Return cached instance if initialized
+  if (globalThis.dbInstance) return globalThis.dbInstance;
 
   if (!globalThis.dbPromise) {
     // Use `import.meta.env.SSR` which is true in Node/Tauri and false in the browser.
@@ -124,68 +104,14 @@ async function loadSqlJsDb(SQL: SqlJsStatic): Promise<SqlJsDatabase> {
     try {
       if (isNew) {
         // For a new database, run the full production initialization script.
-        // This script creates all tables and marks all migrations as applied.
+        // This script creates all tables in their production shape.
         console.log("New database detected, running production initialization script...");
         db.exec(productionInitSql);
         console.log("Production initialization script completed.");
       } else {
-        // For an existing database, run incremental migrations.
-        console.log("Existing database detected, checking for pending migrations...");
-        // Create migrations table if it doesn't exist (for backward compatibility)
-        db.run("CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY)");
-
-        // Get list of applied migrations
-        const appliedMigrationsStmt = db.prepare("SELECT name FROM _migrations");
-        const appliedMigrationNames = new Set<string>();
-        while (appliedMigrationsStmt.step()) {
-          appliedMigrationNames.add(appliedMigrationsStmt.get()[0] as string);
-        }
-        appliedMigrationsStmt.free();
-
-        const migrationsToApply = migrationQueries.filter(
-          (m) => !appliedMigrationNames.has(m.name)
-        );
-
-        if (migrationsToApply.length > 0) {
-          console.log(`Applying ${migrationsToApply.length} pending migrations...`);
-          for (const migration of migrationsToApply) {
-            try {
-              const cleanQuery = migration.query.replace(/--> statement-breakpoint/g, "");
-              db.run(cleanQuery);
-
-              // Mark migration as applied
-              const stmt = db.prepare("INSERT OR IGNORE INTO _migrations (name) VALUES (?)");
-              stmt.bind([migration.name]);
-              stmt.step();
-              stmt.free();
-              if (DEBUG_VERBOSE) {
-                console.log(`Migration ${migration.name} applied successfully.`);
-              }
-            } catch (migrationError: unknown) {
-              console.error(`Error applying migration ${migration.name}:`, migrationError);
-              // For development, we'll continue with other migrations instead of failing completely
-              // This helps with migration conflicts during development
-              if (
-                migrationError instanceof Error &&
-                migrationError.message.includes("already exists")
-              ) {
-                // Still mark it as applied to prevent future attempts
-                const stmt = db.prepare("INSERT OR IGNORE INTO _migrations (name) VALUES (?)");
-                stmt.bind([migration.name]);
-                stmt.step();
-                stmt.free();
-              } else {
-                throw migrationError;
-              }
-            }
-          }
-          if (DEBUG_VERBOSE) {
-            console.log("All pending migrations applied.");
-          }
-        } else {
-          if (DEBUG_VERBOSE) {
-            console.log("No pending migrations to apply.");
-          }
+        // For an existing database, load as-is (no migrations, no guards)
+        if (DEBUG_VERBOSE) {
+          console.log("Existing database detected; loading without migrations or guards.");
         }
       }
     } catch (e: unknown) {
@@ -264,19 +190,13 @@ async function initializeBrowserDb() {
     const { drizzle } = await import("drizzle-orm/sql-js");
     const SQL = await withTimeout(initSqlJs({ locateFile: () => wasmUrl }), 10000, "sql.js init");
     browserSqliteInstance = await withTimeout(loadSqlJsDb(SQL), 15000, "DB load from IndexedDB");
-    globalThis.dbInstance = drizzle(browserSqliteInstance, {
+    // Create the Drizzle db wrapper
+    const drizzleDb = drizzle(browserSqliteInstance, {
       schema,
       logger: false
     });
-
-    // Run custom migrations for sync support
-    try {
-      const { MigrationService } = await import("../services/migration");
-      await MigrationService.runMigrations();
-    } catch (migrationError) {
-      console.warn("Custom migrations failed, continuing:", migrationError);
-    }
-    return globalThis.dbInstance;
+    globalThis.dbInstance = drizzleDb;
+    return drizzleDb;
   } catch (error) {
     console.error("Failed to initialize browser database:", error);
     globalThis.dbInstance = null;

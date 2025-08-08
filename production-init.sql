@@ -72,9 +72,7 @@ CREATE TABLE IF NOT EXISTS activityHistory (
   id TEXT PRIMARY KEY,
   userId TEXT,
   localUuid TEXT NOT NULL UNIQUE,
-  date TEXT NOT NULL,
-  openedAt INTEGER NOT NULL,
-  clientUpdatedAt INTEGER NOT NULL
+  date TEXT NOT NULL
 );
 
 -- Enforce at most one entry per (userId, date)

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 // import type { Id } from "./_generated/dataModel";
+import type { Id } from "./_generated/dataModel";
 
 // --- Schema ---
 // This is defined in schema.ts, but we reference it here for type safety
@@ -58,6 +59,31 @@ export const getHabitByLocalUuid = query({
       .first();
 
     return habit;
+  }
+});
+
+// Map Convex habit _ids to localUuid values for the current user.
+export const mapLocalUuidsByConvexIds = query({
+  args: { habitIds: v.array(v.string()) },
+  returns: v.record(v.string(), v.string()),
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const result: Record<string, string> = {};
+    for (const id of args.habitIds) {
+      try {
+        const habit = await ctx.db.get(id as Id<"habits">);
+        if (habit && habit.userId === identity.subject) {
+          result[id] = habit.localUuid;
+        }
+      } catch {
+        // Ignore invalid ids
+      }
+    }
+    return result;
   }
 });
 

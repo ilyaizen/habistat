@@ -429,7 +429,11 @@ export class UnifiedSyncService {
         api.activityHistory.getActivityHistorySince,
         { timestamp: lastSync, limit: 100, cursor },
         { retries: 3, logErrors: true }
-      )) as { activityHistory: any[]; nextCursor?: string; isDone: boolean } | null;
+      )) as {
+        activityHistory: Array<{ _creationTime: number; localUuid: string; date: string }>;
+        nextCursor?: string;
+        isDone: boolean;
+      } | null;
 
       if (!response) {
         throw new Error(getAuthError());
@@ -439,33 +443,23 @@ export class UnifiedSyncService {
 
       totalProcessed += response.activityHistory.length;
 
-      // Process server activity history efficiently
+      // Process server activity history efficiently (minimal schema)
       for (const serverActivity of response.activityHistory) {
         const localActivity = await localData.getActivityHistoryByDate(serverActivity.date);
-
         if (!localActivity) {
-          // Create new local activity entry
           await localData.createActivityHistory({
             id: serverActivity.localUuid,
-            localUuid: serverActivity.localUuid, // Sync correlation ID
+            localUuid: serverActivity.localUuid,
             userId: this.userId,
-            date: serverActivity.date,
-            openedAt: serverActivity.openedAt,
-            clientUpdatedAt: serverActivity.clientUpdatedAt
-          });
-        } else if (serverActivity.clientUpdatedAt > localActivity.clientUpdatedAt) {
-          // Update local entry if server is newer (Last-Write-Wins)
-          await localData.updateActivityHistory(localActivity.id, {
-            openedAt: serverActivity.openedAt,
-            clientUpdatedAt: serverActivity.clientUpdatedAt
-          });
+            date: serverActivity.date
+          } as any);
         }
       }
 
       cursor = response.nextCursor;
     } while (cursor);
 
-    // Update last sync timestamp after successful pull
+    // Update last sync timestamp using wall-clock; server returns _creationTime per item
     await updateLastSyncTimestamp("activityHistory", Date.now());
 
     if (DEBUG_VERBOSE && totalProcessed > 0) {
@@ -490,9 +484,7 @@ export class UnifiedSyncService {
     // Map to Convex format
     const activitiesToSync = localActivities.map((activity) => ({
       localUuid: activity.id,
-      date: activity.date,
-      openedAt: activity.openedAt,
-      clientUpdatedAt: activity.clientUpdatedAt
+      date: activity.date
     }));
 
     // Batch upsert to server
@@ -553,8 +545,25 @@ export class UnifiedSyncService {
 
       // Process completions efficiently
       for (const serverCompletion of response.completions) {
-        // Map Convex habit ID back to local habit ID
-        const localHabit = await localData.getHabitByConvexId(serverCompletion.habitId);
+        // Map Convex habit ID back to local habit ID. We first try local DB lookup
+        // (legacy), then fall back to a server-provided mapping to handle cases where
+        // the local habit hasn't been created yet when completions arrive.
+        let localHabit = await localData.getHabitByConvexId(serverCompletion.habitId);
+        if (!localHabit) {
+          try {
+            const map = (await safeQuery(
+              api.habits.mapLocalUuidsByConvexIds,
+              { habitIds: [serverCompletion.habitId] },
+              { retries: 2, logErrors: false }
+            )) as Record<string, string> | null;
+            const localUuid = map ? map[serverCompletion.habitId] : undefined;
+            if (localUuid) {
+              localHabit = await localData.getHabitById(localUuid);
+            }
+          } catch (e) {
+            if (DEBUG_VERBOSE) console.warn("Habit ID mapping fallback failed", e);
+          }
+        }
         if (!localHabit) {
           if (DEBUG_VERBOSE) {
             console.warn(
@@ -582,7 +591,7 @@ export class UnifiedSyncService {
             userId: this.userId,
             habitId: serverCompletion.habitId,
             completedAt: serverCompletion.completedAt,
-            clientUpdatedAt: Date.now() // Ensure clientUpdatedAt is set as Unix timestamp
+            clientUpdatedAt: serverCompletion.completedAt // Align with server semantics
           });
           if (DEBUG_VERBOSE) {
             console.log(`✅ Created new completion: ${serverCompletion.localUuid}`);

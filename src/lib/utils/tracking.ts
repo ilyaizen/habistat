@@ -48,6 +48,84 @@ const SESSION_STORAGE_KEY = "habistat_user_session"; // Stores UserSession objec
 const LAST_LOGGED_OPEN_KEY = "habistat_last_logged_open_date"; // YYYY-MM-DD
 const APP_OPEN_HISTORY_KEY = "habistat_app_open_history";
 
+/**
+ * Validates and migrates a raw session object loaded from storage into the
+ * current `UserSession` shape.
+ *
+ * Why: The persisted structure may change over time (missing fields, renamed
+ * keys like `userId`/`clerkId`, or invalid types). This function normalizes
+ * legacy shapes and drops unknown/invalid data to keep the app stable.
+ */
+function validateAndMigrateSession(raw: unknown): {
+  session: UserSession | null;
+  changed: boolean;
+} {
+  const now = Date.now();
+  let changed = false;
+
+  if (!raw || typeof raw !== "object") {
+    return { session: null, changed };
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  // Extract legacy keys if present
+  const legacyClerkId =
+    (typeof obj.clerkId === "string" ? (obj.clerkId as string) : undefined) ??
+    (typeof obj.userId === "string" ? (obj.userId as string) : undefined);
+  const legacyEmail = typeof obj.email === "string" ? (obj.email as string) : undefined;
+
+  // Required: id (string)
+  let id = typeof obj.id === "string" && obj.id.trim() !== "" ? (obj.id as string) : undefined;
+  if (!id) {
+    id = crypto?.randomUUID?.() ?? `anon-${now}`;
+    changed = true;
+  }
+
+  // createdAt (number)
+  const createdAt = typeof obj.createdAt === "number" ? (obj.createdAt as number) : now;
+  if (typeof obj.createdAt !== "number") changed = true;
+
+  // lastModified (number)
+  const lastModified =
+    typeof obj.lastModified === "number" ? (obj.lastModified as number) : createdAt;
+  if (typeof obj.lastModified !== "number") changed = true;
+
+  // state (enum)
+  const stateRaw = obj.state;
+  const state: "anonymous" | "associated" =
+    stateRaw === "associated" || stateRaw === "anonymous"
+      ? (stateRaw as "anonymous" | "associated")
+      : legacyClerkId
+        ? "associated"
+        : "anonymous";
+  if (state !== stateRaw) changed = true;
+
+  // clerk user fields
+  let clerkUserId: string | undefined;
+  let clerkUserEmail: string | undefined;
+  if (state === "associated") {
+    const explicitClerkUserId =
+      typeof obj.clerkUserId === "string" ? (obj.clerkUserId as string) : undefined;
+    const explicitEmail =
+      typeof obj.clerkUserEmail === "string" ? (obj.clerkUserEmail as string) : undefined;
+    clerkUserId = explicitClerkUserId ?? legacyClerkId ?? undefined;
+    clerkUserEmail = explicitEmail ?? legacyEmail ?? undefined;
+    if (clerkUserId !== explicitClerkUserId || clerkUserEmail !== explicitEmail) changed = true;
+  }
+
+  const session: UserSession = {
+    id,
+    createdAt,
+    lastModified,
+    state,
+    ...(clerkUserId ? { clerkUserId } : {}),
+    ...(clerkUserEmail ? { clerkUserEmail } : {})
+  };
+
+  return { session, changed };
+}
+
 // --- Svelte Store for Session Management ---
 
 /**
@@ -61,8 +139,18 @@ function createSessionStore() {
     const stored = localStorage.getItem(SESSION_STORAGE_KEY);
     if (stored) {
       try {
-        // TODO: Add validation/migration logic for session object shape
-        initialSession = JSON.parse(stored) as UserSession;
+        const parsed = JSON.parse(stored) as unknown;
+        const { session, changed } = validateAndMigrateSession(parsed);
+        if (session) {
+          initialSession = session;
+          // Persist migrated shape immediately to avoid re-migrating next load
+          if (changed) {
+            localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+          }
+        } else {
+          // Invalid/unknown data -> clear
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+        }
       } catch (error) {
         console.error("Failed to parse session from localStorage, clearing:", error);
         localStorage.removeItem(SESSION_STORAGE_KEY);
@@ -282,9 +370,8 @@ async function logAppOpenDb(): Promise<void> {
   const { upsertActivityHistoryByDate } = await import("$lib/services/local-data");
   await upsertActivityHistoryByDate({
     userId: null,
-    date: todayStr,
-    openedAt: now,
-    clientUpdatedAt: now
+    date: todayStr
+    // Minimal schema: no openedAt/clientUpdatedAt
   });
 }
 
@@ -315,10 +402,13 @@ export async function logAppOpenIfNeeded(): Promise<boolean> {
 export async function getAppOpenHistory(): Promise<number[]> {
   const db = await getDb();
   try {
-    const query = db.select().from(activityHistory).orderBy(desc(activityHistory.openedAt));
-    const results = await query.execute();
-    const timestamps = results.map((row: { openedAt: number }) => row.openedAt);
-    return timestamps;
+    // Minimal schema: we no longer store per-open timestamps, return recent day markers instead (as YYYY-MM-DD converted to local midnight timestamps)
+    const results = await db
+      .select()
+      .from(activityHistory)
+      .orderBy(desc(activityHistory.date))
+      .execute();
+    return results.map((row: { date: string }) => new Date(`${row.date}T00:00:00`).getTime());
   } catch (error) {
     console.error("Failed to retrieve app open history:", error);
     return [];
@@ -407,9 +497,7 @@ export async function generateFakeAppOpenHistory(numDays: number = 7): Promise<v
           id: newId,
           localUuid: newId, // Sync correlation ID
           userId: null, // Initially anonymous
-          date: formatLocalDate(date),
-          openedAt: date.getTime(),
-          clientUpdatedAt: date.getTime()
+          date: formatLocalDate(date)
         })
         .execute();
     }
