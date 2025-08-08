@@ -73,7 +73,6 @@
 │   │   ├── debug.ts
 │   │   ├── habits.ts
 │   │   ├── http.ts
-│   │   ├── maintenance.ts
 │   │   ├── schema.ts
 │   │   ├── tsconfig.json
 │   │   └── users.ts

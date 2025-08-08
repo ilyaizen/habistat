@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
-import { internal } from "./_generated/api";
 import type { CalendarColor } from "./constants";
 
 // Phase 3.7: Allowed calendar color names and normalization (server-side Step 1)
@@ -64,10 +63,6 @@ export const createCalendar = mutation({
       console.warn(
         `calendars.createCalendar: normalized colorTheme '${args.colorTheme}' -> '${normalizedColor}'`
       );
-      // Telemetry counter for normalization events
-      await ctx.scheduler.runAfter(0, internal.maintenance.incrementMetric, {
-        key: "color_normalized"
-      });
     }
 
     const existing = await ctx.db
@@ -145,9 +140,6 @@ export const updateCalendar = mutation({
         console.warn(
           `calendars.updateCalendar: normalized colorTheme '${updates.colorTheme}' -> '${normalized}'`
         );
-        await ctx.scheduler.runAfter(0, internal.maintenance.incrementMetric, {
-          key: "color_normalized"
-        });
       }
       (updates as any).colorTheme = normalized as CalendarColor;
     }

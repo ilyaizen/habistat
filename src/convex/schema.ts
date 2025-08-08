@@ -106,11 +106,4 @@ export default defineSchema({
   })
     .index("by_user_date", ["userId", "date"]) // For date-specific queries
     .index("by_user_local_uuid", ["userId", "localUuid"]), // For sync operations
-
-  // Maintenance metrics - lightweight counters for server-side telemetry
-  maintenanceMetrics: defineTable({
-    key: v.string(), // e.g., "color_normalized", "activity_dedupe_deleted"
-    count: v.number(),
-    lastUpdatedAt: v.number(),
-  }).index("by_key", ["key"]),
 });

@@ -53,7 +53,7 @@ export class SyncService {
   private authUnsubscribe: (() => void) | null = null;
   private syncInProgress = false;
 
-  private constructor() { }
+  private constructor() {}
 
   /** Get the singleton instance. */
   public static getInstance(): SyncService {
@@ -94,8 +94,7 @@ export class SyncService {
       const hasSignedOut = !currentClerkId && this.lastClerkId;
 
       if (hasSignedIn) {
-        if (DEBUG_VERBOSE)
-          console.log(`SyncService: User signed in (ID: ${currentClerkId}).`);
+        if (DEBUG_VERBOSE) console.log(`SyncService: User signed in (ID: ${currentClerkId}).`);
         await this.handleUserSignIn(currentClerkId);
       } else if (hasSignedOut) {
         if (DEBUG_VERBOSE) console.log("SyncService: User signed out.");
@@ -273,7 +272,11 @@ export class SyncService {
 
   // Activity History
   public async syncActivityHistory(): Promise<SyncResult> {
-    return this.syncDataType("activityHistory", () => this.pullActivityHistory(), () => this.pushActivityHistory());
+    return this.syncDataType(
+      "activityHistory",
+      () => this.pullActivityHistory(),
+      () => this.pushActivityHistory()
+    );
   }
 
   private async pullActivityHistory(): Promise<void> {
@@ -350,7 +353,11 @@ export class SyncService {
 
   // Completions
   public async syncCompletions(): Promise<SyncResult> {
-    return this.syncDataType("completions", () => this.pullCompletions(), () => this.pushCompletions());
+    return this.syncDataType(
+      "completions",
+      () => this.pullCompletions(),
+      () => this.pushCompletions()
+    );
   }
 
   private async pullCompletions(): Promise<void> {
@@ -377,7 +384,10 @@ export class SyncService {
 
       // Optimization: batch map unknown Convex habit IDs to local UUIDs once per page
       // to avoid O(N) Convex queries when many completions reference the same habits.
-      const localHabitByConvexId = new Map<string, Awaited<ReturnType<typeof localData.getHabitByConvexId>> | null>();
+      const localHabitByConvexId = new Map<
+        string,
+        Awaited<ReturnType<typeof localData.getHabitByConvexId>> | null
+      >();
       const unknownConvexHabitIds = new Set<string>();
 
       // First pass: try to resolve habits locally and collect unknowns
@@ -428,7 +438,9 @@ export class SyncService {
         }
 
         serverCompletion.habitId = localHabit.id;
-        const localCompletion = await localData.getCompletionByLocalUuid(serverCompletion.localUuid);
+        const localCompletion = await localData.getCompletionByLocalUuid(
+          serverCompletion.localUuid
+        );
 
         if (!localCompletion) {
           await localData.createCompletion({
@@ -469,7 +481,9 @@ export class SyncService {
     const lastSync = await getLastSyncTimestamp("completions");
     const localCompletions = await localData.getUserCompletions(this.userId);
 
-    const completionsToSync = localCompletions.filter((completion) => completion.completedAt > lastSync);
+    const completionsToSync = localCompletions.filter(
+      (completion) => completion.completedAt > lastSync
+    );
 
     if (completionsToSync.length === 0) return;
 
@@ -553,9 +567,7 @@ export class SyncService {
       if (currentAuthState?.clerkUserId) {
         this.setUserId(currentAuthState.clerkUserId);
         if (DEBUG_VERBOSE) {
-          console.log(
-            `SyncService: Set userId from auth state: ${currentAuthState.clerkUserId}`
-          );
+          console.log(`SyncService: Set userId from auth state: ${currentAuthState.clerkUserId}`);
         }
       } else {
         return { success: false, error: "Not authenticated - no user ID available" };
@@ -674,5 +686,3 @@ export class SyncService {
 
 // Export singleton instance for application use
 export const syncService = SyncService.getInstance();
-
-

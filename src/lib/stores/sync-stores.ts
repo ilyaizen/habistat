@@ -338,7 +338,7 @@ function createsyncStore() {
       update((current) => ({
         ...current,
         status,
-        error: status === "error" ? message ?? null : null,
+        error: status === "error" ? (message ?? null) : null,
         lastErrorAt: status === "error" ? Date.now() : current.lastErrorAt
       }));
     },
@@ -365,18 +365,17 @@ export const syncProgress = derived(syncStore, ($sync) => ({
   completedItems: $sync.completedItems || 0,
   totalItems: $sync.totalItems || 0,
   currentItems: $sync.syncingItems || [],
-  percentage: $sync.totalItems ? Math.round((($sync.completedItems || 0) / $sync.totalItems) * 100) : 0
+  percentage: $sync.totalItems
+    ? Math.round((($sync.completedItems || 0) / $sync.totalItems) * 100)
+    : 0
 }));
 
-export const overallSyncStatus = derived(
-  [networkStore, syncStore],
-  ([$network, $sync]) => {
-    if (!$network.isOnline) {
-      return "offline" as const;
-    }
-    return $sync.status;
+export const overallSyncStatus = derived([networkStore, syncStore], ([$network, $sync]) => {
+  if (!$network.isOnline) {
+    return "offline" as const;
   }
-);
+  return $sync.status;
+});
 
 // Helper triggers
 export const triggerSync = () => {
@@ -442,5 +441,3 @@ if (browser) {
     }
   });
 }
-
-

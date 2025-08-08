@@ -4,7 +4,6 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { internal } from "./_generated/api";
 // No need to import getCurrentUser - we'll use auth context directly
 
 /**
@@ -97,9 +96,6 @@ export const batchUpsertActivityHistory = mutation({
         results.push({ localUuid: entry.localUuid, action: "created" });
       }
     }
-
-    // Schedule dedupe to enforce one row per (userId, date)
-    await ctx.scheduler.runAfter(0, internal.maintenance.dedupeActivityHistoryForUser, { userId });
 
     return { processed: results.length, results };
   }
