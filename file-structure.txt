@@ -87,7 +87,6 @@
 │   │   │   ├── about-drawer.svelte
 │   │   │   ├── activity-monitor.svelte
 │   │   │   ├── activity-trend.svelte
-│   │   │   ├── anonymous-data-migration-dialog.svelte
 │   │   │   ├── app-footer.svelte
 │   │   │   ├── app-header.svelte
 │   │   │   ├── avatar.svelte
