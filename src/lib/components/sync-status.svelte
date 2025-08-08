@@ -24,8 +24,8 @@
     lastSyncTime,
     syncError,
     syncIsOnline,
-    consolidatedSyncStore
-  } from "$lib/stores/sync-consolidated";
+    syncStore
+  } from "$lib/stores/sync-stores";
   import { cn } from "$lib/utils";
 
   // Props using Svelte 5 syntax
@@ -87,11 +87,11 @@
   }
 
   function handleSyncClick() {
-    consolidatedSyncStore.triggerFullSync();
+    syncStore.triggerFullSync();
   }
 
   function handleClearError() {
-    consolidatedSyncStore.clearError();
+    syncStore.clearError();
   }
 
   // Get sync status for indicator variants
@@ -159,7 +159,7 @@
     if (onRetry) {
       onRetry();
     } else {
-      consolidatedSyncStore.triggerFullSync();
+      syncStore.triggerFullSync();
     }
   }
 </script>

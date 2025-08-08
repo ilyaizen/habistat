@@ -1,6 +1,6 @@
 {
   "name": "habistat",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Habistat Habit Tracker",
   "author": "Ilya Aizenberg",
   "type": "module",

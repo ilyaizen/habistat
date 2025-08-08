@@ -2,13 +2,12 @@ import type { LoadedClerk, UserResource } from "@clerk/types";
 import { setContext } from "svelte";
 import { get, readable, writable } from "svelte/store";
 import { browser } from "$app/environment";
-import { unifiedSyncService } from "$lib/services/sync-unified";
 import { authState } from "$lib/stores/auth-state";
 // import { syncIsOnline as networkIsOnline } from "$lib/stores/sync";
 import { markSessionAssociated, sessionStore } from "$lib/utils/tracking";
 
 // Debug configuration - set to true to enable verbose logging
-const DEBUG_VERBOSE = false;
+const DEBUG_VERBOSE = true;
 
 /**
  * Clerk authentication hook for Habistat application.
@@ -140,15 +139,15 @@ export function useClerk() {
           console.error("❌ Clerk: Convex client initialization error:", error);
         }
 
-        // Note: User sync is automatically handled by UnifiedSyncService auth state subscription
+        // Note: User sync is automatically handled by SyncService auth state subscription
         // No need to manually trigger sync here to avoid duplication
       } else if (previousUserState !== null) {
         // Only handle sign-out if we previously had an authenticated user
         // This prevents unnecessary cleanup calls for anonymous users
         if (DEBUG_VERBOSE) {
-          console.log("📤 Clerk: User signed out, sync cleanup handled by UnifiedSyncService");
+          console.log("📤 Clerk: User signed out, sync cleanup handled by SyncService");
         }
-        // Note: Sign-out cleanup is automatically handled by UnifiedSyncService auth state subscription
+        // Note: Sign-out cleanup is automatically handled by SyncService auth state subscription
       }
 
       previousUserState = user;

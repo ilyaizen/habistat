@@ -1,7 +1,8 @@
 <script lang="ts">
   import { SvelteDate, SvelteMap } from "svelte/reactivity";
   import type { Completion } from "$lib/stores/completions";
-  import { formatDate } from "$lib/utils/date";
+  // Render history by local day to match dashboard counters and local DB semantics
+  import { formatLocalDate } from "$lib/utils/date";
   import { colorNameToCss } from "$lib/utils/colors";
 
   // import * as Tooltip from "$lib/components/ui/tooltip";
@@ -35,19 +36,19 @@
 
   const days = $derived(() => {
     const today = new SvelteDate();
-    const todayStr = formatDate(today);
+    const todayStr = formatLocalDate(today);
     const squares: DaySquare[] = [];
 
     const completionsByDate = new SvelteMap<string, number>();
     for (const completion of completions) {
-      const dateStr = formatDate(new SvelteDate(completion.completedAt));
+      const dateStr = formatLocalDate(new SvelteDate(completion.completedAt));
       completionsByDate.set(dateStr, (completionsByDate.get(dateStr) ?? 0) + 1);
     }
 
     for (let i = numDays - 1; i >= 0; i--) {
       const date = new SvelteDate();
       date.setDate(today.getDate() - i);
-      const dateStr = formatDate(date);
+      const dateStr = formatLocalDate(date);
       const count = completionsByDate.get(dateStr) ?? 0;
 
       let color = "var(--muted-foreground-transparent)";

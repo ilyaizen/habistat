@@ -25,8 +25,8 @@ describe("Phase 3.7 Validation Gates (smoke)", () => {
   });
 
   it("VG3: initial sync pull-first flag is honored in unified sync service (logic)", async () => {
-    const mod = await import("../../src/lib/services/sync-unified");
-    const service = mod.unifiedSyncService;
+    const mod = await import("../../src/lib/services/sync-service");
+    const service = mod.syncService;
     // We only assert existence and callable methods here; full E2E covered separately.
     expect(typeof service.fullSync).toBe("function");
     expect(typeof service["syncActivityHistory"]).toBe("function");

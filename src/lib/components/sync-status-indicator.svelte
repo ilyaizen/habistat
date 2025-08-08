@@ -3,11 +3,7 @@
   Shows current sync status with visual feedback and tooltip
 -->
 <script lang="ts">
-  import {
-    consolidatedSyncStore,
-    getSyncStatusIcon,
-    getSyncStatusMessage
-  } from "$lib/stores/sync-consolidated";
+  import { syncStore, getSyncStatusIcon, getSyncStatusMessage } from "$lib/stores/sync-stores";
   import { networkStore } from "$lib/stores/network";
   import * as Tooltip from "$lib/components/ui/tooltip";
   import { Button } from "$lib/components/ui/button";
@@ -24,7 +20,7 @@
   let { showText = false, size = "md", variant = "minimal", onRetry }: Props = $props();
 
   // Reactive values using Svelte 5 syntax
-  let syncInfo = $derived($consolidatedSyncStore);
+  let syncInfo = $derived($syncStore);
   let networkInfo = $derived($networkStore);
   let status = $derived(networkInfo.isOnline ? syncInfo.status : "offline");
   let icon = $derived(getSyncStatusIcon(status));

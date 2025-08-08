@@ -124,7 +124,7 @@ Non-Goals
   - Add normalization for `colorTheme` in upsert mutations.
   - Ensure `activityHistory` mutations upsert by `(userId, date)`.
 - Unified sync changes
-  - Implement per-type initial sync overwrite in `unifiedSyncService` pull flows (completions, activityHistory; verify calendars, habits path too).
+- Implement per-type initial sync overwrite in `syncService` pull flows (completions, activityHistory; verify calendars, habits path too).
 - Migrations
   - Server job: normalize calendar colors, dedupe activity history.
   - After stabilization: tighten Convex schema to literal union for `colorTheme`, remove legacy `firstOpenAt`.

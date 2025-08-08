@@ -24,7 +24,6 @@
     sessionStore,
     getAssociatedUserId
   } from "$lib/utils/tracking";
-  import { unifiedSyncService } from "$lib/services/sync-unified";
 
   // TODO: 2025-07-23 - Add the activity trend chart back in when it's ready
   // TOFIX: 2025-08-02 - Import the activity trend chart component correctly
@@ -127,11 +126,11 @@
       // If it's a new day log, trigger the fireworks
       triggerFireworks.set(true);
 
-      // Note: Activity history sync is automatically handled by UnifiedSyncService
+      // Note: Activity history sync is automatically handled by SyncService
       // during the main sync flow. No need to trigger separately to avoid conflicts.
       const clerkUserId = getAssociatedUserId();
       if (clerkUserId) {
-        console.log("Activity monitor: User authenticated, sync handled by UnifiedSyncService");
+        console.log("Activity monitor: User authenticated, sync handled by SyncService");
       }
     }
 

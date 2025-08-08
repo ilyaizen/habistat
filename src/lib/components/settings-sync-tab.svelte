@@ -11,8 +11,8 @@
     lastSyncTime,
     syncError,
     syncIsOnline,
-    consolidatedSyncStore
-  } from "$lib/stores/sync-consolidated";
+    syncStore
+  } from "$lib/stores/sync-stores";
 
   const developerMode = $derived($settings.developerMode);
 
@@ -71,9 +71,9 @@
       <!-- Enhanced sync status with indicator -->
       <div class="flex items-center justify-between">
         <SyncStatus variant="badges" />
-        <!-- <SyncStatus 
+        <!-- <SyncStatus
           variant="detailed"
-          showText={true} 
+          showText={true}
           onRetry={() => syncStore.triggerSync()}
         /> -->
       </div>
@@ -83,7 +83,7 @@
         <Button
           size="sm"
           variant="outline"
-          onclick={() => consolidatedSyncStore.triggerFullSync()}
+          onclick={() => syncStore.triggerFullSync()}
           disabled={$isSyncing || !$syncIsOnline}
           class="flex items-center gap-2"
         >
@@ -107,7 +107,7 @@
           <Button
             size="sm"
             variant="secondary"
-            onclick={() => consolidatedSyncStore.clearError()}
+            onclick={() => syncStore.clearError()}
             class="flex items-center gap-2"
           >
             Clear Error
@@ -203,7 +203,7 @@
   onComplete={(migrated) => {
     if (migrated) {
       // Trigger a sync after successful migration to ensure data is up to date
-      syncStore.triggerSync();
+      syncStore.triggerFullSync();
     }
   }}
 />

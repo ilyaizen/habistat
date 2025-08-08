@@ -27,7 +27,8 @@
   import { type Calendar, calendarsStore } from "$lib/stores/calendars";
   import { completionsByHabit } from "$lib/stores/completions";
   import { type Habit, habits as habitsStore } from "$lib/stores/habits";
-  import { formatDate } from "$lib/utils/date";
+  // Use local-day semantics for counts so UI matches user's timezone and local DB ops
+  import { formatLocalDate } from "$lib/utils/date";
   import { GripVertical } from "@lucide/svelte";
 
   // --- Component Props ---
@@ -90,16 +91,18 @@
   });
 
   /**
-   * Today's completion counts per habit for quick access
+   * Today's completion counts per habit for quick access.
+   * NOTE: Count by local day (not UTC) to align with how completions are created and
+   * how "delete latest for today" works in the local SQLite layer.
    */
   const completionsTodayByHabit = $derived.by(() => {
-    const todayStr = formatDate(new SvelteDate());
+    const todayStr = formatLocalDate(new SvelteDate());
     const newMap = new SvelteMap<string, number>();
     const allCompletions = $completionsByHabit;
 
     for (const [habitId, completions] of allCompletions.entries()) {
       const todayCount = completions.filter(
-        (c) => formatDate(new SvelteDate(c.completedAt)) === todayStr
+        (c) => formatLocalDate(new SvelteDate(c.completedAt)) === todayStr
       ).length;
       newMap.set(habitId, todayCount);
     }

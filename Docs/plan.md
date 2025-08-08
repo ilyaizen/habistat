@@ -15,17 +15,17 @@ Current plan is: Finish Phase 3.7 of the implementation plan at `@Docs/implement
 ## Sync: Initial Overwrite Bug
 - Problem: On first sign-in, local DB not overwritten by server due to LWW check.
 - Fix needed: Add “initial sync” flag to always overwrite on first sign-in.
-- Files: `src/lib/stores/calendars.ts`, `src/lib/stores/habits.ts`, `src/lib/services/sync-unified.ts`.
+- Files: `src/lib/stores/calendars.ts`, `src/lib/stores/habits.ts`, `src/lib/services/sync-stores.ts`.
 
 ## Sync: Duplicate Triggers Fixed
 - Cause: Two sign-in sync triggers racing.
-- Fix: Improved auth check in `fullSync()` and removed duplicate trigger in `sync-consolidated.ts`.
+- Fix: Improved auth check in `fullSync()` and removed duplicate trigger in `sync-service.ts`.
 - Status: Error resolved; verify overwrite behavior when Convex has data.
 
 ## Sync: Pull + Mapping Fixes and Stability
-- Fixed unsubscribe race conditions in `sync-consolidated.ts`.
+- Fixed unsubscribe race conditions in `sync-service.ts`.
 - Restored `getHabitByConvexId()` via `localUuid` mapping in `local-data.ts`.
-- Added detailed logging in `sync-unified.ts`; pull syncs now report success across data types.
+- Added detailed logging in `sync-stores.ts`; pull syncs now report success across data types.
 
 ## Convex Schema: Activity History Migration
 - Deployment failed due to missing `openedAt` in old records.
@@ -51,7 +51,7 @@ Current plan is: Finish Phase 3.7 of the implementation plan at `@Docs/implement
 - Verified consistency across `schema.ts`, migrations, and `production-init.sql`.
 
 ## Activity History Sync Mapping Fixed
-- Mapped `openedAt` consistently in `sync-unified.ts` for both push and pull.
+- Mapped `openedAt` consistently in `sync-stores.ts` for both push and pull.
 - Resolved Convex `ArgumentValidationError` for missing `openedAt`.
 
 ## Habit Calendar Reassignment UX
@@ -104,8 +104,8 @@ Update database schema and refactor sync handling
 ---
 
 Refactor sync services to use unified sync architecture
-- Replaced instances of `SyncService` with `unifiedSyncService` across multiple components for improved synchronization handling.
-- Consolidated sync-related state management into a single `consolidatedSyncStore`, replacing legacy sync and status stores.
+- Replaced instances of `SyncService` with `syncService` across multiple components for improved synchronization handling.
+- Consolidated sync-related state management into a single `syncStore`, replacing legacy sync and status stores.
 - Removed deprecated sync manager and user sync service files to streamline the codebase.
 - Updated components to utilize the new unified sync service for background sync operations and error handling.
 - Enhanced documentation to reflect the new sync architecture and its benefits.

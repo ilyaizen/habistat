@@ -171,8 +171,8 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [x] **Conflict Resolution (Basic):** ~~Start with "last write wins" based on `updatedAt` timestamp. Server timestamp preferred.~~ **UPDATED:** For completions, use `completedAt` timestamp for conflict resolution since completions are ultra-simplified. Other entities still use createdAt/updatedAt.
   - [x] **Habit Calendar Reassignment Sync:** Backend and store logic now support updating a habit's `calendarId` and syncing this change to Convex. Position is recalculated on reassignment to prevent conflicts.
   - [x] **Unified Sync Service Architecture**:
-    - **REFACTORED**: Replaced legacy `SyncService` with `unifiedSyncService` across all components
-    - **CONSOLIDATED**: Merged sync-related state into single `consolidatedSyncStore`
+    - **REFACTORED**: Replaced legacy `SyncService` with `syncService` across all components
+    - **CONSOLIDATED**: Merged sync-related state into single `syncStore`
     - **REMOVED**: Deprecated sync manager and user sync service files
     - **ENHANCED**: Improved background sync operations and error handling
     - Implement conflict resolution (Last-Write-Wins based on `clientUpdatedAt` timestamps)
@@ -226,7 +226,7 @@ This document outlines the phased implementation plan for Habistat, evolving it 
       createdAt: integer("createdAt").notNull(),
       updatedAt: integer("updatedAt").notNull()
     });
-    
+
     activityHistory: sqliteTable("activityHistory", {
       // ... other fields
       openedAt: integer("openedAt").notNull(), // Individual app open timestamp
@@ -290,8 +290,8 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [x] **COMPLETED**: Enhanced schema documentation with comprehensive comments
 
 - **3.5.2. Unified Sync Service Implementation**:
-  - [x] **COMPLETED**: Replaced all instances of legacy `SyncService` with `unifiedSyncService`
-  - [x] **COMPLETED**: Consolidated sync state management into `consolidatedSyncStore`
+  - [x] **COMPLETED**: Replaced all instances of legacy `SyncService` with `syncService`
+  - [x] **COMPLETED**: Consolidated sync state management into `syncStore`
   - [x] **COMPLETED**: Implemented bidirectional activity history sync with conflict resolution
   - [x] **COMPLETED**: Enhanced background sync triggers on auth state changes
   - [x] **COMPLETED**: Added automated sync functionality for improved UX
