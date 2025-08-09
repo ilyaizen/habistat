@@ -462,10 +462,12 @@ h6,
 */
 @layer base {
   html.noto-color-emoji {
-    --font-sans: "Noto Sans", "Noto Sans Hebrew", "Noto Color Emoji", ui-sans-serif, system-ui, sans-serif;
+    --font-sans:
+      "Noto Sans", "Noto Sans Hebrew", "Noto Color Emoji", ui-sans-serif, system-ui, sans-serif;
   }
   .dark.noto-color-emoji {
-    --font-sans: "Noto Sans", "Noto Sans Hebrew", "Noto Color Emoji", ui-sans-serif, system-ui, sans-serif;
+    --font-sans:
+      "Noto Sans", "Noto Sans Hebrew", "Noto Color Emoji", ui-sans-serif, system-ui, sans-serif;
   }
 }
 

@@ -195,7 +195,8 @@
         <Label for="noto-color-emoji">Use Noto Color Emoji</Label>
         <!-- Explains the WHY: consistent cross-platform emoji rendering; off by default to avoid extra network/font weight -->
         <div class="text-muted-foreground mt-1 text-xs">
-          Improves emoji consistency using Noto Color Emoji. Off by default to reduce font downloads.
+          Improves emoji consistency using Noto Color Emoji. Off by default to reduce font
+          downloads.
         </div>
       </div>
       <Switch id="noto-color-emoji" bind:checked={$settings.useNotoEmoji} />

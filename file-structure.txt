@@ -31,6 +31,7 @@
 │   │   ├── phase3-saas-subscription-management.md
 │   │   ├── phase3.5-enhanced-sync.md
 │   │   ├── phase3.7-sync-schema-simplification.md
+│   │   ├── phase3.8-local-first-timed-sync.md
 │   │   └── prp-svelte.md
 │   ├── add-comments.md
 │   ├── clerk-setup.md
@@ -84,6 +85,7 @@
 │   ├── lib
 │   │   ├── components
 │   │   │   ├── about-drawer.svelte
+│   │   │   ├── activity-calendar.svelte
 │   │   │   ├── activity-monitor.svelte
 │   │   │   ├── activity-trend.svelte
 │   │   │   ├── app-footer.svelte
@@ -136,7 +138,8 @@
 │   │   │   └── use-theme.ts
 │   │   ├── services
 │   │   │   ├── local-data.ts
-│   │   │   └── sync-service.ts
+│   │   │   ├── sync-service.ts
+│   │   │   └── timed-sync-scheduler.ts
 │   │   ├── stores
 │   │   │   ├── active-timers.ts
 │   │   │   ├── auth-state.ts
@@ -196,6 +199,8 @@
 │   │   │   ├── new
 │   │   │   │   └── +page.svelte
 │   │   │   ├── +layout.svelte
+│   │   │   └── +page.svelte
+│   │   ├── dashboard-new
 │   │   │   └── +page.svelte
 │   │   ├── dev
 │   │   │   ├── +layout.server.ts

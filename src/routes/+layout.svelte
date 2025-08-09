@@ -32,6 +32,10 @@
   import AppHeader from "$lib/components/app-header.svelte";
 
   import { Toaster } from "$lib/components/ui/sonner";
+  import {
+    startTimedSyncScheduler,
+    stopTimedSyncScheduler
+  } from "$lib/services/timed-sync-scheduler";
 
   // import * as ContextMenu from "$lib/components/ui/context-menu";
   // import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
@@ -112,8 +116,7 @@
         const link = document.createElement("link");
         link.id = "noto-color-emoji-font";
         link.rel = "stylesheet";
-        link.href =
-          "https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap";
+        link.href = "https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap";
         document.head.appendChild(link);
       }
       emojiFontLoaded = true;
@@ -187,6 +190,11 @@
       // TODO: 2025-07-22 - Add this back in when we have a way to handle it
       // appInit.setupDevelopmentMode();
 
+      // Start timed sync scheduler (5-minute interval by default)
+      // - Handles auth gating internally
+      // - Triggers full sync only if local changes exist
+      startTimedSyncScheduler();
+
       // Convex client will be initialized automatically when user authenticates
       // via the Clerk authentication flow in use-clerk.ts to prevent timeout
       // errors for anonymous users
@@ -211,6 +219,8 @@
         // navigation.cleanup();
         // appInit.cleanup();
       }
+      // Stop the timed sync scheduler
+      stopTimedSyncScheduler();
       if (initTimeout) {
         clearTimeout(initTimeout);
       }

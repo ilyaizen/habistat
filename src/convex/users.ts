@@ -65,6 +65,47 @@ export const createOrUpdate = internalMutation({
   },
 });
 
+/**
+ * Public mutation: Set the user's firstAppOpenAt timestamp if missing.
+ * - Requires authentication.
+ * - Finds the user by Clerk ID and only sets the field if it's currently unset.
+ * - Returns true if updated, false if already set or user not found.
+ */
+export const setFirstAppOpenAtIfMissing = mutation({
+  args: {
+    // Optional client-supplied timestamp; when omitted we use Date.now() on server
+    timestamp: v.optional(v.number())
+  },
+  returns: v.boolean(),
+  handler: async (ctx, { timestamp }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const clerkId = identity.subject;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
+      .unique();
+
+    if (!user) {
+      // User record should exist (created via syncCurrentUser / webhooks). No-op if missing.
+      return false;
+    }
+
+    if (user.firstAppOpenAt && user.firstAppOpenAt > 0) {
+      // Already set; do not overwrite
+      return false;
+    }
+
+    await ctx.db.patch(user._id, {
+      firstAppOpenAt: timestamp ?? Date.now()
+    });
+    return true;
+  }
+});
+
 // Placeholder for anonymous data migration mutation. Uncomment and use internalMutation if needed in the future.
 // import { internalMutation } from "./_generated/server";
 // export const migrateAnonymousData = internalMutation({

@@ -76,7 +76,9 @@
     <!-- Loading state: local-first store initialization -->
     <div class="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
       <div class="flex h-full w-full flex-col items-center justify-center gap-4 text-center">
-        <div class="border-t-primary border-b-secondary h-8 w-8 animate-spin rounded-full border-t-4 border-b-4"></div>
+        <div
+          class="border-t-primary border-b-secondary h-8 w-8 animate-spin rounded-full border-t-4 border-b-4"
+        ></div>
       </div>
       <p class="text-muted-foreground">Loading...</p>
     </div>

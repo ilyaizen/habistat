@@ -131,7 +131,7 @@
           <div class="space-y-3 p-2">
             <div class="flex space-x-0.5 p-0.5">
               {#each Array(numDays), i (i)}
-                <div class="h-6 w-[10px] rounded-lg bg-secondary animate-pulse"></div>
+                <div class="bg-secondary h-6 w-[10px] animate-pulse rounded-lg"></div>
               {/each}
             </div>
           </div>
@@ -169,11 +169,13 @@
                 <span>Pre-registration</span>
               </div>
               <div class="flex items-center gap-1">
-                <span class="activity-bar-red border-border inline-block h-3 w-3 rounded border"></span>
+                <span class="activity-bar-red border-border inline-block h-3 w-3 rounded border"
+                ></span>
                 <span>Inactive</span>
               </div>
               <div class="flex items-center gap-1">
-                <span class="activity-bar-green border-border inline-block h-3 w-3 rounded border"></span>
+                <span class="activity-bar-green border-border inline-block h-3 w-3 rounded border"
+                ></span>
                 <span>Active</span>
               </div>
             </div>
@@ -192,7 +194,9 @@
       var(--primary) 50%,
       color-mix(in oklab, var(--primary), black 10%) 100%
     );
-    transition: transform 0.2s, background 0.2s;
+    transition:
+      transform 0.2s,
+      background 0.2s;
   }
   .activity-bar-green-half {
     background: linear-gradient(
@@ -202,7 +206,10 @@
       color-mix(in oklab, var(--primary), black 10%) 100%
     );
     opacity: 0.5;
-    transition: transform 0.2s, background 0.2s, opacity 0.2s;
+    transition:
+      transform 0.2s,
+      background 0.2s,
+      opacity 0.2s;
   }
   .activity-bar-red {
     background: linear-gradient(

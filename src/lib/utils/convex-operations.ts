@@ -35,6 +35,35 @@ export async function waitForConvexAuth(maxWaitMs = 15000): Promise<boolean> {
 }
 
 /**
+ * Ensure user's firstAppOpenAt is set on the server.
+ * - No-op if unauthenticated or value already set.
+ * - Returns true if the mutation performed an update.
+ */
+export async function ensureFirstAppOpenTimestamp(
+  timestamp?: number
+): Promise<{ success: boolean; updated: boolean; error?: string }> {
+  try {
+    const { clerkUserId, clerkReady } = get(authState);
+    if (!clerkReady || !clerkUserId) {
+      return { success: false, updated: false, error: "Auth not ready" };
+    }
+
+    // Wait for Convex client/auth to be ready (defensive)
+    await waitForConvexAuth(10000);
+
+    const updated = await convexMutation(api.users.setFirstAppOpenAtIfMissing, {
+      timestamp
+    });
+
+    return { success: true, updated: Boolean(updated) };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.warn("ensureFirstAppOpenTimestamp failed:", message);
+    return { success: false, updated: false, error: message };
+  }
+}
+
+/**
  * Get last sync timestamp from local storage
  */
 export async function getLastSyncTimestamp(tableName: string): Promise<number> {

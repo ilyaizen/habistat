@@ -238,26 +238,93 @@ export async function getSyncMetadata(tableName: string) {
   return results[0] || null;
 }
 
+/**
+ * Update or insert the last successful sync timestamp for a specific table.
+ */
 export async function setSyncMetadata(tableName: string, lastSyncTimestamp: number) {
   const db = await getDrizzleDb();
-
-  // Try to update existing record
   const existing = await getSyncMetadata(tableName);
-
   if (existing) {
     await db
       .update(schema.syncMetadata)
       .set({ lastSyncTimestamp })
       .where(eq(schema.syncMetadata.id, tableName));
   } else {
-    // Create new record
-    await db.insert(schema.syncMetadata).values({
-      id: tableName,
-      lastSyncTimestamp
-    });
+    await db.insert(schema.syncMetadata).values({ id: tableName, lastSyncTimestamp });
   }
+  await persistBrowserDb();
+}
 
-  await persistBrowserDb(); // Persist changes
+/**
+ * Compute the most recent local update timestamp across key synced tables.
+ * Uses:
+ * - calendars.updatedAt
+ * - habits.updatedAt
+ * - completions.clientUpdatedAt
+ */
+export async function getLatestUpdatedAt(): Promise<number> {
+  const db = await getDrizzleDb();
+
+  // Our DB client typing expects select() with no arguments. We then pick fields off the row.
+  const latestCal = await db
+    .select()
+    .from(schema.calendars)
+    .orderBy(desc(schema.calendars.updatedAt))
+    .limit(1);
+  const calTs = latestCal[0]?.updatedAt ?? 0;
+
+  const latestHabit = await db
+    .select()
+    .from(schema.habits)
+    .orderBy(desc(schema.habits.updatedAt))
+    .limit(1);
+  const habitTs = latestHabit[0]?.updatedAt ?? 0;
+
+  const latestCompletion = await db
+    .select()
+    .from(schema.completions)
+    .orderBy(desc(schema.completions.clientUpdatedAt))
+    .limit(1);
+  const completionTs = latestCompletion[0]?.clientUpdatedAt ?? 0;
+
+  return Math.max(calTs, habitTs, completionTs, 0);
+}
+
+/**
+ * Determine if there are unsynced local changes since each table's last sync.
+ * Compares latest local timestamps with sync metadata for calendars, habits, and completions.
+ */
+export async function hasLocalChanges(): Promise<boolean> {
+  const db = await getDrizzleDb();
+
+  const loadLast = async (table: string) => {
+    const row = await getSyncMetadata(table);
+    return row?.lastSyncTimestamp ?? 0;
+  };
+
+  const latestCal = await db
+    .select()
+    .from(schema.calendars)
+    .orderBy(desc(schema.calendars.updatedAt))
+    .limit(1);
+  if ((latestCal[0]?.updatedAt ?? 0) > (await loadLast("calendars"))) return true;
+
+  const latestHabit = await db
+    .select()
+    .from(schema.habits)
+    .orderBy(desc(schema.habits.updatedAt))
+    .limit(1);
+  if ((latestHabit[0]?.updatedAt ?? 0) > (await loadLast("habits"))) return true;
+
+  const latestCompletion = await db
+    .select()
+    .from(schema.completions)
+    .orderBy(desc(schema.completions.clientUpdatedAt))
+    .limit(1);
+  if ((latestCompletion[0]?.clientUpdatedAt ?? 0) > (await loadLast("completions"))) return true;
+
+  // activityHistory omitted: minimal local schema lacks per-row timestamps
+  return false;
 }
 
 // Activity History (for sync operations)
