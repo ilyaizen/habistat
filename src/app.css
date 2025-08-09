@@ -454,3 +454,24 @@ h6,
 .expandable-content.expanded > .inner-content {
   opacity: 1;
 }
+
+/*
+  Optional Noto Color Emoji font override
+  - Enabled by toggling the `noto-color-emoji` class on <html> (see src/routes/+layout.svelte)
+  - Overrides --font-sans so emoji fallback prefers Noto Color Emoji when available
+*/
+@layer base {
+  html.noto-color-emoji {
+    --font-sans: "Noto Sans", "Noto Sans Hebrew", "Noto Color Emoji", ui-sans-serif, system-ui, sans-serif;
+  }
+  .dark.noto-color-emoji {
+    --font-sans: "Noto Sans", "Noto Sans Hebrew", "Noto Color Emoji", ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+/* Utility class to force Noto Color Emoji */
+.noto-color-emoji-regular {
+  font-family: "Noto Color Emoji", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}

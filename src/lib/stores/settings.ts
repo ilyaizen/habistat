@@ -8,13 +8,21 @@ interface Settings {
   showUsageHistory: boolean;
   enableMotion: boolean;
   verboseLogs: boolean;
+  /**
+   * When true, the app will load and prefer the Noto Color Emoji webfont for emoji rendering.
+   * This improves emoji consistency across platforms. Off by default to avoid extra font load
+   * unless the user explicitly opts in.
+   * Note: the property name remains `useNotoEmoji` for backward compatibility.
+   */
+  useNotoEmoji: boolean;
 }
 
 const defaultSettings: Settings = {
   developerMode: false,
   showUsageHistory: false,
   enableMotion: true,
-  verboseLogs: false
+  verboseLogs: false,
+  useNotoEmoji: false
 };
 
 function createSettingsStore() {
@@ -30,7 +38,9 @@ function createSettingsStore() {
           ...parsed,
           // Always ensure enableMotion and verboseLogs are defined
           enableMotion: parsed.enableMotion ?? defaultSettings.enableMotion,
-          verboseLogs: parsed.verboseLogs ?? defaultSettings.verboseLogs
+          verboseLogs: parsed.verboseLogs ?? defaultSettings.verboseLogs,
+          // Backward compatibility for the new emoji font toggle
+          useNotoEmoji: parsed.useNotoEmoji ?? defaultSettings.useNotoEmoji
         };
       }
     } catch (error) {

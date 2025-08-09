@@ -40,6 +40,8 @@
   // import { runDiagnostics } from "$lib/utils/tauri-debug";
 
   import StoreSync from "$lib/components/store-sync.svelte";
+  // App settings store (includes the Noto Emoji toggle)
+  import { settings as appSettings } from "$lib/stores/settings";
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -92,6 +94,31 @@
   // Set up Clerk contexts and session association
   clerk.setupClerkContexts();
   clerk.setupSessionAssociation();
+
+  // --- Optional Emoji Font (Noto Color Emoji) ---
+  // We only load Noto Color Emoji when the user explicitly enables it in settings to avoid
+  // unnecessary network/font weight. We add a class on <html> to override --font-sans
+  // so emoji fallback prefers Noto Color Emoji across platforms.
+  let emojiFontLoaded = $state(false);
+
+  $effect(() => {
+    if (!browser) return;
+    const enabled = $appSettings.useNotoEmoji;
+    document.documentElement.classList.toggle("noto-color-emoji", enabled);
+    if (enabled && !emojiFontLoaded) {
+      // Inject Google Fonts stylesheet once
+      const existing = document.getElementById("noto-color-emoji-font");
+      if (!existing) {
+        const link = document.createElement("link");
+        link.id = "noto-color-emoji-font";
+        link.rel = "stylesheet";
+        link.href =
+          "https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap";
+        document.head.appendChild(link);
+      }
+      emojiFontLoaded = true;
+    }
+  });
 
   onMount(() => {
     // Suppress Clerk development warning in dev mode

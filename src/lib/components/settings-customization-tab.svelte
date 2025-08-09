@@ -1,5 +1,7 @@
 <script lang="ts">
   import { Languages, LoaderPinwheel, Sun } from "@lucide/svelte";
+  // Emoji section icon (lazy import not necessary here due to small bundle impact)
+  import { Smile } from "@lucide/svelte";
   import { resetMode, setMode } from "mode-watcher";
   import { onDestroy, onMount } from "svelte";
   import { get } from "svelte/store";
@@ -178,6 +180,25 @@
         variant={currentTheme === "system" ? "default" : "outline"}
         onclick={() => selectTheme("system")}>System</Button
       >
+    </div>
+  </CardContent>
+</Card>
+
+<!-- Emoji Font Toggle Section -->
+<Card class="mb-6">
+  <CardHeader>
+    <Label class="flex items-center gap-2"><Smile class="h-4 w-4" /> Emoji Font</Label>
+  </CardHeader>
+  <CardContent>
+    <div class="flex items-center justify-between">
+      <div class="pr-4">
+        <Label for="noto-color-emoji">Use Noto Color Emoji</Label>
+        <!-- Explains the WHY: consistent cross-platform emoji rendering; off by default to avoid extra network/font weight -->
+        <div class="text-muted-foreground mt-1 text-xs">
+          Improves emoji consistency using Noto Color Emoji. Off by default to reduce font downloads.
+        </div>
+      </div>
+      <Switch id="noto-color-emoji" bind:checked={$settings.useNotoEmoji} />
     </div>
   </CardContent>
 </Card>
