@@ -7,6 +7,50 @@ structure of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Phase 3.8 Local-First Timed Sync**:
+  - New `phase3.8-local-first-timed-sync.md` documentation for the latest development phase
+  - Timed sync scheduler that runs every 5 minutes to automatically sync local changes
+  - `setFirstAppOpenAtIfMissing` mutation in `users.ts` to track user engagement timestamps
+  - Enhanced layout integration to start/stop timed sync scheduler for improved data synchronization
+
+- **Activity Calendar Component**:
+  - New `activity-calendar.svelte` component for activity visualization and management
+  - Enhanced activity tracking and display capabilities
+
+- **Noto Color Emoji Font Support**:
+  - New toggle in settings customization tab to enable Noto Color Emoji font
+  - `useNotoEmoji` property in settings store (defaults to false for efficient resource management)
+  - Conditional font loading based on user preference with CSS override support
+  - Improved emoji consistency across different platforms
+
+- **Navigation Enhancements**:
+  - Temporary link to new hybrid dashboard page ("/dashboard-new") in app header
+  - Updated navigation structure for both desktop and mobile views
+
+### Enhanced
+- **Local Data Management**:
+  - New functions in `local-data.ts` for syncing metadata and checking local changes
+  - Improved data synchronization capabilities and local-first architecture
+
+- **Habit Management Optimization**:
+  - Cascade-delete functionality for habit completions when deleting habits
+  - Batch mapping of unknown Convex habit IDs to local UUIDs for better performance
+  - Cached local-to-Convex habit ID mappings in `mapCompletionHabitIds` function
+  - Reduced Convex queries and optimized sync process
+
+### Removed
+- **Code Cleanup**:
+  - Deleted `maintenance.ts` file and all related references from the codebase
+  - Removed maintenance-related imports and scheduler calls from `activityHistory.ts`, `calendars.ts`, and `crons.ts`
+  - Removed `anonymous-data-migration-dialog.svelte` component (migration now occurs automatically on sign-in)
+  - Commented out "Stats" and "Upgrade" navigation links for future consideration
+
+### Changed
+- **CSS and Styling**:
+  - Minor CSS adjustments for better styling consistency across components
+  - Improved visual coherence throughout the application
+
 ## [0.0.3] - 2025-08-08
 
 ### Refactored

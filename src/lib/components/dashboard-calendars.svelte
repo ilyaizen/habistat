@@ -29,6 +29,7 @@
   import { type Habit, habits as habitsStore } from "$lib/stores/habits";
   // Use local-day semantics for counts so UI matches user's timezone and local DB ops
   import { formatLocalDate } from "$lib/utils/date";
+  import { parseHabitName, parseCalendarName } from "$lib/utils/habit-display";
   import { GripVertical } from "@lucide/svelte";
 
   // --- Component Props ---
@@ -278,6 +279,7 @@
   {#each localCalendars as cal (cal.id)}
     {@const calHabits = localHabitsByCalendar.get(cal.id) ?? []}
     {@const isCalendarDisabled = cal.isEnabled === 0}
+    {@const { emoji: calEmoji, text: calText } = parseCalendarName(cal.name)}
 
     <!-- Individual calendar container with flip animation -->
     <div animate:flip={{ duration: 200 }} data-calendar-id={cal.id} role="listitem">
@@ -301,11 +303,19 @@
           <!-- Calendar name, clickable to open edit dialog -->
           <button
             type="button"
-            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-block cursor-pointer text-left text-xl font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-flex items-center gap-3 cursor-pointer text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
             disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
           >
-            {cal.name}
+            <!-- Calendar emoji container -->
+            <div class="emoji-container flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-3xl">
+              {calEmoji}
+            </div>
+            
+            <!-- Calendar text -->
+            <div class="min-w-0 flex-1 truncate text-xl">
+              {calText}
+            </div>
           </button>
         </div>
 
@@ -334,11 +344,12 @@
               {@const habitCompletions = $completionsByHabit.get(habit.id) ?? []}
               {@const completionsToday = completionsTodayByHabit.get(habit.id) ?? 0}
               {@const isHabitDisabled = habit.isEnabled === 0 || isCalendarDisabled}
+              {@const { emoji, text } = parseHabitName(habit.name)}
 
               <!-- Individual habit card with flip animation -->
               <div animate:flip={{ duration: 200 }} data-habit-id={habit.id} role="listitem">
                 <Card
-                  class="bg-card flex w-full min-w-0 flex-row flex-nowrap items-center justify-between gap-2 rounded-3xl border p-1 shadow-xs transition-all {isHabitDisabled
+                  class="flex w-full min-w-0 flex-row flex-nowrap items-center justify-between gap-2 border p-1 rounded-4xl border-none shadow-xs transition-all {isHabitDisabled
                     ? 'pointer-events-none opacity-50 grayscale'
                     : ''} {habit.isEnabled === 0 ? 'border-dashed' : 'hover:bg-card/90'}"
                   aria-disabled={isHabitDisabled}
@@ -361,7 +372,7 @@
 
                     <!-- Habit name with navigation functionality -->
                     <div
-                      class="min-w-0 flex-1 cursor-pointer truncate overflow-hidden font-medium whitespace-nowrap {isHabitDisabled ||
+                      class="min-w-0 flex-1 cursor-pointer flex items-center gap-3 transition-opacity hover:opacity-80 {isHabitDisabled ||
                       isReorderMode
                         ? '' // text-muted-foreground/70
                         : ''}"
@@ -376,12 +387,20 @@
                       aria-disabled={isHabitDisabled}
                       title={habit.description ?? undefined}
                     >
-                      {habit.name}
-                      {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
-                        <span class="text-muted-foreground/80 ml-1"
-                          >({Math.round(habit.targetDurationSeconds / 60)}m)</span
-                        >
-                      {/if}
+                      <!-- Emoji container -->
+                      <div class="emoji-container w-12 h-12 flex shrink-0 items-center justify-center text-3xl">
+                        {emoji}
+                      </div>
+                      
+                      <!-- Habit text -->
+                      <div class="nunito-header min-w-0 flex-1 truncate font-semibold text-xl">
+                        {text}
+                        {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
+                          <span class="text-muted-foreground/80 ml-1"
+                            >({Math.round(habit.targetDurationSeconds / 60)}m)</span
+                          >
+                        {/if}
+                      </div>
                     </div>
                   </div>
 

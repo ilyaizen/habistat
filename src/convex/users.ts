@@ -141,6 +141,7 @@ export const getCurrentUser = query({
         )
       ),
       subscriptionExpiresAt: v.optional(v.number()),
+      firstAppOpenAt: v.optional(v.number()), // Added missing field from Phase 3.8
     }),
     v.null()
   ),

@@ -162,6 +162,7 @@
 │   │   │   ├── convex.ts
 │   │   │   ├── date.ts
 │   │   │   ├── environment.ts
+│   │   │   ├── habit-display.ts
 │   │   │   ├── navigation.ts
 │   │   │   ├── safe-query.ts
 │   │   │   ├── sample-data.ts

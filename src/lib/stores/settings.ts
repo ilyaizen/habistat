@@ -22,7 +22,7 @@ const defaultSettings: Settings = {
   showUsageHistory: false,
   enableMotion: true,
   verboseLogs: false,
-  useNotoEmoji: false
+  useNotoEmoji: true // Temporarily enabled for testing
 };
 
 function createSettingsStore() {
