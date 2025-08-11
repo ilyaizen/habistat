@@ -533,10 +533,9 @@ export class SyncService {
 
       const anonymousActivityHistory = await localData.getAnonymousActivityHistory();
       if (anonymousActivityHistory.length > 0) {
-        for (const activity of anonymousActivityHistory) {
-          await localData.updateActivityHistoryUserId(activity.id, userId);
-        }
-        totalMigrated += anonymousActivityHistory.length;
+        // Use merge strategy to avoid UNIQUE constraint violations on (userId, date)
+        const migratedCount = await localData.migrateAnonymousActivityHistory(userId);
+        totalMigrated += migratedCount;
         await this.pushActivityHistory();
       }
 

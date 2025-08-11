@@ -343,6 +343,64 @@ export async function updateActivityHistoryUserId(localUuid: string, userId: str
   await persistBrowserDb();
 }
 
+/**
+ * Migrate anonymous activity history to authenticated user with proper merge strategy
+ * to avoid UNIQUE constraint violations on (userId, date) combinations.
+ * Returns the number of entries successfully migrated.
+ */
+export async function migrateAnonymousActivityHistory(userId: string): Promise<number> {
+  const db = await getDrizzleDb();
+  
+  // Get all anonymous activity history entries
+  const anonymousEntries = await db
+    .select()
+    .from(schema.activityHistory)
+    .where(isNull(schema.activityHistory.userId))
+    .all();
+  
+  if (anonymousEntries.length === 0) {
+    return 0;
+  }
+  
+  let migratedCount = 0;
+  
+  for (const entry of anonymousEntries) {
+    try {
+      // Check if user already has an entry for this date
+      const existingEntry = await db
+        .select()
+        .from(schema.activityHistory)
+        .where(
+          and(
+            eq(schema.activityHistory.userId, userId),
+            eq(schema.activityHistory.date, entry.date)
+          )
+        )
+        .get();
+      
+      if (existingEntry) {
+        // User already has an entry for this date, delete the anonymous one
+        await db
+          .delete(schema.activityHistory)
+          .where(eq(schema.activityHistory.id, entry.id));
+      } else {
+        // No existing entry, update the anonymous entry to have the userId
+        await db
+          .update(schema.activityHistory)
+          .set({ userId })
+          .where(eq(schema.activityHistory.id, entry.id));
+        migratedCount++;
+      }
+    } catch (error) {
+      console.warn(`Failed to migrate activity history entry ${entry.id}:`, error);
+      // Continue with other entries even if one fails
+    }
+  }
+  
+  await persistBrowserDb();
+  return migratedCount;
+}
+
 export async function getAnonymousActivityHistory() {
   const db = await getDrizzleDb();
   return db

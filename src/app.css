@@ -203,7 +203,14 @@
   transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
 }
 
+/* Trigger bounce animation when emoji container is hovered directly */
 .emoji-container:hover {
+  animation: 0.3s emoji-bounce cubic-bezier(0, 0.2, 0.15, 1) infinite alternate;
+}
+
+/* Trigger bounce animation when parent button/clickable area is hovered */
+button:hover .emoji-container,
+[role="button"]:hover .emoji-container {
   animation: 0.3s emoji-bounce cubic-bezier(0, 0.2, 0.15, 1) infinite alternate;
 }
 

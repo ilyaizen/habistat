@@ -20,7 +20,6 @@
   // --- Component Imports ---
   // UI components for drag-and-drop, habit controls, and visualization
   import Button from "$lib/components/ui/button/button.svelte";
-  import { Card } from "$lib/components/ui/card";
   import { IsMobile } from "$lib/hooks/is-mobile";
   // --- Store Imports ---
   // Core data stores for calendars, habits, and completions
@@ -260,7 +259,7 @@
 <!-- Drag-and-drop zone for calendar reordering with visual feedback -->
 <div
   class="flex w-full min-w-0 flex-col gap-5 transition-all duration-200 ease-in-out {isReorderMode
-    ? 'border-primary/30 bg-primary/10 rounded-lg border-2 border-dashed p-2'
+    ? 'border-primary/30 bg-primary/10 rounded-3xl border-2 border-dashed p-2'
     : 'border-2 border-transparent p-0'}"
   data-dnd-zone="calendar"
   role="list"
@@ -285,10 +284,10 @@
     <div animate:flip={{ duration: 200 }} data-calendar-id={cal.id} role="listitem">
       <div class="flex flex-col">
         <!-- Calendar Title Section -->
-        <div class="flex items-start">
+        <div class="flex items-center">
           <!-- Drag handle for calendar reordering (shows only in reorder mode) -->
           <div
-            class="overflow-hidden transition-all duration-200 {isReorderMode
+            class="shrink-0 overflow-hidden transition-all duration-200 {isReorderMode
               ? 'w-5 opacity-100'
               : 'w-0 opacity-0'}"
           >
@@ -303,12 +302,12 @@
           <!-- Calendar name, clickable to open edit dialog -->
           <button
             type="button"
-            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-flex items-center gap-3 cursor-pointer text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            class="nunito-header min-w-0 flex-1 disabled:text-muted-foreground/60 mb-2 inline-flex items-center gap-3 cursor-pointer text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
             disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
           >
             <!-- Calendar emoji container -->
-            <div class="emoji-container flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-3xl">
+            <div class="emoji-container w-10 h-10 flex shrink-0 items-center justify-center text-2xl">
               {calEmoji}
             </div>
             
@@ -348,10 +347,11 @@
 
               <!-- Individual habit card with flip animation -->
               <div animate:flip={{ duration: 200 }} data-habit-id={habit.id} role="listitem">
-                <Card
-                  class="flex w-full min-w-0 flex-row flex-nowrap items-center justify-between gap-2 border p-1 rounded-4xl border-none shadow-xs transition-all {isHabitDisabled
-                    ? 'pointer-events-none opacity-50 grayscale'
-                    : ''} {habit.isEnabled === 0 ? 'border-dashed' : 'hover:bg-card/90'}"
+                <div
+                  class="flex w-full min-w-0 flex-row flex-nowrap items-center justify-between gap-2 p-2 transition-all {isHabitDisabled
+                    ? 'pointer-events-none'
+                    // TODO: 2025-08-12 - This needs proper implementation if hover:bg-card/90 is to be used
+                    : ''} {habit.isEnabled === 0 ? 'border-dashed' : ''}"
                   aria-disabled={isHabitDisabled}
                 >
                   <!-- Left side: Drag handle and habit name -->
@@ -388,12 +388,12 @@
                       title={habit.description ?? undefined}
                     >
                       <!-- Emoji container -->
-                      <div class="emoji-container w-12 h-12 flex shrink-0 items-center justify-center text-3xl">
+                      <div class="emoji-container w-8 h-8 flex shrink-0 items-center justify-center text-2xl">
                         {emoji}
                       </div>
                       
                       <!-- Habit text -->
-                      <div class="nunito-header min-w-0 flex-1 truncate font-semibold text-xl">
+                      <div class="min-w-0 flex-1 truncate">
                         {text}
                         {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
                           <span class="text-muted-foreground/80 ml-1"
@@ -420,7 +420,7 @@
                       {/if}
                     </div>
                   </div>
-                </Card>
+                </div>
               </div>
             {/each}
           {:else}
