@@ -1,0 +1,264 @@
+/* UI styles consolidated from app.css for simplicity */
+
+/* Emoji font override */
+.emoji-container {
+  font-family:
+    "Noto Color Emoji", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif !important;
+}
+
+/* Emoji hover bounce animation */
+@keyframes emoji-bounce {
+  from {
+    transform: translateY(0px);
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+  }
+
+  to {
+    transform: translateY(-12px);
+    filter: drop-shadow(4px 4px 2px rgba(0, 0, 0, 0.2));
+  }
+}
+
+.emoji-container {
+  transition:
+    transform 0.2s ease-in-out,
+    filter 0.2s ease-in-out;
+  /* Ensure baseline alignment when not animating */
+  transform: translateY(0);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
+
+.emoji-container:hover,
+button:hover .emoji-container,
+[role="button"]:hover .emoji-container {
+  /* Attach animation on hover so it always starts from bottom */
+  animation: emoji-bounce 0.2s cubic-bezier(0, 0.2, 0.15, 1) infinite alternate;
+}
+
+/* Critical: disable animation while dragging so it restarts on drop */
+.emoji-container.dragging {
+  /* Hard stop during drag and force baseline with no transition */
+  animation: none !important;
+  transition: none !important;
+  transform: translateY(0) !important;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4)) !important;
+}
+
+
+/* 2.5D Button */
+.btn-3d {
+  width: auto;
+  border-width: 2px;
+  border-color: oklch(from var(--primary) calc(l - 0.3) c h);
+  border-bottom-width: 4px;
+  border-bottom-color: oklch(from var(--primary) calc(l - 0.3) c h);
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+  background-image: linear-gradient(to top,
+      var(--primary) 0%,
+      oklch(from var(--primary) calc(l + 0.1) c h) 100%);
+  background-size: 100% 100%;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  transition: all 0.3s ease;
+}
+
+.btn-3d:hover:not(:disabled),
+.btn-3d:focus-visible:not(:disabled) {
+  transform: translateY(-2px);
+  background-image: linear-gradient(to top,
+      var(--primary) 0%,
+      oklch(from var(--primary) calc(l + 0.2) c h) 100%);
+  border-color: oklch(from var(--primary) calc(l - 0.15) c h);
+  border-bottom-color: oklch(from var(--primary) calc(l - 0.15) c h);
+}
+
+.btn-3d:active:not(:disabled) {
+  transform: translateY(2px);
+  background-color: var(--primary);
+  border-bottom-width: 3px;
+  border-bottom-color: oklch(from var(--primary) calc(l - 0.2) c h);
+}
+
+/* Scrollbar */
+.about-drawer-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(from var(--accent) calc(l - 0.1) c h) transparent;
+}
+
+.about-drawer-scroll::-webkit-scrollbar {
+  width: 16px;
+  background: transparent;
+}
+
+.about-drawer-scroll::-webkit-scrollbar-thumb {
+  border-radius: 16px;
+  background: oklch(from var(--accent) calc(l - 0.1) c h);
+  min-height: 24px;
+}
+
+.dark .about-drawer-scroll {
+  scrollbar-color: var(--accent) transparent;
+}
+
+.dark .about-drawer-scroll::-webkit-scrollbar-thumb {
+  background: oklch(from var(--accent) calc(l - 0.1) c h);
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-weight: 900;
+  color: var(--sidebar-foreground);
+}
+
+.nunito-header {
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+/* RTL */
+.rtl {
+  direction: rtl;
+}
+
+.rtl .ltr-only {
+  display: none;
+}
+
+[dir="ltr"] .rtl-only {
+  display: none;
+}
+
+[dir="rtl"] {
+  font-family: var(--font-noto), var(--font-noto-hebrew), var(--font-inter), sans-serif;
+}
+
+/* Expandable content utility */
+.expandable-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s cubic-bezier(0, 0.7, 0.1, 1);
+}
+
+.expandable-content.expanded {
+  grid-template-rows: 1fr;
+}
+
+.expandable-content>.inner-content {
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.expandable-content.expanded>.inner-content {
+  opacity: 1;
+}
+
+/* Optional Noto Color Emoji override via html class */
+@layer base {
+  html.noto-color-emoji {
+    --font-sans:
+      "Noto Sans", "Noto Sans Hebrew", "Noto Color Emoji", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .dark.noto-color-emoji {
+    --font-sans:
+      "Noto Sans", "Noto Sans Hebrew", "Noto Color Emoji", ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+.noto-color-emoji-regular {
+  font-family: "Noto Color Emoji", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
+
+/* Background grid - TODO: 2025-08-13 - CURRENTLY NOT USED - Remove this if not needed */
+/* .grid-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10;
+  background:
+    linear-gradient(90deg, oklch(0.922 0 0 / 0.4) 1px, transparent 1px),
+    linear-gradient(oklch(0.922 0 0 / 0.4) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: 0 0;
+  background-attachment: fixed;
+  pointer-events: none;
+}
+
+.dark .grid-background {
+  background:
+    linear-gradient(90deg, oklch(0.269 0 0 / 0.4) 1px, transparent 1px),
+    linear-gradient(oklch(0.269 0 0 / 0.4) 1px, transparent 1px);
+} */
+
+/* Gradation background - TODO: 2025-08-13 - CURRENTLY NOT USED - Remove this if not needed */
+/* @property --hue1 {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --hue2 {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.gradation-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -20;
+  background-image:
+    linear-gradient(in oklch longer hue to right,
+      oklch(0.93 0.08 var(--hue1) / 50%),
+      oklch(0.93 0.08 var(--hue2) / 50%)),
+    linear-gradient(in oklch longer hue to bottom,
+      oklch(0.93 0.08 var(--hue1) / 50%),
+      oklch(0.93 0.08 var(--hue2) / 50%));
+  background-size: 100% 100%;
+  animation: animate-background-gradation 5s linear infinite;
+  pointer-events: none;
+}
+
+.dark .gradation-background {
+  background-image:
+    linear-gradient(in oklch longer hue to right,
+      oklch(0.2 0.08 var(--hue1) / 50%),
+      oklch(0.2 0.08 var(--hue2) / 50%)),
+    linear-gradient(in oklch longer hue to bottom,
+      oklch(0.2 0.08 var(--hue1) / 50%),
+      oklch(0.2 0.08 var(--hue2) / 50%));
+}
+
+@keyframes animate-background-gradation {
+  0% {
+    --hue1: 0deg;
+    --hue2: 300deg;
+  }
+
+  100% {
+    --hue1: 360deg;
+    --hue2: 660deg;
+  }
+} */

@@ -31,9 +31,9 @@
   import { parseHabitName, parseCalendarName } from "$lib/utils/habit-display";
   import { GripVertical } from "@lucide/svelte";
 
-  // --- Component Props ---
-  // isReorderMode is controlled by the parent component (DashboardHeader)
-  let { isReorderMode } = $props<{ isReorderMode: boolean }>();
+  // --- Drag configuration ---
+  // Reorder mode is always enabled, but activation requires grabbing the emoji.
+  const isReorderMode = true;
 
   // --- Mobile Detection ---
   // Reactive mobile detection for responsive UI adjustments
@@ -53,6 +53,11 @@
   let isCalendarDragging = $state(false); // Tracks if a calendar is being dragged
   let isHabitZoneActive = $state(false); // Prevents calendar reordering when dragging habits
   let activeHabitCalendarId = $state<string | null>(null); // Tracks which calendar's habits are being dragged
+  let isAnyEmojiGrabbed = $state(false); // Tracks if any emoji is the drag handle to stop its animation
+  let calendarDragArmed = $state(false); // Only allow calendar drag when armed via emoji pointerdown
+  let habitDragArmedCalendarId = $state<string | null>(null); // Only allow habit drag in this calendar when armed
+  let draggingCalendarId = $state<string | null>(null); // To stop animation only on the grabbed calendar emoji
+  let draggingHabitId = $state<string | null>(null); // To stop animation only on the grabbed habit emoji
 
   // --- Derived Store Values ---
   // Reactive computed values that automatically update when stores change
@@ -140,12 +145,7 @@
    * Clean up drag states when exiting reorder mode
    * Ensures clean state transitions
    */
-  $effect(() => {
-    if (!isReorderMode) {
-      isHabitZoneActive = false;
-      activeHabitCalendarId = null;
-    }
-  });
+  // Reorder is always enabled; no cleanup on mode toggle needed.
 
   // --- Event Handlers ---
 
@@ -167,6 +167,9 @@
 
     // Persist the new order to the database via the store's dedicated method.
     calendarsStore.updateOrder(e.detail.items);
+
+    // Ensure drag state is fully cleared so hover animations can restart
+    disarmDragging();
   }
 
   /**
@@ -218,6 +221,9 @@
         });
         Promise.all(updatePromises).catch(console.error);
       }
+
+      // Finalize always clears dragging state to allow animation restart on hover
+      disarmDragging();
     }
   }
 
@@ -226,7 +232,6 @@
    * Ensures proper zone activation for drag operations
    */
   function handleHabitDragStart(calendarId: string) {
-    if (!isReorderMode) return;
     isHabitZoneActive = true;
     activeHabitCalendarId = calendarId;
   }
@@ -236,44 +241,51 @@
    * Cleans up drag state after operations complete
    */
   function handleHabitDragEnd() {
-    if (!isReorderMode) return;
     isHabitZoneActive = false;
     activeHabitCalendarId = null;
   }
 
   function openEditDialog(habit: Habit, calendarId: string) {
-    if (isReorderMode) return;
     editingHabitId = habit.id;
     editingCalendarId = calendarId;
     habitDialogOpen = true;
   }
 
   function openCalendarEditDialog(calendarId: string) {
-    if (isReorderMode) return;
     editingCalendarIdForDialog = calendarId;
     calendarDialogOpen = true;
+  }
+
+  // Disarm dragging when interaction ends anywhere
+  function disarmDragging() {
+    isAnyEmojiGrabbed = false;
+    calendarDragArmed = false;
+    habitDragArmedCalendarId = null;
+    draggingCalendarId = null;
+    draggingHabitId = null;
   }
 </script>
 
 <!-- Main calendars and habits list -->
 <!-- Drag-and-drop zone for calendar reordering with visual feedback -->
 <div
-  class="flex w-full min-w-0 flex-col gap-5 transition-all duration-200 ease-in-out {isReorderMode
-    ? 'border-primary/30 bg-primary/10 rounded-3xl border-2 border-dashed p-2'
-    : 'border-2 border-transparent p-0'}"
+  class="flex w-full min-w-0 flex-col gap-5"
   data-dnd-zone="calendar"
   role="list"
   use:dndzone={{
     items: localCalendars,
     flipDurationMs: 200,
-    dragDisabled: !isReorderMode || isHabitZoneActive,
+    dragDisabled: isHabitZoneActive || !calendarDragArmed,
     dropTargetStyle: {},
     type: "calendar"
   }}
   onconsider={handleCalendarDndConsider}
   onfinalize={handleCalendarDndFinalize}
   ondragstart={() => (isCalendarDragging = true)}
-  ondragend={() => (isCalendarDragging = false)}
+  ondragend={() => {
+    isCalendarDragging = false;
+    disarmDragging();
+  }}
 >
   {#each localCalendars as cal (cal.id)}
     {@const calHabits = localHabitsByCalendar.get(cal.id) ?? []}
@@ -285,19 +297,7 @@
       <div class="flex flex-col">
         <!-- Calendar Title Section -->
         <div class="flex items-center">
-          <!-- Drag handle for calendar reordering (shows only in reorder mode) -->
-          <div
-            class="shrink-0 overflow-hidden transition-all duration-200 {isReorderMode
-              ? 'w-5 opacity-100'
-              : 'w-0 opacity-0'}"
-          >
-            <GripVertical
-              class="text-muted-foreground h-5 w-5 cursor-grab hover:opacity-70 active:cursor-grabbing {isReorderMode
-                ? 'pointer-events-auto'
-                : 'pointer-events-none'}"
-              data-drag-handle="calendar"
-            />
-          </div>
+          <!-- Drag handle removed; emoji acts as the handle -->
 
           <!-- Calendar name, clickable to open edit dialog -->
           <button
@@ -306,9 +306,22 @@
             disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
           >
-            <!-- Calendar emoji container -->
+            <!-- Calendar emoji container (drag handle) -->
             <div
-              class="emoji-container flex h-10 w-10 shrink-0 items-center justify-center text-2xl"
+              class="emoji-container flex h-10 w-10 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
+              data-drag-handle="calendar"
+              class:dragging={draggingCalendarId === cal.id}
+              onpointerdown={() => {
+                calendarDragArmed = true;
+                isAnyEmojiGrabbed = true;
+                draggingCalendarId = cal.id;
+              }}
+              ondragend={disarmDragging}
+              onpointerup={disarmDragging}
+              onpointercancel={disarmDragging}
+              role="button"
+              aria-label="Drag calendar"
+              tabindex="0"
             >
               {calEmoji}
             </div>
@@ -333,12 +346,15 @@
             dropTargetStyle: {},
             type: "habit",
             morphDisabled: true,
-            dragDisabled: !isReorderMode || isCalendarDragging
+            dragDisabled: isCalendarDragging || habitDragArmedCalendarId !== cal.id
           }}
           onconsider={(e) => handleHabitDnd(e, cal.id)}
           onfinalize={(e) => handleHabitDnd(e, cal.id)}
           ondragstart={() => handleHabitDragStart(cal.id)}
-          ondragend={handleHabitDragEnd}
+          ondragend={() => {
+            handleHabitDragEnd();
+            disarmDragging();
+          }}
         >
           {#if calHabits.length > 0}
             {#each calHabits as habit (habit.id)}
@@ -358,26 +374,11 @@
                 >
                   <!-- Left side: Drag handle and habit name -->
                   <div class="flex min-w-0 flex-1 items-center">
-                    <!-- Drag handle for habit reordering (shows only in reorder mode) -->
-                    <div
-                      class="shrink-0 overflow-hidden transition-all duration-200 {isReorderMode
-                        ? 'w-5 opacity-100'
-                        : 'w-0 opacity-0'}"
-                    >
-                      <GripVertical
-                        class="text-muted-foreground h-5 w-5 cursor-grab hover:opacity-70 active:cursor-grabbing {isReorderMode
-                          ? 'pointer-events-auto'
-                          : 'pointer-events-none'}"
-                        data-drag-handle="habit"
-                      />
-                    </div>
+                    <!-- Drag handle removed; emoji acts as the handle -->
 
                     <!-- Habit name with navigation functionality -->
                     <div
-                      class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 transition-opacity hover:opacity-80 {isHabitDisabled ||
-                      isReorderMode
-                        ? '' // text-muted-foreground/70
-                        : ''}"
+                      class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
                       role="button"
                       tabindex={isHabitDisabled ? -1 : 0}
                       onclick={() => openEditDialog(habit, cal.id)}
@@ -389,9 +390,22 @@
                       aria-disabled={isHabitDisabled}
                       title={habit.description ?? undefined}
                     >
-                      <!-- Emoji container -->
+                      <!-- Emoji container (drag handle) -->
                       <div
-                        class="emoji-container flex h-8 w-8 shrink-0 items-center justify-center text-2xl"
+                        class="emoji-container flex h-8 w-8 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
+                        data-drag-handle="habit"
+                        class:dragging={draggingHabitId === habit.id}
+                        onpointerdown={() => {
+                          habitDragArmedCalendarId = cal.id;
+                          isAnyEmojiGrabbed = true;
+                          draggingHabitId = habit.id;
+                        }}
+                        ondragend={disarmDragging}
+                        onpointerup={disarmDragging}
+                        onpointercancel={disarmDragging}
+                        role="button"
+                        aria-label="Drag habit"
+                        tabindex="0"
                       >
                         {emoji}
                       </div>

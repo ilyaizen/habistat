@@ -91,6 +91,7 @@
       -->
       {#key activityMonitorKey}
         <div class="flex w-full justify-center">
+          <!-- TODO: 2025-08-12 - This needs clarification -->
           <!-- <ActivityCalendar /> -->
         </div>
       {/key}
