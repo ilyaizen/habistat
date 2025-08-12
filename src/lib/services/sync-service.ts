@@ -7,6 +7,7 @@
  */
 
 import { get } from "svelte/store";
+import { toast } from "svelte-sonner";
 import { safeMutation, safeQuery } from "$lib/utils/safe-query";
 import { api } from "../../convex/_generated/api";
 import { authState } from "../stores/auth-state";
@@ -83,9 +84,25 @@ export class SyncService {
       this.authUnsubscribe();
     }
 
+    // Prime the subscription so the first "ready" emission doesn't count as a sign-in.
+    // On page reloads, Clerk provides the current user immediately once ready.
+    // Previously we treated that as a new sign-in (lastClerkId was null),
+    // which caused an unwanted full sync on every refresh. We avoid that by
+    // capturing the initial state and only reacting to subsequent changes.
+    let primed = false;
     this.authUnsubscribe = authState.subscribe(async (state) => {
       if (!state.clerkReady) {
         if (DEBUG_VERBOSE) console.log("SyncService: Auth state not ready yet.");
+        return;
+      }
+
+      if (!primed) {
+        // Initial ready state: remember current user without emitting events
+        this.lastClerkId = state.clerkUserId;
+        primed = true;
+        if (DEBUG_VERBOSE) {
+          console.log("SyncService: Primed auth state on initial ready; no sign-in event emitted.");
+        }
         return;
       }
 
@@ -141,10 +158,16 @@ export class SyncService {
       // Perform a full sync
       const result = await this.fullSync();
 
-      if (result.success) {
+            if (result.success) {
         if (DEBUG_VERBOSE) console.log("SyncService: Full sync completed successfully.");
+        toast.success("Sync Successful", {
+          description: "Your data has been successfully synced with the cloud."
+        });
       } else {
         console.error("SyncService: Full sync failed.", result.error);
+        toast.error("Sync Failed", {
+          description: `Could not sync your data. Reason: ${result.error}`
+        });
       }
     } finally {
       this.syncInProgress = false;

@@ -18,7 +18,7 @@ const DEFAULT_INTERVAL_MS = 5 * 60 * 1000;
 
 let intervalId: number | null = null;
 let running = false;
-const initialized = false;
+let initialized = false;
 let ensuredFirstOpen = false; // ensure we set firstAppOpenAt once per session
 
 /**
@@ -96,13 +96,21 @@ async function tick(): Promise<void> {
  * Start the timed sync scheduler. Idempotent.
  */
 export function startTimedSyncScheduler(intervalMs: number = DEFAULT_INTERVAL_MS): void {
-  if (running) return;
+  if (initialized) return;
+  initialized = true;
   running = true;
+  
+  // NOTE:
+  // We intentionally DO NOT run an immediate tick here. Previously, calling
+  // tick() on start caused a sync attempt right after every page refresh
+  // (root layout mounts -> scheduler starts -> immediate tick). That behavior
+  // made sync feel like it auto-triggered on refresh, which is not desired.
+  //
+  // With this change, the first tick happens after the configured interval
+  // (default 5 minutes). This ensures sync only runs on the timer or when
+  // explicitly triggered elsewhere.
 
-  // Immediate tick on start to catch up quickly
-  tick().catch(() => {});
-
-  // Periodic ticks
+  // Periodic ticks only; first tick occurs after intervalMs
   intervalId = setInterval(() => {
     tick().catch(() => {});
   }, intervalMs) as unknown as number;
