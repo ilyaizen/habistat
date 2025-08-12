@@ -91,7 +91,7 @@
       -->
       {#key activityMonitorKey}
         <div class="flex w-full justify-center">
-          <ActivityCalendar />
+          <!-- <ActivityCalendar /> -->
         </div>
       {/key}
 

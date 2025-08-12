@@ -17,7 +17,7 @@
   import { SvelteDate, SvelteSet } from "svelte/reactivity";
 
   // UI components and utilities
-  import { Card } from "$lib/components/ui/card";
+  
   import * as Tooltip from "$lib/components/ui/tooltip";
 
   // Activity + completion sources (local-first)
@@ -118,69 +118,56 @@
   `dashboard-calendars.svelte` but without any DnD affordances.
 -->
 <Tooltip.Provider>
-  <div class="flex flex-col">
-    <!-- Title area, styled like calendar titles -->
-    <div class="flex items-start">
-      <h2 class="nunito-header mb-2 text-left text-xl font-semibold">Activity</h2>
+  <!-- 
+    Main container mimics a habit row from dashboard-calendars.svelte.
+    It's a single flex row with title/logo on the left and activity bars on the right.
+  -->
+  <div class="flex items-center justify-between gap-4 rounded-lg bg-card p-2 shadow-sm">
+    <!-- Left side: Logo and Title -->
+    <div class="flex min-w-0 flex-1 items-center gap-3">
+      <!-- Logo container -->
+      <div class="flex h-8 w-8 shrink-0 items-center justify-center">
+        <img src="/logo.svg" alt="Habistat" class="h-8 w-8" />
+      </div>
+
+      <!-- Title text -->
+      <div class="nunito-header min-w-0 flex-1 truncate text-left text-xl font-semibold">
+        Activity
+      </div>
     </div>
 
-    <!-- Card row with activity bars -->
-    <div class="flex flex-col gap-1" role="list">
+    <!-- Right side: Activity bars -->
+    <div class="flex shrink-0 flex-row items-center">
       {#if loading}
-        <Card class="bg-card w-full min-w-0 rounded-3xl border p-1 shadow-xs" role="listitem">
-          <div class="space-y-3 p-2">
-            <div class="flex space-x-0.5 p-0.5">
-              {#each Array(numDays), i (i)}
-                <div class="bg-secondary h-6 w-[10px] animate-pulse rounded-lg"></div>
-              {/each}
-            </div>
-          </div>
-        </Card>
+        <!-- Loading state: pulse animation for bars -->
+        <div class="flex space-x-0.5 p-0.5">
+          {#each Array(numDays), i (i)}
+            <div class="bg-secondary h-6 w-[10px] animate-pulse rounded-text-xl"></div>
+          {/each}
+        </div>
       {:else}
-        <Card class="bg-card w-full min-w-0 rounded-3xl border p-1 shadow-xs" role="listitem">
-          <div class="flex items-center justify-between gap-2 p-2">
-            <!-- Left: Bars row -->
-            <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
-              {#each activityDays as day (day.date)}
-                <Tooltip.Root>
-                  <Tooltip.Trigger>
-                    <div
-                      class="h-6 w-[10px] rounded-lg"
-                      class:activity-bar-green={day.status === "active"}
-                      class:activity-bar-green-half={false}
-                      class:activity-bar-red={day.status === "inactive"}
-                      class:bg-secondary={day.status === "pre-registration"}
-                      aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""}`}
-                    ></div>
-                  </Tooltip.Trigger>
-                  <Tooltip.Content>
-                    <div class="text-center">
-                      <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
-                    </div>
-                  </Tooltip.Content>
-                </Tooltip.Root>
-              {/each}
-            </div>
-
-            <!-- Right: Legend (compact) -->
-            <div class="text-muted-foreground hidden items-center gap-3 text-xs sm:flex">
-              <div class="flex items-center gap-1">
-                <span class="bg-secondary border-border inline-block h-3 w-3 rounded border"></span>
-                <span>Pre-registration</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="activity-bar-red border-border inline-block h-3 w-3 rounded border"
-                ></span>
-                <span>Inactive</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="activity-bar-green border-border inline-block h-3 w-3 rounded border"
-                ></span>
-                <span>Active</span>
-              </div>
-            </div>
-          </div>
-        </Card>
+        <!-- Activity bars display -->
+        <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
+          {#each activityDays as day (day.date)}
+            <Tooltip.Root>
+              <Tooltip.Trigger>
+                <div
+                  class="h-6 w-[10px] rounded-lg"
+                  class:activity-bar-green={day.status === "active"}
+                  class:activity-bar-green-half={false}
+                  class:activity-bar-red={day.status === "inactive"}
+                  class:bg-secondary={day.status === "pre-registration"}
+                  aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""}`}
+                ></div>
+              </Tooltip.Trigger>
+              <Tooltip.Content>
+                <div class="text-center">
+                  <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
+                </div>
+              </Tooltip.Content>
+            </Tooltip.Root>
+          {/each}
+        </div>
       {/if}
     </div>
   </div>
