@@ -5,9 +5,9 @@
 
 import { ConvexError } from "convex/values";
 import type { QueryCtx, MutationCtx, ActionCtx } from "./_generated/server";
+import { DEBUG_VERBOSE } from "./config";
 
 // Debug configuration - reduce console verbosity
-const DEBUG_VERBOSE = false;
 
 /**
  * Get current user identity with detailed error reporting

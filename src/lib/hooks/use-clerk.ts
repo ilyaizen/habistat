@@ -3,11 +3,12 @@ import { setContext } from "svelte";
 import { get, readable, writable } from "svelte/store";
 import { browser } from "$app/environment";
 import { authState } from "$lib/stores/auth-state";
+// Centralized debug flag
+import { DEBUG_VERBOSE } from "$lib/utils/debug";
 // import { syncIsOnline as networkIsOnline } from "$lib/stores/sync";
 import { markSessionAssociated, sessionStore } from "$lib/utils/tracking";
 
 // Debug configuration - set to true to enable verbose logging
-const DEBUG_VERBOSE = true;
 
 /**
  * Clerk authentication hook for Habistat application.

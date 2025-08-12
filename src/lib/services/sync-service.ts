@@ -8,6 +8,8 @@
 
 import { get } from "svelte/store";
 import { toast } from "svelte-sonner";
+// Centralized debug flag
+import { DEBUG_VERBOSE } from "$lib/utils/debug";
 import { safeMutation, safeQuery } from "$lib/utils/safe-query";
 import { api } from "../../convex/_generated/api";
 import { authState } from "../stores/auth-state";
@@ -23,9 +25,6 @@ import {
 } from "../utils/convex-operations";
 import * as localData from "./local-data";
 import { clearAllLocalData } from "./local-data";
-
-// Debug configuration
-const DEBUG_VERBOSE = true;
 
 export interface SyncableEntity {
   id: string;
@@ -90,6 +89,8 @@ export class SyncService {
     // which caused an unwanted full sync on every refresh. We avoid that by
     // capturing the initial state and only reacting to subsequent changes.
     let primed = false;
+    let primedInitialUserId: string | null = null;
+    let ignoredFirstAutoSignIn = false;
     this.authUnsubscribe = authState.subscribe(async (state) => {
       if (!state.clerkReady) {
         if (DEBUG_VERBOSE) console.log("SyncService: Auth state not ready yet.");
@@ -99,6 +100,7 @@ export class SyncService {
       if (!primed) {
         // Initial ready state: remember current user without emitting events
         this.lastClerkId = state.clerkUserId;
+        primedInitialUserId = state.clerkUserId;
         primed = true;
         if (DEBUG_VERBOSE) {
           console.log("SyncService: Primed auth state on initial ready; no sign-in event emitted.");
@@ -109,6 +111,21 @@ export class SyncService {
       const currentClerkId = state.clerkUserId;
       const hasSignedIn = currentClerkId && !this.lastClerkId;
       const hasSignedOut = !currentClerkId && this.lastClerkId;
+
+      // Ignore the first non-null user after priming if we primed with null (page refresh case)
+      if (
+        primed &&
+        !ignoredFirstAutoSignIn &&
+        primedInitialUserId === null &&
+        currentClerkId &&
+        !this.lastClerkId
+      ) {
+        if (DEBUG_VERBOSE)
+          console.log("SyncService: Ignoring initial sign-in transition on refresh.");
+        this.lastClerkId = currentClerkId;
+        ignoredFirstAutoSignIn = true;
+        return;
+      }
 
       if (hasSignedIn) {
         if (DEBUG_VERBOSE) console.log(`SyncService: User signed in (ID: ${currentClerkId}).`);
@@ -158,7 +175,7 @@ export class SyncService {
       // Perform a full sync
       const result = await this.fullSync();
 
-            if (result.success) {
+      if (result.success) {
         if (DEBUG_VERBOSE) console.log("SyncService: Full sync completed successfully.");
         toast.success("Sync Successful", {
           description: "Your data has been successfully synced with the cloud."

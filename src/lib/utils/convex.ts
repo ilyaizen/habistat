@@ -1,9 +1,10 @@
 import type { Clerk } from "@clerk/clerk-js";
 import { ConvexClient } from "convex/browser";
 import { browser } from "$app/environment";
+// Centralized debug flag
+import { DEBUG_VERBOSE } from "$lib/utils/debug";
 
-// Debug configuration - set to false to reduce console verbosity
-const DEBUG_VERBOSE = false;
+// Debug configuration - keep additional toggles local
 const DEBUG_AUTH = true;
 const DEBUG_ERRORS = true;
 
@@ -23,6 +24,11 @@ let lastTokenFetchTime = 0;
 let lastSuccessfulToken: string | null = null;
 let authReady = false;
 let offlineMode = false;
+
+// Single-flight guard for token retrieval and short-term caching
+let currentTokenPromise: Promise<string | null> | null = null;
+let lastTokenIssuedAt = 0;
+const TOKEN_TTL_MS = 1_800_000; // cache Clerk token for 30m to avoid redundant fetches
 
 // Type declarations for window.Clerk
 declare global {
@@ -264,13 +270,16 @@ function initializeConvexClient() {
         return null;
       }
 
-      // Don't retry too frequently
       const now = Date.now();
-      const timeSinceLastFetch = now - lastTokenFetchTime;
-      if (authenticationInProgress && timeSinceLastFetch < 5000) {
-        // Debug: Auth in progress, using cached token
-        // console.log("[Convex] Auth in progress, using cached token");
+
+      // Serve a fresh-enough cached token without hitting Clerk again
+      if (lastSuccessfulToken && now - lastTokenIssuedAt < TOKEN_TTL_MS) {
         return lastSuccessfulToken;
+      }
+
+      // If a token fetch is already in-flight, await it (single-flight)
+      if (currentTokenPromise) {
+        return await currentTokenPromise;
       }
 
       // Start auth process
@@ -278,82 +287,66 @@ function initializeConvexClient() {
       lastTokenFetchTime = now;
       authReady = false; // Reset auth status until we get a successful token
 
-      let attempts = 0;
-      const maxAttempts = 1;
+      // Single-flight token retrieval with minimal logging
+      currentTokenPromise = (async () => {
+        let attempts = 0;
+        const maxAttempts = 1;
+        while (attempts < maxAttempts) {
+          try {
+            // Wait for Clerk to be fully loaded and user session to be ready
+            const userReady = await waitForClerkUser();
+            if (!userReady) {
+              console.warn("⚠️ Convex: User session not ready");
+              break;
+            }
 
-      while (attempts < maxAttempts) {
-        try {
-          // Debug: Only log retries
-          if (attempts > 0) {
-            console.log(`🔄 Convex: Auth retry ${attempts + 1}/${maxAttempts}`);
-          }
+            // Validate Clerk state
+            if (!window.Clerk?.user) {
+              console.warn("⚠️ Convex: No user object");
+              break;
+            }
+            if (!window.Clerk?.session) {
+              console.warn("⚠️ Convex: No session object");
+              break;
+            }
 
-          // Wait for Clerk to be fully loaded and user session to be ready
-          const userReady = await waitForClerkUser();
-          if (!userReady) {
-            console.warn("⚠️ Convex: User session not ready");
-            break;
-          }
+            // Get token from Clerk session
+            const token = await window.Clerk.session.getToken({ template: "convex" });
+            if (token) {
+              lastSuccessfulToken = token;
+              lastTokenIssuedAt = Date.now();
+              authReady = true;
+              offlineMode = false;
+              return token;
+            } else {
+              console.warn("⚠️ Convex: Null token returned");
+            }
 
-          // Double-check user and session state with detailed logging
-          if (!window.Clerk?.user) {
-            console.warn("⚠️ Convex: No user object");
-            // Debug: Detailed Clerk state (only for errors)
-            // console.log("[Convex] Debug - Clerk state:", {
-            //   clerkExists: !!window.Clerk,
-            //   clerkLoaded: window.Clerk?.loaded,
-            //   hasUser: !!window.Clerk?.user,
-            //   hasSession: !!window.Clerk?.session,
-            //   userId: window.Clerk?.user?.id
-            // });
-            break;
-          }
-
-          if (!window.Clerk?.session) {
-            console.warn("⚠️ Convex: No session object");
-            break;
-          }
-
-          console.log("✅ Convex: Getting auth token...");
-
-          // Get token from Clerk session
-          const token = await window.Clerk.session.getToken({
-            template: "convex"
-          });
-
-          if (token) {
-            console.log("✅ Convex: Auth successful");
-            lastSuccessfulToken = token;
-            authenticationInProgress = false;
-            authReady = true;
-            offlineMode = false;
-            return token;
-          } else {
-            console.warn("⚠️ Convex: Null token returned");
-          }
-
-          attempts++;
-          if (attempts < maxAttempts) {
-            const delay = Math.min(1000 * 2 ** attempts, 8000); // Exponential backoff
-            // Debug: retry delay
-            // console.log(`[Convex] Retrying in ${delay}ms...`);
-            await new Promise((resolve) => setTimeout(resolve, delay));
-          }
-        } catch (error) {
-          console.error("[Convex] Auth error:", error);
-          attempts++;
-          if (attempts < maxAttempts) {
-            const delay = Math.min(1000 * 2 ** attempts, 8000);
-            await new Promise((resolve) => setTimeout(resolve, delay));
+            attempts++;
+            if (attempts < maxAttempts) {
+              const delay = Math.min(1000 * 2 ** attempts, 8000);
+              await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+          } catch (error) {
+            console.error("[Convex] Auth error:", error);
+            attempts++;
+            if (attempts < maxAttempts) {
+              const delay = Math.min(1000 * 2 ** attempts, 8000);
+              await new Promise((resolve) => setTimeout(resolve, delay));
+            }
           }
         }
+        console.warn("[Convex] Authentication failed after multiple attempts");
+        return null;
+      })();
+
+      try {
+        const result = await currentTokenPromise;
+        return result;
+      } finally {
+        authenticationInProgress = false;
+        currentTokenPromise = null;
       }
-
-      console.warn("[Convex] Authentication failed after multiple attempts");
-      authenticationInProgress = false;
-
-      // Return null instead of cached token on failure
-      return null;
     });
   } catch (error) {
     console.error("[Convex] Failed to initialize client:", error);

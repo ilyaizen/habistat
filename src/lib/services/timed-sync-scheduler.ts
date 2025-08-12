@@ -99,7 +99,7 @@ export function startTimedSyncScheduler(intervalMs: number = DEFAULT_INTERVAL_MS
   if (initialized) return;
   initialized = true;
   running = true;
-  
+
   // NOTE:
   // We intentionally DO NOT run an immediate tick here. Previously, calling
   // tick() on start caused a sync attempt right after every page refresh

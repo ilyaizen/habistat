@@ -88,13 +88,6 @@ function createAuthStateStore() {
         // For static builds, Convex auth follows Clerk auth
         convexAuthStatus: userId ? "authenticated" : "unauthenticated"
       }));
-
-      // Only log significant auth state changes
-      const state = get({ subscribe });
-      const hasChanged = state.clerkUserId !== userId || state.clerkReady !== ready;
-      if (hasChanged) {
-        console.log(`🔐 Auth: ${userId ? "signed in" : "signed out"}`);
-      }
     },
 
     /**

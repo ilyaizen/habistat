@@ -4,14 +4,12 @@
   Uses Svelte 5 $effect to react to page data changes and Clerk auth state.
 -->
 <script lang="ts">
-  // Debug configuration - set to true to enable verbose logging
-  const DEBUG_VERBOSE = false;
+  // Centralized debug flag
+  import { DEBUG_VERBOSE } from "$lib/utils/debug";
 
   import type { UserResource } from "@clerk/types";
   import { getContext, onDestroy, onMount } from "svelte";
   import type { Readable } from "svelte/store";
-  import { get } from "svelte/store";
-  import { toast } from "svelte-sonner";
   import { browser } from "$app/environment";
   // For page data
   import { page } from "$app/stores";
@@ -25,6 +23,10 @@
 
   let currentUserId: string | null = null;
   let hasShownMigrationToast = false;
+  // Prime initial emission so a page refresh with an already-signed-in user
+  // doesn't get treated as a fresh sign-in by this component. The SyncService
+  // has its own priming; we mirror it here to avoid duplicate triggers.
+  let primed = false;
 
   // Variables for subscription cleanup
   let clerkUnsubscribe: (() => void) | undefined;
@@ -37,48 +39,44 @@
     clerkUnsubscribe = clerkUserStore.subscribe((user) => {
       const newUserId = user?.id || null;
       const previousUserId = currentUserId;
-      currentUserId = newUserId;
 
-      // 1. Always keep the central auth store up-to-date
+      // 1) Always keep the central auth store up-to-date
       authState.setClerkState(newUserId, !!user);
 
+      // Prime on first emission and do nothing else (avoid refresh-induced sync)
+      if (!primed) {
+        primed = true;
+        currentUserId = newUserId;
+        // If a user is already signed in on initial load, filter stores locally
+        // without initiating any Convex subscriptions/sync.
+        if (newUserId) {
+          calendarsStore.setUser(newUserId, false, false);
+          habits.setUser(newUserId, false, false);
+        }
+        return;
+      }
+
       if (newUserId === previousUserId) return; // Exit if user ID hasn't changed
+
+      currentUserId = newUserId;
 
       if (DEBUG_VERBOSE) {
         const action = newUserId ? `signed in as ${newUserId}` : "signed out";
         console.log(`🔄 StoreSync: User state changed: ${action}`);
       }
 
-      // 2. Now, react to the new user state
+      // 2) React only to real transitions post-prime
       if (newUserId) {
-        // User is signed in. Initialize stores and trigger sync.
-        if (DEBUG_VERBOSE) console.log("⚙️ Initializing stores and sync for user");
-        calendarsStore.setUser(newUserId);
-        habits.setUser(newUserId);
-        syncStore.setUserId(newUserId); // This triggers the sync flow
-
-        // Handle data migration on initial login
-        if (!hasShownMigrationToast) {
-          hasShownMigrationToast = true;
-          syncStore.migrateAnonymousData().then((migrationResult) => {
-            if (migrationResult.success && migrationResult.migratedCount > 0) {
-              toast.success("Welcome back!", {
-                description: `Synced ${migrationResult.migratedCount} item(s) to your account.`
-              });
-            } else if (migrationResult.success) {
-              // Optional: show a generic success message even if nothing was migrated
-              // toast.success("Account synced!", {
-              //   description: "Your data is now synced across devices."
-              // });
-            }
-          });
-        }
+        // On real sign-in, only set the userId for the sync store.
+        // The SyncService (auth listener) will handle migration + full sync
+        // and will call per-store setUser during fullSync.
+        syncStore.setUserId(newUserId);
       } else {
-        // User is signed out. Clear all user-specific data.
+        // On real sign-out, clear user-specific data from stores
         if (DEBUG_VERBOSE) console.log("📤 Clearing user data from stores");
         calendarsStore.setUser(null);
         habits.setUser(null);
-        syncStore.setUserId(null); // Clear sync state
+        syncStore.setUserId(null);
         hasShownMigrationToast = false;
       }
     });
@@ -98,13 +96,11 @@
         try {
           const pageUserId = p.data?.session?.user?.id || null;
 
-          // Update stores with page data user (backup mechanism)
-          if (pageUserId && pageUserId !== currentUserId) {
-            if (DEBUG_VERBOSE) {
-              console.log("[StoreSync] Page data user detected:", pageUserId);
-            }
-            calendarsStore.setUser(pageUserId);
-            habits.setUser(pageUserId);
+          // Do not trigger per-store user set from page data on initial load.
+          // Auth transitions are handled via Clerk subscription + SyncService.
+          // We only use page data here for diagnostics.
+          if (DEBUG_VERBOSE && pageUserId && pageUserId !== currentUserId) {
+            console.log("[StoreSync] Page data user detected:", pageUserId);
           }
         } catch (pageError) {
           console.error("[StoreSync] Error processing page data:", pageError);

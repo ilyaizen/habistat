@@ -2,15 +2,14 @@
 // - Browser: sql.js (WASM) with IndexedDB persistence
 // - Tauri/Node: better-sqlite3 (via server.ts)
 
-// Debug configuration - set to true to enable verbose logging
-const DEBUG_VERBOSE = false;
-
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import type { SQLJsDatabase } from "drizzle-orm/sql-js";
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
 import wasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 import * as schema from "$lib/db/schema";
+// Centralized debug flag
+import { DEBUG_VERBOSE } from "$lib/utils/debug";
 import productionInitSql from "../../../production-init.sql?raw";
 
 // Use global variables to hold the db instance and readiness flags.

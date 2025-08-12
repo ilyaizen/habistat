@@ -302,15 +302,17 @@
           <!-- Calendar name, clickable to open edit dialog -->
           <button
             type="button"
-            class="nunito-header min-w-0 flex-1 disabled:text-muted-foreground/60 mb-2 inline-flex items-center gap-3 cursor-pointer text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
             disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
           >
             <!-- Calendar emoji container -->
-            <div class="emoji-container w-10 h-10 flex shrink-0 items-center justify-center text-2xl">
+            <div
+              class="emoji-container flex h-10 w-10 shrink-0 items-center justify-center text-2xl"
+            >
               {calEmoji}
             </div>
-            
+
             <!-- Calendar text -->
             <div class="min-w-0 flex-1 truncate text-xl">
               {calText}
@@ -350,8 +352,8 @@
                 <div
                   class="flex w-full min-w-0 flex-row flex-nowrap items-center justify-between gap-2 p-2 transition-all {isHabitDisabled
                     ? 'pointer-events-none'
-                    // TODO: 2025-08-12 - This needs proper implementation if hover:bg-card/90 is to be used
-                    : ''} {habit.isEnabled === 0 ? 'border-dashed' : ''}"
+                    : // TODO: 2025-08-12 - This needs proper implementation if hover:bg-card/90 is to be used
+                      ''} {habit.isEnabled === 0 ? 'border-dashed' : ''}"
                   aria-disabled={isHabitDisabled}
                 >
                   <!-- Left side: Drag handle and habit name -->
@@ -372,7 +374,7 @@
 
                     <!-- Habit name with navigation functionality -->
                     <div
-                      class="min-w-0 flex-1 cursor-pointer flex items-center gap-3 transition-opacity hover:opacity-80 {isHabitDisabled ||
+                      class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 transition-opacity hover:opacity-80 {isHabitDisabled ||
                       isReorderMode
                         ? '' // text-muted-foreground/70
                         : ''}"
@@ -388,10 +390,12 @@
                       title={habit.description ?? undefined}
                     >
                       <!-- Emoji container -->
-                      <div class="emoji-container w-8 h-8 flex shrink-0 items-center justify-center text-2xl">
+                      <div
+                        class="emoji-container flex h-8 w-8 shrink-0 items-center justify-center text-2xl"
+                      >
                         {emoji}
                       </div>
-                      
+
                       <!-- Habit text -->
                       <div class="min-w-0 flex-1 truncate">
                         {text}

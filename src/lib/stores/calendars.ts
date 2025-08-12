@@ -3,8 +3,7 @@
 // - Store is reactive: UI updates automatically on changes
 // - Used throughout dashboard and calendar pages
 
-// TODO: 2025-07-21 - InferModel is deprecated, we need to find a replacement
-import type { InferModel } from "drizzle-orm";
+// Drizzle: use table.$inferSelect/$inferInsert instead of deprecated InferModel
 import { get, writable } from "svelte/store";
 
 // import { eq } from "drizzle-orm";
@@ -23,9 +22,12 @@ import { normalizeCalendarColor } from "../utils/colors";
 import { getLastSyncTimestamp, updateLastSyncTimestamp } from "../utils/convex-operations";
 import { subscriptionStore } from "./subscription";
 
-export type Calendar = InferModel<typeof calendarsSchema>;
+export type Calendar = typeof calendarsSchema.$inferSelect;
 // Input type for creating new calendars via the store's add method
 export type CalendarInputData = Pick<Calendar, "name" | "colorTheme"> & { position?: number };
+
+// Centralized debug flag
+import { DEBUG_VERBOSE } from "$lib/utils/debug";
 
 /**
  * Creates a Svelte store for managing calendars, including local persistence and Convex synchronization.
@@ -78,7 +80,10 @@ export function createCalendarsStore() {
       return;
     }
 
-    console.log(`Syncing ${anonymousCalendars.length} anonymous calendars for user ${clerkUserId}`);
+    if (DEBUG_VERBOSE)
+      console.log(
+        `Syncing ${anonymousCalendars.length} anonymous calendars for user ${clerkUserId}`
+      );
 
     for (const cal of anonymousCalendars) {
       try {
@@ -105,9 +110,21 @@ export function createCalendarsStore() {
   }
 
   // Set user for the store - to be called from Svelte components
-  async function setUser(newClerkUserId: string | null, isInitialSync: boolean = false) {
+  // subscribeConvex controls whether we attach Convex subscriptions (network sync)
+  // Set subscribeConvex=false to only filter local data without triggering sync
+  async function setUser(
+    newClerkUserId: string | null,
+    isInitialSync: boolean = false,
+    subscribeConvex: boolean = true
+  ) {
+    // If userId didn't change, we may still need to transition from
+    // local-only (no Convex subscription) to subscribed mode. Allow that.
     if (newClerkUserId === currentClerkUserId) {
-      return; // Auth state hasn't changed relevantly
+      if (subscribeConvex && !convexUnsubscribe) {
+        // proceed to set up subscription without changing userId
+      } else {
+        return; // Nothing to do
+      }
     }
 
     currentClerkUserId = newClerkUserId;
@@ -115,12 +132,17 @@ export function createCalendarsStore() {
     if (convexUnsubscribe) {
       convexUnsubscribe();
       convexUnsubscribe = null;
-      console.log("Unsubscribed from Convex calendar updates.");
+      if (DEBUG_VERBOSE) console.log("Unsubscribed from Convex calendar updates.");
     }
 
     if (currentClerkUserId) {
-      // User is logged in
-      console.log("User logged in, syncing calendars with Convex...");
+      // Local-only mode: show signed-in user's local data without network activity
+      if (!subscribeConvex) {
+        await _loadFromLocalDB();
+        return;
+      }
+      // User is logged in. Enable network sync and subscription when requested.
+      if (DEBUG_VERBOSE) console.log("Calendars: enabling Convex subscription/sync...");
       isLoading.set(true);
       isSyncing.set(true);
 
@@ -165,7 +187,7 @@ export function createCalendarsStore() {
                 // During ongoing sync, use Last-Write-Wins conflict resolution
                 if (initialFlag || convexCal.clientUpdatedAt > localCalendar.updatedAt) {
                   await localData.updateCalendar(localCalendar.id, serverDataForLocal);
-                  if (initialFlag) {
+                  if (initialFlag && DEBUG_VERBOSE) {
                     console.log(
                       `📥 Initial sync: Overwriting local calendar ${localCalendar.id} with server data`
                     );
@@ -178,7 +200,7 @@ export function createCalendarsStore() {
                   id: convexCal.localUuid,
                   ...serverDataForLocal
                 });
-                if (initialFlag) {
+                if (initialFlag && DEBUG_VERBOSE) {
                   console.log(
                     `📥 Initial sync: Creating calendar ${convexCal.localUuid} from server data`
                   );
@@ -190,7 +212,7 @@ export function createCalendarsStore() {
             // During ongoing sync, only delete if they were removed from server
             for (const localIdToDelete of localCalendarsMap.keys()) {
               await localData.deleteCalendar(localIdToDelete);
-              if (initialFlag) {
+              if (initialFlag && DEBUG_VERBOSE) {
                 console.log(
                   `📥 Initial sync: Deleting local calendar ${localIdToDelete} not found on server`
                 );
@@ -199,14 +221,14 @@ export function createCalendarsStore() {
 
             await _loadFromLocalDB();
             isSyncing.set(false);
-            console.log("Local calendars updated from Convex.");
+            if (DEBUG_VERBOSE) console.log("Local calendars updated from Convex.");
 
             // Mark calendars as synced now that pull/merge completed
             await updateLastSyncTimestamp("calendars", Date.now());
           }
         );
 
-        console.log("Subscribed to Convex calendar updates.");
+        if (DEBUG_VERBOSE) console.log("Subscribed to Convex calendar updates.");
       } catch (error) {
         console.error("Convex watch for calendars failed:", error);
         await _loadFromLocalDB(); // Fallback to local
@@ -216,7 +238,7 @@ export function createCalendarsStore() {
       isLoading.set(false); // Initial loading (including first sync) finished
     } else {
       // User is logged out
-      console.log("User logged out, loading local/anonymous calendars.");
+      if (DEBUG_VERBOSE) console.log("User logged out, loading local/anonymous calendars.");
       await _loadFromLocalDB();
     }
   }

@@ -183,7 +183,8 @@
 
 /* Target emoji containers specifically to ensure Noto Color Emoji is applied */
 .emoji-container {
-  font-family: "Noto Color Emoji", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif !important;
+  font-family:
+    "Noto Color Emoji", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif !important;
 }
 
 /* Emoji bounce animation - subtle hover effect with shadow physics */
@@ -200,7 +201,9 @@
 
 /* Apply bounce animation to emoji containers on hover */
 .emoji-container {
-  transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+  transition:
+    transform 0.2s ease-in-out,
+    filter 0.2s ease-in-out;
 }
 
 /* Trigger bounce animation when emoji container is hovered directly */

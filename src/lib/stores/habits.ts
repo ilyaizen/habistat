@@ -1,14 +1,16 @@
-import type { InferModel } from "drizzle-orm";
 import { get, writable } from "svelte/store";
 // Use centralized Convex operations for DRY principles
 import { convexMutation, convexSubscription } from "$lib/utils/convex-operations";
+// Centralized debug flag
+import { DEBUG_VERBOSE } from "$lib/utils/debug";
 import { api } from "../../convex/_generated/api";
 import type { Doc } from "../../convex/_generated/dataModel";
 import type { habits as habitsSchema } from "../db/schema";
 import * as localData from "../services/local-data";
 import { subscriptionStore } from "./subscription";
 
-export type Habit = InferModel<typeof habitsSchema>;
+// Drizzle: use table.$inferSelect instead of deprecated InferModel
+export type Habit = typeof habitsSchema.$inferSelect;
 export type ConvexHabit = Doc<"habits">;
 export type HabitInputData = Pick<
   Habit,
@@ -56,7 +58,8 @@ function createHabitsStore() {
       return;
     }
 
-    console.log(`Syncing ${anonymousHabits.length} anonymous habits for user ${clerkUserId}`);
+    if (DEBUG_VERBOSE)
+      console.log(`Syncing ${anonymousHabits.length} anonymous habits for user ${clerkUserId}`);
 
     for (const habit of anonymousHabits) {
       try {
@@ -84,9 +87,21 @@ function createHabitsStore() {
   }
 
   // Set user for the store - to be called from Svelte components
-  async function setUser(newClerkUserId: string | null, isInitialSync: boolean = false) {
+  // subscribeConvex controls whether we attach Convex subscriptions (network sync)
+  // Set subscribeConvex=false to only filter local data without triggering sync
+  async function setUser(
+    newClerkUserId: string | null,
+    isInitialSync: boolean = false,
+    subscribeConvex: boolean = true
+  ) {
+    // If userId didn't change, we may still need to transition from
+    // local-only (no Convex subscription) to subscribed mode. Allow that.
     if (newClerkUserId === currentClerkUserId) {
-      return;
+      if (subscribeConvex && !convexUnsubscribe) {
+        // proceed to set up subscription without changing userId
+      } else {
+        return; // Nothing to do
+      }
     }
 
     currentClerkUserId = newClerkUserId;
@@ -94,11 +109,16 @@ function createHabitsStore() {
     if (convexUnsubscribe) {
       convexUnsubscribe();
       convexUnsubscribe = null;
-      console.log("Unsubscribed from Convex habit updates.");
+      if (DEBUG_VERBOSE) console.log("Unsubscribed from Convex habit updates.");
     }
 
     if (currentClerkUserId) {
-      console.log("⚙️ Habits: Syncing with Convex");
+      // Local-only mode: show signed-in user's local data without network activity
+      if (!subscribeConvex) {
+        await _loadFromLocalDB();
+        return;
+      }
+      if (DEBUG_VERBOSE) console.log("Habits: enabling Convex subscription/sync...");
       isLoading.set(true);
       isSyncing.set(true);
 
@@ -149,7 +169,7 @@ function createHabitsStore() {
                 if (initialFlag || convexHabit.clientUpdatedAt > localHabit.updatedAt) {
                   try {
                     await localData.updateHabit(localHabit.id, serverDataForLocal);
-                    if (initialFlag) {
+                    if (initialFlag && DEBUG_VERBOSE) {
                       console.log(
                         `📥 Initial sync: Overwriting local habit ${localHabit.id} with server data`
                       );
@@ -169,7 +189,7 @@ function createHabitsStore() {
                       id: convexHabit.localUuid,
                       ...serverDataForLocal
                     });
-                    if (initialFlag) {
+                    if (initialFlag && DEBUG_VERBOSE) {
                       console.log(
                         `📥 Initial sync: Creating habit ${convexHabit.localUuid} from server data`
                       );
@@ -178,7 +198,7 @@ function createHabitsStore() {
                     // Habit exists, update it instead
                     if (initialFlag || convexHabit.clientUpdatedAt > existingHabit.updatedAt) {
                       await localData.updateHabit(existingHabit.id, serverDataForLocal);
-                      if (initialFlag) {
+                      if (initialFlag && DEBUG_VERBOSE) {
                         console.log(
                           `📥 Initial sync: Updating existing habit ${existingHabit.id} with server data`
                         );
@@ -196,7 +216,7 @@ function createHabitsStore() {
             // During ongoing sync, only delete if they were removed from server
             for (const localIdToDelete of localHabitsMap.keys()) {
               await localData.deleteHabit(localIdToDelete);
-              if (initialFlag) {
+              if (initialFlag && DEBUG_VERBOSE) {
                 console.log(
                   `📥 Initial sync: Deleting local habit ${localIdToDelete} not found on server`
                 );
@@ -205,7 +225,7 @@ function createHabitsStore() {
 
             await _loadFromLocalDB();
             isSyncing.set(false);
-            console.log("Local habits updated from Convex.");
+            if (DEBUG_VERBOSE) console.log("Local habits updated from Convex.");
 
             // Mark habits as synced now that pull/merge completed
             await updateLastSyncTimestamp("habits", Date.now());
@@ -213,7 +233,7 @@ function createHabitsStore() {
         );
 
         // Check if subscription was successful by verifying we have a valid unsubscribe function
-        console.log("Subscribed to Convex habit updates.");
+        if (DEBUG_VERBOSE) console.log("Subscribed to Convex habit updates.");
         await _loadFromLocalDB();
       } catch (error) {
         console.error("Convex watch for habits failed:", error);
@@ -223,7 +243,7 @@ function createHabitsStore() {
         isLoading.set(false);
       }
     } else {
-      console.log("User logged out, loading local/anonymous habits.");
+      if (DEBUG_VERBOSE) console.log("User logged out, loading local/anonymous habits.");
       await _loadFromLocalDB();
     }
   }

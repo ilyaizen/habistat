@@ -1,11 +1,11 @@
-import type { InferModel } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import { writable } from "svelte/store";
 import { getDb } from "../db/client";
 import { activeTimers } from "../db/schema";
 
 // Type for ActiveTimer row
-export type ActiveTimer = InferModel<typeof activeTimers>;
+// Drizzle: use table.$inferSelect instead of deprecated InferModel
+export type ActiveTimer = typeof activeTimers.$inferSelect;
 
 /**
  * Svelte store for managing active timers.

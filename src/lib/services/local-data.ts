@@ -1,4 +1,4 @@
-import type { InferModel } from "drizzle-orm";
+// Drizzle: prefer table.$inferSelect/$inferInsert over deprecated InferModel
 import { and, desc, eq, gte, isNull } from "drizzle-orm";
 import { getDb as getDrizzleDb, persistBrowserDb } from "../db/client";
 import * as schema from "../db/schema";
@@ -9,8 +9,8 @@ import type { Calendar } from "../stores/calendars";
 import { normalizeCalendarColor } from "../utils/colors";
 
 // --- Types ---
-type Habit = InferModel<typeof schema.habits>;
-type Completion = InferModel<typeof schema.completions>;
+type Habit = typeof schema.habits.$inferSelect;
+type Completion = typeof schema.completions.$inferSelect;
 
 // --- Local SQLite DB initialization (sql.js for browser) ---
 // This service is browser-safe and Tauri-safe. It uses the central DB client.
@@ -350,20 +350,20 @@ export async function updateActivityHistoryUserId(localUuid: string, userId: str
  */
 export async function migrateAnonymousActivityHistory(userId: string): Promise<number> {
   const db = await getDrizzleDb();
-  
+
   // Get all anonymous activity history entries
   const anonymousEntries = await db
     .select()
     .from(schema.activityHistory)
     .where(isNull(schema.activityHistory.userId))
     .all();
-  
+
   if (anonymousEntries.length === 0) {
     return 0;
   }
-  
+
   let migratedCount = 0;
-  
+
   for (const entry of anonymousEntries) {
     try {
       // Check if user already has an entry for this date
@@ -377,12 +377,10 @@ export async function migrateAnonymousActivityHistory(userId: string): Promise<n
           )
         )
         .get();
-      
+
       if (existingEntry) {
         // User already has an entry for this date, delete the anonymous one
-        await db
-          .delete(schema.activityHistory)
-          .where(eq(schema.activityHistory.id, entry.id));
+        await db.delete(schema.activityHistory).where(eq(schema.activityHistory.id, entry.id));
       } else {
         // No existing entry, update the anonymous entry to have the userId
         await db
@@ -396,7 +394,7 @@ export async function migrateAnonymousActivityHistory(userId: string): Promise<n
       // Continue with other entries even if one fails
     }
   }
-  
+
   await persistBrowserDb();
   return migratedCount;
 }

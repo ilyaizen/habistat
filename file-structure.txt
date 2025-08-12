@@ -69,6 +69,7 @@
 │   │   ├── calendars.ts
 │   │   ├── cleanup.ts
 │   │   ├── completions.ts
+│   │   ├── config.ts
 │   │   ├── constants.ts
 │   │   ├── crons.ts
 │   │   ├── debug.ts
@@ -161,6 +162,7 @@
 │   │   │   ├── convex-operations.ts
 │   │   │   ├── convex.ts
 │   │   │   ├── date.ts
+│   │   │   ├── debug.ts
 │   │   │   ├── environment.ts
 │   │   │   ├── habit-display.ts
 │   │   │   ├── navigation.ts

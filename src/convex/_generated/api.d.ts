@@ -18,6 +18,7 @@ import type * as auth_helpers from "../auth_helpers.js";
 import type * as calendars from "../calendars.js";
 import type * as cleanup from "../cleanup.js";
 import type * as completions from "../completions.js";
+import type * as config from "../config.js";
 import type * as constants from "../constants.js";
 import type * as crons from "../crons.js";
 import type * as debug from "../debug.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   calendars: typeof calendars;
   cleanup: typeof cleanup;
   completions: typeof completions;
+  config: typeof config;
   constants: typeof constants;
   crons: typeof crons;
   debug: typeof debug;

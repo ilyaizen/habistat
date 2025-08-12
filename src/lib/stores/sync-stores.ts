@@ -87,10 +87,7 @@ function createsyncStore() {
       // Keep central auth state in sync
       authState.setClerkState(userId, true);
 
-      if (userId) {
-        // Sync is orchestrated by the backend service's auth listener
-        console.log("✅ SyncStore: User ID set; backend service will handle sync");
-      }
+      // No info logs here; backend service will orchestrate sync on real sign-ins
     },
 
     // Mark the beginning of a sync process and initialize progress

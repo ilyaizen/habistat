@@ -7,10 +7,11 @@
 
 import { get } from "svelte/store";
 import { authState } from "$lib/stores/auth-state";
+// Centralized debug flag
+import { DEBUG_VERBOSE } from "$lib/utils/debug";
 import { convex, isAuthReady, refreshConvexToken } from "./convex";
 
 // Debug configuration - reduce console verbosity
-const DEBUG_VERBOSE = false;
 
 // No retries - single attempt only to prevent app overload
 const MAX_RETRIES = 0;

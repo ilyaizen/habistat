@@ -1,4 +1,3 @@
-import type { InferModel } from "drizzle-orm";
 import { derived, writable } from "svelte/store";
 import { v4 as uuid } from "uuid";
 import type { completions as completionsSchema } from "../db/schema";
@@ -6,7 +5,8 @@ import * as localData from "../services/local-data";
 import { groupCompletionsByDate } from "../utils/completions";
 import { formatLocalDate } from "../utils/date";
 
-export type Completion = InferModel<typeof completionsSchema>;
+// Drizzle: use table.$inferSelect instead of deprecated InferModel
+export type Completion = typeof completionsSchema.$inferSelect;
 
 function createCompletionsStore() {
   const { subscribe, set, update } = writable<Completion[]>([]);
