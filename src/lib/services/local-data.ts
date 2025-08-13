@@ -319,9 +319,10 @@ export async function hasLocalChanges(): Promise<boolean> {
   const latestCompletion = await db
     .select()
     .from(schema.completions)
-    .orderBy(desc(schema.completions.clientUpdatedAt))
+    // Completions are append/delete-only; use completedAt to detect changes
+    .orderBy(desc(schema.completions.completedAt))
     .limit(1);
-  if ((latestCompletion[0]?.clientUpdatedAt ?? 0) > (await loadLast("completions"))) return true;
+  if ((latestCompletion[0]?.completedAt ?? 0) > (await loadLast("completions"))) return true;
 
   // activityHistory omitted: minimal local schema lacks per-row timestamps
   return false;

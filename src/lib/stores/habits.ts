@@ -30,6 +30,7 @@ function createHabitsStore() {
 
   let currentClerkUserId: string | null = null;
   let convexUnsubscribe: (() => void) | null = null;
+  let isInitialized = false;
 
   async function _loadFromLocalDB() {
     isLoading.set(true);
@@ -86,6 +87,43 @@ function createHabitsStore() {
     isSyncing.set(false);
   }
 
+  // Helper function to push existing authenticated user habits to Convex
+  async function _pushExistingHabits(clerkUserId: string) {
+    const allHabits = await localData.getAllHabits();
+    const userHabits = allHabits.filter((h) => h.userId === clerkUserId);
+
+    if (userHabits.length === 0) {
+      if (DEBUG_VERBOSE) console.log(`No existing habits to push for user ${clerkUserId}`);
+      return;
+    }
+
+    if (DEBUG_VERBOSE)
+      console.log(`Pushing ${userHabits.length} existing habits to Convex for user ${clerkUserId}`);
+
+    for (const habit of userHabits) {
+      try {
+        // Push existing authenticated user habit to Convex
+        await convexMutation(api.habits.createHabit, {
+          localUuid: habit.id,
+          calendarId: habit.calendarId,
+          name: habit.name,
+          description: habit.description ?? undefined,
+          type: habit.type,
+          timerEnabled: habit.timerEnabled === 1,
+          targetDurationSeconds: habit.targetDurationSeconds ?? undefined,
+          pointsValue: habit.pointsValue ?? undefined,
+          position: habit.position,
+          isEnabled: habit.isEnabled === 1,
+          createdAt: habit.createdAt,
+          updatedAt: habit.updatedAt
+        });
+        if (DEBUG_VERBOSE) console.log(`✅ Pushed habit ${habit.id} to Convex`);
+      } catch (error) {
+        console.error(`Failed to push habit ${habit.id} to Convex:`, error);
+      }
+    }
+  }
+
   // Set user for the store - to be called from Svelte components
   // subscribeConvex controls whether we attach Convex subscriptions (network sync)
   // Set subscribeConvex=false to only filter local data without triggering sync
@@ -123,6 +161,9 @@ function createHabitsStore() {
       isSyncing.set(true);
 
       await _syncAnonymousHabits(currentClerkUserId);
+
+      // Push any existing authenticated user habits to Convex
+      await _pushExistingHabits(currentClerkUserId);
 
       try {
         convexUnsubscribe = convexSubscription(
@@ -248,15 +289,112 @@ function createHabitsStore() {
     }
   }
 
-  _loadFromLocalDB();
+  // Initialize the store immediately when created
+  _loadFromLocalDB()
+    .then(() => {
+      isInitialized = true;
+      if (DEBUG_VERBOSE) console.log("Habits: Auto-initialized from local DB");
+    })
+    .catch((error) => {
+      console.error("Habits: Auto-initialization failed:", error);
+      isLoading.set(false); // Stop loading state even on error
+    });
 
   return {
     subscribe: _habits.subscribe,
     isLoading: { subscribe: isLoading.subscribe },
     isSyncing: { subscribe: isSyncing.subscribe },
     setUser, // Expose setUser method
+    /**
+     * Batch reorder and optionally reparent a set of habits belonging to a calendar.
+     * This is optimized for drag-and-drop finalize where the destination list order
+     * is authoritative. It performs a minimal set of local DB writes and defers
+     * any cloud sync to the event-driven SyncService.
+     */
+    async batchReorder(destinationCalendarId: string, orderedHabits: Habit[]) {
+      const originalItems = get(_habits);
+      const now = Date.now();
+
+      // Compute new in-memory snapshot with correct positions and calendarId
+      const updatedById = new Map<string, Habit>();
+      orderedHabits.forEach((habit, index) => {
+        updatedById.set(habit.id, {
+          ...habit,
+          calendarId: destinationCalendarId,
+          position: index,
+          updatedAt: now
+        });
+      });
+
+      const next = originalItems.map((h) => updatedById.get(h.id) ?? h);
+      _habits.set(next);
+
+      try {
+        // Persist only rows that actually changed
+        const writes: Promise<unknown>[] = [];
+        for (const habit of orderedHabits) {
+          const newPos = updatedById.get(habit.id)?.position;
+          const newCal = destinationCalendarId;
+          if (habit.position !== newPos || habit.calendarId !== newCal) {
+            writes.push(
+              localData.updateHabit(habit.id, {
+                calendarId: newCal,
+                position: newPos,
+                updatedAt: now
+              })
+            );
+          }
+        }
+        await Promise.all(writes);
+
+        // Defer cloud sync; event-driven sync will observe local updates.
+      } catch (error) {
+        console.error("Failed to persist batch habit reorder:", error);
+        // Best-effort revert to DB snapshot
+        await this.refresh();
+      }
+    },
+
+    /**
+     * Resequence the positions of habits within a single calendar without
+     * changing their calendar. Used to persist the source list after a cross-
+     * calendar drag where one item was removed from it.
+     */
+    async resequenceCalendar(calendarId: string, orderedHabits: Habit[]) {
+      const originalItems = get(_habits);
+      const now = Date.now();
+
+      // Compute updated snapshot for the affected calendar
+      const updates: Array<Promise<unknown>> = [];
+      const next = originalItems.map((h) => {
+        if (h.calendarId !== calendarId) return h;
+        const idx = orderedHabits.findIndex((x) => x.id === h.id);
+        if (idx === -1) return h; // Item moved out already
+        if (h.position === idx) return h; // No change
+        updates.push(
+          localData.updateHabit(h.id, {
+            position: idx,
+            updatedAt: now
+          })
+        );
+        return { ...h, position: idx, updatedAt: now };
+      });
+
+      _habits.set(next);
+
+      try {
+        await Promise.all(updates);
+      } catch (error) {
+        console.error("Failed to resequence calendar habits:", error);
+        await this.refresh();
+      }
+    },
 
     async refresh() {
+      if (!isInitialized) {
+        isInitialized = true;
+        if (DEBUG_VERBOSE) console.log("Habits: Initial load from local DB");
+      }
       await _loadFromLocalDB();
     },
 
@@ -298,10 +436,10 @@ function createHabitsStore() {
       try {
         await localData.createHabit(newHabit);
 
+        // Immediately mirror create to Convex when authenticated to minimize drift
         if (currentClerkUserId) {
-          isSyncing.set(true);
           try {
-            const result = await convexMutation(api.habits.createHabit, {
+            await convexMutation(api.habits.createHabit, {
               localUuid: newHabit.id,
               calendarId: newHabit.calendarId,
               name: newHabit.name,
@@ -315,15 +453,8 @@ function createHabitsStore() {
               createdAt: newHabit.createdAt,
               updatedAt: newHabit.updatedAt
             });
-            if (result !== null) {
-              console.log(`Habit ${newHabit.id} synced to Convex.`);
-            } else {
-              console.warn("Failed to sync habit to Convex");
-            }
-          } catch (error) {
-            console.error(`Failed to sync new habit ${newHabit.id} to Convex:`, error);
-          } finally {
-            isSyncing.set(false);
+          } catch (err) {
+            console.warn("Failed to immediately mirror habit create to Convex:", err);
           }
         }
       } catch (e) {
@@ -346,19 +477,12 @@ function createHabitsStore() {
       try {
         await localData.deleteHabit(localUuid);
 
+        // Immediately mirror delete to Convex when authenticated
         if (currentClerkUserId) {
-          isSyncing.set(true);
           try {
-            const result = await convexMutation(api.habits.deleteHabit, { localUuid });
-            if (result !== null) {
-              console.log(`Habit ${localUuid} deleted from Convex.`);
-            } else {
-              console.warn("Failed to delete habit from Convex");
-            }
-          } catch (error) {
-            console.error(`Failed to delete habit ${localUuid} from Convex:`, error);
-          } finally {
-            isSyncing.set(false);
+            await convexMutation(api.habits.deleteHabit, { localUuid });
+          } catch (err) {
+            console.warn("Failed to immediately mirror habit delete to Convex:", err);
           }
         }
       } catch (e) {
@@ -389,43 +513,30 @@ function createHabitsStore() {
           this.updatePositions(oldCalendarId);
         }
 
+        // Immediately mirror update to Convex when authenticated
         if (currentClerkUserId) {
-          isSyncing.set(true);
           try {
-            const convexPayload: any = {
+            const payload: any = {
               localUuid,
-              updatedAt: now
+              updatedAt: updatedData.updatedAt
             };
-            if ("name" in data && data.name !== undefined) convexPayload.name = data.name;
-            if ("description" in data) convexPayload.description = data.description ?? undefined;
-            if ("type" in data && data.type !== undefined) convexPayload.type = data.type;
-            if ("timerEnabled" in data && data.timerEnabled !== undefined)
-              convexPayload.timerEnabled = data.timerEnabled === 1;
-            if ("targetDurationSeconds" in data)
-              convexPayload.targetDurationSeconds = data.targetDurationSeconds ?? undefined;
-            if ("pointsValue" in data) convexPayload.pointsValue = data.pointsValue ?? undefined;
-            if ("position" in data && data.position !== undefined)
-              convexPayload.position = data.position;
-            if ("isEnabled" in data && data.isEnabled !== undefined)
-              convexPayload.isEnabled = data.isEnabled === 1;
-
-            if ("calendarId" in data && data.calendarId !== undefined) {
-              convexPayload.calendarId = data.calendarId;
-            }
-
-            const result = await convexMutation(
-              api.habits.updateHabit,
-              convexPayload as unknown as ConvexHabit
-            );
-            if (result !== null) {
-              console.log(`Habit ${localUuid} updated in Convex.`);
-            } else {
-              console.warn("Failed to update habit in Convex");
-            }
-          } catch (error) {
-            console.error(`Failed to update habit ${localUuid} in Convex:`, error);
-          } finally {
-            isSyncing.set(false);
+            if (updatedData.calendarId !== undefined) payload.calendarId = updatedData.calendarId;
+            if (updatedData.name !== undefined) payload.name = updatedData.name;
+            if (updatedData.description !== undefined)
+              payload.description = updatedData.description ?? undefined;
+            if (updatedData.type !== undefined) payload.type = updatedData.type;
+            if (updatedData.timerEnabled !== undefined)
+              payload.timerEnabled = updatedData.timerEnabled === 1;
+            if (updatedData.targetDurationSeconds !== undefined)
+              payload.targetDurationSeconds = updatedData.targetDurationSeconds ?? undefined;
+            if (updatedData.pointsValue !== undefined)
+              payload.pointsValue = updatedData.pointsValue ?? undefined;
+            if (updatedData.position !== undefined) payload.position = updatedData.position;
+            if (updatedData.isEnabled !== undefined)
+              payload.isEnabled = updatedData.isEnabled === 1;
+            await convexMutation(api.habits.updateHabit, payload);
+          } catch (err) {
+            console.warn("Failed to immediately mirror habit update to Convex:", err);
           }
         }
       } catch (e) {

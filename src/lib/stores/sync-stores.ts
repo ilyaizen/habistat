@@ -8,6 +8,10 @@
 
 import { derived, writable } from "svelte/store";
 import { browser } from "$app/environment";
+// Best-effort ensure firstAppOpenAt is set shortly after auth is ready, in case
+// other pathways miss it; avoids seeing it unset in dev/prod fresh resets.
+import { ensureFirstAppOpenTimestamp } from "$lib/utils/convex-operations";
+import { DEBUG_VERBOSE } from "$lib/utils/debug";
 import { syncService } from "../services/sync-service";
 import type { SyncResult } from "../utils/convex-operations";
 import { authState } from "./auth-state";
@@ -57,6 +61,14 @@ function createsyncStore() {
   let currentUserId: string | null = null;
   let syncStartTime: number | null = null;
 
+  // Holds a temporary unsubscribe function used for one-off subscriptions.
+  // Always guard accesses; never call before initialization.
+  let lastTempUnsubscribe: (() => void) | null = null;
+
+  // Concurrency guards to avoid overlapping sync runs and double subscriptions.
+  let isSyncActive = false;
+  let isFullSyncInProgress = false;
+
   // Monitor online status and reflect in store
   if (browser) {
     const updateOnlineStatus = () => {
@@ -74,6 +86,12 @@ function createsyncStore() {
   // Initialize the sync backend service once in the browser
   if (browser) {
     syncService.initialize();
+    // Fire-and-forget ensure first open timestamp when auth becomes ready
+    authState.subscribe((s) => {
+      if (s.clerkReady && s.clerkUserId) {
+        ensureFirstAppOpenTimestamp().catch(() => {});
+      }
+    });
   }
 
   const store = {
@@ -92,6 +110,10 @@ function createsyncStore() {
 
     // Mark the beginning of a sync process and initialize progress
     startSync: (items: string[] = []) => {
+      // Idempotency: if a sync has already been started, do nothing.
+      if (isSyncActive) return;
+
+      isSyncActive = true;
       syncStartTime = Date.now();
       update((state) => ({
         ...state,
@@ -125,16 +147,39 @@ function createsyncStore() {
         return;
       }
 
-      // Avoid concurrent syncs
+      // Avoid concurrent syncs (fast-path) by reading current state once.
+      // Use a safe subscribe pattern that doesn't reference the unsubscribe
+      // variable before it is initialized (avoids TDZ ReferenceError).
+      if (lastTempUnsubscribe) {
+        lastTempUnsubscribe();
+        lastTempUnsubscribe = null;
+      }
+
       const currentState = await new Promise<SyncState>((resolve) => {
-        const unsubscribe = subscribe((state) => {
+        // Declare first, assign after subscribe returns; unsubscribe immediately
+        // afterwards to ensure we only read once.
+        let localUnsubscribe: (() => void) | null = null;
+        const stop = subscribe((state) => {
           resolve(state);
-          unsubscribe();
+          if (localUnsubscribe) {
+            localUnsubscribe();
+            localUnsubscribe = null;
+          }
         });
+        localUnsubscribe = stop;
+        lastTempUnsubscribe = stop;
+        if (localUnsubscribe) {
+          localUnsubscribe();
+          localUnsubscribe = null;
+        }
+        // Clear shared reference now that we're done.
+        lastTempUnsubscribe = null;
       });
 
       if (currentState.status === "syncing") {
-        console.log("SyncStore: Sync already in progress, skipping");
+        if (DEBUG_VERBOSE) {
+          console.log("SyncStore: Sync already in progress, skipping");
+        }
         return;
       }
 
@@ -165,6 +210,14 @@ function createsyncStore() {
         }));
         return;
       }
+
+      // Prevent overlapping runs across rapid calls
+      if (isFullSyncInProgress || isSyncActive) {
+        console.log("SyncStore: Another sync is already running, skipping");
+        return;
+      }
+
+      isFullSyncInProgress = true;
 
       // Start sync with progress tracking
       const syncItems = ["user", "calendars", "habits", "completions", "activityHistory"];
@@ -212,6 +265,10 @@ function createsyncStore() {
           totalItems: undefined,
           completedItems: undefined
         }));
+      } finally {
+        // Always release concurrency guards
+        isFullSyncInProgress = false;
+        isSyncActive = false;
       }
 
       // Reset status to idle shortly after a successful sync for a calm UI
@@ -230,6 +287,12 @@ function createsyncStore() {
           ...state,
           error: "Not authenticated"
         }));
+        return;
+      }
+
+      // Prevent overlapping runs across rapid calls
+      if (isSyncActive) {
+        console.log("SyncStore: Sync already active, skipping data type sync");
         return;
       }
 
@@ -272,6 +335,8 @@ function createsyncStore() {
           error: error instanceof Error ? error.message : `${dataType} sync error`,
           lastErrorAt: Date.now()
         }));
+      } finally {
+        isSyncActive = false;
       }
     },
 
@@ -280,6 +345,8 @@ function createsyncStore() {
       if (!currentUserId) {
         return { success: false, migratedCount: 0, error: "Not authenticated" };
       }
+
+      isSyncActive = true;
 
       update((state) => ({
         ...state,
@@ -317,6 +384,8 @@ function createsyncStore() {
           lastErrorAt: Date.now()
         }));
         return { success: false, migratedCount: 0, error: errorMessage };
+      } finally {
+        isSyncActive = false;
       }
     },
 
@@ -328,6 +397,13 @@ function createsyncStore() {
     // Reset to initial state
     reset: () => {
       set(initialState);
+      // Ensure internal guards and temp subscriptions are fully cleared
+      isSyncActive = false;
+      isFullSyncInProgress = false;
+      if (lastTempUnsubscribe) {
+        lastTempUnsubscribe();
+        lastTempUnsubscribe = null;
+      }
     },
 
     // Manually adjust status with optional error message

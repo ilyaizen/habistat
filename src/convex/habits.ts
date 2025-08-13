@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
+import { enforceRateLimit } from "./rateLimit";
 // import type { Id } from "./_generated/dataModel";
 import type { Id } from "./_generated/dataModel";
 
@@ -31,9 +32,11 @@ export const getUserHabits = query({
       throw new Error("Not authenticated");
     }
 
+    // Use index by_user_position and order to ensure deterministic, scalable fetch
     const habits = await ctx.db
       .query("habits")
       .withIndex("by_user_position", (q) => q.eq("userId", identity.subject))
+      .order("asc")
       .collect();
 
     return habits;
@@ -111,6 +114,39 @@ export const createHabit = mutation({
       throw new Error("Not authenticated");
     }
 
+    // Idempotency: if a habit with this localUuid already exists for the user, treat as upsert
+    const existing = await ctx.db
+      .query("habits")
+      .withIndex("by_user_local_uuid", (q) =>
+        q.eq("userId", identity.subject).eq("localUuid", args.localUuid)
+      )
+      .first();
+
+    if (existing) {
+      // Only update if incoming is newer (Last-Write-Wins)
+      if (args.updatedAt > existing.updatedAt) {
+        await ctx.db.patch(existing._id, {
+          calendarId: args.calendarId,
+          name: args.name,
+          description: args.description,
+          type: args.type,
+          timerEnabled: args.timerEnabled,
+          targetDurationSeconds: args.targetDurationSeconds,
+          pointsValue: args.pointsValue,
+          position: args.position,
+          isEnabled: args.isEnabled,
+          updatedAt: args.updatedAt
+        });
+      }
+      return existing._id;
+    }
+
+    // Basic rate limit to minimize abuse on create
+    await enforceRateLimit(ctx, identity.subject, "habits.create", {
+      limit: 120, // max creates per minute
+      windowSeconds: 60
+    });
+
     const habitId = await ctx.db.insert("habits", {
       localUuid: args.localUuid,
       userId: identity.subject,
@@ -127,7 +163,103 @@ export const createHabit = mutation({
       updatedAt: args.updatedAt
     });
 
+    // Best-effort dedupe: if multiple docs exist for the same (userId, localUuid),
+    // keep the newest by updatedAt and delete others. This eliminates rare races.
+    const siblings = await ctx.db
+      .query("habits")
+      .withIndex("by_user_local_uuid", (q) =>
+        q.eq("userId", identity.subject).eq("localUuid", args.localUuid)
+      )
+      .collect();
+    if (siblings.length > 1) {
+      let keep = siblings[0];
+      for (const h of siblings) {
+        if ((h.updatedAt as number) > (keep.updatedAt as number)) keep = h;
+      }
+      for (const h of siblings) {
+        if (h._id !== keep._id) {
+          await ctx.db.delete(h._id);
+        }
+      }
+      return keep._id;
+    }
+
     return habitId;
+  }
+});
+
+// --- Health/maintenance utilities ---
+
+// Report duplicate habits per current user by localUuid
+export const findHabitDuplicateLocalUuids = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      localUuid: v.string(),
+      count: v.number()
+    })
+  ),
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const all = await ctx.db
+      .query("habits")
+      .withIndex("by_user_position", (q) => q.eq("userId", identity.subject))
+      .collect();
+
+    const counts = new Map<string, number>();
+    for (const h of all) {
+      counts.set(h.localUuid, (counts.get(h.localUuid) ?? 0) + 1);
+    }
+    const result: Array<{ localUuid: string; count: number }> = [];
+    for (const [localUuid, count] of counts) {
+      if (count > 1) result.push({ localUuid, count });
+    }
+    return result;
+  }
+});
+
+// Deduplicate habits by keeping the most recently updated doc for each localUuid
+export const dedupeHabitsForCurrentUser = internalMutation({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const all = await ctx.db
+      .query("habits")
+      .withIndex("by_user_position", (q) => q.eq("userId", identity.subject))
+      .collect();
+
+    const byLocal = new Map<string, typeof all>();
+    for (const h of all) {
+      const arr = byLocal.get(h.localUuid) ?? [];
+      arr.push(h);
+      byLocal.set(h.localUuid, arr);
+    }
+
+    let deleted = 0;
+    for (const [, arr] of byLocal) {
+      if (arr.length <= 1) continue;
+      // Keep the document with the greatest updatedAt; delete others
+      let keep = arr[0];
+      for (const h of arr) {
+        if ((h.updatedAt as number) > (keep.updatedAt as number)) keep = h;
+      }
+      for (const h of arr) {
+        if (h._id !== keep._id) {
+          await ctx.db.delete(h._id);
+          deleted += 1;
+        }
+      }
+    }
+    return deleted;
   }
 });
 
@@ -135,6 +267,7 @@ export const createHabit = mutation({
 export const updateHabit = mutation({
   args: {
     localUuid: v.string(),
+    calendarId: v.optional(v.string()),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
     type: v.optional(v.string()),
@@ -153,8 +286,9 @@ export const updateHabit = mutation({
 
     const habit = await ctx.db
       .query("habits")
-      .filter((q) => q.eq(q.field("localUuid"), args.localUuid))
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .withIndex("by_user_local_uuid", (q) =>
+        q.eq("userId", identity.subject).eq("localUuid", args.localUuid)
+      )
       .first();
 
     if (!habit) {
@@ -162,6 +296,7 @@ export const updateHabit = mutation({
     }
 
     await ctx.db.patch(habit._id, {
+      calendarId: args.calendarId,
       name: args.name,
       description: args.description,
       type: args.type,
@@ -190,8 +325,9 @@ export const deleteHabit = mutation({
 
     const habit = await ctx.db
       .query("habits")
-      .filter((q) => q.eq(q.field("localUuid"), args.localUuid))
-      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .withIndex("by_user_local_uuid", (q) =>
+        q.eq("userId", identity.subject).eq("localUuid", args.localUuid)
+      )
       .first();
 
     if (!habit) {

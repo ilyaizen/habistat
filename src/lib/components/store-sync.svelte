@@ -67,9 +67,16 @@
 
       // 2) React only to real transitions post-prime
       if (newUserId) {
-        // On real sign-in, only set the userId for the sync store.
-        // The SyncService (auth listener) will handle migration + full sync
-        // and will call per-store setUser during fullSync.
+        // On real sign-in, immediately filter local stores to the signed-in user's
+        // data without enabling network subscriptions. This guarantees dashboards
+        // populate from local SQLite on refresh even when the SyncService intentionally
+        // ignores the initial sign-in transition to avoid duplicate full syncs.
+        calendarsStore.setUser(newUserId, false, false);
+        habits.setUser(newUserId, false, false);
+
+        // Also set the userId for the sync store. The SyncService (auth listener)
+        // will handle migration + full sync and upgrade these stores to subscribed
+        // mode later, but we want the UI to be responsive immediately.
         syncStore.setUserId(newUserId);
       } else {
         // On real sign-out, clear user-specific data from stores

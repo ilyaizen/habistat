@@ -14,7 +14,8 @@
   import {
     generateFakeAppOpenHistory,
     sessionStore,
-    updateSessionStartDate
+    updateSessionStartDate,
+    getAssociatedUserId
   } from "$lib/utils/tracking";
 
   // Callback prop for when data generation completes
@@ -50,7 +51,8 @@
     days: number
   ) {
     const today = new SvelteDate();
-    const currentUserId = get(sessionStore)?.id;
+    // Use Clerk user ID if authenticated, null if anonymous
+    const currentUserId = getAssociatedUserId();
     for (let dayOffset = days - 1; dayOffset >= 0; dayOffset--) {
       const date = new SvelteDate(today);
       date.setDate(today.getDate() - dayOffset);
@@ -158,12 +160,40 @@
         habitsStore.refresh(),
         completionsStore.refresh()
       ]);
+
+      // If online and authenticated, proactively trigger a sync so the cloud reflects
+      // generated sample data immediately. This also avoids leaving partial local-only state
+      // when starting fresh on dev/prod.
+      try {
+        const { syncStore } = await import("$lib/stores/sync-stores");
+        const state = get(syncStore);
+        if (state.isOnline) {
+          await syncStore.triggerFullSync();
+        }
+      } catch {
+        // Non-fatal; user can manually sync from settings
+      }
       // Refresh activity monitor if ref provided
       activityMonitorRef?.refresh?.();
       console.log("Sample data generated successfully!");
+
+      // Show success toast
+      const { toast } = await import("svelte-sonner");
+      toast.success("🎉 Sample Data Generated!", {
+        description: `Successfully created ${numDays} days of sample calendars, habits, completions, and activity history.`,
+        duration: 4000
+      });
+
       ondatagenerated?.();
     } catch (error) {
       console.error("Error generating sample data:", error);
+
+      // Show error toast
+      const { toast } = await import("svelte-sonner");
+      toast.error("Sample Data Generation Failed", {
+        description: `Failed to generate sample data: ${error instanceof Error ? error.message : "Unknown error"}`,
+        duration: 5000
+      });
     } finally {
       isGenerating = false;
     }

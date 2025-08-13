@@ -1,5 +1,7 @@
 import { derived, writable } from "svelte/store";
 import { v4 as uuid } from "uuid";
+import { convexMutation, mapLocalHabitIdToConvexId } from "$lib/utils/convex-operations";
+import { api } from "../../convex/_generated/api";
 import type { completions as completionsSchema } from "../db/schema";
 import * as localData from "../services/local-data";
 import { groupCompletionsByDate } from "../utils/completions";
@@ -30,12 +32,47 @@ function createCompletionsStore() {
       };
       await localData.createCompletion(newCompletion);
       update((completions) => [...completions, newCompletion]);
+      // Best-effort push to Convex immediately to minimize drift
+      try {
+        // Map local habit ID to Convex habit _id for server-side storage
+        const convexHabitId = await mapLocalHabitIdToConvexId(habitId);
+        if (convexHabitId) {
+          await convexMutation(api.completions.batchUpsertCompletions, {
+            completions: [
+              {
+                localUuid: newCompletion.id,
+                habitId: convexHabitId,
+                completedAt: newCompletion.completedAt
+              }
+            ]
+          });
+        }
+      } catch {
+        // Non-fatal; periodic sync will reconcile
+      }
       return newCompletion;
     },
     deleteLatestCompletionForToday: async (habitId: string) => {
       const deletedCompletion = await localData.deleteLatestCompletionForToday(habitId);
       if (deletedCompletion) {
         update((completions) => completions.filter((c) => c.id !== deletedCompletion.id));
+        // Compute local day bounds and request Convex to delete the latest for that day too
+        try {
+          const start = new Date();
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(start);
+          end.setDate(start.getDate() + 1);
+          const convexHabitId = await mapLocalHabitIdToConvexId(habitId);
+          if (convexHabitId) {
+            await convexMutation(api.completions.deleteLatestCompletionForDay, {
+              habitId: convexHabitId,
+              dayStartMs: start.getTime(),
+              dayEndMs: end.getTime()
+            });
+          }
+        } catch {
+          // Non-fatal; next sync will reconcile
+        }
       }
     },
     // Sync-specific functions

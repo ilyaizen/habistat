@@ -102,6 +102,7 @@
     "vite": "^7.0.6",
     "vite-plugin-devtools-json": "^0.3.0",
     "vite-plugin-pwa": "^1.0.2",
+    "vitest": "^3.2.4",
     "workbox-cacheable-response": "^7.3.0",
     "workbox-expiration": "^7.3.0",
     "workbox-precaching": "^7.3.0",

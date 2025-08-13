@@ -32,10 +32,7 @@
   import AppHeader from "$lib/components/app-header.svelte";
 
   import { Toaster } from "$lib/components/ui/sonner";
-  import {
-    startTimedSyncScheduler,
-    stopTimedSyncScheduler
-  } from "$lib/services/timed-sync-scheduler";
+  // Note: Removed timed sync scheduler - sync is now event-driven and smarter
 
   // import * as ContextMenu from "$lib/components/ui/context-menu";
   // import { useNavigation } from "$lib/hooks/use-navigation.svelte.ts";
@@ -44,8 +41,8 @@
   // import { runDiagnostics } from "$lib/utils/tauri-debug";
 
   import StoreSync from "$lib/components/store-sync.svelte";
-  // App settings store (includes the Noto Emoji toggle)
-  import { settings as appSettings } from "$lib/stores/settings";
+  // Global tooltip provider to ensure any Tooltip usage (e.g., in header) always has context
+  import * as Tooltip from "$lib/components/ui/tooltip";
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -98,30 +95,6 @@
   // Set up Clerk contexts and session association
   clerk.setupClerkContexts();
   clerk.setupSessionAssociation();
-
-  // --- Optional Emoji Font (Noto Color Emoji) ---
-  // We only load Noto Color Emoji when the user explicitly enables it in settings to avoid
-  // unnecessary network/font weight. We add a class on <html> to override --font-sans
-  // so emoji fallback prefers Noto Color Emoji across platforms.
-  let emojiFontLoaded = $state(false);
-
-  $effect(() => {
-    if (!browser) return;
-    const enabled = $appSettings.useNotoEmoji;
-    document.documentElement.classList.toggle("noto-color-emoji", enabled);
-    if (enabled && !emojiFontLoaded) {
-      // Inject Google Fonts stylesheet once
-      const existing = document.getElementById("noto-color-emoji-font");
-      if (!existing) {
-        const link = document.createElement("link");
-        link.id = "noto-color-emoji-font";
-        link.rel = "stylesheet";
-        link.href = "https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap";
-        document.head.appendChild(link);
-      }
-      emojiFontLoaded = true;
-    }
-  });
 
   onMount(() => {
     // Suppress Clerk development warning in dev mode
@@ -190,10 +163,7 @@
       // TODO: 2025-07-22 - Add this back in when we have a way to handle it
       // appInit.setupDevelopmentMode();
 
-      // Start timed sync scheduler (5-minute interval by default)
-      // - Handles auth gating internally
-      // - Triggers full sync only if local changes exist
-      startTimedSyncScheduler();
+      // Note: Timed sync scheduler removed - sync is now event-driven and smarter
 
       // Convex client will be initialized automatically when user authenticates
       // via the Clerk authentication flow in use-clerk.ts to prevent timeout
@@ -219,8 +189,7 @@
         // navigation.cleanup();
         // appInit.cleanup();
       }
-      // Stop the timed sync scheduler
-      stopTimedSyncScheduler();
+      // Note: No need to stop timed sync scheduler as it's been removed
       if (initTimeout) {
         clearTimeout(initTimeout);
       }
@@ -257,34 +226,36 @@
 </script>
 
 <ClerkProvider publishableKey={import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY}>
-  <div
-    class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
-  >
-    {#if page.url.pathname !== "/"}
-      <!-- Header is hidden on the landing page ("/") -->
-      <AppHeader />
-    {/if}
-    <main class="flex-1">
-      {#if page.url.pathname === "/"}
-        <div class="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
+  <!--
+    Wrap the entire app in Tooltip.Provider so components outside page trees
+    (like the header) can safely use Tooltip.Root/Trigger/Content without
+    "Context \"Tooltip.Provider\" not found" errors.
+  -->
+  <Tooltip.Provider>
+    <div
+      class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
+    >
+      {#if page.url.pathname !== "/"}
+        <AppHeader />
       {/if}
-      <!-- Main content area -->
-      <MotionWrapper>
-        <!-- STRIPPED DOWN FOR DEBUGGING -->
-        {@render children()}
-      </MotionWrapper>
-    </main>
-    {#if page.url.pathname !== "/"}
-      <!-- Footer is hidden on the landing page ("/") -->
-      <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
-    {/if}
+      <main class="flex-1">
+        {#if page.url.pathname === "/"}
+          <div class="absolute top-4 right-4">
+            <ThemeToggle />
+          </div>
+        {/if}
+        <MotionWrapper>
+          {@render children()}
+        </MotionWrapper>
+      </main>
+      {#if page.url.pathname !== "/"}
+        <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
+      {/if}
 
-    <Toaster />
-    <StoreSync />
+      <Toaster />
+      <StoreSync />
 
-    <!-- The AboutDrawer is now a singleton here, its lifecycle is not tied to page navigation. -->
-    <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
-  </div>
+      <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
+    </div>
+  </Tooltip.Provider>
 </ClerkProvider>

@@ -78,6 +78,7 @@ export default defineSchema({
     clientUpdatedAt: v.number(), // Unix timestamp for Last-Write-Wins conflict resolution
   })
     .index("by_user_habit", ["userId", "habitId"]) // For habit-specific queries
+    .index("by_user_habit_and_completed_at", ["userId", "habitId", "completedAt"]) // For fast day-range deletes
     .index("by_user_local_uuid", ["userId", "localUuid"]) // For sync operations
     .index("by_user_completed_at", ["userId", "completedAt"]) // For time-based queries
     .index("by_user_updated_at", ["userId", "clientUpdatedAt"]), // For sync conflict resolution
@@ -106,4 +107,13 @@ export default defineSchema({
   })
     .index("by_user_date", ["userId", "date"]) // For date-specific queries
     .index("by_user_local_uuid", ["userId", "localUuid"]), // For sync operations
+
+  // Rate limits table - coarse per-user action counters to mitigate abuse/DDOS
+  // Windowed counters keyed by (userId, action, windowStart seconds)
+  rateLimits: defineTable({
+    userId: v.string(),
+    action: v.string(),
+    windowStart: v.number(), // seconds since epoch, aligned to window size
+    count: v.number()
+  }).index("by_user_action_window", ["userId", "action", "windowStart"]),
 });

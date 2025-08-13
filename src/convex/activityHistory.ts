@@ -75,25 +75,44 @@ export const batchUpsertActivityHistory = mutation({
     const results: { localUuid: string; action: string }[] = [];
 
     for (const entry of entries) {
-      // Check if entry already exists
-      const existing = await ctx.db
+      // Check if entry already exists by (userId, date) to ensure one record per day
+      const existingByDate = await ctx.db
         .query("activityHistory")
-        .withIndex("by_user_local_uuid", (q) =>
-          q.eq("userId", userId).eq("localUuid", entry.localUuid)
+        .withIndex("by_user_date", (q) =>
+          q.eq("userId", userId).eq("date", entry.date)
         )
         .first();
 
-      if (existing) {
-        // Replace localUuid/date to reflect latest association (idempotent)
-        await ctx.db.patch(existing._id, { date: entry.date, localUuid: entry.localUuid });
-        results.push({ localUuid: entry.localUuid, action: "updated" });
+      if (existingByDate) {
+        // Update existing entry with new localUuid if needed (idempotent)
+        if (existingByDate.localUuid !== entry.localUuid) {
+          await ctx.db.patch(existingByDate._id, { localUuid: entry.localUuid });
+          results.push({ localUuid: entry.localUuid, action: "updated" });
+        } else {
+          results.push({ localUuid: entry.localUuid, action: "no-change" });
+        }
       } else {
-        await ctx.db.insert("activityHistory", {
-          userId,
-          localUuid: entry.localUuid,
-          date: entry.date
-        });
-        results.push({ localUuid: entry.localUuid, action: "created" });
+        // Check if there's an existing entry with this localUuid but different date
+        const existingByUuid = await ctx.db
+          .query("activityHistory")
+          .withIndex("by_user_local_uuid", (q) =>
+            q.eq("userId", userId).eq("localUuid", entry.localUuid)
+          )
+          .first();
+
+        if (existingByUuid) {
+          // Update the existing entry's date (handles date corrections)
+          await ctx.db.patch(existingByUuid._id, { date: entry.date });
+          results.push({ localUuid: entry.localUuid, action: "updated" });
+        } else {
+          // Create new entry
+          await ctx.db.insert("activityHistory", {
+            userId,
+            localUuid: entry.localUuid,
+            date: entry.date
+          });
+          results.push({ localUuid: entry.localUuid, action: "created" });
+        }
       }
     }
 

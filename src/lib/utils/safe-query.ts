@@ -53,17 +53,18 @@ export async function safeQuery<T = unknown, A = unknown>(
     return null;
   }
 
-  // Wait for Convex authentication to be ready (this is the critical fix for race conditions)
+  // Ensure Convex auth is actually initiated before waiting.
+  // Without this, callers could wait for isAuthReady() forever without triggering token fetches.
   if (!isAuthReady()) {
-    // Only log waiting for auth in verbose mode to reduce console noise
     if (DEBUG_VERBOSE) {
-      console.log("⏳ Query: Waiting for auth...");
+      console.log("⏳ Query: Auth not ready, triggering token fetch...");
     }
+    // Fire a token refresh to kick off Convex's setAuth flow
+    await refreshConvexToken();
 
-    // Give Convex auth some time to complete (up to 10 seconds)
+    // Wait for Convex authentication to be ready (bounded wait)
     const maxWaitTime = 10000;
     const startTime = Date.now();
-
     while (!isAuthReady() && Date.now() - startTime < maxWaitTime) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -76,7 +77,6 @@ export async function safeQuery<T = unknown, A = unknown>(
       return null;
     }
 
-    // Only log auth ready in verbose mode to reduce console noise
     if (DEBUG_VERBOSE) {
       console.log("✅ Query: Auth ready");
     }
@@ -84,8 +84,8 @@ export async function safeQuery<T = unknown, A = unknown>(
 
   // Single attempt execution - no retries to prevent app overload
   try {
-    // Ensure the auth token is fresh before executing the query
-    await refreshConvexToken();
+    // Avoid forcing token refresh here; convex client setAuth already caches
+    // and refreshes as needed. This prevents duplicate refresh logs.
     const convexClient = convex();
     if (!convexClient) {
       console.warn("[SafeQuery] Convex client not available at query time");
@@ -160,14 +160,16 @@ export async function safeMutation<T = unknown, A = unknown>(
     return null;
   }
 
-  // Wait for Convex authentication to be ready (this is the critical fix for race conditions)
+  // Ensure Convex auth is actually initiated before waiting to avoid deadlock.
   if (!isAuthReady()) {
-    console.log("⏳ Mutation: Waiting for auth...");
+    if (DEBUG_VERBOSE) {
+      console.log("⏳ Mutation: Auth not ready, triggering token fetch...");
+    }
+    await refreshConvexToken();
 
-    // Give Convex auth some time to complete (up to 10 seconds)
+    // Bounded wait for Convex auth to be ready
     const maxWaitTime = 10000;
     const startTime = Date.now();
-
     while (!isAuthReady() && Date.now() - startTime < maxWaitTime) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -180,13 +182,15 @@ export async function safeMutation<T = unknown, A = unknown>(
       return null;
     }
 
-    console.log("✅ Mutation: Auth ready");
+    if (DEBUG_VERBOSE) {
+      console.log("✅ Mutation: Auth ready");
+    }
   }
 
   // Single attempt execution - no retries to prevent app overload
   try {
-    // Ensure the auth token is fresh before executing the mutation
-    await refreshConvexToken();
+    // Avoid forcing token refresh here; convex client setAuth already caches
+    // and refreshes as needed. This prevents duplicate refresh logs.
     const convexClient = convex();
     if (!convexClient) {
       console.warn("[SafeMutation] Convex client not available at mutation time");

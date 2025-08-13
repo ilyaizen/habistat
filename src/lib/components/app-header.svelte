@@ -3,8 +3,9 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import Avatar from "$lib/components/avatar.svelte";
-  import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
-  import SyncIndicator from "$lib/components/sync-indicator.svelte";
+  // import SubscriptionBadge from "$lib/components/subscription-badge.svelte";
+  // Use a single unified sync status component across the app
+  // import SyncStatus from "$lib/components/sync-status.svelte";
   // import { _ } from "svelte-i18n";
   // import { Badge } from "$lib/components/ui/badge";
   import { Button } from "$lib/components/ui/button";
@@ -113,8 +114,8 @@
     </nav>
 
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
-      <SyncIndicator />
-      <SubscriptionBadge />
+      <!-- <SyncStatus variant="minimal" showText={false} /> -->
+      <!-- <SubscriptionBadge /> -->
       <Avatar />
     </div>
   </div>

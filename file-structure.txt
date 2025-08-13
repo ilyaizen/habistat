@@ -28,10 +28,6 @@
 │   │   ├── SV-execute-base-prp.md
 │   │   ├── SV-review-general.md
 │   │   ├── SV-review-staged-unstaged.md
-│   │   ├── phase3-saas-subscription-management.md
-│   │   ├── phase3.5-enhanced-sync.md
-│   │   ├── phase3.7-sync-schema-simplification.md
-│   │   ├── phase3.8-local-first-timed-sync.md
 │   │   └── prp-svelte.md
 │   ├── add-comments.md
 │   ├── clerk-setup.md
@@ -75,6 +71,7 @@
 │   │   ├── debug.ts
 │   │   ├── habits.ts
 │   │   ├── http.ts
+│   │   ├── rateLimit.ts
 │   │   ├── schema.ts
 │   │   ├── tsconfig.json
 │   │   └── users.ts
@@ -115,8 +112,6 @@
 │   │   │   ├── social-links.svelte
 │   │   │   ├── store-sync.svelte
 │   │   │   ├── subscription-badge.svelte
-│   │   │   ├── sync-indicator.svelte
-│   │   │   ├── sync-status-indicator.svelte
 │   │   │   ├── sync-status.svelte
 │   │   │   ├── tab-motion-wrapper.svelte
 │   │   │   ├── theme-toggle.svelte
@@ -139,8 +134,7 @@
 │   │   │   └── use-theme.ts
 │   │   ├── services
 │   │   │   ├── local-data.ts
-│   │   │   ├── sync-service.ts
-│   │   │   └── timed-sync-scheduler.ts
+│   │   │   └── sync-service.ts
 │   │   ├── stores
 │   │   │   ├── active-timers.ts
 │   │   │   ├── auth-state.ts
@@ -228,7 +222,8 @@
 │   ├── app.html
 │   ├── env.d.ts
 │   ├── hooks.client.ts
-│   └── hooks.server.ts
+│   ├── hooks.server.ts
+│   └── ui.css
 ├── src-tauri
 │   ├── capabilities
 │   │   └── default.json

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
+import { enforceRateLimit } from "./rateLimit";
 import type { CalendarColor } from "./constants";
 
 // Phase 3.7: Allowed calendar color names and normalization (server-side Step 1)
@@ -92,6 +93,12 @@ export const createCalendar = mutation({
       }
       return existing._id;
     }
+
+    // Rate limit on creating calendars to avoid abuse
+    await enforceRateLimit(ctx, userId, "calendars.create", {
+      limit: 60,
+      windowSeconds: 60
+    });
 
     const calendarId = await ctx.db.insert("calendars", {
       userId,

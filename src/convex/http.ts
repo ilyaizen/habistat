@@ -3,6 +3,41 @@ import { Webhook } from "svix";
 import { internal } from "./_generated/api";
 import { httpAction } from "./_generated/server";
 
+// Define the HTTP router early so routes below can use it
+const http = httpRouter();
+
+// Simple health endpoint to verify backend is up
+http.route({
+  path: "/healthz",
+  method: "GET",
+  handler: httpAction(async () => {
+    return new Response(JSON.stringify({ ok: true, ts: Date.now() }), {
+      status: 200,
+      headers: { "content-type": "application/json" }
+    });
+  })
+});
+
+// Maintenance endpoint to dedupe habits for current user (requires auth cookie)
+http.route({
+  path: "/maintenance/dedupe-habits",
+  method: "POST",
+  handler: httpAction(async (ctx) => {
+    try {
+      const deleted: number = await ctx.runMutation(internal.habits.dedupeHabitsForCurrentUser, {});
+      return new Response(JSON.stringify({ deleted }), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      });
+    } catch (e) {
+      return new Response(JSON.stringify({ error: (e as Error).message }), {
+        status: 400,
+        headers: { "content-type": "application/json" }
+      });
+    }
+  })
+});
+
 // The Clerk webhook secret, stored in an environment variable
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
 console.log(`Webhook secret defined: ${!!webhookSecret}`);
@@ -110,7 +145,7 @@ const handleClerkWebhook = httpAction(async (ctx, request) => {
       } else {
         console.warn(`User ${clerkId} was not found for deletion`);
       }
-      
+
       return new Response("OK", { status: 200 });
     } catch (mutationError) {
       console.error(`Error running deleteUserByClerkId mutation for user ${clerkId}:`, mutationError);
@@ -122,9 +157,6 @@ const handleClerkWebhook = httpAction(async (ctx, request) => {
     return new Response("Unsupported event type", { status: 200 });
   }
 });
-
-// Define the HTTP router
-const http = httpRouter();
 
 // Map the POST request at the /clerk endpoint to the handler function
 // Ensure the path matches what you configure in the Clerk Dashboard webhook settings

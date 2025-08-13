@@ -8,16 +8,16 @@ export const testAuth = query({
   handler: async (ctx) => {
     try {
       const identity = await ctx.auth.getUserIdentity();
-      console.log("[DEBUG] getUserIdentity result:", identity);
-      
+      // console.log("[DEBUG] getUserIdentity result:", identity);
+
       if (!identity) {
-        console.log("[DEBUG] No identity found - user not authenticated");
+        // console.log("[DEBUG] No identity found - user not authenticated");
         return { success: false, message: "No identity found", identity: null };
       }
-      
-      return { 
-        success: true, 
-        message: "Authentication successful", 
+
+      return {
+        success: true,
+        message: "Authentication successful",
         identity: {
           subject: identity.subject,
           issuer: identity.issuer,
@@ -26,7 +26,7 @@ export const testAuth = query({
         }
       };
     } catch (error) {
-      console.log("[DEBUG] Auth error:", error);
+      // console.log("[DEBUG] Auth error:", error);
       return { success: false, message: `Auth error: ${error}`, identity: null };
     }
   },

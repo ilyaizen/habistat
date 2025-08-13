@@ -41,6 +41,7 @@ export function createCalendarsStore() {
 
   let currentClerkUserId: string | null = null;
   let convexUnsubscribe: (() => void) | null = null; // To manage Convex subscription
+  let isInitialized = false;
 
   /**
    * Loads calendars from the local SQLite database and updates the store's state.
@@ -109,6 +110,40 @@ export function createCalendarsStore() {
     isSyncing.set(false);
   }
 
+  // Helper function to push existing authenticated user calendars to Convex
+  async function _pushExistingCalendars(clerkUserId: string) {
+    const allCalendars = await localData.getAllCalendars();
+    const userCalendars = allCalendars.filter((c) => c.userId === clerkUserId);
+
+    if (userCalendars.length === 0) {
+      if (DEBUG_VERBOSE) console.log(`No existing calendars to push for user ${clerkUserId}`);
+      return;
+    }
+
+    if (DEBUG_VERBOSE)
+      console.log(
+        `Pushing ${userCalendars.length} existing calendars to Convex for user ${clerkUserId}`
+      );
+
+    for (const cal of userCalendars) {
+      try {
+        // Push existing authenticated user calendar to Convex
+        await convexMutation(api.calendars.createCalendar, {
+          localUuid: cal.id,
+          name: cal.name,
+          colorTheme: cal.colorTheme,
+          position: cal.position,
+          isEnabled: cal.isEnabled === 1,
+          createdAt: cal.createdAt,
+          updatedAt: cal.updatedAt
+        });
+        if (DEBUG_VERBOSE) console.log(`✅ Pushed calendar ${cal.id} to Convex`);
+      } catch (error) {
+        console.error(`Failed to push calendar ${cal.id} to Convex:`, error);
+      }
+    }
+  }
+
   // Set user for the store - to be called from Svelte components
   // subscribeConvex controls whether we attach Convex subscriptions (network sync)
   // Set subscribeConvex=false to only filter local data without triggering sync
@@ -147,6 +182,9 @@ export function createCalendarsStore() {
       isSyncing.set(true);
 
       await _syncAnonymousCalendars(currentClerkUserId);
+
+      // Push any existing authenticated user calendars to Convex
+      await _pushExistingCalendars(currentClerkUserId);
 
       try {
         // Subscribe to the query using onUpdate
@@ -243,8 +281,16 @@ export function createCalendarsStore() {
     }
   }
 
-  // Initial load from local DB when the store is first created.
-  _loadFromLocalDB();
+  // Initialize the store immediately when created
+  _loadFromLocalDB()
+    .then(() => {
+      isInitialized = true;
+      if (DEBUG_VERBOSE) console.log("Calendars: Auto-initialized from local DB");
+    })
+    .catch((error) => {
+      console.error("Calendars: Auto-initialization failed:", error);
+      isLoading.set(false); // Stop loading state even on error
+    });
 
   return {
     subscribe: _calendars.subscribe,
@@ -255,6 +301,10 @@ export function createCalendarsStore() {
     // Reloads calendars from local DB. UI should call this if needed,
     // though most operations here will update the store optimistically.
     async refresh() {
+      if (!isInitialized) {
+        isInitialized = true;
+        if (DEBUG_VERBOSE) console.log("Calendars: Initial load from local DB");
+      }
       await _loadFromLocalDB();
     },
 
@@ -304,30 +354,21 @@ export function createCalendarsStore() {
             .sort((a, b) => a.position - b.position)
         );
 
+        // Immediately mirror create to Convex when authenticated to minimize drift
         if (currentClerkUserId) {
-          isSyncing.set(true);
           try {
-            const result = await convexMutation(api.calendars.createCalendar, {
-              localUuid: newCalendar.id, // local ID is the localUuid
+            await convexMutation(api.calendars.createCalendar, {
+              localUuid: newCalendar.id,
               name: newCalendar.name,
-              // Send normalized color name to server
-              colorTheme: normalizeCalendarColor(newCalendar.colorTheme),
+              colorTheme: newCalendar.colorTheme,
               position: newCalendar.position,
-              isEnabled: newCalendar.isEnabled === 1, // Pass boolean to Convex
-              // Phase 3.7: server expects createdAt/updatedAt
-              createdAt: now,
-              updatedAt: now
+              isEnabled: newCalendar.isEnabled === 1,
+              createdAt: newCalendar.createdAt,
+              updatedAt: newCalendar.updatedAt
             });
-            if (result !== null) {
-              console.log(`Calendar ${newCalendar.id} synced to Convex.`);
-            } else {
-              console.warn("Failed to sync calendar to Convex");
-            }
-          } catch (error) {
-            console.error(`Failed to sync new calendar ${newCalendar.id} to Convex:`, error);
-            // TODO: Implement retry or offline queuing mechanism
-          } finally {
-            isSyncing.set(false);
+          } catch (err) {
+            // Non-fatal; periodic sync will reconcile
+            console.warn("Failed to immediately mirror calendar create to Convex:", err);
           }
         }
       } catch (e) {

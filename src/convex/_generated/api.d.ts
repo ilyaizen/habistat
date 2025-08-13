@@ -24,6 +24,7 @@ import type * as crons from "../crons.js";
 import type * as debug from "../debug.js";
 import type * as habits from "../habits.js";
 import type * as http from "../http.js";
+import type * as rateLimit from "../rateLimit.js";
 import type * as users from "../users.js";
 
 /**
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   debug: typeof debug;
   habits: typeof habits;
   http: typeof http;
+  rateLimit: typeof rateLimit;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

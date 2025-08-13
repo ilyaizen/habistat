@@ -15,14 +15,9 @@ export const SAMPLE_DATA_CONFIG = {
       position: 0
     },
     {
-      name: "🧠 Mind Engagement",
-      colorTheme: "Blue",
-      position: 1
-    },
-    {
       name: "📈 Skill Development",
       colorTheme: "Indigo",
-      position: 2
+      position: 1
     }
   ],
   habits: [
@@ -51,36 +46,11 @@ export const SAMPLE_DATA_CONFIG = {
       position: 2
     },
     {
-      calendarName: "🧠 Mind Engagement",
-      name: "♟️ Chess",
-      description: "Sharpen strategic thinking and focus with a game of chess.",
-      type: "positive" as const,
-      pointsValue: 20,
-      position: 0
-    },
-    {
-      calendarName: "🧠 Mind Engagement",
-      name: "🧠 Brilliant",
-      description:
-        "Dedicate time for focused brainstorming, idea generation, or complex problem-solving.",
-      type: "positive" as const,
-      pointsValue: 25,
-      position: 1
-    },
-    {
-      calendarName: "🧠 Mind Engagement",
-      name: "✍️ Journal",
-      description: "Reflect on your thoughts, goals, and feelings to improve mental clarity.",
-      type: "positive" as const,
-      pointsValue: 15,
-      position: 2
-    },
-    {
       calendarName: "📈 Skill Development",
       name: "🎓 Watch Lecture",
       description: "Learn something new by watching an educational video, lecture, or documentary.",
       type: "positive" as const,
-      pointsValue: 30,
+      pointsValue: 20,
       position: 0
     },
     {
@@ -88,16 +58,15 @@ export const SAMPLE_DATA_CONFIG = {
       name: "📚 Read Non-Fiction",
       description: "Actively read from a non-fiction book to acquire deep knowledge.",
       type: "positive" as const,
-      pointsValue: 25,
+      pointsValue: 20,
       position: 1
     },
     {
       calendarName: "📈 Skill Development",
-      name: "🗣️ Practice a Skill",
-      description:
-        "Engage in deliberate practice of a chosen skill (e.g., coding, language, instrument).",
+      name: "🎸 Guitar Practice",
+      description: "Engage in deliberate practice of a chosen skill (e.g., guitar).",
       type: "positive" as const,
-      pointsValue: 35,
+      pointsValue: 20,
       position: 2
     }
   ]

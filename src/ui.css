@@ -44,7 +44,6 @@ button:hover .emoji-container,
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4)) !important;
 }
 
-
 /* 2.5D Button */
 .btn-3d {
   width: auto;
@@ -56,9 +55,11 @@ button:hover .emoji-container,
   cursor: pointer;
   font-weight: bold;
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
-  background-image: linear-gradient(to top,
-      var(--primary) 0%,
-      oklch(from var(--primary) calc(l + 0.1) c h) 100%);
+  background-image: linear-gradient(
+    to top,
+    var(--primary) 0%,
+    oklch(from var(--primary) calc(l + 0.1) c h) 100%
+  );
   background-size: 100% 100%;
   background-position: 0 0;
   background-repeat: no-repeat;
@@ -68,9 +69,11 @@ button:hover .emoji-container,
 .btn-3d:hover:not(:disabled),
 .btn-3d:focus-visible:not(:disabled) {
   transform: translateY(-2px);
-  background-image: linear-gradient(to top,
-      var(--primary) 0%,
-      oklch(from var(--primary) calc(l + 0.2) c h) 100%);
+  background-image: linear-gradient(
+    to top,
+    var(--primary) 0%,
+    oklch(from var(--primary) calc(l + 0.2) c h) 100%
+  );
   border-color: oklch(from var(--primary) calc(l - 0.15) c h);
   border-bottom-color: oklch(from var(--primary) calc(l - 0.15) c h);
 }
@@ -155,13 +158,13 @@ h6 {
   grid-template-rows: 1fr;
 }
 
-.expandable-content>.inner-content {
+.expandable-content > .inner-content {
   overflow: hidden;
   opacity: 0;
   transition: opacity 0.4s ease-in-out;
 }
 
-.expandable-content.expanded>.inner-content {
+.expandable-content.expanded > .inner-content {
   opacity: 1;
 }
 
@@ -183,8 +186,6 @@ h6 {
   font-weight: 400;
   font-style: normal;
 }
-
-
 
 /* Background grid - TODO: 2025-08-13 - CURRENTLY NOT USED - Remove this if not needed */
 /* .grid-background {

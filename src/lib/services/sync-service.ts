@@ -8,6 +8,8 @@
 
 import { get } from "svelte/store";
 import { toast } from "svelte-sonner";
+// Ensure the user's first app open timestamp is recorded server-side ASAP after sign-in
+import { ensureFirstAppOpenTimestamp } from "$lib/utils/convex-operations";
 // Centralized debug flag
 import { DEBUG_VERBOSE } from "$lib/utils/debug";
 import { safeMutation, safeQuery } from "$lib/utils/safe-query";
@@ -27,15 +29,18 @@ import * as localData from "./local-data";
 import { clearAllLocalData } from "./local-data";
 
 export interface SyncableEntity {
+  // Local entity identifier (UUID)
   id: string;
-  clientUpdatedAt: string;
+  // Millisecond timestamp used for Last-Write-Wins; always a number
+  clientUpdatedAt: number;
   userId?: string | null;
 }
 
 export interface SyncableEntityFromConvex {
   _id: string;
   _creationTime: number;
-  clientUpdatedAt?: string;
+  // Convex mirrors clientUpdatedAt as a number as well
+  clientUpdatedAt?: number;
   userId?: string;
 }
 
@@ -53,7 +58,7 @@ export class SyncService {
   private authUnsubscribe: (() => void) | null = null;
   private syncInProgress = false;
 
-  private constructor() {}
+  private constructor() { }
 
   /** Get the singleton instance. */
   public static getInstance(): SyncService {
@@ -90,7 +95,7 @@ export class SyncService {
     // capturing the initial state and only reacting to subsequent changes.
     let primed = false;
     let primedInitialUserId: string | null = null;
-    let ignoredFirstAutoSignIn = false;
+    const ignoredFirstAutoSignIn = false;
     this.authUnsubscribe = authState.subscribe(async (state) => {
       if (!state.clerkReady) {
         if (DEBUG_VERBOSE) console.log("SyncService: Auth state not ready yet.");
@@ -105,6 +110,20 @@ export class SyncService {
         if (DEBUG_VERBOSE) {
           console.log("SyncService: Primed auth state on initial ready; no sign-in event emitted.");
         }
+        // If the user is already signed in on initial load, best-effort set firstAppOpenAt early.
+        // This avoids waiting for the scheduler delay so dashboards/settings reflect it promptly.
+        if (primedInitialUserId) {
+          try {
+            // Set the user ID first to ensure sync can proceed
+            this.setUserId(primedInitialUserId);
+            await ensureFirstAppOpenTimestamp();
+            // Ensure user record exists in Convex for signed-in users on page load
+            // This handles cases where users refresh after signup but before sync
+            await this.syncUserToConvex(primedInitialUserId);
+          } catch {
+            // Non-fatal; will be retried by scheduler or next sign-in
+          }
+        }
         return;
       }
 
@@ -112,20 +131,8 @@ export class SyncService {
       const hasSignedIn = currentClerkId && !this.lastClerkId;
       const hasSignedOut = !currentClerkId && this.lastClerkId;
 
-      // Ignore the first non-null user after priming if we primed with null (page refresh case)
-      if (
-        primed &&
-        !ignoredFirstAutoSignIn &&
-        primedInitialUserId === null &&
-        currentClerkId &&
-        !this.lastClerkId
-      ) {
-        if (DEBUG_VERBOSE)
-          console.log("SyncService: Ignoring initial sign-in transition on refresh.");
-        this.lastClerkId = currentClerkId;
-        ignoredFirstAutoSignIn = true;
-        return;
-      }
+      // Note: Do not ignore the first sign-in transition when initial state was null.
+      // We must process this transition to create the user in Convex after signup/signin.
 
       if (hasSignedIn) {
         if (DEBUG_VERBOSE) console.log(`SyncService: User signed in (ID: ${currentClerkId}).`);
@@ -169,17 +176,32 @@ export class SyncService {
       // Ensure the user record exists in Convex before other sync operations
       await this.syncUserToConvex(userId);
 
+      // Record the user's very first app open on the server if missing.
+      // Get the local first app open timestamp and ensure it's set on the server
+      try {
+        const { getFirstAppOpenTimestamp } = await import("$lib/utils/tracking");
+        const localFirstOpen = await getFirstAppOpenTimestamp();
+        await ensureFirstAppOpenTimestamp(localFirstOpen || undefined);
+      } catch (error) {
+        console.warn("Failed to sync first app open timestamp:", error);
+        // Non-fatal; scheduler will retry, and UI can function without it immediately
+      }
+
       // Migrate any anonymous data
-      await this.migrateAnonymousData();
+      const migrationResult = await this.migrateAnonymousData();
+      if (migrationResult.success && migrationResult.migratedCount > 0) {
+        toast.success("Anonymous Data Migrated", {
+          description: `Successfully migrated ${migrationResult.migratedCount} anonymous records to your account.`,
+          duration: 3000
+        });
+      }
 
       // Perform a full sync
       const result = await this.fullSync();
 
       if (result.success) {
         if (DEBUG_VERBOSE) console.log("SyncService: Full sync completed successfully.");
-        toast.success("Sync Successful", {
-          description: "Your data has been successfully synced with the cloud."
-        });
+        // Final success toast is handled inside fullSync() to avoid duplicates here.
       } else {
         console.error("SyncService: Full sync failed.", result.error);
         toast.error("Sync Failed", {
@@ -269,8 +291,19 @@ export class SyncService {
         if (DEBUG_VERBOSE) {
           console.log(`SyncService: User sync completed successfully for ${clerkUserId}`);
         }
+
+        // Show success toast for user sync
+        // toast.success("User Profile Synced", {
+        //   description: "Your user profile has been synchronized with the cloud.",
+        //   duration: 2000
+        // });
       } else {
         console.error(`SyncService: User sync failed for ${clerkUserId}:`, result.error);
+
+        // Show error toast for user sync
+        toast.error("User Sync Failed", {
+          description: `Failed to sync user profile: ${result.error}`
+        });
       }
 
       return result;
@@ -643,6 +676,11 @@ export class SyncService {
           success: false,
           error: error instanceof Error ? error.message : "Calendar sync failed"
         };
+
+        // Show error toast for calendars sync
+        toast.error("Calendar Sync Failed", {
+          description: `Failed to sync calendars: ${error instanceof Error ? error.message : "Unknown error"}`
+        });
       }
 
       // Habits
@@ -658,6 +696,11 @@ export class SyncService {
           success: false,
           error: error instanceof Error ? error.message : "Habit sync failed"
         };
+
+        // Show error toast for habits sync
+        toast.error("Habit Sync Failed", {
+          description: `Failed to sync habits: ${error instanceof Error ? error.message : "Unknown error"}`
+        });
       }
 
       // Completions
@@ -667,6 +710,11 @@ export class SyncService {
         if (DEBUG_VERBOSE) console.log("✅ Completions synced");
       } else {
         console.warn("Completion sync failed:", syncResults.completions.error);
+
+        // Show error toast for completions sync
+        toast.error("Completion Sync Failed", {
+          description: `Failed to sync completions: ${syncResults.completions.error}`
+        });
       }
 
       // Activity History
@@ -675,6 +723,11 @@ export class SyncService {
         if (DEBUG_VERBOSE) console.log("✅ Activity History synced");
       } else {
         console.warn("Activity History sync failed:", syncResults.activityHistory.error);
+
+        // Show error toast for activity history sync
+        toast.error("Activity History Sync Failed", {
+          description: `Failed to sync activity history: ${syncResults.activityHistory.error}`
+        });
       }
 
       const failedSyncs = Object.entries(syncResults)
@@ -683,6 +736,13 @@ export class SyncService {
 
       if (failedSyncs.length > 0) {
         console.warn(`Some syncs failed: ${failedSyncs.join(", ")}`);
+      } else {
+        // Show success toast for full sync completion
+        const successfulSyncs = Object.keys(syncResults).length;
+        toast.success("🎉 Full Sync Complete!", {
+          description: `Successfully synchronized ${successfulSyncs} data types with the cloud. All your data is now up to date.`,
+          duration: 4000
+        });
       }
 
       return {

@@ -24,6 +24,8 @@
     sessionStore,
     getAssociatedUserId
   } from "$lib/utils/tracking";
+  import { api } from "../../convex/_generated/api";
+  import { convexQuery } from "$lib/utils/convex-operations";
 
   // TODO: 2025-07-23 - Add the activity trend chart back in when it's ready
   // TOFIX: 2025-08-02 - Import the activity trend chart component correctly
@@ -65,10 +67,34 @@
     loadingHistory = true;
 
     try {
-      const session = $sessionStore;
-      if (session?.createdAt) {
-        const created = new SvelteDate(session.createdAt);
-        sessionStartDate = formatLocalDate(created);
+      // Try to get firstAppOpenAt from Convex users table (ground truth)
+      const clerkUserId = getAssociatedUserId();
+      if (clerkUserId) {
+        try {
+          const currentUser = await convexQuery(api.users.getCurrentUser, {});
+          if (currentUser?.firstAppOpenAt) {
+            const created = new SvelteDate(currentUser.firstAppOpenAt);
+            sessionStartDate = formatLocalDate(created);
+          }
+        } catch (error) {
+          console.warn(
+            "Failed to get user data from Convex, falling back to local session:",
+            error
+          );
+          // Fallback to local session store
+          const session = $sessionStore;
+          if (session?.createdAt) {
+            const created = new SvelteDate(session.createdAt);
+            sessionStartDate = formatLocalDate(created);
+          }
+        }
+      } else {
+        // Anonymous user - use local session store
+        const session = $sessionStore;
+        if (session?.createdAt) {
+          const created = new SvelteDate(session.createdAt);
+          sessionStartDate = formatLocalDate(created);
+        }
       }
 
       // Get all app open history as dates

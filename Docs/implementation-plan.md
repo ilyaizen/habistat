@@ -154,7 +154,7 @@ This document outlines the phased implementation plan for Habistat, evolving it 
 
 ---
 
-### **Phase 3: Cloud Sync & SaaS Entitlement Logic (Frontend)**
+### **Phase 3: Cloud Sync & SaaS Entitlement Logic (Frontend) - UPDATED**
 
 **Goal**: Implement cloud synchronization with Convex and integrate frontend logic for SaaS tier limitations.
 
@@ -164,12 +164,18 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [x] Finalize/Create Convex schemas for `calendars`, `habits`, `completions`, `activeTimers` mirroring local Drizzle schemas but with Convex types (`v.*`) and `userId` (non-nullable, indexed, based on `clerkId`).
   - [x] Implement Convex mutations for CRUD operations on these tables (e.g., `createCalendar`, `logCompletion`, `startTimer`, `stopTimer`).
   - [x] Implement Convex queries to fetch all user-specific data.
-- **3.2. Sync Logic Implementation (Bidirectional)**:
+  - [x] **FIXED**: Added missing `calendarId` parameter to `updateHabit` Convex mutation to resolve sync errors.
+- **3.2. Smart Event-Driven Sync Architecture (REVISED)**:
+  - [x] **REMOVED**: Timed sync scheduler (5-minute intervals) in favor of smart, event-driven sync
   - [x] **Initial Sync (Pull):** On app load for an authenticated user (or after login), fetch all data from Convex. Merge with local data (server authoritative for first pull, or more complex merge later).
-  - [x] **Ongoing Sync (Push):** After any local CUD operation, if user is authenticated, queue and call the corresponding Convex mutation. Use optimistic updates in UI.
+  - [x] **Smart Sync (Push):** Trigger sync only when actual data changes occur (create/update/delete operations in stores). Replaced immediate individual Convex operations with batched sync service calls.
   - [x] **Ongoing Sync (Pull):** Subscribe to Convex queries to receive real-time updates from the server and update local stores/DB.
   - [x] **Conflict Resolution (Basic):** ~~Start with "last write wins" based on `updatedAt` timestamp. Server timestamp preferred.~~ **UPDATED:** For completions, use `completedAt` timestamp for conflict resolution since completions are ultra-simplified. Other entities still use createdAt/updatedAt.
-  - [x] **Habit Calendar Reassignment Sync:** Backend and store logic now support updating a habit's `calendarId` and syncing this change to Convex. Position is recalculated on reassignment to prevent conflicts.
+  - [x] **Reactive Store Architecture**:
+    - **ENHANCED**: Stores now auto-initialize from local SQLite database on creation
+    - **IMPROVED**: Dashboard immediately shows backed up calendars/habits data without loss
+    - **REACTIVE**: Stores are properly reactive and update UI when data changes
+    - **PERSISTENT**: Local data is the source of truth, with cloud sync as enhancement
   - [x] **Unified Sync Service Architecture**:
     - **REFACTORED**: Replaced legacy `SyncService` with `syncService` across all components
     - **CONSOLIDATED**: Merged sync-related state into single `syncStore`

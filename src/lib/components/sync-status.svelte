@@ -4,15 +4,7 @@
 -->
 <script lang="ts">
   import type { UserResource } from "@clerk/types";
-  import {
-    AlertCircle,
-    Cloud,
-    CloudOff,
-    RefreshCw,
-    Wifi,
-    WifiOff,
-    CheckCircle
-  } from "@lucide/svelte";
+  import { AlertCircle, Cloud, CloudOff, RefreshCw, Wifi, WifiOff } from "@lucide/svelte";
   import { getContext, onDestroy } from "svelte";
   import type { Readable } from "svelte/store";
   import { browser } from "$app/environment";
@@ -29,6 +21,7 @@
   import { cn } from "$lib/utils";
 
   // Props using Svelte 5 syntax
+  // Unified sync status props; this replaces other indicator variants across the app
   interface Props {
     variant?: "badges" | "minimal" | "detailed";
     showText?: boolean;
@@ -38,7 +31,7 @@
 
   let { variant = "badges", showText = false, size = "md", onRetry }: Props = $props();
 
-  // Get current user from context to only show sync for authenticated users
+  // Only show sync for authenticated users
   const clerkUserStore = getContext<Readable<UserResource | null>>("clerkUser");
 
   let user = $state<UserResource | null>(null);

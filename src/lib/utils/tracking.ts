@@ -332,6 +332,7 @@ export function getAssociatedSessionDetails(): {
 async function ensureUserProfile(): Promise<void> {
   const db = await getDb();
   const sessionId = getSessionId() || "anonymous";
+  const currentUserId = getAssociatedUserId();
 
   // Check if user profile exists
   const existing = await db
@@ -346,12 +347,19 @@ async function ensureUserProfile(): Promise<void> {
     const now = Date.now();
     const newProfile = {
       id: sessionId,
-      userId: null, // Will be updated when user authenticates
+      userId: currentUserId, // Set to Clerk userId if authenticated
       firstAppOpenAt: now, // This is the very first app open
       createdAt: now,
       updatedAt: now
     } as const;
     await db.insert(userProfile).values(newProfile).execute();
+  } else if (currentUserId && existing[0].userId !== currentUserId) {
+    // Update userId if user just authenticated
+    await db
+      .update(userProfile)
+      .set({ userId: currentUserId, updatedAt: Date.now() })
+      .where(eq(userProfile.id, sessionId))
+      .execute();
   }
 }
 
@@ -362,14 +370,17 @@ async function logAppOpenDb(): Promise<void> {
   const now = Date.now();
   const todayStr = formatLocalDate(new Date(now));
 
+  // Get the current user ID (Clerk ID if authenticated, null if anonymous)
+  const currentUserId = getAssociatedUserId();
+
   // Ensure user profile exists (tracks first app open globally)
   await ensureUserProfile();
 
-  // Phase 3.7: Use app-level upsert-by-date helper to guarantee a single
-  // row per (userId, date). Anonymous users use NULL userId.
+  // Use app-level upsert-by-date helper to guarantee a single
+  // row per (userId, date). Uses Clerk userId if authenticated, NULL if anonymous.
   const { upsertActivityHistoryByDate } = await import("$lib/services/local-data");
   await upsertActivityHistoryByDate({
-    userId: null,
+    userId: currentUserId,
     date: todayStr
     // Minimal schema: no openedAt/clientUpdatedAt
   });
@@ -496,7 +507,7 @@ export async function generateFakeAppOpenHistory(numDays: number = 7): Promise<v
         .values({
           id: newId,
           localUuid: newId, // Sync correlation ID
-          userId: null, // Initially anonymous
+          userId: getAssociatedUserId(), // Use current user ID (Clerk ID if authenticated)
           date: formatLocalDate(date)
         })
         .execute();

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { enforceRateLimit } from "./rateLimit";
 import { requireAuth, getCurrentUserOptional } from "./auth_helpers";
 // import { api } from "./_generated/api";
 
@@ -36,6 +37,12 @@ export const createCompletion = mutation({
       }
       return existing._id;
     }
+
+    // Basic rate limit on completion creates to prevent abuse
+    await enforceRateLimit(ctx, identity.subject, "completions.create", {
+      limit: 600, // up to 600 completions/minute/user
+      windowSeconds: 60
+    });
 
     // Create new completion
     const completionId = await ctx.db.insert("completions", {
@@ -222,5 +229,45 @@ export const batchUpsertCompletions = mutation({
     }
 
     return results;
+  }
+});
+
+/**
+ * Delete the latest completion within a given day range for a habit.
+ * This supports the UX of decrementing a day's completion count by removing
+ * the most recent completion that falls on that local day.
+ */
+export const deleteLatestCompletionForDay = mutation({
+  args: {
+    habitId: v.string(),
+    // Local-day start and end bounds as epoch millis [inclusive, exclusive)
+    dayStartMs: v.number(),
+    dayEndMs: v.number()
+  },
+  handler: async (ctx, args) => {
+    const identity = await requireAuth(ctx);
+
+    // Fetch completions for this user/habit in descending completedAt within the day range
+    const page = await ctx.db
+      .query("completions")
+      .withIndex("by_user_habit_and_completed_at", (q) =>
+        q.eq("userId", identity.subject).eq("habitId", args.habitId)
+      )
+      .order("desc")
+      .filter((q) =>
+        q.and(
+          q.gte(q.field("completedAt"), args.dayStartMs),
+          q.lt(q.field("completedAt"), args.dayEndMs)
+        )
+      )
+      .take(1);
+
+    const latest = page[0];
+    if (!latest) {
+      return { deleted: false } as const;
+    }
+
+    await ctx.db.delete(latest._id);
+    return { deleted: true, localUuid: latest.localUuid } as const;
   }
 });

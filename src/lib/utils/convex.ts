@@ -5,8 +5,8 @@ import { browser } from "$app/environment";
 import { DEBUG_VERBOSE } from "$lib/utils/debug";
 
 // Debug configuration - keep additional toggles local
-const DEBUG_AUTH = true;
-const DEBUG_ERRORS = true;
+const DEBUG_AUTH = false;
+const DEBUG_ERRORS = false;
 
 /**
  * Convex client singleton and authentication management
@@ -74,19 +74,19 @@ async function waitForClerk(): Promise<boolean> {
   // If already ready, return immediately
   if (isClerkReady()) return true;
 
-  console.log("⏳ Convex: Waiting for Clerk...");
+  if (DEBUG_AUTH) console.log("⏳ Convex: Waiting for Clerk...");
 
   // Wait for Clerk to load with timeout
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
-      console.warn("⚠️ Convex: Clerk load timeout");
+      if (DEBUG_AUTH) console.warn("⚠️ Convex: Clerk load timeout");
       resolve(false);
     }, 15000); // Increased timeout for slower connections
 
     const checkClerk = () => {
       if (typeof window !== "undefined" && window.Clerk?.loaded === true) {
         clearTimeout(timeout);
-        console.log("✅ Convex: Clerk loaded");
+        if (DEBUG_AUTH) console.log("✅ Convex: Clerk loaded");
         resolve(true);
       }
     };
@@ -111,7 +111,7 @@ async function waitForClerk(): Promise<boolean> {
       if (typeof window !== "undefined" && window.Clerk?.loaded === true) {
         clearInterval(pollInterval);
         clearTimeout(timeout);
-        console.log("✅ Convex: Clerk ready via polling");
+        if (DEBUG_AUTH) console.log("✅ Convex: Clerk ready via polling");
         resolve(true);
       }
     }, 100);
@@ -134,19 +134,19 @@ async function waitForClerkUser(): Promise<boolean> {
   // If user is already ready, return immediately
   if (isClerkUserReady()) return true;
 
-  console.log("⏳ Convex: Waiting for user session...");
+  if (DEBUG_AUTH) console.log("⏳ Convex: Waiting for user session...");
 
   // Wait for user session with timeout
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
-      console.warn("⚠️ Convex: User session timeout");
+      if (DEBUG_AUTH) console.warn("⚠️ Convex: User session timeout");
       resolve(false);
     }, 10000);
 
     const checkUser = () => {
       if (isClerkUserReady()) {
         clearTimeout(timeout);
-        console.log("✅ Convex: User session ready");
+        if (DEBUG_AUTH) console.log("✅ Convex: User session ready");
         resolve(true);
       }
     };
@@ -175,7 +175,7 @@ async function waitForClerkUser(): Promise<boolean> {
       if (isClerkUserReady()) {
         clearInterval(pollInterval);
         clearTimeout(timeout);
-        console.log("✅ Convex: User session via polling");
+        if (DEBUG_AUTH) console.log("✅ Convex: User session via polling");
         resolve(true);
       }
     }, 200);
@@ -258,7 +258,7 @@ function initializeConvexClient() {
 
     // Check online status before configuring auth
     offlineMode = !isOnline();
-    if (offlineMode) {
+    if (offlineMode && DEBUG_AUTH) {
       console.log("🚫 Convex: Offline mode");
     }
 
@@ -296,17 +296,17 @@ function initializeConvexClient() {
             // Wait for Clerk to be fully loaded and user session to be ready
             const userReady = await waitForClerkUser();
             if (!userReady) {
-              console.warn("⚠️ Convex: User session not ready");
+              if (DEBUG_AUTH) console.warn("⚠️ Convex: User session not ready");
               break;
             }
 
             // Validate Clerk state
             if (!window.Clerk?.user) {
-              console.warn("⚠️ Convex: No user object");
+              if (DEBUG_AUTH) console.warn("⚠️ Convex: No user object");
               break;
             }
             if (!window.Clerk?.session) {
-              console.warn("⚠️ Convex: No session object");
+              if (DEBUG_AUTH) console.warn("⚠️ Convex: No session object");
               break;
             }
 
@@ -319,7 +319,7 @@ function initializeConvexClient() {
               offlineMode = false;
               return token;
             } else {
-              console.warn("⚠️ Convex: Null token returned");
+              if (DEBUG_AUTH) console.warn("⚠️ Convex: Null token returned");
             }
 
             attempts++;
@@ -336,7 +336,7 @@ function initializeConvexClient() {
             }
           }
         }
-        console.warn("[Convex] Authentication failed after multiple attempts");
+        if (DEBUG_AUTH) console.warn("[Convex] Authentication failed after multiple attempts");
         return null;
       })();
 
@@ -512,7 +512,7 @@ export async function debugConvexAuthState(): Promise<void> {
 if (browser) {
   // Listen for online/offline events
   window.addEventListener("online", () => {
-    console.log("🔌 Convex: Network restored");
+    if (DEBUG_AUTH) console.log("🔌 Convex: Network restored");
     offlineMode = false;
     // Re-initialize client only if user is authenticated
     if (!convexClient && shouldInitializeConvex()) {
@@ -521,7 +521,7 @@ if (browser) {
   });
 
   window.addEventListener("offline", () => {
-    console.log("🚫 Convex: Network lost");
+    if (DEBUG_AUTH) console.log("🚫 Convex: Network lost");
     offlineMode = true;
   });
 }

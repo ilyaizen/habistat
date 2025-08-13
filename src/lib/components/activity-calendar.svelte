@@ -17,7 +17,7 @@
   import { SvelteDate, SvelteSet } from "svelte/reactivity";
 
   // UI components and utilities
-  
+
   import * as Tooltip from "$lib/components/ui/tooltip";
 
   // Activity + completion sources (local-first)
@@ -122,7 +122,7 @@
     Main container mimics a habit row from dashboard-calendars.svelte.
     It's a single flex row with title/logo on the left and activity bars on the right.
   -->
-  <div class="flex items-center justify-between gap-4 rounded-lg bg-card p-2 shadow-sm">
+  <div class="bg-card flex items-center justify-between gap-4 rounded-lg p-2 shadow-sm">
     <!-- Left side: Logo and Title -->
     <div class="flex min-w-0 flex-1 items-center gap-3">
       <!-- Logo container -->
@@ -142,7 +142,7 @@
         <!-- Loading state: pulse animation for bars -->
         <div class="flex space-x-0.5 p-0.5">
           {#each Array(numDays), i (i)}
-            <div class="bg-secondary h-6 w-[10px] animate-pulse rounded-text-xl"></div>
+            <div class="bg-secondary rounded-text-xl h-6 w-[10px] animate-pulse"></div>
           {/each}
         </div>
       {:else}

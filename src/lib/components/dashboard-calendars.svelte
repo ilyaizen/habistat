@@ -29,7 +29,7 @@
   // Use local-day semantics for counts so UI matches user's timezone and local DB ops
   import { formatLocalDate } from "$lib/utils/date";
   import { parseHabitName, parseCalendarName } from "$lib/utils/habit-display";
-  import { GripVertical } from "@lucide/svelte";
+  // import { GripVertical } from "@lucide/svelte";
 
   // --- Drag configuration ---
   // Reorder mode is always enabled, but activation requires grabbing the emoji.
@@ -205,21 +205,11 @@
       const isDestinationZone = reorderedHabits.some((h) => h.id === draggedHabitId);
 
       if (isDestinationZone) {
-        // This is the destination calendar.
-        // We update all habits in this list with their new positions.
-        // If a habit was moved from another calendar, its calendarId is also updated.
-        const updatePromises = reorderedHabits.map((habit, index) => {
-          if (habit.id === draggedHabitId && habit.calendarId !== calendarId) {
-            // This is the dragged habit, and it has been moved to a new calendar.
-            // We update its calendarId and its new position in the list.
-            return habitsStore.update(habit.id, { calendarId: calendarId, position: index });
-          } else {
-            // This is a habit being reordered within the same calendar, or another habit in the
-            // destination list that needs its position updated due to the new item.
-            return habitsStore.update(habit.id, { position: index });
-          }
-        });
-        Promise.all(updatePromises).catch(console.error);
+        // Persist destination order with a single batch write for stability.
+        habitsStore.batchReorder(calendarId, reorderedHabits).catch(console.error);
+      } else {
+        // We are the source list; resequence remaining items to close gaps
+        habitsStore.resequenceCalendar(calendarId, reorderedHabits).catch(console.error);
       }
 
       // Finalize always clears dragging state to allow animation restart on hover
@@ -362,6 +352,7 @@
               {@const completionsToday = completionsTodayByHabit.get(habit.id) ?? 0}
               {@const isHabitDisabled = habit.isEnabled === 0 || isCalendarDisabled}
               {@const { emoji, text } = parseHabitName(habit.name)}
+              {@const isNegativeHabit = habit.type === "negative"}
 
               <!-- Individual habit card with flip animation -->
               <div animate:flip={{ duration: 200 }} data-habit-id={habit.id} role="listitem">
@@ -392,7 +383,7 @@
                     >
                       <!-- Emoji container (drag handle) -->
                       <div
-                        class="emoji-container flex h-8 w-8 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
+                        class="emoji-container relative flex h-8 w-8 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
                         data-drag-handle="habit"
                         class:dragging={draggingHabitId === habit.id}
                         onpointerdown={() => {
@@ -407,7 +398,16 @@
                         aria-label="Drag habit"
                         tabindex="0"
                       >
-                        {emoji}
+                        {#if isNegativeHabit}
+                          <!-- Negative habit: show base emoji under a prohibited overlay; overlay ignores pointer to preserve drag -->
+                          <span class="flex items-center justify-center select-none">{emoji}</span>
+                          <span
+                            class="pointer-events-none absolute inset-0 flex scale-150 items-center justify-center opacity-80"
+                            >🚫</span
+                          >
+                        {:else}
+                          {emoji}
+                        {/if}
                       </div>
 
                       <!-- Habit text -->
