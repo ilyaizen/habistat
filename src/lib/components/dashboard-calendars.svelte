@@ -59,6 +59,33 @@
   let draggingCalendarId = $state<string | null>(null); // To stop animation only on the grabbed calendar emoji
   let draggingHabitId = $state<string | null>(null); // To stop animation only on the grabbed habit emoji
 
+  /**
+   * Build a semi-transparent OKLCH color string by injecting an alpha channel.
+   * Input is expected to be an OKLCH CSS color like: "oklch(.78 .14 230)".
+   * If it's not OKLCH, returns the original string to avoid breaking styles.
+   */
+  function withAlpha(oklchCss: string, alpha: number): string {
+    if (!oklchCss?.startsWith("oklch(")) return oklchCss;
+    // Insert " / <alpha>" before the closing parenthesis per CSS Color 4 syntax
+    return oklchCss.replace(")", ` / ${alpha})`);
+  }
+
+  /**
+   * Right-fading highlight for calendar titles plus a themed border.
+   * - Background: ~20% opacity through the emoji zone (~4rem), fading to 0% by 50% width
+   * - Border: same base color, slightly higher opacity for visibility, dashed, 2px via classes
+   * Returns a full CSS declaration string for inline `style`.
+   */
+  function calendarTitleStyles(colorName: string | null | undefined): string {
+    const base = colorNameToCss(colorName);
+    const bg = `linear-gradient(90deg, ${withAlpha(base, 0.2)} 0rem, ${withAlpha(
+      base,
+      0.2
+    )} 4rem, ${withAlpha(base, 0)} 50%)`;
+    const borderColor = withAlpha(base, 0.3); // Slightly more opaque than the background
+    return `background-image: ${bg}; background-repeat: no-repeat; --cal-title-border-color: ${borderColor};`;
+  }
+
   // --- Derived Store Values ---
   // Reactive computed values that automatically update when stores change
 
@@ -292,9 +319,10 @@
           <!-- Calendar name, clickable to open edit dialog -->
           <button
             type="button"
-            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            class="nunito-header disabled:text-muted-foreground/60 calendar-title mb-2 inline-flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-full px-2 py-1 text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
             disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
+            style={calendarTitleStyles(cal.colorTheme)}
           >
             <!-- Calendar emoji container (drag handle) -->
             <div
@@ -470,3 +498,37 @@
 {#if editingCalendarIdForDialog}
   <CalendarEditDialog calendarId={editingCalendarIdForDialog} bind:open={calendarDialogOpen} />
 {/if}
+
+<style>
+  /*
+    Create a dashed 2px border that fades horizontally like the background.
+    We draw it using a positioned pseudo-element so we can mask it with a gradient.
+  */
+  .calendar-title {
+    position: relative;
+  }
+  .calendar-title::after {
+    content: "";
+    position: absolute;
+    inset: 0; /* cover the element */
+    border-radius: 9999px; /* matches rounded-full */
+    pointer-events: none;
+
+    /* Draw dashed border using multiple backgrounds approach */
+    border: 2px dashed var(--cal-title-border-color);
+
+    /* Fade out the border to the right using a mask gradient. */
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 1) 0rem,
+      rgba(0, 0, 0, 1) 4rem,
+      rgba(0, 0, 0, 0) 50%
+    );
+    mask-image: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 1) 0rem,
+      rgba(0, 0, 0, 1) 4rem,
+      rgba(0, 0, 0, 0) 50%
+    );
+  }
+</style>

@@ -118,21 +118,21 @@
   `dashboard-calendars.svelte` but without any DnD affordances.
 -->
 <Tooltip.Provider>
-  <!-- 
+  <!--
     Main container mimics a habit row from dashboard-calendars.svelte.
     It's a single flex row with title/logo on the left and activity bars on the right.
   -->
-  <div class="bg-card flex items-center justify-between gap-4 rounded-lg p-2 shadow-sm">
+  <div class="activity-container mr-20 flex items-center justify-between gap-4 rounded-full p-2">
     <!-- Left side: Logo and Title -->
     <div class="flex min-w-0 flex-1 items-center gap-3">
       <!-- Logo container -->
-      <div class="flex h-8 w-8 shrink-0 items-center justify-center">
-        <img src="/logo.svg" alt="Habistat" class="h-8 w-8" />
+      <div class="flex h-8 w-8 shrink-0 items-center justify-center pl-1">
+        <img src="/logo.svg" alt="Habistat" class="h-6 w-6" />
       </div>
 
       <!-- Title text -->
-      <div class="nunito-header min-w-0 flex-1 truncate text-left text-xl font-semibold">
-        Activity
+      <div class="nunito-header min-w-0 flex-1 truncate pl-[6px] text-left text-xl font-semibold">
+        Habistat
       </div>
     </div>
 
@@ -174,6 +174,61 @@
 </Tooltip.Provider>
 
 <style>
+  /*
+    Apply a left-to-right fading background and dashed 2px border to the
+    activity row, using the app primary color. Matches the calendar title styling.
+  */
+  .activity-container {
+    position: relative;
+  }
+  .activity-container > * {
+    position: relative;
+    z-index: 1;
+  }
+  .activity-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px; /* rounded-full */
+    pointer-events: none;
+    z-index: 0;
+    background: var(--primary);
+    opacity: 0.2; /* similar to background fade strength */
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 1) 0rem,
+      rgba(0, 0, 0, 1) 4rem,
+      rgba(0, 0, 0, 0) 50%
+    );
+    mask-image: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 1) 0rem,
+      rgba(0, 0, 0, 1) 4rem,
+      rgba(0, 0, 0, 0) 50%
+    );
+  }
+  .activity-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px; /* rounded-full */
+    pointer-events: none;
+    z-index: 0;
+    border: 2px dashed color-mix(in oklab, var(--primary) 30%, transparent);
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 1) 0rem,
+      rgba(0, 0, 0, 1) 4rem,
+      rgba(0, 0, 0, 0) 50%
+    );
+    mask-image: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 1) 0rem,
+      rgba(0, 0, 0, 1) 4rem,
+      rgba(0, 0, 0, 0) 50%
+    );
+  }
+
   .activity-bar-green {
     background: linear-gradient(
       to bottom,

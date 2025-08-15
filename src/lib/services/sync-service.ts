@@ -49,13 +49,20 @@ export interface SyncableEntityFromConvex {
  * `syncService` for convenience and compatibility.
  */
 export class SyncService {
+  // Singleton holder. Use `SyncService.getInstance()`; do not construct directly.
   private static instance: SyncService;
   private userId: string | null = null;
+  // Guards a full-sync session (prevents concurrent fullSync calls)
   private isSyncing = false;
+  // Guards user profile sync (prevents overlapping user syncs)
   private userSyncing = false;
+  // Ensures `initialize()` runs once per app lifecycle
   private isInitialized = false;
+  // Tracks last observed Clerk user ID to detect sign-in/out transitions
   private lastClerkId: string | null = null;
+  // Unsubscribe function from auth store; nulled on reset
   private authUnsubscribe: (() => void) | null = null;
+  // Extra gate to serialize handleUserSignIn flows (covers early lifecycle)
   private syncInProgress = false;
 
   private constructor() { }
@@ -69,8 +76,17 @@ export class SyncService {
   }
 
   /**
-   * Initialize auth listeners and prepare the service. Safe to call multiple
-   * times; subsequent calls are ignored.
+   * Initialize auth listeners and prepare the service.
+   *
+   * Why: We must distinguish between (a) initial page load where Clerk emits the
+   * current session immediately when ready, and (b) an actual sign-in transition.
+   * Treating (a) as a new sign-in causes redundant full syncs on every refresh.
+   *
+   * How: We "prime" the subscription by capturing the first ready state and
+   * remembering its user ID without triggering sign-in logic. Only subsequent
+   * state changes (null->id or id->null) are considered sign-in/out events.
+   *
+   * Safe to call multiple times; subsequent calls are ignored via `isInitialized`.
    */
   public initialize(): void {
     if (this.isInitialized) {
@@ -93,7 +109,7 @@ export class SyncService {
     // Previously we treated that as a new sign-in (lastClerkId was null),
     // which caused an unwanted full sync on every refresh. We avoid that by
     // capturing the initial state and only reacting to subsequent changes.
-    let primed = false;
+    let primed = false; // set after first ready emission
     let primedInitialUserId: string | null = null;
     const ignoredFirstAutoSignIn = false;
     this.authUnsubscribe = authState.subscribe(async (state) => {
@@ -276,6 +292,10 @@ export class SyncService {
         avatarUrl: clerkUser.imageUrl || undefined
       };
 
+      // Assumption: email is our minimum required identifier to create/update a user
+      // profile in Convex. If Clerk has not loaded emails yet, we abort gracefully
+      // and let the scheduler or a later retry complete the sync.
+
       if (!userInfo.email) {
         console.warn("SyncService: No email found for user, cannot sync");
         return { success: false, error: "User email not available" };
@@ -333,6 +353,9 @@ export class SyncService {
 
     return performSafeOperation(async () => {
       const last = await getLastSyncTimestamp(dataType);
+      // Pull-first on first-ever sync for a type ensures server acts as seed
+      // when user signs in on a fresh device. Afterwards, pull/push can run in
+      // parallel to minimize latency while tolerating transient failures.
       if (last === 0) {
         await pullFn();
         await pushFn();
@@ -352,6 +375,14 @@ export class SyncService {
     );
   }
 
+  /**
+   * Pull daily activity history entries from Convex.
+   *
+   * Notes:
+   * - Server returns pages via cursor; we iterate until done.
+   * - Local merge is idempotent: create only when a day is missing locally.
+   * - We track last sync time per-type; after a successful run we stamp now.
+   */
   private async pullActivityHistory(): Promise<void> {
     if (!this.userId) throw new Error("No user ID");
 
@@ -400,6 +431,13 @@ export class SyncService {
     }
   }
 
+  /**
+   * Push local daily activity entries created since the last sync.
+   *
+   * Assumptions:
+   * - One row per (userId, date) locally; server upsert maintains same uniqueness.
+   * - We only send minimal fields required for server upsert (localUuid, date).
+   */
   private async pushActivityHistory(): Promise<void> {
     if (!this.userId) throw new Error("No user ID");
 
@@ -433,6 +471,14 @@ export class SyncService {
     );
   }
 
+  /**
+   * Pull completions with habit ID reconciliation and LWW on timestamp.
+   *
+   * Why: Server uses Convex IDs for habits while local DB uses UUIDs. We batch-map
+   * unknown Convex habit IDs to local UUIDs to avoid O(N) round-trips.
+   *
+   * Conflict rule: If server `completedAt` > local `completedAt`, we update; else skip.
+   */
   private async pullCompletions(): Promise<void> {
     if (!this.userId) throw new Error("No user ID");
 
@@ -493,6 +539,8 @@ export class SyncService {
       }
 
       // Second pass: process completions using resolved habit mapping
+      // Rationale: decouples identity reconciliation from mutation logic and
+      // allows partial progress even if some mappings fail.
       for (const serverCompletion of response.completions) {
         const localHabit = localHabitByConvexId.get(serverCompletion.habitId) || null;
         if (!localHabit) {
@@ -548,6 +596,12 @@ export class SyncService {
     }
   }
 
+  /**
+   * Push local completions since last sync.
+   *
+   * How: We filter by `completedAt > lastSync` then translate local habit UUIDs
+   * to Convex IDs via `mapCompletionHabitIds` before performing a single batch upsert.
+   */
   private async pushCompletions(): Promise<void> {
     if (!this.userId) throw new Error("No user ID");
 
@@ -606,7 +660,8 @@ export class SyncService {
 
       const anonymousActivityHistory = await localData.getAnonymousActivityHistory();
       if (anonymousActivityHistory.length > 0) {
-        // Use merge strategy to avoid UNIQUE constraint violations on (userId, date)
+        // Use merge strategy to avoid UNIQUE(userId, date) violations by coalescing
+        // anonymous rows into existing user-owned rows when present.
         const migratedCount = await localData.migrateAnonymousActivityHistory(userId);
         totalMigrated += migratedCount;
         await this.pushActivityHistory();
@@ -624,7 +679,18 @@ export class SyncService {
     };
   }
 
-  /** Full synchronization across supported data types. */
+  /**
+   * Full synchronization across supported data types.
+   *
+   * Behavior:
+   * - If `userId` is not yet set, we read it from `authState` to enable manual calls.
+   * - Optional `userInfo` triggers a user profile sync first and flags calendar/habit
+   *   stores to treat this as an initial sync (server-seeded overwrite where needed).
+   * - Order: user (optional) → calendars → habits → completions → activity history.
+   * - Each section is failure-isolated; final toast summarizes successes/failures.
+   *
+   * Concurrency: guarded by `isSyncing` to avoid overlapping runs.
+   */
   public async fullSync(userInfo?: {
     email: string;
     name?: string;
