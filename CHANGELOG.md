@@ -7,23 +7,35 @@ structure of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.0.4] - 2025-08-17
+
 ### Added
 - **Phase 3.8 Local-First Timed Sync**:
   - New `phase3.8-local-first-timed-sync.md` documentation for the latest development phase
   - Timed sync scheduler that runs every 5 minutes to automatically sync local changes
   - `setFirstAppOpenAtIfMissing` mutation in `users.ts` to track user engagement timestamps
   - Enhanced layout integration to start/stop timed sync scheduler for improved data synchronization
-
-- **Activity Calendar Component**:
-  - New `activity-calendar.svelte` component for activity visualization and management
-  - Enhanced activity tracking and display capabilities
-
 - **Noto Color Emoji Font Support**:
   - New toggle in settings customization tab to enable Noto Color Emoji font
   - `useNotoEmoji` property in settings store (defaults to false for efficient resource management)
   - Conditional font loading based on user preference with CSS override support
   - Improved emoji consistency across different platforms
-
+  - **Noto Color Emoji Font Support**:
+  - New toggle in settings customization tab to enable Noto Color Emoji font
+  - `useNotoEmoji` property in settings store (defaults to false for efficient resource management)
+  - Conditional font loading based on user preference with CSS override support
+  - Improved emoji consistency across different platforms
+- **Fireworks visual feedback**:
+  - Single-explosion fireworks effect with coordinate targeting, triggered on habit completion.
+- **Rate limiting & safety**:
+  - Rate limits for creating calendars, habits, and completions; added `rate_limits` table.
+  - Health check endpoint and maintenance endpoint for deduplication tasks.
+- **Completion controls**:
+  - `deleteLatestCompletionForDay` mutation enables decrementing the latest completion in a day.
+- **Debug configuration**:
+  - Centralized `config.ts` for debug flags (e.g., `DEBUG_VERBOSE`).
 - **Navigation Enhancements**:
   - Temporary link to new hybrid dashboard page ("/dashboard-new") in app header
   - Updated navigation structure for both desktop and mobile views
@@ -33,23 +45,44 @@ structure of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - New functions in `local-data.ts` for syncing metadata and checking local changes
   - Improved data synchronization capabilities and local-first architecture
 
+### Changed
+- **Sync UX and reliability**:
+  - Replaced legacy SyncIndicator components with a unified `SyncStatus` in the header.
+  - Proactive sync trigger in sample-data generation; auth subscription primed to avoid unnecessary full syncs.
+  - Timed scheduler no longer runs an immediate sync on start; first sync happens after the interval.
+  - Safe query/mutation paths can trigger token refresh when auth is not ready, reducing deadlocks.
+- **Drag-and-drop reordering**:
+  - Emoji act as drag handles; reorder mode is always enabled.
+  - Batch writes and resequencing improve performance and stability; drag state clears correctly.
+  - Animations pause during dragging; invisible dropzones improve targetability.
+- **Activity calendar & titles**:
+  - ActivityCalendar moved above the calendars list; single-row layout with refined title/logo area.
+  - Title rows get a themed left-to-right fading background and dashed 2px border.
+- **Emoji rendering**:
+  - Noto Color Emoji is now included by default; removed the per-user toggle.
+  - Updated `app.css` and consolidated styles with `ui.css` for consistency.
 - **Habit Management Optimization**:
   - Cascade-delete functionality for habit completions when deleting habits
   - Batch mapping of unknown Convex habit IDs to local UUIDs for better performance
   - Cached local-to-Convex habit ID mappings in `mapCompletionHabitIds` function
   - Reduced Convex queries and optimized sync process
 
+### Fixed
+- Improved activity history integrity with unique (userId, date) upserts and deduplication.
+- Mapping of completion habit IDs is batched and cached to reduce Convex lookups.
+- Reduced noisy logging behind debug flags for cleaner consoles.
+
 ### Removed
+- Deprecated `sync-indicator` components.
+- Noto Color Emoji settings toggle and related UI/state.
 - **Code Cleanup**:
   - Deleted `maintenance.ts` file and all related references from the codebase
   - Removed maintenance-related imports and scheduler calls from `activityHistory.ts`, `calendars.ts`, and `crons.ts`
   - Removed `anonymous-data-migration-dialog.svelte` component (migration now occurs automatically on sign-in)
   - Commented out "Stats" and "Upgrade" navigation links for future consideration
 
-### Changed
-- **CSS and Styling**:
-  - Minor CSS adjustments for better styling consistency across components
-  - Improved visual coherence throughout the application
+### Docs
+- Updated implementation plan and file structure docs; streamlined PRP documents.
 
 ## [0.0.3] - 2025-08-08
 

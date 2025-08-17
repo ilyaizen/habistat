@@ -35,11 +35,6 @@ export const triggerConfetti = writable<false | true | number | ConfettiTrigger>
  * Convenience helper to trigger a single fireworks explosion at a given screen position.
  * Use this when you want an immediate burst (no ascent), e.g., originating from a button.
  */
-export function triggerFireworksAt(
-  originX: number,
-  originY: number,
-  points = 1,
-  color?: string
-) {
+export function triggerFireworksAt(originX: number, originY: number, points = 1, color?: string) {
   triggerFireworks.set({ originX, originY, points, color });
 }

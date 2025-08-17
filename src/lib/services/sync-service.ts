@@ -65,7 +65,7 @@ export class SyncService {
   // Extra gate to serialize handleUserSignIn flows (covers early lifecycle)
   private syncInProgress = false;
 
-  private constructor() { }
+  private constructor() {}
 
   /** Get the singleton instance. */
   public static getInstance(): SyncService {

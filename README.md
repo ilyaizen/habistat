@@ -19,12 +19,14 @@ Tired of bloated apps and shaky privacy policies? Habistat keeps it simple. Insp
 > [!NOTE]
 > This app is currently in its alpha development stage and may not be stable until future versions. The currently available versions are Windows and web, with other versions coming soon.
 
-## What's New (v0.0.2)
+## What's New (v0.0.4)
 
-- Habit calendar reassignment: drag between calendars with long-hover intent (800ms) and confirmation dialog; calendar selector on habit edit page.
-- Color system simplified: store calendar color names and render via Tailwind v4 OKLCH 500 shades using `colorNameToCss`.
-- Sync and stability fixes: removed duplicate sign-in sync trigger, fixed unsubscribe race, restored habit mapping via `localUuid`, improved debug logging.
-- Activity history sync: standardized `openedAt` field, corrected client/server mapping, aligned schema and migrations; enhanced DB migrate/reset scripts.
+- **Timed Sync (Phase 3.8)**: Background scheduler (every 5 minutes), starts/stops via layout; auth subscription priming to avoid unnecessary full syncs. Added `setFirstAppOpenAtIfMissing` for accurate first-open tracking.
+- **Fireworks on Completion**: New fireworks effect with single-explosion support, triggered on habit completion for delightful feedback.
+- **Smarter Sync & Auth**: Unified `SyncStatus` component, proactive sync after sample data generation, and token refresh when auth isn't ready to prevent deadlocks.
+- **Faster Reordering**: Emoji drag handles, batch writes, resequencing, and paused animations during drag; clearer dropzones.
+- **Activity Calendar Refresh**: Single-row layout, placed above calendars; titles with themed fading background and dashed border.
+- **Emoji Rendering**: Noto Color Emoji is now enabled by default; removed the per-user toggle. CSS consolidated between `app.css` and `ui.css`.
 
 See full details in the [CHANGELOG](CHANGELOG.md).
 
