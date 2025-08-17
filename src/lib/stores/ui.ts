@@ -38,3 +38,36 @@ export const triggerConfetti = writable<false | true | number | ConfettiTrigger>
 export function triggerFireworksAt(originX: number, originY: number, points = 1, color?: string) {
   triggerFireworks.set({ originX, originY, points, color });
 }
+
+// --- Damage (negative) effect triggers ---
+// The damage effect is a whole-page visual that briefly desaturates the UI,
+// adds a red radial overlay, and shakes the screen. This mirrors the positive
+// fireworks effect API for drop-in usage anywhere in the app.
+
+export interface DamageTrigger {
+  // Optional center of the radial overlay in viewport coordinates
+  originX?: number;
+  originY?: number;
+  // Intensity scales duration/opacity in a small range (0.2..2)
+  intensity?: number;
+}
+
+// Writable store to trigger the damage effect
+// Supported values:
+// - false: no effect
+// - true: trigger with default intensity and centered overlay
+// - number: trigger with the given intensity (centered overlay)
+// - DamageTrigger: trigger with custom origin and intensity
+export const triggerDamage = writable<false | true | number | DamageTrigger>(false);
+
+/**
+ * Convenience helper to trigger the damage effect at a given screen position.
+ * If origin is omitted, the overlay centers on the viewport.
+ */
+export function triggerDamageAt(originX?: number, originY?: number, intensity = 1) {
+  if (typeof originX === "number" && typeof originY === "number") {
+    triggerDamage.set({ originX, originY, intensity });
+  } else {
+    triggerDamage.set(intensity);
+  }
+}

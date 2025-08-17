@@ -45,6 +45,7 @@
   import * as Tooltip from "$lib/components/ui/tooltip";
   // Global visual overlays
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
+  import DamageEffect from "$lib/components/damage-effect.svelte";
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -237,27 +238,30 @@
     <div
       class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
     >
-      {#if page.url.pathname !== "/"}
-        <AppHeader />
-      {/if}
-      <main class="flex-1">
-        {#if page.url.pathname === "/"}
-          <div class="absolute top-4 right-4">
-            <ThemeToggle />
-          </div>
+      <div id="hb-shake-root" class="hb-shake-root flex min-h-screen flex-col">
+        {#if page.url.pathname !== "/"}
+          <AppHeader />
         {/if}
-        <MotionWrapper>
-          {@render children()}
-        </MotionWrapper>
-      </main>
-      {#if page.url.pathname !== "/"}
-        <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
-      {/if}
+        <main class="flex-1">
+          {#if page.url.pathname === "/"}
+            <div class="absolute top-4 right-4">
+              <ThemeToggle />
+            </div>
+          {/if}
+          <MotionWrapper>
+            {@render children()}
+          </MotionWrapper>
+        </main>
+        {#if page.url.pathname !== "/"}
+          <AppFooter onMoreInfo={() => (aboutDrawerOpen = true)} />
+        {/if}
+      </div>
 
       <Toaster />
       <StoreSync />
       <!-- Global overlay effects: listens to `$triggerFireworks` and renders above UI -->
       <FireworksEffect />
+      <DamageEffect />
 
       <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
     </div>

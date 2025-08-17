@@ -8,6 +8,7 @@
   import { Button } from "$lib/components/ui/button";
   import { Card, CardContent, CardHeader } from "$lib/components/ui/card";
   import { Label } from "$lib/components/ui/label";
+  import { Input } from "$lib/components/ui/input";
   import Switch from "$lib/components/ui/switch/switch.svelte";
   import type { ThemeMode } from "$lib/stores/settings";
   import { settings, theme } from "$lib/stores/settings";
@@ -155,6 +156,54 @@
     cleanupReducedMotionListener();
   });
 </script>
+
+<!-- Global Preferences Section: regional and personalization controls -->
+<Card class="mb-6">
+  <CardHeader>
+    <Label class="flex items-center gap-2">General</Label>
+  </CardHeader>
+  <CardContent>
+    <!-- Week Start Preference: affects calendars/date pickers across the app -->
+    <div class="mb-4">
+      <Label class="mb-2 block">Week starts on</Label>
+      <div class="mt-2 flex flex-wrap gap-4">
+        <Button
+          size="sm"
+          variant={$settings.weekStartsOn === "sunday" ? "default" : "outline"}
+          onclick={() => settings.update((s) => ({ ...s, weekStartsOn: "sunday" }))}>Sunday</Button
+        >
+        <Button
+          size="sm"
+          variant={$settings.weekStartsOn === "monday" ? "default" : "outline"}
+          onclick={() => settings.update((s) => ({ ...s, weekStartsOn: "monday" }))}>Monday</Button
+        >
+      </div>
+    </div>
+
+    <!-- Time Format Preference: toggles 12h/24h formatting in UI -->
+    <div class="mb-4">
+      <Label class="mb-2 block">Time format</Label>
+      <div class="mt-2 flex flex-wrap gap-4">
+        <Button
+          size="sm"
+          variant={$settings.timeFormat === "12h" ? "default" : "outline"}
+          onclick={() => settings.update((s) => ({ ...s, timeFormat: "12h" }))}>12h</Button
+        >
+        <Button
+          size="sm"
+          variant={$settings.timeFormat === "24h" ? "default" : "outline"}
+          onclick={() => settings.update((s) => ({ ...s, timeFormat: "24h" }))}>24h</Button
+        >
+      </div>
+    </div>
+
+    <!-- Display Name: lightweight personalization for greetings -->
+    <div class="mb-2">
+      <Label class="mb-2 block" for="display-name">Name</Label>
+      <Input id="display-name" placeholder="Just to say hello" bind:value={$settings.displayName} />
+    </div>
+  </CardContent>
+</Card>
 
 <!-- Theme Selection Section -->
 <Card class="mb-6">

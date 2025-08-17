@@ -91,6 +91,7 @@
 │   │   │   ├── avatar.svelte
 │   │   │   ├── calendar-edit-dialog.svelte
 │   │   │   ├── confetti-effect.svelte
+│   │   │   ├── damage-effect.svelte
 │   │   │   ├── dashboard-calendars.svelte
 │   │   │   ├── dashboard-main-panel.svelte
 │   │   │   ├── dashboard-side-panel.svelte

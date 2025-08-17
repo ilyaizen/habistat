@@ -15,7 +15,7 @@
   import { calendarsStore } from "$lib/stores/calendars";
   import { completionsStore } from "$lib/stores/completions";
   import type { Habit } from "$lib/stores/habits";
-  import { triggerConfetti, triggerFireworksAt } from "$lib/stores/ui";
+  import { triggerConfetti, triggerFireworksAt, triggerDamageAt } from "$lib/stores/ui";
   import NumberFlow from "$lib/vendor/number-flow/NumberFlow.svelte";
   import { colorNameToCss } from "$lib/utils/colors";
 
@@ -108,12 +108,21 @@
       }
     }
 
-    // Trigger visual effects immediately (only for positive habits) before async work
+    // Trigger visual effects immediately before async work
+    // - Positive habits: confetti + fireworks from the click origin
+    // - Negative habits: damage effect (red vignette + desaturation + shake)
     if (!isNegativeHabit) {
       const color = calendarColor();
       const points = habit.pointsValue ?? 1;
       triggerConfetti.set({ color, points, originX, originY });
       triggerFireworksAt(originX, originY, points, color);
+    } else {
+      // Normalize points [1..50] to damage intensity [0.2..1]
+      const rawPoints = habit.pointsValue ?? 1;
+      const clamped = Math.max(1, Math.min(50, Math.floor(rawPoints)));
+      const fraction = clamped / 50; // 1->0.02, 50->1
+      const intensity = Math.max(0.2, Math.min(1, 0.2 + fraction * 0.8));
+      triggerDamageAt(originX, originY, intensity);
     }
 
     // Perform logging after visual feedback

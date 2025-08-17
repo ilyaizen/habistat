@@ -52,17 +52,17 @@
   <Tabs bind:value={activeTab} class="w-full">
     <TabsList class="mb-4 flex w-full justify-between">
       <!-- Tab triggers for each section -->
-      <TabsTrigger value="account">Account</TabsTrigger>
       <TabsTrigger value="customization">Customization</TabsTrigger>
+      <TabsTrigger value="account">Account</TabsTrigger>
       <TabsTrigger value="sync">Sync</TabsTrigger>
       <TabsTrigger value="data">Data</TabsTrigger>
     </TabsList>
     <!-- Wrapper to animate transitions between tab content -->
     <TabMotionWrapper key={activeTab}>
-      {#if activeTab === "account"}
-        <SettingsAccountTab />
-      {:else if activeTab === "customization"}
+      {#if activeTab === "customization"}
         <SettingsCustomizationTab />
+      {:else if activeTab === "account"}
+        <SettingsAccountTab />
       {:else if activeTab === "sync"}
         <SettingsSyncTab />
       {:else if activeTab === "data"}
