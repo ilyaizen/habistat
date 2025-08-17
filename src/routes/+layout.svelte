@@ -43,6 +43,8 @@
   import StoreSync from "$lib/components/store-sync.svelte";
   // Global tooltip provider to ensure any Tooltip usage (e.g., in header) always has context
   import * as Tooltip from "$lib/components/ui/tooltip";
+  // Global visual overlays
+  import FireworksEffect from "$lib/components/fireworks-effect.svelte";
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -254,6 +256,8 @@
 
       <Toaster />
       <StoreSync />
+      <!-- Global overlay effects: listens to `$triggerFireworks` and renders above UI -->
+      <FireworksEffect />
 
       <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
     </div>

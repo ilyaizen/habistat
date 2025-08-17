@@ -28,18 +28,33 @@
     }
 
     const triggerValue = $triggerFireworks;
-    if (triggerValue && !isTriggered) {
-      let intensity = 1; // Default intensity
+    if (!triggerValue) return;
+
+    // Object payload: single-burst at provided coordinates
+    if (typeof triggerValue === "object") {
+      const { originX, originY, points, color } = triggerValue as {
+        originX: number;
+        originY: number;
+        points?: number;
+        color?: string;
+      };
+      if (typeof originX === "number" && typeof originY === "number") {
+        const intensity = normalizePoints(points ?? 1);
+        triggerExplosionAt(originX, originY, intensity, color);
+        triggerFireworks.set(false);
+        return;
+      }
+    }
+
+    // Full sequence: boolean or numeric intensity
+    if (!isTriggered) {
+      let intensity = 1;
       if (typeof triggerValue === "number") {
-        // Scale down points, with a minimum intensity, so even 1 point has an effect.
         intensity = Math.max(0.2, triggerValue / 5);
       } else if (triggerValue !== true) {
-        return; // Do nothing for `false` or other non-truthy values
+        return;
       }
-
       startFireworks(intensity);
-
-      // Reset the store after triggering
       triggerFireworks.set(false);
     }
   });
@@ -273,15 +288,31 @@
   // Handle window resizing
   function resizeCanvas() {
     if (canvas) {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
       maxx = window.innerWidth;
       maxy = window.innerHeight;
-      canvas.width = maxx;
-      canvas.height = maxy;
+      canvas.width = Math.floor(maxx * dpr);
+      canvas.height = Math.floor(maxy * dpr);
+      canvas.style.width = `${maxx}px`;
+      canvas.style.height = `${maxy}px`;
       // Redraw static elements if any, here we just clear on resize
       if (ctx) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, maxx, maxy);
       }
     }
+  }
+
+  // Utility: clamp value within [min, max]
+  function clamp(value: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  // Map habit points [1..50] to an intensity fraction [0.2..1]
+  function normalizePoints(points: number) {
+    const clamped = clamp(Math.floor(points), 1, 50);
+    const fraction = clamped / 50; // 1->0.02, 50->1
+    return clamp(0.2 + fraction * 0.8, 0.2, 1); // ensure visibly small but not zero
   }
 
   // Launch a new firework at random intervals (only when triggered)
@@ -299,6 +330,32 @@
     // Schedule next firework launch. Faster launches with more intensity.
     const timeout = rand(300, 800) / Math.sqrt(intensity); // milliseconds
     launchTimerId = window.setTimeout(() => launchFirework(intensity), timeout);
+  }
+
+  // Trigger a single explosion at a specific position (no ascent)
+  function triggerExplosionAt(x: number, y: number, intensity: number = 1, baseColor?: string) {
+    // Ensure canvas is active and animation loop is running
+    if (!isTriggered) {
+      isTriggered = true;
+      isStopping = false;
+      fireworks = [];
+      explosions = [];
+    }
+
+    const colorToUse = baseColor || randColor();
+
+    // Scale particle count and sizes with intensity
+    const numParticles = Math.round(60 + intensity * 340); // ~60..400
+    for (let i = 0; i < numParticles; i++) {
+      const angle = rand(0, Math.PI * 2);
+      const speed = rand(2, 7) * (0.6 + intensity * 0.8); // faster with higher intensity
+      const particleSize = rand(1, 5) * (0.6 + intensity * 0.8); // bigger with higher intensity
+      explosions.push(new Particle(x, y, colorToUse, speed, angle, 0.05, 0.98, particleSize));
+    }
+
+    if (!animationFrameId) {
+      animate();
+    }
   }
 
   // Animation loop

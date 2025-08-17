@@ -20,12 +20,38 @@
 }
 
 .emoji-container {
+  /* Make sure we can position a larger invisible hit area */
+  position: relative;
   transition:
     transform 0.2s ease-in-out,
     filter 0.2s ease-in-out;
   /* Ensure baseline alignment when not animating */
   transform: translateY(0);
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
+
+/* Enlarge the effective hover/click target slightly so the grab cursor appears sooner
+   without changing layout. We avoid extending to the right to not cover adjacent text. */
+.emoji-container::before {
+  content: "";
+  position: absolute;
+  /* Extend hit area: left/top/bottom by 6px; keep right flush to avoid overlapping text */
+  left: -6px;
+  right: 0;
+  top: -6px;
+  bottom: -6px;
+  border-radius: 8px;
+  /* Ensure it participates in hit testing to carry the cursor */
+  pointer-events: auto;
+  /* Transparent overlay; only affects cursor/hit area */
+  background: transparent;
+  /* Match grab cursor semantics */
+  cursor: grab;
+  z-index: 1;
+}
+
+.emoji-container:active::before {
+  cursor: grabbing;
 }
 
 .emoji-container:hover,
@@ -55,11 +81,9 @@ button:hover .emoji-container,
   cursor: pointer;
   font-weight: bold;
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
-  background-image: linear-gradient(
-    to top,
-    var(--primary) 0%,
-    oklch(from var(--primary) calc(l + 0.1) c h) 100%
-  );
+  background-image: linear-gradient(to top,
+      var(--primary) 0%,
+      oklch(from var(--primary) calc(l + 0.1) c h) 100%);
   background-size: 100% 100%;
   background-position: 0 0;
   background-repeat: no-repeat;
@@ -69,11 +93,9 @@ button:hover .emoji-container,
 .btn-3d:hover:not(:disabled),
 .btn-3d:focus-visible:not(:disabled) {
   transform: translateY(-2px);
-  background-image: linear-gradient(
-    to top,
-    var(--primary) 0%,
-    oklch(from var(--primary) calc(l + 0.2) c h) 100%
-  );
+  background-image: linear-gradient(to top,
+      var(--primary) 0%,
+      oklch(from var(--primary) calc(l + 0.2) c h) 100%);
   border-color: oklch(from var(--primary) calc(l - 0.15) c h);
   border-bottom-color: oklch(from var(--primary) calc(l - 0.15) c h);
 }
@@ -158,13 +180,13 @@ h6 {
   grid-template-rows: 1fr;
 }
 
-.expandable-content > .inner-content {
+.expandable-content>.inner-content {
   overflow: hidden;
   opacity: 0;
   transition: opacity 0.4s ease-in-out;
 }
 
-.expandable-content.expanded > .inner-content {
+.expandable-content.expanded>.inner-content {
   opacity: 1;
 }
 

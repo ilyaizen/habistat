@@ -15,7 +15,7 @@
   import { calendarsStore } from "$lib/stores/calendars";
   import { completionsStore } from "$lib/stores/completions";
   import type { Habit } from "$lib/stores/habits";
-  import { triggerConfetti } from "$lib/stores/ui";
+  import { triggerConfetti, triggerFireworksAt } from "$lib/stores/ui";
   import NumberFlow from "$lib/vendor/number-flow/NumberFlow.svelte";
   import { colorNameToCss } from "$lib/utils/colors";
 
@@ -82,7 +82,7 @@
    * It captures the current user's ID and logs the completion.
    * For positive habits, triggers confetti effect from the button position.
    */
-  async function handleAdd() {
+  async function handleAdd(event?: MouseEvent) {
     let userId: string | null = null;
 
     // Get the current user's ID from the Clerk store.
@@ -93,17 +93,34 @@
       unsubscribe(); // Immediately unsubscribe to avoid memory leaks.
     }
 
+    // Determine precise origin at click time: prefer mouse coordinates; fallback to element center
+    let originX = addButtonPosition.x;
+    let originY = addButtonPosition.y;
+    if (event && typeof event.clientX === "number" && typeof event.clientY === "number") {
+      originX = event.clientX;
+      originY = event.clientY;
+    } else {
+      const targetEl = (event?.currentTarget as HTMLElement) || null;
+      if (targetEl) {
+        const rect = targetEl.getBoundingClientRect();
+        originX = rect.left + rect.width / 2;
+        originY = rect.top + rect.height / 2;
+      }
+    }
+
+    // Trigger visual effects immediately (only for positive habits) before async work
+    if (!isNegativeHabit) {
+      const color = calendarColor();
+      const points = habit.pointsValue ?? 1;
+      triggerConfetti.set({ color, points, originX, originY });
+      triggerFireworksAt(originX, originY, points, color);
+    }
+
+    // Perform logging after visual feedback
     await completionsStore.logCompletion(habit.id, userId);
 
     // Trigger confetti effect for positive habits only
-    if (!isNegativeHabit) {
-      triggerConfetti.set({
-        color: calendarColor(),
-        points: habit.pointsValue ?? 1,
-        originX: addButtonPosition.x,
-        originY: addButtonPosition.y
-      });
-    }
+    // No-op: visual effects already handled above for positive habits
   }
 
   /**
