@@ -295,18 +295,22 @@ export const updateHabit = mutation({
       throw new Error("Habit not found");
     }
 
-    await ctx.db.patch(habit._id, {
-      calendarId: args.calendarId,
-      name: args.name,
-      description: args.description,
-      type: args.type,
-      timerEnabled: args.timerEnabled,
-      targetDurationSeconds: args.targetDurationSeconds,
-      pointsValue: args.pointsValue,
-      position: args.position,
-      isEnabled: args.isEnabled,
-      updatedAt: args.updatedAt
-    });
+    // Only include fields that were explicitly provided by the client.
+    // This prevents required fields (like `calendarId`) from being overwritten
+    // with `undefined`, which would violate the table schema.
+    const updates: Record<string, unknown> = { updatedAt: args.updatedAt };
+    if (args.calendarId !== undefined) updates.calendarId = args.calendarId;
+    if (args.name !== undefined) updates.name = args.name;
+    if (args.description !== undefined) updates.description = args.description;
+    if (args.type !== undefined) updates.type = args.type;
+    if (args.timerEnabled !== undefined) updates.timerEnabled = args.timerEnabled;
+    if (args.targetDurationSeconds !== undefined)
+      updates.targetDurationSeconds = args.targetDurationSeconds;
+    if (args.pointsValue !== undefined) updates.pointsValue = args.pointsValue;
+    if (args.position !== undefined) updates.position = args.position;
+    if (args.isEnabled !== undefined) updates.isEnabled = args.isEnabled;
+
+    await ctx.db.patch(habit._id, updates);
 
     return habit._id;
   }

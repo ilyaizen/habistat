@@ -6,116 +6,160 @@ This document outlines the sample data used in the Habistat application for demo
 
 ## Calendars
 
-### 🎯 Foundational Actions
-
-- **Color Theme**: Yellow
-- **Position**: 0
-
-### 🧠 Mind Engagement
-
-- **Color Theme**: Blue
-- **Position**: 1
-
-### 📈 Skill Development
-
-- **Color Theme**: Indigo
-- **Position**: 2
-
-### 🏃 Physical Conditioning
+### ✅ Basic Actions
 
 - **Color Theme**: Green
+- **Position**: 0
+
+### 🛠️ Practice Skills
+
+- **Color Theme**: Indigo
+- **Position**: 1
+
+### 📚 Study
+
+- **Color Theme**: Pink
+- **Position**: 2
+
+### ⛔ Bad Habits
+
+- **Color Theme**: Red
 - **Position**: 3
 
 ## Habits
 
-### 🎯 Foundational Actions
+### ✅ Basic Actions
 
-#### 🛏️ Make Bed
+#### 🪥 Self-care
 
-- **Description**: Establish a keystone habit to bring order to the start of your day.
+- **Description**: Brush teeth, wash face, basic grooming. Small consistent wins preserve energy and public dignity.
 - **Type**: positive
+- **Timer**: Enabled (2 minutes)
 - **Points**: 5
 - **Position**: 0
 
-#### 🪥 Teeth
+#### 🏋🏽 Exercise
 
-- **Description**: Maintain essential oral hygiene.
+- **Description**: Quick workout to stay active and mobile. Keep intensity focused on mobility and compound moves; treat this as nonnegotiable.
 - **Type**: positive
-- **Points**: 10
+- **Timer**: Enabled (15 minutes)
+- **Points**: 40
 - **Position**: 1
 
-#### 💧 Hydrate
+#### 💊 Supplements
 
-- **Description**: Drink a full glass of water after waking up to start your metabolism.
+- **Description**: Take daily vitamins or health boosters. Always with a meal for proper absorption and consistency.
 - **Type**: positive
-- **Points**: 10
+- **Timer**: Disabled
+- **Points**: 5
 - **Position**: 2
 
-### 🧠 Mind Engagement
+#### ☕ Coffee Ritual
+
+- **Description**: Brew and enjoy mindfully, no rush. No screens; use as a deliberate focus anchor, not a dopamine hit.
+- **Type**: positive
+- **Timer**: Enabled (20 minutes)
+- **Points**: 5
+- **Position**: 3
+
+### 🛠️ Practice Skills
+
+#### 💻 Code
+
+- **Description**: Build projects, debug, or explore new tech stacks. One focused deep work block with a small deliverable each time.
+- **Type**: positive
+- **Timer**: Enabled (60 minutes)
+- **Points**: 50
+- **Position**: 0
 
 #### ♟️ Chess
 
-- **Description**: Sharpen strategic thinking and focus with a game of chess.
+- **Description**: Play or solve puzzles to sharpen strategy skills. Always review one mistake after each session.
 - **Type**: positive
-- **Points**: 20
-- **Position**: 0
-
-#### 🧠 Brilliant
-
-- **Description**: Dedicate time for focused brainstorming, idea generation, or complex problem-solving.
-- **Type**: positive
-- **Points**: 25
+- **Timer**: Enabled (15 minutes)
+- **Points**: 15
 - **Position**: 1
 
-#### ✍️ Journal
+#### 🎸 Guitar
 
-- **Description**: Reflect on your thoughts, goals, and feelings to improve mental clarity.
+- **Description**: Practice chords, riffs, or new songs. Use a metronome and define one clear goal per practice.
 - **Type**: positive
-- **Points**: 15
+- **Timer**: Enabled (20 minutes)
+- **Points**: 30
 - **Position**: 2
 
-### 📈 Skill Development
+#### 🖌️ Design/Sketch
+
+- **Description**: Visual creativity, analog or digital. Push for quick iterations and complete one thumbnail or study.
+- **Type**: positive
+- **Timer**: Enabled (15 minutes)
+- **Points**: 50
+- **Position**: 3
+
+### 📚 Study
 
 #### 🎓 Watch Lecture
 
-- **Description**: Learn something new by watching an educational video, lecture, or documentary.
+- **Description**: View and absorb educational content. Capture one clear note and action to apply within 24 hours.
 - **Type**: positive
-- **Points**: 30
+- **Timer**: Enabled (30 minutes)
+- **Points**: 40
 - **Position**: 0
+
+#### ➗ Learn ML / Math
+
+- **Description**: Work through problems or theory. Alternate solving with short derivations; log errors and fixes.
+- **Type**: positive
+- **Timer**: Enabled (45 minutes)
+- **Points**: 50
+- **Position**: 1
 
 #### 📚 Read Non-Fiction
 
-- **Description**: Actively read from a non-fiction book to acquire deep knowledge.
+- **Description**: Learn from books on real-world topics. Summarize one actionable takeaway per session.
 - **Type**: positive
-- **Points**: 25
-- **Position**: 1
-
-#### 🗣️ Practice a Skill
-
-- **Description**: Engage in deliberate practice of a chosen skill (e.g., coding, language, instrument).
-- **Type**: positive
-- **Points**: 35
+- **Timer**: Enabled (20 minutes)
+- **Points**: 30
 - **Position**: 2
 
-### 🏃 Physical Conditioning
+#### 🃏 Flashcards
 
-#### 🤸 Morning Stretch
-
-- **Description**: Increase blood flow and flexibility to energize your body for the day.
+- **Description**: Active recall or spaced repetition. Stick to recall, not recognition, and follow the schedule.
 - **Type**: positive
-- **Points**: 15
+- **Timer**: Enabled (10 minutes)
+- **Points**: 25
+- **Position**: 3
+
+### ⛔ Bad Habits
+
+#### 🚬 Cravings
+
+- **Description**: Smoking/weed. Treat lapses as data and log triggers immediately.
+- **Type**: negative
+- **Timer**: Disabled
+- **Points**: 5
 - **Position**: 0
 
-#### 🚶 Daily Walk
+#### 📱 Doomscroll
 
-- **Description**: Go for a brisk walk to improve cardiovascular health and clear your mind.
-- **Type**: positive
-- **Points**: 25
+- **Description**: Mindless social media or news feed. Keep it to scheduled slots or 10 minutes max.
+- **Type**: negative
+- **Timer**: Enabled (30 minutes)
+- **Points**: 10
 - **Position**: 1
 
-#### 💪 Strength Session
+#### 🍻 Overindulgence
 
-- **Description**: Perform a short, focused workout (e.g., push-ups, squats, planks) to build muscle.
-- **Type**: positive
-- **Points**: 40
+- **Description**: Alcohol, excess caffeine, or binge snacking. Define thresholds and swap to healthier alternatives.
+- **Type**: negative
+- **Timer**: Disabled
+- **Points**: 30
 - **Position**: 2
+
+#### ⏰ Procrastination
+
+- **Description**: Avoiding tasks, drifting into distractions. Use a 10-minute timer and log the cause when you stall.
+- **Type**: negative
+- **Timer**: Enabled (30 minutes)
+- **Points**: 30
+- **Position**: 3

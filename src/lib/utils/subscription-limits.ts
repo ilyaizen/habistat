@@ -3,8 +3,10 @@
  */
 
 export const FREE_TIER_LIMITS = {
-  maxCalendars: 3,
-  maxHabitsPerCalendar: 7
+  // Business rule: Free tier allows up to 4 calendars total
+  maxCalendars: 4,
+  // Business rule: Free tier allows up to 4 habits in each calendar
+  maxHabitsPerCalendar: 4
 } as const;
 
 export type SubscriptionTier = "free" | "premium_monthly" | "premium_lifetime";

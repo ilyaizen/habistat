@@ -125,12 +125,17 @@
           continue;
         }
         const habitId = uuid();
+        const hasTimer = !!habitConfig.timerEnabled;
+        const durationSeconds =
+          hasTimer && habitConfig.targetDurationMinutes
+            ? habitConfig.targetDurationMinutes * 60
+            : null;
         await habitsStore.add({
           name: habitConfig.name,
           description: habitConfig.description,
           type: habitConfig.type,
-          timerEnabled: 0,
-          targetDurationSeconds: null,
+          timerEnabled: hasTimer ? 1 : 0,
+          targetDurationSeconds: durationSeconds,
           pointsValue: habitConfig.pointsValue,
           calendarId,
           position: habitConfig.position,

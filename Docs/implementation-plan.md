@@ -204,7 +204,7 @@ This document outlines the phased implementation plan for Habistat, evolving it 
   - [x] Create a writable Svelte store (`subscriptionStatus`) holding `tier`, `expiresAt`, `isActive`.
   - [x] Populate this store by calling `convex.users.getCurrentUser` when an authenticated user loads the app.
 - **3.5. UI Logic for Free Tier Limits & Entitlements**:
-  - [x] Define free tier limits (e.g., 3 calendars, 7 habits per calendar).
+  - [x] Define free tier limits (e.g., 4 calendars, 4 habits per calendar).
   - [x] In UI components for creating items, check against limits from `subscriptionStatus` store. Disable "Create" buttons if limit reached on "free" tier.
   - [x] Show tooltips/messages prompting upgrade.
   - [x] Apply "disabled" visual state (e.g., grayscale, reduced opacity) to items exceeding free limits if a subscription expires or for migrated data exceeding limits. These items should not be interactable for completion/timing but can be edited/deleted.

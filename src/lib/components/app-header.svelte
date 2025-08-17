@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Menu, X } from "@lucide/svelte";
+  import { Menu, X, Award, ArrowUpRight, ArrowDownRight } from "@lucide/svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import Avatar from "$lib/components/avatar.svelte";
@@ -7,10 +7,13 @@
   // Use a single unified sync status component across the app
   // import SyncStatus from "$lib/components/sync-status.svelte";
   // import { _ } from "svelte-i18n";
-  // import { Badge } from "$lib/components/ui/badge";
+  // Re-enable gamification UI using a compact badge in the header
+  import { Badge } from "$lib/components/ui/badge";
   import { Button } from "$lib/components/ui/button";
   // import { Skeleton } from "$lib/components/ui/skeleton";
   import { settings } from "$lib/stores/settings";
+  import { gamification } from "$lib/stores/gamification";
+  import NumberFlow from "$lib/vendor/number-flow/NumberFlow.svelte";
 
   let isMobileMenuOpen = $state(false);
 
@@ -116,6 +119,47 @@
     <div class="flex items-center justify-end space-x-2 rtl:space-x-reverse">
       <!-- <SyncStatus variant="minimal" showText={false} /> -->
       <!-- <SubscriptionBadge /> -->
+      <!--
+        Gamification badge is always rendered so NumberFlow mounts with 0 and
+        animates to the computed value when the store updates post-mount.
+        We only soften the visuals while loading to avoid layout shifts.
+      -->
+      <Badge
+        variant="outline"
+        class={`bg-background hidden items-center gap-1 rounded-full px-2 py-0.5 md:inline-flex ${$gamification.loading ? "opacity-70" : ""}`}
+        aria-busy={$gamification.loading}
+        title="Your total points"
+      >
+        <Award class="text-primary h-3 w-3" />
+        <span class="tabular-nums">
+          <!--
+            Explicit 'animated' and 'willChange' ensure smooth transitions.
+            Rendering during loading (value is 0) guarantees a 0 → N change
+            after mount, which triggers the animation.
+          -->
+          <NumberFlow
+            value={$gamification.totalPoints}
+            animated={true}
+            willChange={true}
+            respectMotionPreference={true}
+          />
+        </span>
+        <!-- {#if $gamification.weeklyPointsDelta !== 0}
+          <span class="ml-1 inline-flex items-center text-[10px] font-medium">
+            {#if $gamification.weeklyPointsDelta > 0}
+              <ArrowUpRight class="h-3 w-3 text-emerald-600" />
+              <span class="text-emerald-700 tabular-nums dark:text-emerald-400"
+                >{Math.abs($gamification.weeklyPointsDelta)}</span
+              >
+            {:else}
+              <ArrowDownRight class="h-3 w-3 text-rose-600" />
+              <span class="text-rose-700 tabular-nums dark:text-rose-400"
+                >{Math.abs($gamification.weeklyPointsDelta)}</span
+              >
+            {/if}
+          </span>
+        {/if} -->
+      </Badge>
       <Avatar />
     </div>
   </div>
