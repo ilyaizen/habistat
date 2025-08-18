@@ -80,9 +80,9 @@
     const base = colorNameToCss(colorName);
     const bg = `linear-gradient(90deg, ${withAlpha(base, 0.2)} 0rem, ${withAlpha(
       base,
-      0.2
+      0.1
     )} 4rem, ${withAlpha(base, 0)} 50%)`;
-    const borderColor = withAlpha(base, 0.3); // Slightly more opaque than the background
+    const borderColor = withAlpha(base, 0.1); // Slightly more opaque than the background
     return `background-image: ${bg}; background-repeat: no-repeat; --cal-title-border-color: ${borderColor};`;
   }
 

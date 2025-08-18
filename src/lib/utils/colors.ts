@@ -125,6 +125,23 @@ export function generateColorShades(
   return shades;
 }
 
+// Add a themed wrapper that reverses shades for dark mode consumers.
+export type ShadeTheme = "light" | "dark";
+
+/**
+ * Like generateColorShades, but reverses the order for dark mode so higher indices are lighter.
+ * This pairs well with UIs that map higher "intensity" to lighter tiles on dark backgrounds.
+ */
+export function generateColorShadesThemed(
+  baseHex: string,
+  count: number,
+  variation: number = 5,
+  theme: ShadeTheme = "light"
+): string[] {
+  const shades = generateColorShades(baseHex, count, variation);
+  return theme === "dark" ? [...shades].reverse() : shades;
+}
+
 /**
  * Tailwind v4 OKLCH 500-shade palette.
  * We store color NAMES in the DB. UI renders via OKLCH strings only.

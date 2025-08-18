@@ -214,7 +214,7 @@
     border-radius: 9999px; /* rounded-full */
     pointer-events: none;
     z-index: 0;
-    border: 2px dashed color-mix(in oklab, var(--primary) 30%, transparent);
+    border: 2px dashed color-mix(in oklab, var(--primary) 5%, transparent);
     -webkit-mask-image: linear-gradient(
       90deg,
       rgba(0, 0, 0, 1) 0rem,

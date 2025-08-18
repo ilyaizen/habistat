@@ -44,12 +44,125 @@
 
   /**
    * Generates numDays of completion data for all habits.
-   * Each habit gets 0-3 random completions per day.
+   * Introduces per-habit intensity profiles, weekly patterns, and short
+   * bursts to create more realistic variety. Some habits will have very
+   * few completions while others will be frequent.
    */
   async function generateCompletionsHistory(
     habits: Array<{ id: string; name: string; type: string }>,
     days: number
   ) {
+    // Helper: pick a random element using weights
+    function weightedChoice<T>(choices: Array<{ value: T; weight: number }>): T {
+      const total = choices.reduce((s, c) => s + c.weight, 0);
+      let r = Math.random() * total;
+      for (const c of choices) {
+        if ((r -= c.weight) <= 0) return c.value;
+      }
+      return choices[choices.length - 1].value;
+    }
+
+    // Helper: sample from a Poisson distribution using Knuth's algorithm
+    function samplePoisson(lambda: number): number {
+      if (lambda <= 0) return 0;
+      if (lambda > 6) {
+        // For higher rates, approximate with normal to avoid long loops
+        const sd = Math.sqrt(lambda);
+        const u1 = Math.random();
+        const u2 = Math.random();
+        const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+        const n = Math.max(0, Math.round(lambda + sd * z));
+        return n;
+      }
+      let L = Math.exp(-lambda);
+      let k = 0;
+      let p = 1;
+      while (p > L) {
+        p *= Math.random();
+        k++;
+      }
+      return k - 1;
+    }
+
+    // Helper: pick a realistic hour bucket and return [hour, minute]
+    function sampleTime(): [number, number] {
+      const bucket = weightedChoice([
+        { value: "morning", weight: 3 },
+        { value: "midday", weight: 2 },
+        { value: "evening", weight: 4 },
+        { value: "late", weight: 1 }
+      ] as const);
+      let start = 6;
+      let end = 9;
+      if (bucket === "midday") {
+        start = 11;
+        end = 14;
+      } else if (bucket === "evening") {
+        start = 17;
+        end = 21;
+      } else if (bucket === "late") {
+        start = 21;
+        end = 23;
+      }
+      const hour = start + Math.floor(Math.random() * (end - start + 1));
+      const minute = Math.floor(Math.random() * 60);
+      return [hour, minute];
+    }
+
+    // Assign a behavior profile to each habit so variety persists across days
+    type HabitProfile = {
+      baseMean: number; // baseline completions/day
+      weekendMultiplier: number; // weekend adjustment factor
+      skipDayProbability: number; // chance to skip an entire day for this habit
+      burst?: { startOffset: number; length: number; multiplier: number };
+    };
+    const habitProfiles = new SvelteMap<string, HabitProfile>();
+    for (const habit of habits) {
+      // Randomly pick an intensity tier; bias toward medium/low to produce
+      // more sparse data for many habits.
+      const tier = weightedChoice([
+        { value: "high", weight: 2 },
+        { value: "medium", weight: 4 },
+        { value: "low", weight: 3 },
+        { value: "rare", weight: 2 }
+      ] as const);
+
+      let baseMean = 1.0;
+      let skipDayProbability = 0.1;
+      if (tier === "high") {
+        baseMean = 2 + Math.random(); // 2.0 - 3.0
+        skipDayProbability = 0.05;
+      } else if (tier === "medium") {
+        baseMean = 1 + Math.random() * 0.8; // 1.0 - 1.8
+        skipDayProbability = 0.15;
+      } else if (tier === "low") {
+        baseMean = 0.2 + Math.random() * 0.6; // 0.2 - 0.8
+        skipDayProbability = 0.35;
+      } else {
+        baseMean = 0.05 + Math.random() * 0.15; // 0.05 - 0.2
+        skipDayProbability = 0.6;
+      }
+
+      // Weekends can be a dip or boost per habit
+      const weekendMultiplier = 0.6 + Math.random() * 0.8; // 0.6 - 1.4
+
+      // Some habits have a short "burst" window of higher activity
+      let burst: HabitProfile["burst"] | undefined = undefined;
+      if (Math.random() < 0.4 && days >= 4) {
+        const length = 2 + Math.floor(Math.random() * 3); // 2-4 days
+        const startOffset = Math.max(0, Math.floor(Math.random() * Math.max(1, days - length)));
+        const multiplier = 2 + Math.random(); // 2.0 - 3.0
+        burst = { startOffset, length, multiplier };
+      }
+
+      habitProfiles.set(habit.id, {
+        baseMean,
+        weekendMultiplier,
+        skipDayProbability,
+        burst
+      });
+    }
+
     const today = new SvelteDate();
     // Use Clerk user ID if authenticated, null if anonymous
     const currentUserId = getAssociatedUserId();
@@ -57,13 +170,45 @@
       const date = new SvelteDate(today);
       date.setDate(today.getDate() - dayOffset);
       for (const habit of habits) {
-        // Only positive habits, 0-3 completions per day
-        const numCompletions = Math.floor(Math.random() * 4);
+        // Pull the profile and determine today's expected completions
+        const profile = habitProfiles.get(habit.id)!;
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+        // Occasionally skip an entire day for this habit
+        if (Math.random() < profile.skipDayProbability) continue;
+
+        // Apply weekend and possible burst multipliers
+        let mean = profile.baseMean * (isWeekend ? profile.weekendMultiplier : 1);
+        if (profile.burst) {
+          const inBurst =
+            dayOffset >= days - profile.burst.startOffset - profile.burst.length &&
+            dayOffset < days - profile.burst.startOffset;
+          if (inBurst) mean *= profile.burst.multiplier;
+        }
+
+        // Sample the number of completions for the day with a safe cap
+        const numCompletions = Math.min(samplePoisson(mean), 6);
+        if (numCompletions <= 0) continue;
+
+        // Generate distinct timestamps within the day to avoid exact dupes
+        const usedSlots = new Set<string>();
         for (let i = 0; i < numCompletions; i++) {
-          const randomHour = Math.floor(Math.random() * 16) + 6;
-          const randomMinute = Math.floor(Math.random() * 60);
+          let hour = 12;
+          let minute = 0;
+          // Try a few times to find an unused slot
+          for (let attempts = 0; attempts < 4; attempts++) {
+            const t = sampleTime();
+            hour = t[0];
+            minute = t[1];
+            const key = `${hour}:${minute}`;
+            if (!usedSlots.has(key)) {
+              usedSlots.add(key);
+              break;
+            }
+          }
+
           const completionTime = new SvelteDate(date);
-          completionTime.setHours(randomHour, randomMinute, 0, 0);
+          completionTime.setHours(hour, minute, 0, 0);
           await localData.createCompletion({
             id: uuid(),
             habitId: habit.id,

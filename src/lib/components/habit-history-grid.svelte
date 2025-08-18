@@ -22,15 +22,25 @@
     date: string;
     count: number;
     color: string;
+    colorDark: string;
     isToday: boolean;
   }
 
-  // Compute a 5-level shade using CSS color-mix in oklab space from the base calendar color.
-  // This works with OKLCH strings (Tailwind v4 style) and hex fallbacks.
-  function shadeFor(base: string, level: number): string {
+  // Compute 5-level shades for both light and dark themes using color-mix in oklab space.
+  // We emit both and let CSS @media (prefers-color-scheme) pick which to display.
+  function shadeForLight(base: string, level: number): string {
     const idx = Math.max(0, Math.min(level, 4));
-    // Lighter to darker progression across 5 levels
-    const mixes = ["white 35%", "white 25%", "white 15%", "white 5%", "black 10%"];
+    // Progression: very light -> light -> base -> darker -> darkest (very pronounced)
+    const mixes = ["white 30%", "white 15%", "transparent 0%", "black 15%", "black 30%"];
+    if (idx === 2) return base; // ensure true base at midpoint
+    return `color-mix(in oklab, ${base}, ${mixes[idx]})`;
+  }
+
+  function shadeForDark(base: string, level: number): string {
+    const idx = Math.max(0, Math.min(level, 4));
+    // Reverse: darkest -> darker -> base -> lighter -> lightest (very pronounced)
+    const mixes = ["black 30%", "black 15%", "transparent 0%", "white 15%", "white 30%"];
+    if (idx === 2) return base; // ensure true base at midpoint
     return `color-mix(in oklab, ${base}, ${mixes[idx]})`;
   }
 
@@ -51,13 +61,18 @@
       const dateStr = formatLocalDate(date);
       const count = completionsByDate.get(dateStr) ?? 0;
 
-      let color = "var(--muted-foreground-transparent)";
-      if (count > 0) color = shadeFor(calendarColor, Math.min(count - 1, 4));
+      const level = Math.min(Math.max(count - 1, 0), 4);
+      const colorLight =
+        count > 0 ? shadeForLight(calendarColor, level) : "var(--muted-foreground-transparent)";
+      const colorDark =
+        count > 0 ? shadeForDark(calendarColor, level) : "var(--muted-foreground-transparent)";
 
       squares.push({
         date: dateStr,
         count,
-        color,
+        // store the light color by default; CSS will swap via media query
+        color: colorLight,
+        colorDark,
         isToday: dateStr === todayStr
       });
     }
@@ -71,7 +86,7 @@
   {#each days() as day (day.date)}
     <div
       class="day-square h-6 w-[10px] rounded-lg"
-      style="--day-color: {day.color};"
+      style="--day-color-light: {day.color}; --day-color-dark: {day.colorDark};"
       class:active={day.count > 0}
       aria-label={`Completions for ${day.date}: ${day.count}${day.isToday ? " (Today)" : ""}`}
       title={`${day.date}${day.isToday ? " (Today)" : ""} - ${day.count} completion${day.count === 1 ? "" : "s"}`}
@@ -85,6 +100,8 @@
   }
 
   .day-square {
+    /* default to light theme variable; override in dark mode */
+    --day-color: var(--day-color-light);
     background-color: var(--day-color);
     transition:
       transform 0.2s,
@@ -98,5 +115,11 @@
       var(--day-color) 50%,
       color-mix(in oklab, var(--day-color), black 10%) 100%
     );
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .day-square {
+      --day-color: var(--day-color-dark);
+    }
   }
 </style>

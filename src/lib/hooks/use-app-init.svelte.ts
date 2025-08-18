@@ -79,7 +79,7 @@ export function useAppInit() {
   //   if (!browser || !import.meta.env.DEV) return;
 
   //   // Expose a debug function in development mode to test the midnight logic
-  //   // @ts-ignore
+  //   // @ts-expect-error
   //   (window as any).triggerMidnight = async () => {
   //     console.log("[DEBUG] Manually triggering midnight app open log...");
   //     await logAppOpenIfNeeded();

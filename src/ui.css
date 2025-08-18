@@ -3,7 +3,7 @@
 /* Emoji font override */
 .emoji-container {
   font-family:
-    "Noto Color Emoji", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif !important;
+    "Noto Color Emoji", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Emoji hover bounce animation */
@@ -64,10 +64,10 @@ button:hover .emoji-container,
 /* Critical: disable animation while dragging so it restarts on drop */
 .emoji-container.dragging {
   /* Hard stop during drag and force baseline with no transition */
-  animation: none !important;
-  transition: none !important;
-  transform: translateY(0) !important;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4)) !important;
+  animation: none;
+  transition: none;
+  transform: translateY(0);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
 
 /* 2.5D Button */

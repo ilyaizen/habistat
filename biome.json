@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
   "formatter": {
     "formatWithErrors": true,
     "indentStyle": "space",
@@ -27,11 +27,11 @@
   "files": {
     "includes": [
       "src/**/*",
-      "!src/lib/components/ui/**",
-      "!src-tauri/**",
-      "!src/.svelte-kit/**",
-      "!src/convex/**",
-      "!.svelte-kit/**",
+      "!src/lib/components/ui",
+      "!src-tauri",
+      "!src/.svelte-kit",
+      "!src/convex",
+      "!.svelte-kit",
       "!**/*.svelte"
     ]
   },
