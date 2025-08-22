@@ -6,7 +6,7 @@ This document outlines the sample data used in the Habistat application for demo
 
 ## Calendars
 
-### ✅ Basic Actions
+### ✅ Common Actions
 
 - **Color Theme**: Green
 - **Position**: 0
