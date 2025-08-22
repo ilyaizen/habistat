@@ -6,160 +6,140 @@ This document outlines the sample data used in the Habistat application for demo
 
 ## Calendars
 
-### ✅ Common Actions
-
-- **Color Theme**: Green
-- **Position**: 0
-
-### 🛠️ Practice Skills
-
-- **Color Theme**: Indigo
-- **Position**: 1
-
-### 📚 Study
-
-- **Color Theme**: Pink
-- **Position**: 2
-
-### ⛔ Bad Habits
+### 🙅 Bad Habits
 
 - **Color Theme**: Red
+- **Position**: 0
+
+### 🌱 Common
+
+- **Color Theme**: Green
+- **Position**: 1
+
+### 🥷 Practice
+
+- **Color Theme**: Indigo
+- **Position**: 2
+
+### 🚀 Learn
+
+- **Color Theme**: Pink
 - **Position**: 3
 
 ## Habits
 
-### ✅ Basic Actions
+### 🙅 Bad Habits
 
-#### 🪥 Self-care
+#### 🚬 Cigarette
 
-- **Description**: Brush teeth, wash face, basic grooming. Small consistent wins preserve energy and public dignity.
-- **Type**: positive
-- **Timer**: Enabled (2 minutes)
+- **Description**: Engaging in smoking cigarettes. Focus on recording each lapse to understand and address triggers effectively.
+- **Type**: negative
+- **Timer**: Disabled
 - **Points**: 5
 - **Position**: 0
+ - **Frequency**: 50
+
+#### 🍁 Weed
+
+- **Description**: Engaging in smoking weed. Monitor and log each occurrence to identify patterns and triggers.
+- **Type**: negative
+- **Timer**: Disabled
+- **Points**: 15
+- **Position**: 1
+ - **Frequency**: 30
+
+#### 🌽 Corn
+
+- **Description**: Engaging in corn. Keep a detailed log of each lapse to analyze and mitigate triggers.
+- **Type**: negative
+- **Timer**: Disabled
+- **Points**: 40
+- **Position**: 2
+ - **Frequency**: 5
+
+### 🌱 Common
+
+#### 🪥 Hygiene
+
+- **Description**: Maintain daily hygiene practices like brushing teeth and washing face. These small actions help maintain public dignity and personal well-being.
+- **Type**: positive
+- **Timer**: Enabled (5 minutes)
+- **Points**: 5
+- **Position**: 0
+ - **Frequency**: 40
 
 #### 🏋🏽 Exercise
 
-- **Description**: Quick workout to stay active and mobile. Keep intensity focused on mobility and compound moves; treat this as nonnegotiable.
+- **Description**: Engage in a quick workout to stay active and maintain mobility. Focus on consistent, non-negotiable physical activity.
 - **Type**: positive
 - **Timer**: Enabled (15 minutes)
 - **Points**: 40
 - **Position**: 1
+ - **Frequency**: 10
 
-#### 💊 Supplements
+#### 🧘 Meditate
 
-- **Description**: Take daily vitamins or health boosters. Always with a meal for proper absorption and consistency.
+- **Description**: Take daily vitamins or health supplements. Ensure they are taken with meals for better absorption and consistency.
 - **Type**: positive
 - **Timer**: Disabled
-- **Points**: 5
+- **Points**: 10
 - **Position**: 2
+ - **Frequency**: 30
 
-#### ☕ Coffee Ritual
-
-- **Description**: Brew and enjoy mindfully, no rush. No screens; use as a deliberate focus anchor, not a dopamine hit.
-- **Type**: positive
-- **Timer**: Enabled (20 minutes)
-- **Points**: 5
-- **Position**: 3
-
-### 🛠️ Practice Skills
+### 🥷 Practice
 
 #### 💻 Code
 
-- **Description**: Build projects, debug, or explore new tech stacks. One focused deep work block with a small deliverable each time.
+- **Description**: Dedicate time to building projects, debugging, or exploring new tech stacks. Aim for focused deep work with a specific deliverable each session.
 - **Type**: positive
-- **Timer**: Enabled (60 minutes)
+- **Timer**: Enabled (45 minutes)
 - **Points**: 50
 - **Position**: 0
+ - **Frequency**: 50
 
-#### ♟️ Chess
+#### 🖌️ Design
 
-- **Description**: Play or solve puzzles to sharpen strategy skills. Always review one mistake after each session.
-- **Type**: positive
-- **Timer**: Enabled (15 minutes)
-- **Points**: 15
-- **Position**: 1
-
-#### 🎸 Guitar
-
-- **Description**: Practice chords, riffs, or new songs. Use a metronome and define one clear goal per practice.
-- **Type**: positive
-- **Timer**: Enabled (20 minutes)
-- **Points**: 30
-- **Position**: 2
-
-#### 🖌️ Design/Sketch
-
-- **Description**: Visual creativity, analog or digital. Push for quick iterations and complete one thumbnail or study.
-- **Type**: positive
-- **Timer**: Enabled (15 minutes)
-- **Points**: 50
-- **Position**: 3
-
-### 📚 Study
-
-#### 🎓 Watch Lecture
-
-- **Description**: View and absorb educational content. Capture one clear note and action to apply within 24 hours.
-- **Type**: positive
-- **Timer**: Enabled (30 minutes)
-- **Points**: 40
-- **Position**: 0
-
-#### ➗ Learn ML / Math
-
-- **Description**: Work through problems or theory. Alternate solving with short derivations; log errors and fixes.
+- **Description**: Engage in visual creativity, whether analog or digital. Aim for quick iterations and complete at least one thumbnail or study per session.
 - **Type**: positive
 - **Timer**: Enabled (45 minutes)
 - **Points**: 50
 - **Position**: 1
+ - **Frequency**: 20
+
+#### ♟️ Chess
+
+- **Description**: Play chess or solve puzzles to enhance strategic thinking. Review one mistake after each session for continuous improvement.
+- **Type**: positive
+- **Timer**: Enabled (15 minutes)
+- **Points**: 15
+- **Position**: 2
+ - **Frequency**: 15
+
+### 🚀 Learn
+
+#### 🎓 Watch Lecture
+
+- **Description**: Watch and absorb educational content. Capture key notes and identify one actionable item to apply within 24 hours.
+- **Type**: positive
+- **Timer**: Enabled (30 minutes)
+- **Points**: 40
+- **Position**: 0
+ - **Frequency**: 10
+
+#### ➗ Study Math
+
+- **Description**: Work through math problems or theory. Alternate between solving problems and short derivations, logging errors and corrections as you go.
+- **Type**: positive
+- **Timer**: Enabled (45 minutes)
+- **Points**: 50
+- **Position**: 1
+ - **Frequency**: 20
 
 #### 📚 Read Non-Fiction
 
-- **Description**: Learn from books on real-world topics. Summarize one actionable takeaway per session.
+- **Description**: Read books on real-world topics and summarize one actionable takeaway from each session.
 - **Type**: positive
 - **Timer**: Enabled (20 minutes)
 - **Points**: 30
 - **Position**: 2
-
-#### 🃏 Flashcards
-
-- **Description**: Active recall or spaced repetition. Stick to recall, not recognition, and follow the schedule.
-- **Type**: positive
-- **Timer**: Enabled (10 minutes)
-- **Points**: 25
-- **Position**: 3
-
-### ⛔ Bad Habits
-
-#### 🚬 Cravings
-
-- **Description**: Smoking/weed. Treat lapses as data and log triggers immediately.
-- **Type**: negative
-- **Timer**: Disabled
-- **Points**: 5
-- **Position**: 0
-
-#### 📱 Doomscroll
-
-- **Description**: Mindless social media or news feed. Keep it to scheduled slots or 10 minutes max.
-- **Type**: negative
-- **Timer**: Enabled (30 minutes)
-- **Points**: 10
-- **Position**: 1
-
-#### 🍻 Overindulgence
-
-- **Description**: Alcohol, excess caffeine, or binge snacking. Define thresholds and swap to healthier alternatives.
-- **Type**: negative
-- **Timer**: Disabled
-- **Points**: 30
-- **Position**: 2
-
-#### ⏰ Procrastination
-
-- **Description**: Avoiding tasks, drifting into distractions. Use a 10-minute timer and log the cause when you stall.
-- **Type**: negative
-- **Timer**: Enabled (30 minutes)
-- **Points**: 30
-- **Position**: 3
+ - **Frequency**: 5

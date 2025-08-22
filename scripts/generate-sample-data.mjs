@@ -99,6 +99,9 @@ function parseMarkdown(lines) {
             case "Type":
               currentItem.type = pair.value;
               break;
+            case "Frequency":
+              currentItem.frequency = parseInt(pair.value, 10);
+              break;
             case "Timer": {
               const { timerEnabled, targetDurationMinutes } = parseTimer(pair.value);
               currentItem.timerEnabled = timerEnabled;

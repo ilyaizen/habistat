@@ -9,204 +9,161 @@
 // Sample data configuration - easily editable for demo purposes
 export const SAMPLE_DATA_CONFIG = {
   calendars: [
-    {
-      name: "✅ Basic Actions",
-      colorTheme: "Green",
-      position: 0
-    },
-    {
-      name: "🛠️ Practice Skills",
-      colorTheme: "Indigo",
-      position: 1
-    },
-    {
-      name: "📚 Study",
-      colorTheme: "Pink",
-      position: 2
-    },
-    {
-      name: "⛔ Bad Habits",
-      colorTheme: "Red",
-      position: 3
-    }
-  ],
+  {
+    "name": "🙅 Bad Habits",
+    "colorTheme": "Red",
+    "position": 0
+  },
+  {
+    "name": "🌱 Common",
+    "colorTheme": "Green",
+    "position": 1
+  },
+  {
+    "name": "🥷 Practice",
+    "colorTheme": "Indigo",
+    "position": 2
+  },
+  {
+    "name": "🚀 Learn",
+    "colorTheme": "Pink",
+    "position": 3
+  }
+],
   habits: [
-    {
-      calendarName: "✅ Basic Actions",
-      name: "🪥 Self-care",
-      description:
-        "Brush teeth, wash face, basic grooming. Small consistent wins preserve energy and public dignity.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 2,
-      pointsValue: 5,
-      position: 0
-    },
-    {
-      calendarName: "✅ Basic Actions",
-      name: "🏋🏽 Exercise",
-      description:
-        "Quick workout to stay active and mobile. Keep intensity focused on mobility and compound moves; treat this as nonnegotiable.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 15,
-      pointsValue: 40,
-      position: 1
-    },
-    {
-      calendarName: "✅ Basic Actions",
-      name: "💊 Supplements",
-      description:
-        "Take daily vitamins or health boosters. Always with a meal for proper absorption and consistency.",
-      type: "positive" as const,
-      timerEnabled: false,
-      targetDurationMinutes: null,
-      pointsValue: 5,
-      position: 2
-    },
-    {
-      calendarName: "✅ Basic Actions",
-      name: "☕ Coffee Ritual",
-      description:
-        "Brew and enjoy mindfully, no rush. No screens; use as a deliberate focus anchor, not a dopamine hit.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 20,
-      pointsValue: 5,
-      position: 3
-    },
-    {
-      calendarName: "🛠️ Practice Skills",
-      name: "💻 Code",
-      description:
-        "Build projects, debug, or explore new tech stacks. One focused deep work block with a small deliverable each time.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 60,
-      pointsValue: 50,
-      position: 0
-    },
-    {
-      calendarName: "🛠️ Practice Skills",
-      name: "♟️ Chess",
-      description:
-        "Play or solve puzzles to sharpen strategy skills. Always review one mistake after each session.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 15,
-      pointsValue: 15,
-      position: 1
-    },
-    {
-      calendarName: "🛠️ Practice Skills",
-      name: "🎸 Guitar",
-      description:
-        "Practice chords, riffs, or new songs. Use a metronome and define one clear goal per practice.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 20,
-      pointsValue: 30,
-      position: 2
-    },
-    {
-      calendarName: "🛠️ Practice Skills",
-      name: "🖌️ Design/Sketch",
-      description:
-        "Visual creativity, analog or digital. Push for quick iterations and complete one thumbnail or study.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 15,
-      pointsValue: 50,
-      position: 3
-    },
-    {
-      calendarName: "📚 Study",
-      name: "🎓 Watch Lecture",
-      description:
-        "View and absorb educational content. Capture one clear note and action to apply within 24 hours.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 30,
-      pointsValue: 40,
-      position: 0
-    },
-    {
-      calendarName: "📚 Study",
-      name: "➗ Learn ML / Math",
-      description:
-        "Work through problems or theory. Alternate solving with short derivations; log errors and fixes.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 45,
-      pointsValue: 50,
-      position: 1
-    },
-    {
-      calendarName: "📚 Study",
-      name: "📚 Read Non-Fiction",
-      description:
-        "Learn from books on real-world topics. Summarize one actionable takeaway per session.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 20,
-      pointsValue: 30,
-      position: 2
-    },
-    {
-      calendarName: "📚 Study",
-      name: "🃏 Flashcards",
-      description:
-        "Active recall or spaced repetition. Stick to recall, not recognition, and follow the schedule.",
-      type: "positive" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 10,
-      pointsValue: 25,
-      position: 3
-    },
-    {
-      calendarName: "⛔ Bad Habits",
-      name: "🚬 Cravings",
-      description: "Smoking/weed. Treat lapses as data and log triggers immediately.",
-      type: "negative" as const,
-      timerEnabled: false,
-      targetDurationMinutes: null,
-      pointsValue: 5,
-      position: 0
-    },
-    {
-      calendarName: "⛔ Bad Habits",
-      name: "📱 Doomscroll",
-      description:
-        "Mindless social media or news feed. Keep it to scheduled slots or 10 minutes max.",
-      type: "negative" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 30,
-      pointsValue: 10,
-      position: 1
-    },
-    {
-      calendarName: "⛔ Bad Habits",
-      name: "🍻 Overindulgence",
-      description:
-        "Alcohol, excess caffeine, or binge snacking. Define thresholds and swap to healthier alternatives.",
-      type: "negative" as const,
-      timerEnabled: false,
-      targetDurationMinutes: null,
-      pointsValue: 30,
-      position: 2
-    },
-    {
-      calendarName: "⛔ Bad Habits",
-      name: "⏰ Procrastination",
-      description:
-        "Avoiding tasks, drifting into distractions. Use a 10-minute timer and log the cause when you stall.",
-      type: "negative" as const,
-      timerEnabled: true,
-      targetDurationMinutes: 30,
-      pointsValue: 30,
-      position: 3
-    }
-  ]
+  {
+    "calendarName": "🙅 Bad Habits",
+    "name": "🚬 Cigarette",
+    "description": "Engaging in smoking cigarettes. Focus on recording each lapse to understand and address triggers effectively.",
+    "type": "negative" as const,
+    "timerEnabled": false,
+    "targetDurationMinutes": null,
+    "pointsValue": 5,
+    "position": 0,
+    "frequency": 50
+  },
+  {
+    "calendarName": "🙅 Bad Habits",
+    "name": "🍁 Weed",
+    "description": "Engaging in smoking weed. Monitor and log each occurrence to identify patterns and triggers.",
+    "type": "negative" as const,
+    "timerEnabled": false,
+    "targetDurationMinutes": null,
+    "pointsValue": 15,
+    "position": 1,
+    "frequency": 30
+  },
+  {
+    "calendarName": "🙅 Bad Habits",
+    "name": "🌽 Corn",
+    "description": "Engaging in corn. Keep a detailed log of each lapse to analyze and mitigate triggers.",
+    "type": "negative" as const,
+    "timerEnabled": false,
+    "targetDurationMinutes": null,
+    "pointsValue": 40,
+    "position": 2,
+    "frequency": 5
+  },
+  {
+    "calendarName": "🌱 Common",
+    "name": "🪥 Hygiene",
+    "description": "Maintain daily hygiene practices like brushing teeth and washing face. These small actions help maintain public dignity and personal well-being.",
+    "type": "positive" as const,
+    "timerEnabled": true,
+    "targetDurationMinutes": 5,
+    "pointsValue": 5,
+    "position": 0,
+    "frequency": 40
+  },
+  {
+    "calendarName": "🌱 Common",
+    "name": "🏋🏽 Exercise",
+    "description": "Engage in a quick workout to stay active and maintain mobility. Focus on consistent, non-negotiable physical activity.",
+    "type": "positive" as const,
+    "timerEnabled": true,
+    "targetDurationMinutes": 15,
+    "pointsValue": 40,
+    "position": 1,
+    "frequency": 10
+  },
+  {
+    "calendarName": "🌱 Common",
+    "name": "🧘 Meditate",
+    "description": "Take daily vitamins or health supplements. Ensure they are taken with meals for better absorption and consistency.",
+    "type": "positive" as const,
+    "timerEnabled": false,
+    "targetDurationMinutes": null,
+    "pointsValue": 10,
+    "position": 2,
+    "frequency": 30
+  },
+  {
+    "calendarName": "🥷 Practice",
+    "name": "💻 Code",
+    "description": "Dedicate time to building projects, debugging, or exploring new tech stacks. Aim for focused deep work with a specific deliverable each session.",
+    "type": "positive" as const,
+    "timerEnabled": true,
+    "targetDurationMinutes": 45,
+    "pointsValue": 50,
+    "position": 0,
+    "frequency": 50
+  },
+  {
+    "calendarName": "🥷 Practice",
+    "name": "🖌️ Design",
+    "description": "Engage in visual creativity, whether analog or digital. Aim for quick iterations and complete at least one thumbnail or study per session.",
+    "type": "positive" as const,
+    "timerEnabled": true,
+    "targetDurationMinutes": 45,
+    "pointsValue": 50,
+    "position": 1,
+    "frequency": 20
+  },
+  {
+    "calendarName": "🥷 Practice",
+    "name": "♟️ Chess",
+    "description": "Play chess or solve puzzles to enhance strategic thinking. Review one mistake after each session for continuous improvement.",
+    "type": "positive" as const,
+    "timerEnabled": true,
+    "targetDurationMinutes": 15,
+    "pointsValue": 15,
+    "position": 2,
+    "frequency": 15
+  },
+  {
+    "calendarName": "🚀 Learn",
+    "name": "🎓 Watch Lecture",
+    "description": "Watch and absorb educational content. Capture key notes and identify one actionable item to apply within 24 hours.",
+    "type": "positive" as const,
+    "timerEnabled": true,
+    "targetDurationMinutes": 30,
+    "pointsValue": 40,
+    "position": 0,
+    "frequency": 10
+  },
+  {
+    "calendarName": "🚀 Learn",
+    "name": "➗ Study Math",
+    "description": "Work through math problems or theory. Alternate between solving problems and short derivations, logging errors and corrections as you go.",
+    "type": "positive" as const,
+    "timerEnabled": true,
+    "targetDurationMinutes": 45,
+    "pointsValue": 50,
+    "position": 1,
+    "frequency": 20
+  },
+  {
+    "calendarName": "🚀 Learn",
+    "name": "📚 Read Non-Fiction",
+    "description": "Read books on real-world topics and summarize one actionable takeaway from each session.",
+    "type": "positive" as const,
+    "timerEnabled": true,
+    "targetDurationMinutes": 20,
+    "pointsValue": 30,
+    "position": 2,
+    "frequency": 5
+  }
+]
 } as const;
 
 // Type definitions for sample data structure

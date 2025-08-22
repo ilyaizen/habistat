@@ -49,7 +49,7 @@
    * few completions while others will be frequent.
    */
   async function generateCompletionsHistory(
-    habits: Array<{ id: string; name: string; type: string }>,
+    habits: Array<{ id: string; name: string; type: string; frequency?: number }>,
     days: number
   ) {
     // Helper: pick a random element using weights
@@ -118,40 +118,33 @@
     };
     const habitProfiles = new SvelteMap<string, HabitProfile>();
     for (const habit of habits) {
-      // Randomly pick an intensity tier; bias toward medium/low to produce
-      // more sparse data for many habits.
-      const tier = weightedChoice([
-        { value: "high", weight: 2 },
-        { value: "medium", weight: 4 },
-        { value: "low", weight: 3 },
-        { value: "rare", weight: 2 }
-      ] as const);
+      // Map frequency (1-50) to behavior parameters
+      // - Higher frequency => higher mean completions/day and lower skip probability
+      const freq = Math.min(50, Math.max(1, habit.frequency ?? 25));
+      const fNorm = (freq - 1) / 49; // 0..1
 
-      let baseMean = 1.0;
-      let skipDayProbability = 0.1;
-      if (tier === "high") {
-        baseMean = 2 + Math.random(); // 2.0 - 3.0
-        skipDayProbability = 0.05;
-      } else if (tier === "medium") {
-        baseMean = 1 + Math.random() * 0.8; // 1.0 - 1.8
-        skipDayProbability = 0.15;
-      } else if (tier === "low") {
-        baseMean = 0.2 + Math.random() * 0.6; // 0.2 - 0.8
-        skipDayProbability = 0.35;
-      } else {
-        baseMean = 0.05 + Math.random() * 0.15; // 0.05 - 0.2
-        skipDayProbability = 0.6;
-      }
+      // Base mean/day roughly 0.05..2.8 with a little jitter for variety
+      const baseMin = 0.05;
+      const baseMax = 2.8;
+      const jitter = (Math.random() - 0.5) * 0.15; // +/-0.075
+      const baseMean = Math.max(0, baseMin + fNorm * (baseMax - baseMin) + jitter);
 
-      // Weekends can be a dip or boost per habit
-      const weekendMultiplier = 0.6 + Math.random() * 0.8; // 0.6 - 1.4
+      // Skip-prob goes from ~0.8 down to ~0.05 as frequency rises, with small jitter
+      const skipBase = 0.8 - 0.75 * fNorm;
+      const skipJitter = (Math.random() - 0.5) * 0.08; // +/-0.04
+      const skipDayProbability = Math.min(0.9, Math.max(0.03, skipBase + skipJitter));
+
+      // Weekends can be a dip or boost per habit; keep mild range 0.8..1.2
+      const weekendMultiplier = 0.8 + Math.random() * 0.4;
 
       // Some habits have a short "burst" window of higher activity
       let burst: HabitProfile["burst"] | undefined = undefined;
-      if (Math.random() < 0.4 && days >= 4) {
+      // Higher frequency makes bursts slightly more likely
+      const burstChance = 0.25 + 0.35 * fNorm; // 0.25..0.6
+      if (Math.random() < burstChance && days >= 4) {
         const length = 2 + Math.floor(Math.random() * 3); // 2-4 days
         const startOffset = Math.max(0, Math.floor(Math.random() * Math.max(1, days - length)));
-        const multiplier = 2 + Math.random(); // 2.0 - 3.0
+        const multiplier = 1.6 + Math.random() * 1.6; // 1.6 - 3.2
         burst = { startOffset, length, multiplier };
       }
 
@@ -297,10 +290,13 @@
       const actualCreatedHabits = SAMPLE_DATA_CONFIG.habits
         .map((habitConfig) => {
           const actualHabit = allHabits.find((h) => h.name === habitConfig.name);
+          // frequency is an optional field planned for habits (1-50). It's not in the auto-generated types yet.
+          const frequency = (habitConfig as any)?.frequency as number | undefined;
           return {
             id: actualHabit?.id || "",
             name: habitConfig.name,
-            type: habitConfig.type
+            type: habitConfig.type,
+            frequency
           };
         })
         .filter((h) => h.id);
