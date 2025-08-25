@@ -9,6 +9,25 @@ structure of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Nothing yet.
 
+## [0.0.5] - 2025-08-25
+
+### Added
+- UI components: integrated shadcn-svelte Menubar, Navigation Menu, Pagination, and Scroll Area; updated related dependencies.
+- Gamification: app header badge displaying total points with subtle animations.
+- Sample data: added frequency per habit and timer/duration support; expanded categories and descriptions for better guidance.
+- Visual feedback: new "damage" effect and targeted fireworks trigger from habit completions.
+
+### Enhanced
+- Fireworks: refined single-explosion implementation with coordinate payload API, DPI-aware canvas sizing, and intensity normalization utilities.
+- Habit history grid: improved color shading functions for light and dark themes.
+
+### Changed
+- Drag interactions: disabled emoji bounce animation specifically during dragging for clearer feedback.
+
+### Docs
+- Product docs: updated implementation plan and sample data; adjusted free tier limits (4 calendars and 4 habits per calendar).
+- Repo hygiene: removed legacy AI rules/steering docs and reorganized structure docs; refreshed tech stack notes; added license metadata in package.json.
+
 ## [0.0.4] - 2025-08-17
 
 ### Added
