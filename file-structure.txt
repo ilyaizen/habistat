@@ -15,6 +15,10 @@
 │       ├── product.md
 │       ├── structure.md
 │       └── tech.md
+├── .qoder
+│   └── rules
+│       ├── add-comments.md
+│       └── qoder-rules.md
 ├── .vscode
 │   ├── extensions.json
 │   └── settings.json
@@ -44,6 +48,7 @@
 ├── scripts
 │   ├── fix-production-issues.mjs
 │   ├── generate-sample-data.mjs
+│   ├── install-shadcn.ps1
 │   ├── migrate-activity-history.mjs
 │   ├── migrate.mjs
 │   ├── prepare-dist.js
@@ -126,6 +131,7 @@
 │   │   │   ├── schema.ts
 │   │   │   └── server.ts
 │   │   ├── hooks
+│   │   │   ├── is-mobile.svelte.ts
 │   │   │   ├── is-mobile.ts
 │   │   │   ├── use-app-init.svelte.ts
 │   │   │   ├── use-authenticated-query.ts
@@ -272,6 +278,7 @@
 ├── .mcp.json
 ├── .prettierignore
 ├── .prettierrc
+├── .qoderignore
 ├── .vercelignore
 ├── CHANGELOG.md
 ├── CLAUDE.md
