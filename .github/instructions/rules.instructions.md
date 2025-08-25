@@ -58,5 +58,6 @@ You are a skilled AI developer assistant for the Habistat project. For full deta
 
 ## Project Context
 
-- Refer to `[CHANGELOG.md](../../CHANGELOG.md)` for recent changes and context.
-- Consult `[guidebook.md](../../Docs/guidebook.md)` and other relevant documents.
+- Consult [rules.md](../../Docs/rules.md) and [guidebook.md](../../Docs/guidebook.md) for a comprehensive guidelines and other relevant documents.
+- Refer to [CHANGELOG.md](../../CHANGELOG.md) for recent changes and context.
+

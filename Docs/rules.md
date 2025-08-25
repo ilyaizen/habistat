@@ -29,7 +29,7 @@
 
 - **Primary Reference**: Consult [guidebook.md](guidebook.md) for all project guidelines, architecture, and tech stack details.
 - **Implementation**: Refer to [implementation-plan.md](implementation-plan.md) for the current development roadmap.
-- **Project File Structure**: Current project file structure can be found at [project-structure.md](project-structure.md). A full updated list of the project's file structure can be found here: [file-structure.txt](/file-structure.txt)
+- **Project File Structure**: Current project file structure can be found at [project-structure.md](project-structure.md). For a full tree list, see: [file-structure.txt](../file-structure.txt).
 - **Tooling**: Use available tools like `browser-tools` freely and effectively.
 
 # Habistat Product Overview
