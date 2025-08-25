@@ -3,7 +3,7 @@
 ## Key Directories
 
 - **/Docs**: Documentation & development guides
-  - **/PRPs**
+  - **/PRPs** Structured contexts PRPs (Product Requirements Prompts)
 - **/src**: Main SvelteKit application
   - **/convex**: Convex backend functions & schema
   - **/i18n**: Internationalization files

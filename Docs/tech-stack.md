@@ -16,7 +16,5 @@
 | **Internationalization** | [svelte-i18n](https://github.com/kaisermann/svelte-i18n)                | `v0.11.x`                 |
 | **Dates**                | [date-fns](https://date-fns.org/)                                       | `v4.1.x`                  |
 | **Unique Identifiers**   | [uuid](https://github.com/uuidjs/uuid)                                  | `v11.1.x`                 |
-| **Graphics/Animation**   | [p5.js](https://p5js.org/)                                              | `Latest`                  |
 | **Animated Numbers**     | [@number-flow/svelte](https://github.com/barvian/number-flow)           | `Latest`                  |
-| **Confetti Effects**     | [svelte-confetti](https://github.com/mitcheljager/svelte-confetti)      | `v2.0.x`                  |
 | **Fireworks Effects**    | [crazy-fireworks](https://codepen.io/matt-cannon/pen/YPKGBGm)           |                           |

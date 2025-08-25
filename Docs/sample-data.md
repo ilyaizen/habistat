@@ -79,10 +79,10 @@ This document outlines the sample data used in the Habistat application for demo
 
 #### 🧘 Meditate
 
-- **Description**: Take daily vitamins or health supplements. Ensure they are taken with meals for better absorption and consistency.
+- **Description**: Practice daily meditation and mindfulness with focus and consistency.
 - **Type**: positive
-- **Timer**: Disabled
-- **Points**: 10
+- **Timer**: Enabled (15 minutes)
+- **Points**: 50
 - **Position**: 2
  - **Frequency**: 30
 

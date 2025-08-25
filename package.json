@@ -3,6 +3,7 @@
   "version": "0.0.4",
   "description": "Habistat Habit Tracker",
   "author": "Ilya Aizenberg",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3001",
@@ -27,9 +28,8 @@
     "bump:patch": "bun run bump patch",
     "bump:minor": "bun run bump minor",
     "bump:major": "bun run bump major",
-    "tree": "wsl bash -c \"tree -a -I 'node_modules|.next|src-tauri/target|.git|.vercel|dist|out|gen|target|.svelte-kit|.obsidian|dist-clean|ui|build|icons' --noreport --dirsfirst > file-structure.txt\""
+  "tree": "bun x tree-node-cli -a --dirs-first -I 'node_modules|\\.next|\\.git|\\.vercel|dist|out|gen|target|\\.svelte-kit|\\.obsidian|dist-clean|ui|build|icons' > file-structure.txt"
   },
-  "license": "AGPL-3.0-only",
   "dependencies": {
     "@clerk/clerk-js": "^5.86.0",
     "@clerk/themes": "^2.4.11",

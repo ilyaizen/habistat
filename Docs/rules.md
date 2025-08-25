@@ -24,11 +24,40 @@
 - **Directness**: Provide code or detailed explanations immediately. Avoid high-level summaries.
 - **Honesty**: If you don't know something, say so. If you're speculating, flag it.
 - **Code Changes**: When modifying existing code, show only the relevant changed lines with a few lines of context.
-- **File System**: The terminal's default is Windows, but you can use `wsl` to access WSL2. Assume `bun tauri dev` is running in the background.
 
 ## Project Context
 
 - **Primary Reference**: Consult [guidebook.md](guidebook.md) for all project guidelines, architecture, and tech stack details.
 - **Implementation**: Refer to [implementation-plan.md](implementation-plan.md) for the current development roadmap.
-- **Project File Structure**: Current project file structure can be found at [file-structure.txt](../file-structure.txt)
+- **Project File Structure**: Current project file structure can be found at [project-structure.md](project-structure.md). A full updated list of the project's file structure can be found here: [file-structure.txt](/file-structure.txt)
 - **Tooling**: Use available tools like `browser-tools` freely and effectively.
+
+# Habistat Product Overview
+
+Habistat is a free and open-source habit tracker focused on privacy and simplicity. It helps users build good habits, break bad ones, and track daily activity with their data fully under their control.
+
+## Core Features
+
+- **Habit Tracking**: Track both positive habits (things to do) and negative habits (things to avoid)
+- **Calendars**: Group habits by themes with custom calendars and colors
+- **Gamification**: Earn points, maintain streaks, and grow a ~~virtual garden~~ (deferred)
+- **Dashboard & Visualizations**: View trends and progress with charts and activity grids
+- **Offline-First**: Fully functional offline with optional cloud sync
+- **Data Portability**: Easy import/export of habit history
+- **Cross-Platform**: Works on Android, iOS, Windows, macOS, and web browsers
+
+## Target Users
+
+Users who want a simple, privacy-focused habit tracker without bloat, with optional gamification elements to maintain motivation.
+
+## Product Philosophy
+
+- **Privacy-First**: User data belongs to the user
+- **Simplicity**: Clean, focused UI without unnecessary complexity
+- **Semi-Gamified**: Light gamification to maintain motivation without overwhelming
+- **Cross-Platform**: Consistent experience across all devices
+- **Offline-First**: Core functionality works without internet connection using localStorage
+
+## Current Status
+
+The app is in alpha development stage. Windows and web versions are currently available, with other platforms coming soon.

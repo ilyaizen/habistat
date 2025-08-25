@@ -1,285 +1,207 @@
-.
-├── .claude
-│   └── settings.local.json
+habistat
 ├── .cursor
-│   ├── rules
-│   │   ├── add-comments.mdc
-│   │   ├── convex-rules.mdc
-│   │   └── cursor-rules.mdc
-│   └── environment.json
-├── .github
-│   └── workflows
-│       └── release.yml
-├── .kiro
-│   └── steering
-│       ├── product.md
-│       ├── structure.md
-│       └── tech.md
-├── .qoder
-│   └── rules
-│       ├── add-comments.md
-│       └── qoder-rules.md
+│   ├── rules
+│   │   ├── add-comments.mdc
+│   │   ├── convex-rules.mdc
+│   │   └── cursor-rules.mdc
+│   └── environment.json
 ├── .vscode
-│   ├── extensions.json
-│   └── settings.json
-├── .windsurf
-│   └── rules
-│       ├── add-comments.md
-│       └── windsurf-rules.md
+│   ├── extensions.json
+│   └── settings.json
 ├── Docs
-│   ├── PRPs
-│   │   ├── SV-create-base-prp.md
-│   │   ├── SV-execute-base-prp.md
-│   │   ├── SV-review-general.md
-│   │   ├── SV-review-staged-unstaged.md
-│   │   └── prp-svelte.md
-│   ├── add-comments.md
-│   ├── clerk-setup.md
-│   ├── contribution-guide.md
-│   ├── guidebook.md
-│   ├── implementation-plan.md
-│   ├── plan.md
-│   ├── rules.md
-│   ├── sample-data.md
-│   └── tech-stack.md
+│   ├── PRPs
+│   │   ├── SV-create-base-prp.md
+│   │   ├── SV-execute-base-prp.md
+│   │   ├── SV-review-staged-unstaged.md
+│   │   └── prp-svelte.md
+│   ├── add-comments.md
+│   ├── clerk-setup.md
+│   ├── implementation-plan.md
+│   ├── plan.md
+│   ├── project-structure.md
+│   ├── rules.md
+│   ├── sample-data.md
+│   └── tech-stack.md
 ├── backups
-│   ├── habistat-backup-2025-08-07T01-32-46-851Z.db
-│   └── habistat-backup-2025-08-07T02-42-01-087Z.db
+│   ├── habistat-backup-2025-08-07T01-32-46-851Z.db
+│   └── habistat-backup-2025-08-07T02-42-01-087Z.db
 ├── scripts
-│   ├── fix-production-issues.mjs
-│   ├── generate-sample-data.mjs
-│   ├── install-shadcn.ps1
-│   ├── migrate-activity-history.mjs
-│   ├── migrate.mjs
-│   ├── prepare-dist.js
-│   ├── production-hotfix.mjs
-│   ├── reset-db.mjs
-│   └── version-bumper.mjs
+│   ├── fix-production-issues.mjs
+│   ├── install-shadcn.ps1
+│   ├── migrate-activity-history.mjs
+│   ├── migrate.mjs
+│   ├── production-hotfix.mjs
+│   ├── reset-db.mjs
+│   └── version-bumper.mjs
 ├── src
-│   ├── convex
-│   │   ├── _generated
-│   │   │   ├── api.d.ts
-│   │   │   ├── api.js
-│   │   │   ├── dataModel.d.ts
-│   │   │   ├── server.d.ts
-│   │   │   └── server.js
-│   │   ├── README.md
-│   │   ├── activityHistory.ts
-│   │   ├── auth.config.ts
-│   │   ├── auth_helpers.ts
-│   │   ├── calendars.ts
-│   │   ├── cleanup.ts
-│   │   ├── completions.ts
-│   │   ├── config.ts
-│   │   ├── constants.ts
-│   │   ├── crons.ts
-│   │   ├── debug.ts
-│   │   ├── habits.ts
-│   │   ├── http.ts
-│   │   ├── rateLimit.ts
-│   │   ├── schema.ts
-│   │   ├── tsconfig.json
-│   │   └── users.ts
-│   ├── i18n
-│   │   ├── en.json
-│   │   ├── es.json
-│   │   ├── he.json
-│   │   └── index.ts
-│   ├── lib
-│   │   ├── components
-│   │   │   ├── about-drawer.svelte
-│   │   │   ├── activity-calendar.svelte
-│   │   │   ├── activity-monitor.svelte
-│   │   │   ├── activity-trend.svelte
-│   │   │   ├── app-footer.svelte
-│   │   │   ├── app-header.svelte
-│   │   │   ├── avatar.svelte
-│   │   │   ├── calendar-edit-dialog.svelte
-│   │   │   ├── confetti-effect.svelte
-│   │   │   ├── damage-effect.svelte
-│   │   │   ├── dashboard-calendars.svelte
-│   │   │   ├── dashboard-main-panel.svelte
-│   │   │   ├── dashboard-side-panel.svelte
-│   │   │   ├── fireworks-effect.svelte
-│   │   │   ├── habit-completion-control.svelte
-│   │   │   ├── habit-edit-dialog.svelte
-│   │   │   ├── habit-history-grid.svelte
-│   │   │   ├── language-switcher.svelte
-│   │   │   ├── more-info.svelte
-│   │   │   ├── motion-wrapper.svelte
-│   │   │   ├── quote-of-the-day.svelte
-│   │   │   ├── sample-data-generator.svelte
-│   │   │   ├── session-info.svelte
-│   │   │   ├── settings-account-tab.svelte
-│   │   │   ├── settings-customization-tab.svelte
-│   │   │   ├── settings-data-tab.svelte
-│   │   │   ├── settings-dev-tab.svelte
-│   │   │   ├── settings-sync-tab.svelte
-│   │   │   ├── social-links.svelte
-│   │   │   ├── store-sync.svelte
-│   │   │   ├── subscription-badge.svelte
-│   │   │   ├── sync-status.svelte
-│   │   │   ├── tab-motion-wrapper.svelte
-│   │   │   ├── theme-toggle.svelte
-│   │   │   ├── tier-limit-guard.svelte
-│   │   │   └── upgrade-prompt.svelte
-│   │   ├── constants
-│   │   │   └── colors.ts
-│   │   ├── db
-│   │   │   ├── client.ts
-│   │   │   ├── habistat.db
-│   │   │   ├── schema.ts
-│   │   │   └── server.ts
-│   │   ├── hooks
-│   │   │   ├── is-mobile.svelte.ts
-│   │   │   ├── is-mobile.ts
-│   │   │   ├── use-app-init.svelte.ts
-│   │   │   ├── use-authenticated-query.ts
-│   │   │   ├── use-clerk.ts
-│   │   │   ├── use-dashboard-data.svelte.ts
-│   │   │   ├── use-navigation.svelte.ts
-│   │   │   └── use-theme.ts
-│   │   ├── services
-│   │   │   ├── local-data.ts
-│   │   │   └── sync-service.ts
-│   │   ├── stores
-│   │   │   ├── active-timers.ts
-│   │   │   ├── auth-state.ts
-│   │   │   ├── calendars.ts
-│   │   │   ├── completions.ts
-│   │   │   ├── gamification.ts
-│   │   │   ├── habits.ts
-│   │   │   ├── network.ts
-│   │   │   ├── platform.ts
-│   │   │   ├── settings.ts
-│   │   │   ├── subscription.ts
-│   │   │   ├── sync-stores.ts
-│   │   │   └── ui.ts
-│   │   ├── utils
-│   │   │   ├── auth.ts
-│   │   │   ├── colors.ts
-│   │   │   ├── completions.ts
-│   │   │   ├── context-menu.ts
-│   │   │   ├── convex-operations.ts
-│   │   │   ├── convex.ts
-│   │   │   ├── date.ts
-│   │   │   ├── debug.ts
-│   │   │   ├── environment.ts
-│   │   │   ├── habit-display.ts
-│   │   │   ├── navigation.ts
-│   │   │   ├── safe-query.ts
-│   │   │   ├── sample-data.ts
-│   │   │   ├── subscription-limits.ts
-│   │   │   ├── tauri-debug.ts
-│   │   │   └── tracking.ts
-│   │   ├── vendor
-│   │   │   └── number-flow
-│   │   │       ├── NumberFlow.svelte
-│   │   │       ├── NumberFlowGroup.svelte
-│   │   │       └── group.js
-│   │   ├── utils.ts
-│   │   └── version.ts
-│   ├── params
-│   │   └── lang.ts
-│   ├── routes
-│   │   ├── api
-│   │   │   └── auth
-│   │   │       ├── check
-│   │   │       │   └── +server.ts
-│   │   │       └── token
-│   │   │           └── +server.ts
-│   │   ├── dashboard
-│   │   │   ├── [calendarId]
-│   │   │   │   ├── [habitId]
-│   │   │   │   │   ├── edit
-│   │   │   │   │   │   └── +page.svelte
-│   │   │   │   │   └── +page.svelte
-│   │   │   │   ├── edit
-│   │   │   │   │   └── +page.svelte
-│   │   │   │   ├── new
-│   │   │   │   │   └── +page.svelte
-│   │   │   │   ├── +layout.ts
-│   │   │   │   └── +page.svelte
-│   │   │   ├── new
-│   │   │   │   └── +page.svelte
-│   │   │   ├── +layout.svelte
-│   │   │   └── +page.svelte
-│   │   ├── dashboard-new
-│   │   │   └── +page.svelte
-│   │   ├── dev
-│   │   │   ├── +layout.server.ts
-│   │   │   └── +page.svelte
-│   │   ├── premium
-│   │   │   ├── +layout.server.ts
-│   │   │   └── +page.svelte
-│   │   ├── settings
-│   │   │   ├── +layout.server.ts
-│   │   │   └── +page.svelte
-│   │   ├── stats
-│   │   │   ├── +layout.server.ts
-│   │   │   └── +page.svelte
-│   │   ├── +layout.server.ts
-│   │   ├── +layout.svelte
-│   │   ├── +layout.ts
-│   │   ├── +page.server.ts
-│   │   └── +page.svelte
-│   ├── GEMINI.md
-│   ├── app.css
-│   ├── app.d.ts
-│   ├── app.html
-│   ├── env.d.ts
-│   ├── hooks.client.ts
-│   ├── hooks.server.ts
-│   └── ui.css
+│   ├── convex
+│   │   ├── README.md
+│   │   ├── activityHistory.ts
+│   │   ├── auth.config.ts
+│   │   ├── auth_helpers.ts
+│   │   ├── calendars.ts
+│   │   ├── cleanup.ts
+│   │   ├── completions.ts
+│   │   ├── config.ts
+│   │   ├── constants.ts
+│   │   ├── crons.ts
+│   │   ├── debug.ts
+│   │   ├── habits.ts
+│   │   ├── http.ts
+│   │   ├── rateLimit.ts
+│   │   ├── schema.ts
+│   │   ├── tsconfig.json
+│   │   └── users.ts
+│   ├── i18n
+│   │   ├── en.json
+│   │   ├── es.json
+│   │   ├── he.json
+│   │   └── index.ts
+│   ├── lib
+│   │   ├── components
+│   │   │   ├── activity-calendar.svelte
+│   │   │   ├── activity-monitor.svelte
+│   │   │   ├── activity-trend.svelte
+│   │   │   ├── app-footer.svelte
+│   │   │   ├── app-header.svelte
+│   │   │   ├── avatar.svelte
+│   │   │   ├── calendar-edit-dialog.svelte
+│   │   │   ├── confetti-effect.svelte
+│   │   │   ├── damage-effect.svelte
+│   │   │   ├── dashboard-calendars.svelte
+│   │   │   ├── dashboard-main-panel.svelte
+│   │   │   ├── dashboard-side-panel.svelte
+│   │   │   ├── fireworks-effect.svelte
+│   │   │   ├── habit-completion-control.svelte
+│   │   │   ├── habit-edit-dialog.svelte
+│   │   │   ├── habit-history-grid.svelte
+│   │   │   ├── language-switcher.svelte
+│   │   │   ├── more-info.svelte
+│   │   │   ├── motion-wrapper.svelte
+│   │   │   ├── quote-of-the-day.svelte
+│   │   │   ├── session-info.svelte
+│   │   │   ├── settings-account-tab.svelte
+│   │   │   ├── settings-customization-tab.svelte
+│   │   │   ├── settings-data-tab.svelte
+│   │   │   ├── settings-dev-tab.svelte
+│   │   │   ├── settings-sync-tab.svelte
+│   │   │   ├── social-links.svelte
+│   │   │   ├── store-sync.svelte
+│   │   │   ├── subscription-badge.svelte
+│   │   │   ├── sync-status.svelte
+│   │   │   ├── tab-motion-wrapper.svelte
+│   │   │   ├── theme-toggle.svelte
+│   │   │   ├── tier-limit-guard.svelte
+│   │   │   └── upgrade-prompt.svelte
+│   │   ├── constants
+│   │   │   └── colors.ts
+│   │   ├── db
+│   │   │   ├── client.ts
+│   │   │   ├── habistat.db
+│   │   │   ├── schema.ts
+│   │   │   └── server.ts
+│   │   ├── hooks
+│   │   │   ├── is-mobile.svelte.ts
+│   │   │   ├── is-mobile.ts
+│   │   │   ├── use-app-init.svelte.ts
+│   │   │   ├── use-authenticated-query.ts
+│   │   │   ├── use-clerk.ts
+│   │   │   ├── use-dashboard-data.svelte.ts
+│   │   │   ├── use-navigation.svelte.ts
+│   │   │   └── use-theme.ts
+│   │   ├── services
+│   │   │   ├── local-data.ts
+│   │   │   └── sync-service.ts
+│   │   ├── stores
+│   │   │   ├── active-timers.ts
+│   │   │   ├── auth-state.ts
+│   │   │   ├── calendars.ts
+│   │   │   ├── completions.ts
+│   │   │   ├── gamification.ts
+│   │   │   ├── habits.ts
+│   │   │   ├── network.ts
+│   │   │   ├── platform.ts
+│   │   │   ├── settings.ts
+│   │   │   ├── subscription.ts
+│   │   │   ├── sync-stores.ts
+│   │   ├── utils
+│   │   │   ├── auth.ts
+│   │   │   ├── colors.ts
+│   │   │   ├── completions.ts
+│   │   │   ├── context-menu.ts
+│   │   │   ├── convex-operations.ts
+│   │   │   ├── convex.ts
+│   │   │   ├── date.ts
+│   │   │   ├── debug.ts
+│   │   │   ├── environment.ts
+│   │   │   ├── habit-display.ts
+│   │   │   ├── navigation.ts
+│   │   │   ├── safe-query.ts
+│   │   │   ├── sample-data.ts
+│   │   │   ├── subscription-limits.ts
+│   │   │   ├── tauri-debug.ts
+│   │   │   └── tracking.ts
+│   │   ├── vendor
+│   │   │   └── number-flow
+│   │   │       ├── NumberFlow.svelte
+│   │   │       ├── NumberFlowGroup.svelte
+│   │   │       └── group.js
+│   │   ├── utils.ts
+│   │   └── version.ts
+│   ├── params
+│   │   └── lang.ts
+│   ├── GEMINI.md
+│   ├── app.css
+│   ├── app.d.ts
+│   ├── app.html
+│   ├── env.d.ts
+│   ├── hooks.client.ts
+│   ├── hooks.server.ts
 ├── src-tauri
-│   ├── capabilities
-│   │   └── default.json
-│   ├── src
-│   │   ├── lib.rs
-│   │   └── main.rs
-│   ├── .gitignore
-│   ├── Cargo.lock
-│   ├── Cargo.toml
-│   ├── GEMINI.md
-│   ├── build.rs
-│   └── tauri.conf.json
+│   ├── capabilities
+│   │   └── default.json
+│   ├── src
+│   │   ├── lib.rs
+│   │   └── main.rs
+│   ├── Cargo.lock
+│   ├── Cargo.toml
+│   ├── GEMINI.md
+│   └── tauri.conf.json
 ├── static
-│   ├── screenshots
-│   │   ├── screenshot-desktop.png
-│   │   └── screenshot-mobile.png
-│   ├── android-chrome-192x192.png
-│   ├── android-chrome-512x512.png
-│   ├── app-192x192.png
-│   ├── app-512x512.png
-│   ├── apple-touch-icon.png
-│   ├── favicon-16x16.png
-│   ├── favicon-32x32.png
-│   ├── favicon.ico
-│   ├── favicon.png
-│   ├── fix-database.js
-│   ├── flag-es.png
-│   ├── flag-il.png
-│   ├── flag-us.png
-│   ├── logo.png
-│   ├── logo.svg
-│   ├── maskable-icon-512x512.png
-│   ├── offline.html
-│   ├── site.webmanifest
-│   └── sql-wasm.wasm
+│   ├── screenshots
+│   │   ├── screenshot-desktop.png
+│   │   └── screenshot-mobile.png
+│   ├── android-chrome-192x192.png
+│   ├── android-chrome-512x512.png
+│   ├── app-192x192.png
+│   ├── app-512x512.png
+│   ├── apple-touch-icon.png
+│   ├── favicon-16x16.png
+│   ├── favicon-32x32.png
+│   ├── favicon.ico
+│   ├── favicon.png
+│   ├── fix-database.js
+│   ├── flag-es.png
+│   ├── flag-il.png
+│   ├── flag-us.png
+│   ├── logo.png
+│   ├── logo.svg
+│   ├── maskable-icon-512x512.png
+│   ├── offline.html
+│   ├── site.webmanifest
+│   └── sql-wasm.wasm
 ├── tests
-│   └── convex
-│       └── vg-tests.spec.ts
+│   └── convex
+│       └── vg-tests.spec.ts
 ├── .cursorignore
 ├── .dockerignore
 ├── .env
 ├── .env.example
 ├── .env.local
-├── .gitignore
 ├── .mcp.json
 ├── .prettierignore
 ├── .prettierrc
 ├── .qoderignore
-├── .vercelignore
 ├── CHANGELOG.md
 ├── CLAUDE.md
 ├── Dockerfile
