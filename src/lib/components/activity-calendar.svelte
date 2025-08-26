@@ -23,6 +23,7 @@
   // Activity + completion sources (local-first)
   import { formatLocalDate } from "$lib/utils/date";
   import { getAppOpenHistory, sessionStore } from "$lib/utils/tracking";
+  import { completionsStore, getCompletionCountForDate } from "$lib/stores/completions";
 
   // Props
   const { numDays = 30 } = $props<{ numDays?: number }>();
@@ -38,6 +39,7 @@
     date: string; // YYYY-MM-DD
     status: "active" | "inactive" | "pre-registration";
     isToday: boolean;
+    completionCount: number; // number of completions for the date
   }
 
   /**
@@ -48,6 +50,13 @@
     loading = true;
     try {
       // Ensure we derive session metadata if present; avoid forcing any sync here
+
+      // Refresh completions from local DB so counts are accurate (local-first)
+      try {
+        await completionsStore.refresh();
+      } catch (e) {
+        console.warn("[ActivityCalendar] completions refresh failed (continuing local-first):", e);
+      }
 
       // Derive the session start date if present
       const session = $sessionStore;
@@ -83,6 +92,9 @@
     today.setHours(0, 0, 0, 0);
     const todayStr = formatLocalDate(today);
 
+    // Derived getter from store: returns (dateStr: string) => number
+    const getCompletionCount = $getCompletionCountForDate;
+
     const days: DayStatus[] = [];
     for (let i = 0; i < numDays; i++) {
       const d = new SvelteDate(today);
@@ -92,12 +104,13 @@
       const isToday = dStr === todayStr;
       const inSession = !sessionStartDate || dStr >= sessionStartDate;
       const isActive = activeDates.has(dStr);
+      const completionCount = getCompletionCount(dStr) ?? 0;
       let status: DayStatus["status"]; // derive status
       if (!inSession) status = "pre-registration";
       else if (isActive) status = "active";
       else status = "inactive";
 
-      days.push({ date: dStr, status, isToday });
+      days.push({ date: dStr, status, isToday, completionCount });
     }
 
     activityDays = days.reverse();
@@ -153,16 +166,18 @@
               <Tooltip.Trigger>
                 <div
                   class="h-6 w-[10px] rounded-lg"
-                  class:activity-bar-green={day.status === "active"}
-                  class:activity-bar-green-half={false}
+                  class:activity-bar-green={day.status === "active" && day.completionCount > 0}
+                  class:activity-bar-green-half={day.status === "active" &&
+                    day.completionCount === 0}
                   class:activity-bar-red={day.status === "inactive"}
                   class:bg-secondary={day.status === "pre-registration"}
-                  aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""}`}
+                  aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""} - ${day.completionCount} completions`}
                 ></div>
               </Tooltip.Trigger>
               <Tooltip.Content>
                 <div class="text-center">
                   <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
+                  <div>Completions: {day.completionCount}</div>
                 </div>
               </Tooltip.Content>
             </Tooltip.Root>
