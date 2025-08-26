@@ -22,9 +22,6 @@ habistat
 │   ├── rules.md
 │   ├── sample-data.md
 │   └── tech-stack.md
-├── backups
-│   ├── habistat-backup-2025-08-07T01-32-46-851Z.db
-│   └── habistat-backup-2025-08-07T02-42-01-087Z.db
 ├── scripts
 │   ├── fix-production-issues.mjs
 │   ├── install-shadcn.ps1
@@ -163,7 +160,6 @@ habistat
 │   ├── src
 │   │   ├── lib.rs
 │   │   └── main.rs
-│   ├── Cargo.lock
 │   ├── Cargo.toml
 │   ├── GEMINI.md
 │   └── tauri.conf.json
@@ -195,22 +191,18 @@ habistat
 │       └── vg-tests.spec.ts
 ├── .cursorignore
 ├── .dockerignore
-├── .env
 ├── .env.example
-├── .env.local
 ├── .mcp.json
 ├── .prettierignore
 ├── .prettierrc
 ├── .qoderignore
 ├── CHANGELOG.md
-├── CLAUDE.md
 ├── Dockerfile
 ├── GEMINI.md
 ├── LICENSE
 ├── README.md
 ├── biome.json
-├── bun.lockb
-├── commit.log
+├── bun.lock
 ├── components.json
 ├── convex.json
 ├── drizzle.config.ts
