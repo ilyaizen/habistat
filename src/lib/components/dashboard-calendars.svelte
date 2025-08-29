@@ -317,12 +317,12 @@
           <!-- Drag handle removed; emoji acts as the handle -->
 
           <!-- Calendar name, clickable to open edit dialog -->
+          <!-- TODO: 2025-08-29 - add `style={calendarTitleStyles(cal.colorTheme)}` and calendar-title for older ight-fading highlight for calendar titles plus a themed border -->
           <button
             type="button"
-            class="nunito-header disabled:text-muted-foreground/60 calendar-title mb-2 inline-flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-full px-2 py-1 text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-full px-2 py-1 text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
             disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
-            style={calendarTitleStyles(cal.colorTheme)}
           >
             <!-- Calendar emoji container (drag handle) -->
             <div
@@ -504,6 +504,7 @@
     Create a dashed 2px border that fades horizontally like the background.
     We draw it using a positioned pseudo-element so we can mask it with a gradient.
   */
+
   .calendar-title {
     position: relative;
   }

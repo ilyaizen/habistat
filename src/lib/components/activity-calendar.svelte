@@ -200,15 +200,19 @@
     position: relative;
     z-index: 1;
   }
+  /*
+    Temporarily disabled decorative background and dashed border around the
+    calendar title row. Keeping this code commented for potential future reuse.
+
   .activity-container::before {
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: 9999px; /* rounded-full */
+    border-radius: 9999px; 
     pointer-events: none;
     z-index: 0;
     background: var(--primary);
-    opacity: 0.2; /* similar to background fade strength */
+    opacity: 0.2;
     -webkit-mask-image: linear-gradient(
       90deg,
       rgba(0, 0, 0, 1) 0rem,
@@ -226,7 +230,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: 9999px; /* rounded-full */
+    border-radius: 9999px; 
     pointer-events: none;
     z-index: 0;
     border: 2px dashed color-mix(in oklab, var(--primary) 5%, transparent);
@@ -243,6 +247,7 @@
       rgba(0, 0, 0, 0) 50%
     );
   }
+  */
 
   .activity-bar-green {
     background: linear-gradient(
