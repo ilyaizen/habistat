@@ -46,6 +46,7 @@
   // Global visual overlays
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
   import DamageEffect from "$lib/components/damage-effect.svelte";
+  import LottieConfettiEffect from "$lib/components/lottie-confetti-effect.svelte";
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -262,6 +263,7 @@
       <!-- Global overlay effects: listens to `$triggerFireworks` and renders above UI -->
       <FireworksEffect />
       <DamageEffect />
+      <LottieConfettiEffect />
 
       <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
     </div>

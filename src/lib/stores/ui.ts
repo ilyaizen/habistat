@@ -71,3 +71,20 @@ export function triggerDamageAt(originX?: number, originY?: number, intensity = 
     triggerDamage.set(intensity);
   }
 }
+
+// --- Intro Lottie (confetti) overlay trigger ---
+// Used for the one-time intro celebration after the user starts a session.
+export interface IntroConfettiOptions {
+  // Playback speed multiplier (default 1.5)
+  speed?: number;
+  // Allow user to click or press Escape to skip (default true)
+  allowSkip?: boolean;
+  // Optional custom source path; defaults to "/colorful_confetti.json"
+  src?: string;
+}
+
+// Set to:
+// - false: hidden
+// - true: show with defaults
+// - IntroConfettiOptions: show with options
+export const triggerIntroConfetti = writable<false | true | IntroConfettiOptions>(false);

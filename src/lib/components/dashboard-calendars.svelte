@@ -498,7 +498,7 @@
 {#if editingCalendarIdForDialog}
   <CalendarEditDialog calendarId={editingCalendarIdForDialog} bind:open={calendarDialogOpen} />
 {/if}
-
+<!-- 
 <style>
   /*
     Create a dashed 2px border that fades horizontally like the background.
@@ -532,4 +532,4 @@
       rgba(0, 0, 0, 0) 50%
     );
   }
-</style>
+</style> -->

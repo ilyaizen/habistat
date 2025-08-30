@@ -16,7 +16,7 @@
   import { browser } from "$app/environment";
   import { goto } from "$app/navigation";
   import { Button, buttonVariants } from "$lib/components/ui/button";
-  import { triggerConfetti, triggerFireworks } from "$lib/stores/ui";
+  import { triggerIntroConfetti } from "$lib/stores/ui";
 
   import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
 
@@ -61,8 +61,8 @@
       const session = sessionStore.ensure();
 
       if (session?.id) {
-        triggerFireworks.set(true);
-        triggerConfetti.set(true);
+        // Show Lottie intro celebration once
+        triggerIntroConfetti.set({ speed: 1.5, allowSkip: true });
         toast.success("Session created!", {
           description: "Welcome to Habistat!"
         });
