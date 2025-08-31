@@ -16,7 +16,7 @@
   import CalendarEditDialog from "$lib/components/calendar-edit-dialog.svelte";
   import HabitCompletionControl from "$lib/components/habit-completion-control.svelte";
   import HabitEditDialog from "$lib/components/habit-edit-dialog.svelte";
-  import HabitHistoryGrid from "$lib/components/habit-history-grid.svelte";
+  import HabitHistoryRow from "$lib/components/habit-history-row.svelte";
   // --- Component Imports ---
   // UI components for drag-and-drop, habit controls, and visualization
   import Button from "$lib/components/ui/button/button.svelte";
@@ -453,7 +453,7 @@
                   <!-- Right side: History grid and completion control -->
                   <div class="flex shrink-0 flex-row items-center gap-4">
                     <!-- Visual history grid with responsive day count -->
-                    <HabitHistoryGrid
+                    <HabitHistoryRow
                       completions={habitCompletions}
                       calendarColor={colorNameToCss(cal.colorTheme)}
                       numDays={isMobile.current ? 14 : 30}

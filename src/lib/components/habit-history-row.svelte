@@ -4,6 +4,7 @@
   // Render history by local day to match dashboard counters and local DB semantics
   import { formatLocalDate } from "$lib/utils/date";
   import { colorNameToCss } from "$lib/utils/colors";
+  import DayBar from "$lib/components/habit-history-day-bar.svelte";
 
   // import * as Tooltip from "$lib/components/ui/tooltip";
 
@@ -18,20 +19,25 @@
     numDays?: number;
   }>();
 
-  interface DaySquare {
-    date: string;
-    count: number;
-    color: string;
-    colorDark: string;
-    isToday: boolean;
+  // Data contract emitted to the view loop. Each item is a single day bar.
+  interface DayBarData {
+    date: string; // Local date string (YYYY-MM-DD)
+    count: number; // Completions count that day
+    colorLight: string; // Light theme color for the bar
+    colorDark: string; // Dark theme color for the bar
+    isToday: boolean; // Helpful for a11y context
   }
 
   // Compute 5-level shades for both light and dark themes using color-mix in oklab space.
-  // We emit both and let CSS @media (prefers-color-scheme) pick which to display.
+  // We generate both and let CSS @media (prefers-color-scheme) decide at render time
+  // inside the child component. This keeps parent logic purely data-driven.
+  //
+  // Light theme ramp (reversed per request): darker colors correspond to higher levels
+  // so that more completions render darker bars on light backgrounds.
   function shadeForLight(base: string, level: number): string {
     const idx = Math.max(0, Math.min(level, 4));
-    // Progression: very light -> light -> base -> darker -> darkest (very pronounced)
-    const mixes = ["white 30%", "white 15%", "transparent 0%", "black 15%", "black 30%"];
+    // Progression (reversed): darkest -> darker -> base -> lighter -> lightest
+    const mixes = ["black 30%", "black 15%", "transparent 0%", "white 15%", "white 30%"];
     if (idx === 2) return base; // ensure true base at midpoint
     return `color-mix(in oklab, ${base}, ${mixes[idx]})`;
   }
@@ -44,10 +50,11 @@
     return `color-mix(in oklab, ${base}, ${mixes[idx]})`;
   }
 
+  // Build the last N days, folding completions by local day boundary.
   const days = $derived(() => {
     const today = new SvelteDate();
     const todayStr = formatLocalDate(today);
-    const squares: DaySquare[] = [];
+    const items: DayBarData[] = [];
 
     const completionsByDate = new SvelteMap<string, number>();
     for (const completion of completions) {
@@ -61,65 +68,35 @@
       const dateStr = formatLocalDate(date);
       const count = completionsByDate.get(dateStr) ?? 0;
 
-      const level = Math.min(Math.max(count - 1, 0), 4);
-      const colorLight =
-        count > 0 ? shadeForLight(calendarColor, level) : "var(--muted-foreground-transparent)";
-      const colorDark =
-        count > 0 ? shadeForDark(calendarColor, level) : "var(--muted-foreground-transparent)";
+  // Map completions to an intensity level where higher counts become darker on light theme.
+  // We reverse the level so that larger counts pick darker entries from the reversed ramp.
+  const rawLevel = Math.min(Math.max(count - 1, 0), 4);
+  const level = 4 - rawLevel;
+      const transparent = "var(--muted-foreground-transparent)";
+      const colorLight = count > 0 ? shadeForLight(calendarColor, level) : transparent;
+      const colorDark = count > 0 ? shadeForDark(calendarColor, level) : transparent;
 
-      squares.push({
+      items.push({
         date: dateStr,
         count,
-        // store the light color by default; CSS will swap via media query
-        color: colorLight,
+        colorLight,
         colorDark,
         isToday: dateStr === todayStr
       });
     }
-    return squares;
+    return items;
   });
 </script>
 
 <div class="flex items-center gap-0.5">
-  <!-- TODO: 2025-07-05 - Add title="Last {numDays} days of activity" if needed -->
-  <!-- <div class="flex items-center gap-0.5" title="Last {numDays} days of activity"> -->
-  {#each days() as day (day.date)}
-    <div
-      class="day-square h-6 w-[10px] rounded-lg"
-      style="--day-color-light: {day.color}; --day-color-dark: {day.colorDark};"
-      class:active={day.count > 0}
-      aria-label={`Completions for ${day.date}: ${day.count}${day.isToday ? " (Today)" : ""}`}
-      title={`${day.date}${day.isToday ? " (Today)" : ""} - ${day.count} completion${day.count === 1 ? "" : "s"}`}
-    ></div>
+  <!-- Single horizontally scrolling row of daily bars (last {numDays} days) -->
+  {#each days() as d (d.date)}
+    <DayBar
+      date={d.date}
+      count={d.count}
+      colorLight={d.colorLight}
+      colorDark={d.colorDark}
+      isToday={d.isToday}
+    />
   {/each}
 </div>
-
-<style>
-  :root {
-    --muted-foreground-transparent: color-mix(in srgb, var(--muted-foreground), transparent 90%);
-  }
-
-  .day-square {
-    /* default to light theme variable; override in dark mode */
-    --day-color: var(--day-color-light);
-    background-color: var(--day-color);
-    transition:
-      transform 0.2s,
-      background 0.2s;
-  }
-
-  .day-square.active {
-    background: linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--day-color), white 20%) 0%,
-      var(--day-color) 50%,
-      color-mix(in oklab, var(--day-color), black 10%) 100%
-    );
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .day-square {
-      --day-color: var(--day-color-dark);
-    }
-  }
-</style>
