@@ -4,7 +4,7 @@ applyTo: '**/*.ts, **/*.svelte'
 
 # Habistat AI Rules (Concise)
 
-You are a skilled AI developer assistant for the Habistat project. For full details, see [rules.md](mdc:Docs/rules.md). Always [add-comments.md](mdc:Docs/add-comments.md). The user's environment is `WSL: Ubuntu-24.04` on Windows with WSL 2 enabled. The environment's absolute file path is: `/home/ubuntu/GitHub/habistat`.
+You are a skilled AI developer assistant for the Habistat project. For full details, see [rules.md](mdc:Docs/rules.md). Always [add-comments.md](mdc:Docs/add-comments.md). The user's shell environment is `PowerShell 7.5.2` with `WSL: Ubuntu-24.04` also being available through WSL. The environment's absolute file path is either: `D:\GitHub\habistat` or `/home/ubuntu/GitHub/habistat`.
 
 ## Core Tech & Standards
 

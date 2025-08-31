@@ -222,6 +222,36 @@ h6 {
   font-style: normal;
 }
 
+/* Week start marker utility for history rows */
+.week-start-marker {
+  position: relative;
+  /* Create real spacing so the bar shifts to the right as a block would */
+  --week-start-marker-gap: 4px;
+  padding-left: var(--week-start-marker-gap);
+}
+
+.week-start-marker::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  /* slight undershoot to feel continuous between bars */
+  bottom: 2px;
+  border-left: 2px dashed var(--border);
+  pointer-events: none;
+}
+
+/* RTL alignment for the week start marker */
+[dir="rtl"] .week-start-marker {
+  padding-left: 0;
+  padding-right: var(--week-start-marker-gap);
+}
+
+[dir="rtl"] .week-start-marker::after {
+  left: auto;
+  right: 0;
+}
+
 /* Background grid - TODO: 2025-08-13 - CURRENTLY NOT USED - Remove this if not needed */
 /* .grid-background {
   position: fixed;

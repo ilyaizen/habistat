@@ -5,6 +5,7 @@
   import { formatLocalDate } from "$lib/utils/date";
   import { colorNameToCss } from "$lib/utils/colors";
   import DayBar from "$lib/components/habit-history-day-bar.svelte";
+  import { settings } from "$lib/stores/settings";
 
   // import * as Tooltip from "$lib/components/ui/tooltip";
 
@@ -26,6 +27,7 @@
     colorLight: string; // Light theme color for the bar
     colorDark: string; // Dark theme color for the bar
     isToday: boolean; // Helpful for a11y context
+    weekStart: boolean; // Marks the start of the week for dashed divider
   }
 
   // Compute 5-level shades for both light and dark themes using color-mix in oklab space.
@@ -68,20 +70,25 @@
       const dateStr = formatLocalDate(date);
       const count = completionsByDate.get(dateStr) ?? 0;
 
-  // Map completions to an intensity level where higher counts become darker on light theme.
-  // We reverse the level so that larger counts pick darker entries from the reversed ramp.
-  const rawLevel = Math.min(Math.max(count - 1, 0), 4);
-  const level = 4 - rawLevel;
+      // Map completions to an intensity level where higher counts become darker on light theme.
+      // We reverse the level so that larger counts pick darker entries from the reversed ramp.
+      const rawLevel = Math.min(Math.max(count - 1, 0), 4);
+      const level = 4 - rawLevel;
       const transparent = "var(--muted-foreground-transparent)";
       const colorLight = count > 0 ? shadeForLight(calendarColor, level) : transparent;
       const colorDark = count > 0 ? shadeForDark(calendarColor, level) : transparent;
+
+      const dow = date.getDay(); // 0=Sun .. 6=Sat (local)
+      // Week start marker: Sunday when weekStartsOn=sunday, Monday when weekStartsOn=monday
+      const weekStart = $settings.weekStartsOn === "sunday" ? dow === 0 : dow === 1;
 
       items.push({
         date: dateStr,
         count,
         colorLight,
         colorDark,
-        isToday: dateStr === todayStr
+        isToday: dateStr === todayStr,
+        weekStart
       });
     }
     return items;
@@ -91,12 +98,14 @@
 <div class="flex items-center gap-0.5">
   <!-- Single horizontally scrolling row of daily bars (last {numDays} days) -->
   {#each days() as d (d.date)}
-    <DayBar
-      date={d.date}
-      count={d.count}
-      colorLight={d.colorLight}
-      colorDark={d.colorDark}
-      isToday={d.isToday}
-    />
+    <div class={$settings.showWeekStartMarkers && d.weekStart ? "week-start-marker" : ""}>
+      <DayBar
+        date={d.date}
+        count={d.count}
+        colorLight={d.colorLight}
+        colorDark={d.colorDark}
+        isToday={d.isToday}
+      />
+    </div>
   {/each}
 </div>

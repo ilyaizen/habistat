@@ -180,6 +180,17 @@
       </div>
     </div>
 
+    <!-- Week start markers: draws thin dashed separators at the start of each week in history rows -->
+    <div class="mb-4">
+      <div class="flex items-center justify-between">
+        <Label for="week-start-markers">Show week start markers</Label>
+        <Switch id="week-start-markers" bind:checked={$settings.showWeekStartMarkers} />
+      </div>
+      <p class="text-muted-foreground mt-2 text-xs">
+        Uses your week start preference (Sunday/Monday) to align markers.
+      </p>
+    </div>
+
     <!-- Time Format Preference: toggles 12h/24h formatting in UI -->
     <div class="mb-4">
       <Label class="mb-2 block">Time format</Label>

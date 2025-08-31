@@ -14,6 +14,8 @@ interface Settings {
   timeFormat: "12h" | "24h";
   // Optional display name used for lightweight personalization (e.g. greetings)
   displayName: string;
+  // Visual: show thin dashed markers at the start of each week in history rows
+  showWeekStartMarkers: boolean;
 }
 
 const defaultSettings: Settings = {
@@ -24,7 +26,8 @@ const defaultSettings: Settings = {
   // Defaults favor common US conventions; first-run heuristics below may adjust
   weekStartsOn: "sunday",
   timeFormat: "12h",
-  displayName: ""
+  displayName: "",
+  showWeekStartMarkers: false
 };
 
 function createSettingsStore() {

@@ -4,22 +4,29 @@
   let { id, config }: { id: string; config: ChartConfig } = $props();
 
   const colorConfig = $derived(
-    config ? Object.entries(config).filter(([, config]) => config.theme || config.color) : null
+    config
+      ? (Object.entries(config).filter(([, cfg]) => cfg.theme || cfg.color) as [
+          string,
+          ChartConfig[string]
+        ][])
+      : null
   );
 
   const themeContents = $derived.by(() => {
     if (!colorConfig || !colorConfig.length) return;
 
-    const themeContents = [];
+    const themeContents: string[] = [];
     for (let [_theme, prefix] of Object.entries(THEMES)) {
       let content = `${prefix} [data-chart=${id}] {\n`;
-      const color = colorConfig.map(([key, itemConfig]) => {
-        const theme = _theme as keyof typeof itemConfig.theme;
-        const color = itemConfig.theme?.[theme] || itemConfig.color;
-        return color ? `\t--color-${key}: ${color};` : null;
-      });
+      const lines = colorConfig
+        .map(([key, itemConfig]) => {
+          const themeKey = _theme as keyof NonNullable<(typeof itemConfig)["theme"]>;
+          const value = itemConfig.theme?.[themeKey] ?? itemConfig.color;
+          return value ? `\t--color-${key}: ${value};` : null;
+        })
+        .filter((v): v is string => typeof v === "string");
 
-      content += color.join("\n") + "\n}";
+      content += lines.join("\n") + "\n}";
 
       themeContents.push(content);
     }

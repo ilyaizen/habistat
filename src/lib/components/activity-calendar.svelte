@@ -24,6 +24,7 @@
   import { formatLocalDate } from "$lib/utils/date";
   import { getAppOpenHistory, sessionStore } from "$lib/utils/tracking";
   import { completionsStore, getCompletionCountForDate } from "$lib/stores/completions";
+  import { settings } from "$lib/stores/settings";
 
   // Props
   const { numDays = 30 } = $props<{ numDays?: number }>();
@@ -40,6 +41,7 @@
     status: "active" | "inactive" | "pre-registration";
     isToday: boolean;
     completionCount: number; // number of completions for the date
+    weekStart: boolean; // marks start of a week (Sunday/Monday per settings)
   }
 
   /**
@@ -105,12 +107,14 @@
       const inSession = !sessionStartDate || dStr >= sessionStartDate;
       const isActive = activeDates.has(dStr);
       const completionCount = getCompletionCount(dStr) ?? 0;
+      const dow = d.getDay(); // 0=Sun..6=Sat (local)
+      const weekStart = $settings.weekStartsOn === "sunday" ? dow === 0 : dow === 1;
       let status: DayStatus["status"]; // derive status
       if (!inSession) status = "pre-registration";
       else if (isActive) status = "active";
       else status = "inactive";
 
-      days.push({ date: dStr, status, isToday, completionCount });
+      days.push({ date: dStr, status, isToday, completionCount, weekStart });
     }
 
     activityDays = days.reverse();
@@ -121,6 +125,15 @@
     if (!loading && activeDates.size > 0) {
       generateActivityDays();
     }
+  });
+
+  // Recompute markers when the user's week start preference changes
+  $effect(() => {
+    // Access store to establish dependency. Do NOT read activityDays here,
+    // otherwise updating it inside generateActivityDays() will re-trigger
+    // this effect and create a reactive loop.
+    const _weekStartsOn = $settings.weekStartsOn;
+    if (!loading) generateActivityDays();
   });
 
   onMount(loadActivity);
@@ -162,25 +175,31 @@
         <!-- Activity bars display -->
         <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
           {#each activityDays as day (day.date)}
-            <Tooltip.Root>
-              <Tooltip.Trigger>
-                <div
-                  class="h-6 w-[10px] rounded-lg"
-                  class:activity-bar-green={day.status === "active" && day.completionCount > 0}
-                  class:activity-bar-green-half={day.status === "active" &&
-                    day.completionCount === 0}
-                  class:activity-bar-red={day.status === "inactive"}
-                  class:bg-secondary={day.status === "pre-registration"}
-                  aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""} - ${day.completionCount} completions`}
-                ></div>
-              </Tooltip.Trigger>
-              <Tooltip.Content>
-                <div class="text-center">
-                  <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
-                  <div>Completions: {day.completionCount}</div>
-                </div>
-              </Tooltip.Content>
-            </Tooltip.Root>
+            <div
+              class={$settings.showWeekStartMarkers && day.weekStart
+                ? "week-start-marker h-6"
+                : "h-6"}
+              aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""} - ${day.completionCount} completions`}
+            >
+              <Tooltip.Root>
+                <Tooltip.Trigger>
+                  <div
+                    class="h-6 w-[10px] rounded-lg"
+                    class:activity-bar-green={day.status === "active" && day.completionCount > 0}
+                    class:activity-bar-green-half={day.status === "active" &&
+                      day.completionCount === 0}
+                    class:activity-bar-red={day.status === "inactive"}
+                    class:bg-secondary={day.status === "pre-registration"}
+                  ></div>
+                </Tooltip.Trigger>
+                <Tooltip.Content>
+                  <div class="text-center">
+                    <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
+                    <div>Completions: {day.completionCount}</div>
+                  </div>
+                </Tooltip.Content>
+              </Tooltip.Root>
+            </div>
           {/each}
         </div>
       {/if}

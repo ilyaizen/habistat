@@ -73,13 +73,13 @@
           Habits
         </a>
         <!-- Temporary link to the new hybrid dashboard page -->
-        <a
+        <!-- <a
           href="/dashboard-new"
           class="text-muted-foreground hover:text-foreground transition-colors"
           class:font-medium={page.url.pathname.includes("/dashboard-new")}
         >
           New
-        </a>
+        </a> -->
         <!-- Stats navigation item for user statistics and analytics -->
         <!-- <a
           href="/stats"
