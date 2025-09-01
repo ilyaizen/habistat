@@ -19,6 +19,7 @@
   // UI components and utilities
 
   import * as Tooltip from "$lib/components/ui/tooltip";
+  import { IsMobile } from "$lib/hooks/is-mobile";
 
   // Activity + completion sources (local-first)
   import { formatLocalDate } from "$lib/utils/date";
@@ -27,7 +28,12 @@
   import { settings } from "$lib/stores/settings";
 
   // Props
-  const { numDays = 30 } = $props<{ numDays?: number }>();
+  // If parent doesn't pass numDays, we fall back to a mobile‑reactive default
+  const { numDays } = $props<{ numDays?: number }>();
+
+  // Mobile-aware day count: 14 on mobile, 42 otherwise, unless explicitly overridden by prop
+  const isMobile = new IsMobile();
+  const computedNumDays = $derived(numDays ?? (isMobile.current ? 14 : 42));
 
   // Local state
   let loading = $state(true);
@@ -98,7 +104,7 @@
     const getCompletionCount = $getCompletionCountForDate;
 
     const days: DayStatus[] = [];
-    for (let i = 0; i < numDays; i++) {
+    for (let i = 0; i < computedNumDays; i++) {
       const d = new SvelteDate(today);
       d.setDate(today.getDate() - i);
       const dStr = formatLocalDate(d);
@@ -136,6 +142,12 @@
     if (!loading) generateActivityDays();
   });
 
+  // Regenerate when day count changes (e.g., on mobile ↔ desktop transitions)
+  $effect(() => {
+    const _n = computedNumDays;
+    if (!loading) generateActivityDays();
+  });
+
   onMount(loadActivity);
 </script>
 
@@ -167,7 +179,7 @@
       {#if loading}
         <!-- Loading state: pulse animation for bars -->
         <div class="flex space-x-0.5 p-0.5">
-          {#each Array(numDays), i (i)}
+          {#each Array(computedNumDays), i (i)}
             <div class="bg-secondary rounded-text-xl h-6 w-[10px] animate-pulse"></div>
           {/each}
         </div>

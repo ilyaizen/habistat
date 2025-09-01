@@ -33,7 +33,7 @@
 
   // --- Drag configuration ---
   // Reorder mode is always enabled, but activation requires grabbing the emoji.
-  const isReorderMode = true;
+  // const isReorderMode = true;
 
   // --- Mobile Detection ---
   // Reactive mobile detection for responsive UI adjustments
@@ -64,27 +64,28 @@
    * Input is expected to be an OKLCH CSS color like: "oklch(.78 .14 230)".
    * If it's not OKLCH, returns the original string to avoid breaking styles.
    */
-  function withAlpha(oklchCss: string, alpha: number): string {
-    if (!oklchCss?.startsWith("oklch(")) return oklchCss;
-    // Insert " / <alpha>" before the closing parenthesis per CSS Color 4 syntax
-    return oklchCss.replace(")", ` / ${alpha})`);
-  }
+  // function withAlpha(oklchCss: string, alpha: number): string {
+  //   if (!oklchCss?.startsWith("oklch(")) return oklchCss;
+  //   // Insert " / <alpha>" before the closing parenthesis per CSS Color 4 syntax
+  //   return oklchCss.replace(")", ` / ${alpha})`);
+  // }
 
+  // TODO: 2025-09-01 - Uncomment to re-implement light-fading highlight for calendar titles plus a themed border
   /**
    * Right-fading highlight for calendar titles plus a themed border.
    * - Background: ~20% opacity through the emoji zone (~4rem), fading to 0% by 50% width
    * - Border: same base color, slightly higher opacity for visibility, dashed, 2px via classes
    * Returns a full CSS declaration string for inline `style`.
    */
-  function calendarTitleStyles(colorName: string | null | undefined): string {
-    const base = colorNameToCss(colorName);
-    const bg = `linear-gradient(90deg, ${withAlpha(base, 0.2)} 0rem, ${withAlpha(
-      base,
-      0.1
-    )} 4rem, ${withAlpha(base, 0)} 50%)`;
-    const borderColor = withAlpha(base, 0.1); // Slightly more opaque than the background
-    return `background-image: ${bg}; background-repeat: no-repeat; --cal-title-border-color: ${borderColor};`;
-  }
+  // function calendarTitleStyles(colorName: string | null | undefined): string {
+  //   const base = colorNameToCss(colorName);
+  //   const bg = `linear-gradient(90deg, ${withAlpha(base, 0.2)} 0rem, ${withAlpha(
+  //     base,
+  //     0.1
+  //   )} 4rem, ${withAlpha(base, 0)} 50%)`;
+  //   const borderColor = withAlpha(base, 0.1); // Slightly more opaque than the background
+  //   return `background-image: ${bg}; background-repeat: no-repeat; --cal-title-border-color: ${borderColor};`;
+  // }
 
   // --- Derived Store Values ---
   // Reactive computed values that automatically update when stores change
@@ -456,7 +457,7 @@
                     <HabitHistoryRow
                       completions={habitCompletions}
                       calendarColor={colorNameToCss(cal.colorTheme)}
-                      numDays={isMobile.current ? 14 : 30}
+                      numDays={isMobile.current ? 14 : 42}
                     />
 
                     <!-- Completion control button (fixed width for alignment) -->

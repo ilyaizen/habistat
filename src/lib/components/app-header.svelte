@@ -180,12 +180,12 @@
           Habits
         </button>
         <!-- Temporary mobile link to the new hybrid dashboard page -->
-        <button
+        <!-- <button
           class="text-muted-foreground hover:text-foreground text-left font-medium"
           onclick={() => handleNavigation("/dashboard-new")}
         >
           New
-        </button>
+        </button> -->
         <!-- Stats navigation item for user statistics and analytics -->
         <!-- <button
           class="text-muted-foreground hover:text-foreground text-left font-medium"
