@@ -189,7 +189,7 @@
                     class:activity-bar-green-half={day.status === "active" &&
                       day.completionCount === 0}
                     class:activity-bar-red={day.status === "inactive"}
-                    class:bg-secondary={day.status === "pre-registration"}
+                    class:activity-bar-empty={day.status === "pre-registration"}
                   ></div>
                 </Tooltip.Trigger>
                 <Tooltip.Content>
@@ -299,5 +299,12 @@
       var(--destructive) 50%,
       color-mix(in oklab, var(--destructive), black 10%) 100%
     );
+  }
+
+  .activity-bar-empty {
+    background-color: oklch(from var(--border) l c h / 0.2);
+    transition:
+      transform 0.2s,
+      background 0.2s;
   }
 </style>

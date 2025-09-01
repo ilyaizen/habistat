@@ -38,7 +38,7 @@
     is added, keeping it truly global.
   */
   :global(:root) {
-    --muted-foreground-transparent: color-mix(in srgb, var(--muted-foreground), transparent 90%);
+    --muted-foreground-transparent: oklch(from var(--border) l c h / 0.2);
   }
 
   .day-bar {

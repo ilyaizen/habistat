@@ -237,7 +237,7 @@ h6 {
   top: 2px;
   /* slight undershoot to feel continuous between bars */
   bottom: 2px;
-  border-left: 2px dashed var(--border);
+  border-left: 2px dashed oklch(from var(--border) l c h / 0.2);
   pointer-events: none;
 }
 
