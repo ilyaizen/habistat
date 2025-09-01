@@ -20,6 +20,7 @@
 
   import * as Tooltip from "$lib/components/ui/tooltip";
   import { IsMobile } from "$lib/hooks/is-mobile";
+  import { getDefaultHistoryDays } from "$lib/constants/ui";
 
   // Activity + completion sources (local-first)
   import { formatLocalDate } from "$lib/utils/date";
@@ -31,9 +32,9 @@
   // If parent doesn't pass numDays, we fall back to a mobile‑reactive default
   const { numDays } = $props<{ numDays?: number }>();
 
-  // Mobile-aware day count: 14 on mobile, 42 otherwise, unless explicitly overridden by prop
+  // Mobile-aware day count: 30 on mobile, 90 otherwise, unless explicitly overridden by prop
   const isMobile = new IsMobile();
-  const computedNumDays = $derived(numDays ?? (isMobile.current ? 14 : 42));
+  const computedNumDays = $derived(numDays ?? getDefaultHistoryDays(isMobile.current));
 
   // Local state
   let loading = $state(true);
@@ -160,66 +161,95 @@
     Main container mimics a habit row from dashboard-calendars.svelte.
     It's a single flex row with title/logo on the left and activity bars on the right.
   -->
-  <div class="activity-container mr-20 flex items-center justify-between gap-4 rounded-full p-2">
-    <!-- Left side: Logo and Title -->
-    <div class="flex min-w-0 flex-1 items-center gap-3">
-      <!-- Logo container -->
-      <div class="flex h-8 w-8 shrink-0 items-center justify-center pl-1">
-        <img src="/logo.svg" alt="Habistat" class="h-6 w-6" />
+  <div class="activity-container relative mr-20 w-full min-w-0 rounded-full p-2">
+    <!-- Under-layer: bars fill available width and align to inline-end, truncating under overlay -->
+    <div class="flex w-full min-w-0 items-center gap-4 overflow-hidden">
+      <div class="min-w-0 flex-1 overflow-hidden">
+        <div class="history-justify flex min-w-0 justify-end overflow-hidden">
+          {#if loading}
+            <!-- Loading state: pulse animation for bars -->
+            <div class="flex space-x-0.5 p-0.5">
+              {#each Array(computedNumDays), i (i)}
+                <div class="bg-secondary rounded-text-xl h-6 w-[10px] animate-pulse"></div>
+              {/each}
+            </div>
+          {:else}
+            <!-- Activity bars display -->
+            <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
+              {#each activityDays as day (day.date)}
+                <div
+                  class={$settings.showWeekStartMarkers && day.weekStart
+                    ? "week-start-marker h-6"
+                    : "h-6"}
+                  aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""} - ${day.completionCount} completions`}
+                >
+                  <Tooltip.Root>
+                    <Tooltip.Trigger>
+                      <div
+                        class="h-6 w-[10px] rounded-lg"
+                        class:activity-bar-green={day.status === "active" &&
+                          day.completionCount > 0}
+                        class:activity-bar-green-half={day.status === "active" &&
+                          day.completionCount === 0}
+                        class:activity-bar-red={day.status === "inactive"}
+                        class:activity-bar-empty={day.status === "pre-registration"}
+                      ></div>
+                    </Tooltip.Trigger>
+                    <Tooltip.Content>
+                      <div class="text-center">
+                        <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
+                        <div>Completions: {day.completionCount}</div>
+                      </div>
+                    </Tooltip.Content>
+                  </Tooltip.Root>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
       </div>
-
-      <!-- Title text -->
-      <div class="nunito-header min-w-0 flex-1 truncate pl-[6px] text-left text-xl font-semibold">
-        Habistat
-      </div>
+      <!-- Spacer to keep end alignment consistent (no controls here) -->
+      <div class="w-0 shrink-0"></div>
     </div>
 
-    <!-- Right side: Activity bars -->
-    <div class="flex shrink-0 flex-row items-center">
-      {#if loading}
-        <!-- Loading state: pulse animation for bars -->
-        <div class="flex space-x-0.5 p-0.5">
-          {#each Array(computedNumDays), i (i)}
-            <div class="bg-secondary rounded-text-xl h-6 w-[10px] animate-pulse"></div>
-          {/each}
+    <!-- Overlay: logo + title on solid background with LTR/RTL gradient fade hiding bars underneath -->
+    <div
+      class="title-overlay pointer-events-none absolute inset-y-0 left-0 z-40 flex items-center gap-0"
+      style="--title-bg: var(--color-background);"
+    >
+      <!-- RTL fade (left edge) -->
+      <div
+        class="rtl-only pointer-events-none z-40 h-full w-10 shrink-0"
+        aria-hidden="true"
+        style="background-image: linear-gradient(to left, var(--title-bg), transparent); background-repeat: no-repeat; background-size: 100% 100%;"
+      ></div>
+
+      <!-- Title group: logo + text, no truncation -->
+      <div class="bg-background flex items-center gap-3 pr-2">
+        <div class="flex h-8 w-8 shrink-0 items-center justify-center">
+          <img src="/logo.svg" alt="Habistat" class="h-6 w-6" />
         </div>
-      {:else}
-        <!-- Activity bars display -->
-        <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
-          {#each activityDays as day (day.date)}
-            <div
-              class={$settings.showWeekStartMarkers && day.weekStart
-                ? "week-start-marker h-6"
-                : "h-6"}
-              aria-label={`Activity for ${day.date}: ${day.status}${day.isToday ? " (Today)" : ""} - ${day.completionCount} completions`}
-            >
-              <Tooltip.Root>
-                <Tooltip.Trigger>
-                  <div
-                    class="h-6 w-[10px] rounded-lg"
-                    class:activity-bar-green={day.status === "active" && day.completionCount > 0}
-                    class:activity-bar-green-half={day.status === "active" &&
-                      day.completionCount === 0}
-                    class:activity-bar-red={day.status === "inactive"}
-                    class:activity-bar-empty={day.status === "pre-registration"}
-                  ></div>
-                </Tooltip.Trigger>
-                <Tooltip.Content>
-                  <div class="text-center">
-                    <div>{day.date}{day.isToday ? " (Today)" : ""} - {day.status}</div>
-                    <div>Completions: {day.completionCount}</div>
-                  </div>
-                </Tooltip.Content>
-              </Tooltip.Root>
-            </div>
-          {/each}
-        </div>
-      {/if}
+        <div class="nunito-header text-left text-xl font-semibold">Habistat</div>
+      </div>
+
+      <!-- LTR fade (right edge) -->
+      <div
+        class="ltr-only pointer-events-none z-40 h-full w-10 shrink-0"
+        aria-hidden="true"
+        style="background-image: linear-gradient(to right, var(--title-bg), transparent); background-repeat: no-repeat; background-size: 100% 100%;"
+      ></div>
     </div>
   </div>
 </Tooltip.Provider>
 
 <style>
+  /* Align bars to inline-end so today sits near the (hypothetical) control side */
+  :global([dir="ltr"]) .history-justify {
+    justify-content: flex-end;
+  }
+  :global([dir="rtl"]) .history-justify {
+    justify-content: flex-start;
+  }
   /*
     Apply a left-to-right fading background and dashed 2px border to the
     activity row, using the app primary color. Matches the calendar title styling.
@@ -230,6 +260,11 @@
   .activity-container > * {
     position: relative;
     z-index: 1;
+  }
+  /* Critical: keep the overlay absolute and above the bars */
+  .activity-container > .title-overlay {
+    position: absolute;
+    z-index: 40;
   }
   /*
     Temporarily disabled decorative background and dashed border around the

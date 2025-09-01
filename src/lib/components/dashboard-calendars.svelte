@@ -29,6 +29,7 @@
   // Use local-day semantics for counts so UI matches user's timezone and local DB ops
   import { formatLocalDate } from "$lib/utils/date";
   import { parseHabitName, parseCalendarName } from "$lib/utils/habit-display";
+  import { getDefaultHistoryDays } from "$lib/constants/ui";
   // import { GripVertical } from "@lucide/svelte";
 
   // --- Drag configuration ---
@@ -385,34 +386,49 @@
 
               <!-- Individual habit card with flip animation -->
               <div animate:flip={{ duration: 200 }} data-habit-id={habit.id} role="listitem">
+                <!-- Layered row: under-layer (history + controls snapped to end), overlay (title + fade) -->
                 <div
-                  class="flex w-full min-w-0 flex-row flex-nowrap items-center justify-between gap-2 p-2 transition-all {isHabitDisabled
+                  class="relative w-full min-w-0 overflow-visible p-2 transition-all {isHabitDisabled
                     ? 'pointer-events-none'
-                    : // TODO: 2025-08-12 - This needs proper implementation if hover:bg-card/90 is to be used
-                      ''} {habit.isEnabled === 0 ? 'border-dashed' : ''}"
+                    : ''} {habit.isEnabled === 0 ? 'border-dashed' : ''}"
                   aria-disabled={isHabitDisabled}
                 >
-                  <!-- Left side: Drag handle and habit name -->
-                  <div class="flex min-w-0 flex-1 items-center">
-                    <!-- Drag handle removed; emoji acts as the handle -->
+                  <!-- Under-layer: history aligned to inline-end and truncating under the overlay, then controls -->
+                  <div class="flex w-full min-w-0 items-center gap-4 overflow-hidden">
+                    <div class="min-w-0 flex-1 overflow-hidden">
+                      <div class="history-justify flex min-w-0 justify-end overflow-hidden">
+                        <HabitHistoryRow
+                          completions={habitCompletions}
+                          calendarColor={colorNameToCss(cal.colorTheme)}
+                          numDays={getDefaultHistoryDays(isMobile.current)}
+                        />
+                      </div>
+                    </div>
+                    <div class="flex w-16 shrink-0 items-center justify-end">
+                      {#if !isHabitDisabled}
+                        <HabitCompletionControl {habit} {completionsToday} />
+                      {/if}
+                    </div>
+                  </div>
 
-                    <!-- Habit name with navigation functionality -->
-                    <div
-                      class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
-                      role="button"
-                      tabindex={isHabitDisabled ? -1 : 0}
-                      onclick={() => openEditDialog(habit, cal.id)}
-                      onkeydown={(e: KeyboardEvent) => {
-                        if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
-                          openEditDialog(habit, cal.id);
-                        }
-                      }}
-                      aria-disabled={isHabitDisabled}
-                      title={habit.description ?? undefined}
-                    >
-                      <!-- Emoji container (drag handle) -->
+                  <!-- Overlay: emoji drag handle + title with gradient fade above history/controls -->
+                  <div
+                    class="title-overlay pointer-events-none absolute inset-y-0 left-0 z-40 flex max-w-[60%] items-center gap-0"
+                    style="--title-bg: var(--color-background);"
+                  >
+                    <!-- TODO: 2025-09-01 - A div is for the RTL fade effect was not what is necessary here -->
+                    <!-- RTL fade placed before the title group so it appears on the left in RTL -->
+                    <!-- <div
+                      class="rtl-only pointer-events-none z-40 h-full w-20 shrink-0"
+                      aria-hidden="true"
+                      style="background-image: linear-gradient(to left, var(--title-bg), transparent); background-repeat: no-repeat; background-size: 100% 100%;"
+                    ></div> -->
+
+                    <!-- Title group: emoji drag handle + text on solid dashboard background -->
+                    <div class="bg-background flex min-w-0 items-center gap-3">
+                      <!-- Emoji drag handle (re-enable events on this element) -->
                       <div
-                        class="emoji-container relative flex h-8 w-8 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
+                        class="emoji-container pointer-events-auto relative z-20 flex h-8 w-8 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
                         data-drag-handle="habit"
                         class:dragging={draggingHabitId === habit.id}
                         onpointerdown={() => {
@@ -428,7 +444,6 @@
                         tabindex="0"
                       >
                         {#if isNegativeHabit}
-                          <!-- Negative habit: show base emoji under a prohibited overlay; overlay ignores pointer to preserve drag -->
                           <span class="flex items-center justify-center select-none">{emoji}</span>
                           <span
                             class="pointer-events-none absolute inset-0 flex scale-150 items-center justify-center opacity-80"
@@ -439,33 +454,35 @@
                         {/if}
                       </div>
 
-                      <!-- Habit text -->
-                      <div class="min-w-0 flex-1 truncate">
+                      <!-- Clickable title (re-enable events) -->
+                      <button
+                        type="button"
+                        class="pointer-events-auto max-w-full min-w-0 flex-1 cursor-pointer truncate text-left transition-opacity hover:opacity-80"
+                        tabindex={isHabitDisabled ? -1 : 0}
+                        onclick={() => openEditDialog(habit, cal.id)}
+                        onkeydown={(e: KeyboardEvent) => {
+                          if (!isHabitDisabled && (e.key === "Enter" || e.key === " ")) {
+                            openEditDialog(habit, cal.id);
+                          }
+                        }}
+                        aria-disabled={isHabitDisabled}
+                        title={habit.description ?? undefined}
+                      >
                         {text}
                         {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
                           <span class="text-muted-foreground/80 ml-1"
                             >({Math.round(habit.targetDurationSeconds / 60)}m)</span
                           >
                         {/if}
-                      </div>
+                      </button>
                     </div>
-                  </div>
 
-                  <!-- Right side: History grid and completion control -->
-                  <div class="flex shrink-0 flex-row items-center gap-4">
-                    <!-- Visual history grid with responsive day count -->
-                    <HabitHistoryRow
-                      completions={habitCompletions}
-                      calendarColor={colorNameToCss(cal.colorTheme)}
-                      numDays={isMobile.current ? 14 : 42}
-                    />
-
-                    <!-- Completion control button (fixed width for alignment) -->
-                    <div class="flex w-16 items-center justify-end">
-                      {#if !isHabitDisabled}
-                        <HabitCompletionControl {habit} {completionsToday} />
-                      {/if}
-                    </div>
+                    <!-- LTR fade placed after the title group so it appears on the right in LTR -->
+                    <div
+                      class="ltr-only pointer-events-none z-40 h-full w-10 shrink-0"
+                      aria-hidden="true"
+                      style="background-image: linear-gradient(to right, var(--title-bg), transparent); background-repeat: no-repeat; background-size: 100% 100%;"
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -499,8 +516,22 @@
 {#if editingCalendarIdForDialog}
   <CalendarEditDialog calendarId={editingCalendarIdForDialog} bind:open={calendarDialogOpen} />
 {/if}
+
 <!-- 
 <style>
+  /* Fade toggle helpers */
+  :global([dir="ltr"]) .ltr-only { display: block; }
+  :global([dir="ltr"]) .rtl-only { display: none; }
+  :global([dir="rtl"]) .ltr-only { display: none; }
+  :global([dir="rtl"]) .rtl-only { display: block; }
+
+  /* Align history to end so today sits next to the control */
+  :global([dir="ltr"]) .history-justify { justify-content: flex-end; }
+  :global([dir="rtl"]) .history-justify { justify-content: flex-start; }
+
+  /* Ensure truncation under overlay */
+  .title-overlay { max-width: 60%; }
+  .title-overlay, .history-justify { overflow: hidden; }
   /*
     Create a dashed 2px border that fades horizontally like the background.
     We draw it using a positioned pseudo-element so we can mask it with a gradient.
@@ -534,3 +565,13 @@
     );
   }
 </style> -->
+
+<style>
+  /* Ensure history bars align to inline-end (today near control) in both directions */
+  :global([dir="ltr"]) .history-justify {
+    justify-content: flex-end;
+  }
+  :global([dir="rtl"]) .history-justify {
+    justify-content: flex-start;
+  }
+</style>
