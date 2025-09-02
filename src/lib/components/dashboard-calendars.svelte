@@ -319,10 +319,10 @@
           <!-- Drag handle removed; emoji acts as the handle -->
 
           <!-- Calendar name, clickable to open edit dialog -->
-          <!-- TODO: 2025-08-29 - add `style={calendarTitleStyles(cal.colorTheme)}` and calendar-title for older ight-fading highlight for calendar titles plus a themed border -->
+          <!-- TODO: 2025-08-29 - add `style={calendarTitleStyles(cal.colorTheme)}` and calendar-title for older fading highlight for calendar titles plus a themed border -->
           <button
             type="button"
-            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-full px-2 py-1 text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-full px-0 py-1 text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
             disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
           >
@@ -444,9 +444,11 @@
                         tabindex="0"
                       >
                         {#if isNegativeHabit}
-                          <span class="flex items-center justify-center select-none">{emoji}</span>
+                          <span class="flex scale-75 items-center justify-center select-none"
+                            >{emoji}</span
+                          >
                           <span
-                            class="pointer-events-none absolute inset-0 flex scale-150 items-center justify-center opacity-80"
+                            class="pointer-events-none absolute inset-0 flex scale-125 items-center justify-center opacity-80"
                             >🚫</span
                           >
                         {:else}
@@ -518,7 +520,6 @@
 {/if}
 
 <!-- 
-<style>
   /* Fade toggle helpers */
   :global([dir="ltr"]) .ltr-only { display: block; }
   :global([dir="ltr"]) .rtl-only { display: none; }
@@ -564,7 +565,7 @@
       rgba(0, 0, 0, 0) 50%
     );
   }
-</style> -->
+ -->
 
 <style>
   /* Ensure history bars align to inline-end (today near control) in both directions */

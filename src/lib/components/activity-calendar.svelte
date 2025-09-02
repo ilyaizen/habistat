@@ -161,7 +161,7 @@
     Main container mimics a habit row from dashboard-calendars.svelte.
     It's a single flex row with title/logo on the left and activity bars on the right.
   -->
-  <div class="activity-container relative mr-20 w-full min-w-0 rounded-full p-2">
+  <div class="activity-container relative w-full min-w-0 rounded-full p-2">
     <!-- Under-layer: bars fill available width and align to inline-end, truncating under overlay -->
     <div class="flex w-full min-w-0 items-center gap-4 overflow-hidden">
       <div class="min-w-0 flex-1 overflow-hidden">
@@ -175,7 +175,7 @@
             </div>
           {:else}
             <!-- Activity bars display -->
-            <div class="flex space-x-0.5 p-0.5" aria-label="Activity bars">
+            <div class="flex space-x-0.5 p-0.5 pr-16" aria-label="Activity bars">
               {#each activityDays as day (day.date)}
                 <div
                   class={$settings.showWeekStartMarkers && day.weekStart
@@ -217,19 +217,12 @@
       class="title-overlay pointer-events-none absolute inset-y-0 left-0 z-40 flex items-center gap-0"
       style="--title-bg: var(--color-background);"
     >
-      <!-- RTL fade (left edge) -->
-      <div
-        class="rtl-only pointer-events-none z-40 h-full w-10 shrink-0"
-        aria-hidden="true"
-        style="background-image: linear-gradient(to left, var(--title-bg), transparent); background-repeat: no-repeat; background-size: 100% 100%;"
-      ></div>
-
       <!-- Title group: logo + text, no truncation -->
-      <div class="bg-background flex items-center gap-3 pr-2">
-        <div class="flex h-8 w-8 shrink-0 items-center justify-center">
-          <img src="/logo.svg" alt="Habistat" class="h-6 w-6" />
+      <div class="bg-background flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center">
+          <img src="/logo.svg" alt="Habistat" class="h-8 w-8" />
         </div>
-        <div class="nunito-header text-left text-xl font-semibold">Habistat</div>
+        <div class="nunito-header inline-flex text-xl font-semibold">Habistat</div>
       </div>
 
       <!-- LTR fade (right edge) -->
@@ -266,15 +259,15 @@
     position: absolute;
     z-index: 40;
   }
-  /*
-    Temporarily disabled decorative background and dashed border around the
-    calendar title row. Keeping this code commented for potential future reuse.
 
-  .activity-container::before {
+  /* Temporarily disabled decorative background and dashed border around the
+    calendar title row. Keeping this code commented for potential future reuse. */
+
+  /* .activity-container::before {
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: 9999px; 
+    border-radius: 9999px;
     pointer-events: none;
     z-index: 0;
     background: var(--primary);
@@ -296,7 +289,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: 9999px; 
+    border-radius: 9999px;
     pointer-events: none;
     z-index: 0;
     border: 2px dashed color-mix(in oklab, var(--primary) 5%, transparent);
@@ -312,8 +305,7 @@
       rgba(0, 0, 0, 1) 4rem,
       rgba(0, 0, 0, 0) 50%
     );
-  }
-  */
+  } */
 
   .activity-bar-green {
     background: linear-gradient(

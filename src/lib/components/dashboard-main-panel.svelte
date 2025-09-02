@@ -10,9 +10,7 @@
 </script>
 
 <div class="flex flex-col gap-6">
-  {#if true}
-    <!-- Activity calendar section (always on top, outside DnD) -->
-    <ActivityCalendar />
-  {/if}
+  <!-- Activity calendar section (always on top, outside DnD) -->
+  <ActivityCalendar />
   <DashboardCalendars />
 </div>

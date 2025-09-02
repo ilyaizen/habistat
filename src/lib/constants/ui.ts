@@ -5,7 +5,7 @@
 export const DEFAULT_HISTORY_DAYS_MOBILE = 28;
 
 /** Default number of days to show on larger/desktop screens. */
-export const DEFAULT_HISTORY_DAYS_DESKTOP = 49;
+export const DEFAULT_HISTORY_DAYS_DESKTOP = 56;
 
 /**
  * Get the default number of days for history/activity views based on viewport.

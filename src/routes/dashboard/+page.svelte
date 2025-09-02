@@ -13,7 +13,7 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import DashboardMainPanel from "$lib/components/dashboard-main-panel.svelte";
-  import DashboardSidePanel from "$lib/components/dashboard-side-panel.svelte";
+  // import DashboardSidePanel from "$lib/components/dashboard-side-panel.svelte";
   import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
   import TierLimitGuard from "$lib/components/tier-limit-guard.svelte";
 
@@ -121,9 +121,9 @@
         <DashboardMainPanel bind:isReorderMode />
       </div>
       <!-- Side Panel: Takes only the width it needs -->
-      <div>
+      <!-- <div>
         <DashboardSidePanel {activityMonitorKey} />
-      </div>
+      </div> -->
     </div>
   {/if}
 </Tooltip.Provider>
