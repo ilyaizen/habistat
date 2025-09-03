@@ -46,8 +46,10 @@
 
   function shadeForDark(base: string, level: number): string {
     const idx = Math.max(0, Math.min(level, 4));
-    // Reverse: darkest -> darker -> base -> lighter -> lightest (very pronounced)
-    const mixes = ["black 30%", "black 15%", "transparent 0%", "white 15%", "white 30%"];
+    // Dark theme should start dark at low counts and get lighter as counts increase.
+    // Our level mapping goes 4 (low count) -> 0 (high count), so arrange the ramp so
+    // idx 4 is darkest and idx 0 is lightest.
+    const mixes = ["white 30%", "white 15%", "transparent 0%", "black 15%", "black 30%"];
     if (idx === 2) return base; // ensure true base at midpoint
     return `color-mix(in oklab, ${base}, ${mixes[idx]})`;
   }
