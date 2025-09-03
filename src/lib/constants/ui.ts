@@ -12,5 +12,5 @@ export const DEFAULT_HISTORY_DAYS_DESKTOP = 56;
  * Keep logic minimal here; components can still override via explicit props.
  */
 export function getDefaultHistoryDays(isMobile: boolean): number {
-    return isMobile ? DEFAULT_HISTORY_DAYS_MOBILE : DEFAULT_HISTORY_DAYS_DESKTOP;
+  return isMobile ? DEFAULT_HISTORY_DAYS_MOBILE : DEFAULT_HISTORY_DAYS_DESKTOP;
 }
