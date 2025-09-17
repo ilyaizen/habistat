@@ -288,7 +288,7 @@
 <!-- Main calendars and habits list -->
 <!-- Drag-and-drop zone for calendar reordering with visual feedback -->
 <div
-  class="flex w-full min-w-0 flex-col gap-5"
+  class="flex w-full min-w-0 flex-col gap-4"
   data-dnd-zone="calendar"
   role="list"
   use:dndzone={{
@@ -322,13 +322,13 @@
           <!-- TODO: 2025-08-29 - add `style={calendarTitleStyles(cal.colorTheme)}` and calendar-title for older fading highlight for calendar titles plus a themed border -->
           <button
             type="button"
-            class="nunito-header disabled:text-muted-foreground/60 mb-2 inline-flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-full px-0 py-1 text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            class="disabled:text-muted-foreground/60 inline-flex min-w-0 flex-1 cursor-pointer items-center rounded-full text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
             disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
           >
             <!-- Calendar emoji container (drag handle) -->
             <div
-              class="emoji-container flex h-10 w-10 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
+              class="emoji-uniform flex h-10 w-10 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
               data-drag-handle="calendar"
               class:dragging={draggingCalendarId === cal.id}
               onpointerdown={() => {
@@ -347,7 +347,7 @@
             </div>
 
             <!-- Calendar text -->
-            <div class="min-w-0 flex-1 truncate text-xl">
+            <div class="ml-2 min-w-0 flex-1 truncate text-xl leading-6">
               {calText}
             </div>
           </button>
@@ -356,7 +356,7 @@
         <!-- Habits List Section -->
         <!-- Drag-and-drop zone for habit reordering within calendar -->
         <div
-          class="flex flex-col gap-1"
+          class="flex flex-col"
           role="list"
           data-dnd-zone="habit"
           data-calendar-id={cal.id}
@@ -425,10 +425,10 @@
                     ></div> -->
 
                     <!-- Title group: emoji drag handle + text on solid dashboard background -->
-                    <div class="bg-background flex min-w-0 items-center gap-3">
+                    <div class="bg-background flex min-w-0 items-center gap-2">
                       <!-- Emoji drag handle (re-enable events on this element) -->
                       <div
-                        class="emoji-container pointer-events-auto relative z-20 flex h-8 w-8 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
+                        class="emoji-uniform pointer-events-auto relative z-20 flex h-10 w-10 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
                         data-drag-handle="habit"
                         class:dragging={draggingHabitId === habit.id}
                         onpointerdown={() => {
@@ -459,7 +459,7 @@
                       <!-- Clickable title (re-enable events) -->
                       <button
                         type="button"
-                        class="pointer-events-auto max-w-full min-w-0 flex-1 cursor-pointer truncate text-left transition-opacity hover:opacity-80"
+                        class="pointer-events-auto max-w-full min-w-0 flex-1 cursor-pointer truncate text-left text-xl leading-6 transition-opacity hover:opacity-80"
                         tabindex={isHabitDisabled ? -1 : 0}
                         onclick={() => openEditDialog(habit, cal.id)}
                         onkeydown={(e: KeyboardEvent) => {
@@ -575,4 +575,20 @@
   :global([dir="rtl"]) .history-justify {
     justify-content: flex-start;
   }
+
+  /* Emoji visual normalization so calendar + habit emojis match across platforms.
+     Enforce inline-flex and consistent line-height to keep visuals and whitespace identical. */
+  :global(.emoji-uniform) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* Slightly tighter overlay width to accommodate unified emoji size */
+  .title-overlay {
+    max-width: 55%;
+  }
+
+  /* Emoji animation handled by global `src/ui.css` to avoid duplication. */
 </style>

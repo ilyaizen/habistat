@@ -9,7 +9,7 @@
   let { isReorderMode = $bindable(false) }: { isReorderMode?: boolean } = $props();
 </script>
 
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-4">
   <!-- Activity calendar section (always on top, outside DnD) -->
   <ActivityCalendar />
   <DashboardCalendars />

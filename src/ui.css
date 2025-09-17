@@ -1,7 +1,7 @@
 /* UI styles consolidated from app.css for simplicity */
 
 /* Emoji font override */
-.emoji-container {
+.emoji-uniform {
   font-family:
     "Noto Color Emoji", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif;
 }
@@ -19,7 +19,7 @@
   }
 }
 
-.emoji-container {
+.emoji-uniform {
   /* Make sure we can position a larger invisible hit area */
   position: relative;
   transition:
@@ -32,7 +32,7 @@
 
 /* Enlarge the effective hover/click target slightly so the grab cursor appears sooner
    without changing layout. We avoid extending to the right to not cover adjacent text. */
-.emoji-container::before {
+.emoji-uniform::before {
   content: "";
   position: absolute;
   /* Extend hit area: left/top/bottom by 6px; keep right flush to avoid overlapping text */
@@ -42,37 +42,31 @@
   bottom: -6px;
   border-radius: 8px;
   /* Ensure it participates in hit testing to carry the cursor */
-  pointer-events: auto;
+  /* Make pseudo-element decorative only so hover targets the real emoji element.
+     This prevents parent/button hover from erroneously counting as emoji hover. */
+  pointer-events: none;
   /* Transparent overlay; only affects cursor/hit area */
   background: transparent;
-  /* Match grab cursor semantics */
-  cursor: grab;
   z-index: 1;
 }
 
-.emoji-container:active::before {
+.emoji-uniform {
+  /* Make sure we can position a larger invisible hit area */
+  cursor: grab;
+}
+
+.emoji-uniform:active {
   cursor: grabbing;
 }
 
-.emoji-container:hover,
-button:hover .emoji-container,
-[role="button"]:hover .emoji-container {
-  /* Attach animation on hover so it always starts from bottom */
+.emoji-uniform:not(.dragging):hover {
+  /* Attach animation only when hovering the emoji itself (not parent buttons). */
   animation: emoji-bounce 0.2s cubic-bezier(0, 0.2, 0.15, 1) infinite alternate;
 }
 
 /* Critical: disable animation while dragging so it restarts on drop */
-.emoji-container.dragging {
+.emoji-uniform.dragging {
   /* Hard stop during drag and force baseline with no transition */
-  animation: none;
-  transition: none;
-  transform: translateY(0);
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
-}
-
-/* Ensure parent hover selectors don't re-enable bounce while dragging */
-button:hover .emoji-container.dragging,
-[role="button"]:hover .emoji-container.dragging {
   animation: none;
   transition: none;
   transform: translateY(0);
