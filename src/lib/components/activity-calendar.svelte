@@ -161,11 +161,11 @@
     Main container mimics a habit row from dashboard-calendars.svelte.
     It's a single flex row with title/logo on the left and activity bars on the right.
   -->
-  <div class="activity-container relative w-full min-w-0 rounded-full p-2">
+  <div class="activity-container relative w-full pr-2">
     <!-- Under-layer: bars fill available width and align to inline-end, truncating under overlay -->
-    <div class="flex w-full min-w-0 items-center gap-4 overflow-hidden">
-      <div class="min-w-0 flex-1 overflow-hidden">
-        <div class="history-justify flex min-w-0 justify-end overflow-hidden">
+    <div class="flex w-full items-center gap-4 overflow-hidden">
+      <div class="flex-1 overflow-hidden">
+        <div class="history-justify flex justify-end overflow-hidden">
           {#if loading}
             <!-- Loading state: pulse animation for bars -->
             <div class="flex space-x-0.5 p-0.5">
@@ -218,11 +218,11 @@
       style="--title-bg: var(--color-background);"
     >
       <!-- Title group: logo + text, no truncation -->
-      <div class="bg-background flex items-center gap-3">
+      <div class="bg-background flex items-center gap-2">
         <div class="flex h-10 w-10 items-center justify-center">
-          <img src="/logo.svg" alt="Habistat" class="h-8 w-8" />
+          <img src="/logo.svg" alt="Habistat Logo" class="h-8 w-8" />
         </div>
-        <div class="nunito-header inline-flex text-xl font-semibold">Habistat</div>
+        <div class="inline-flex text-xl font-semibold">Activity Calendar</div>
       </div>
 
       <!-- LTR fade (right edge) -->
