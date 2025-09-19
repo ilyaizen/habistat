@@ -288,7 +288,7 @@
 <!-- Main calendars and habits list -->
 <!-- Drag-and-drop zone for calendar reordering with visual feedback -->
 <div
-  class="flex w-full min-w-0 flex-col gap-4"
+  class="flex w-full flex-col gap-8"
   data-dnd-zone="calendar"
   role="list"
   use:dndzone={{
