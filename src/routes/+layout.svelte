@@ -19,19 +19,15 @@
   import { useClerk } from "$lib/hooks/use-clerk.ts";
   import { useTheme } from "$lib/hooks/use-theme.ts";
 
-  // Temporary fix until SvelteKit types are generated
-  type LayoutData = {
-    dbError?: string;
-    fallbackMode?: boolean;
-    [key: string]: any;
-  };
   import "../app.css";
+
   import { page } from "$app/state";
   import AboutDrawer from "$lib/components/about-drawer.svelte";
   import AppFooter from "$lib/components/app-footer.svelte";
   import AppHeader from "$lib/components/app-header.svelte";
 
   import { Toaster } from "$lib/components/ui/sonner";
+
   // Note: Removed timed sync scheduler - sync is now event-driven and smarter
 
   // import * as ContextMenu from "$lib/components/ui/context-menu";
@@ -47,6 +43,28 @@
   import FireworksEffect from "$lib/components/fireworks-effect.svelte";
   import DamageEffect from "$lib/components/damage-effect.svelte";
   import LottieConfettiEffect from "$lib/components/lottie-confetti-effect.svelte";
+
+  // Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
+  import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
+  import ThemeToggle from "$lib/components/theme-toggle.svelte";
+
+  // Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
+
+  /*
+    Noto Sans and Noto Sans Hebrew are loaded via @import in src/app.css for global font-sans usage.
+    This ensures proper rendering for both Latin and Hebrew scripts.
+    See src/app.css for the @import and --font-sans override.
+  */
+
+  // import "@fontsource/oxanium"; // Sans-serif font for UI/headers (removed)
+  // import "@fontsource/fira-code"; // Monospace font for code/inputs
+
+  // Temporary fix until SvelteKit types are generated
+  type LayoutData = {
+    dbError?: string;
+    fallbackMode?: boolean;
+    [key: string]: any;
+  };
 
   // Props received from parent routes using Svelte 5 $props rune
   let { children, data } = $props<{ children: Snippet; data: LayoutData }>(); // Receive data prop
@@ -80,21 +98,6 @@
       handleStart = fn;
     }
   });
-
-  // Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
-  import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
-  import ThemeToggle from "$lib/components/theme-toggle.svelte";
-
-  // Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
-
-  /*
-    Noto Sans and Noto Sans Hebrew are loaded via @import in src/app.css for global font-sans usage.
-    This ensures proper rendering for both Latin and Hebrew scripts.
-    See src/app.css for the @import and --font-sans override.
-  */
-
-  // import "@fontsource/oxanium"; // Sans-serif font for UI/headers (removed)
-  // import "@fontsource/fira-code"; // Monospace font for code/inputs
 
   // Set up Clerk contexts and session association
   clerk.setupClerkContexts();
@@ -236,10 +239,10 @@
     "Context \"Tooltip.Provider\" not found" errors.
   -->
   <Tooltip.Provider>
-    <div
-      class="bg-background text-foreground flex min-h-screen flex-col overflow-y-hidden font-sans antialiased"
-    >
-      <div id="hb-shake-root" class="hb-shake-root flex min-h-screen flex-col">
+    <div class="relative flex min-h-screen flex-col antialiased">
+      <!-- Fixed background texture layer (non-interactive, behind content) -->
+      <div class="texture" aria-hidden="true"></div>
+      <div class="relative z-10 flex min-h-screen flex-col">
         {#if page.url.pathname !== "/"}
           <AppHeader />
         {/if}
@@ -258,14 +261,16 @@
         {/if}
       </div>
 
-      <Toaster />
       <StoreSync />
+
       <!-- Global overlay effects: listens to `$triggerFireworks` and renders above UI -->
       <FireworksEffect />
       <DamageEffect />
       <LottieConfettiEffect />
 
       <AboutDrawer bind:open={aboutDrawerOpen} {handleStart} />
+
+      <Toaster />
     </div>
   </Tooltip.Provider>
 </ClerkProvider>

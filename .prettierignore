@@ -14,6 +14,5 @@ coverage/
 *.ts
 *.json
 *.md
-*.css
 *.html
 !*.svelte

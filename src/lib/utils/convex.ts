@@ -95,7 +95,7 @@ async function waitForClerk(): Promise<boolean> {
     checkClerk();
 
     // Listen for Clerk's load event if available
-    if (typeof window !== "undefined" && window.Clerk) {
+    if (window?.Clerk) {
       // Use the correct Clerk listener API
       const handleLoad = () => {
         clearTimeout(timeout);
