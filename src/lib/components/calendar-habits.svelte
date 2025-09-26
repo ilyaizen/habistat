@@ -1,5 +1,5 @@
 <!-- /**
- * Dashboard Calendars Component
+ * Dashboard Calendar Habits Component
  *
  * This component displays the main list of calendars and habits for the dashboard.
  * It handles all drag-and-drop reordering logic for both calendars and habits,

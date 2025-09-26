@@ -13,7 +13,6 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import DashboardMainPanel from "$lib/components/dashboard-main-panel.svelte";
-  // import DashboardSidePanel from "$lib/components/dashboard-side-panel.svelte";
   import SampleDataGenerator from "$lib/components/sample-data-generator.svelte";
   import TierLimitGuard from "$lib/components/tier-limit-guard.svelte";
 

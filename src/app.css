@@ -46,20 +46,20 @@
     --shadow-2xs: 0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.1);
     --shadow-xs: 0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.1);
     --shadow-sm:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
-      0px 1px 2px -3px hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 1px 2px -3px
+      hsl(36 27.5229% 57.2549% / 0.2);
     --shadow:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
-      0px 1px 2px -3px hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 1px 2px -3px
+      hsl(36 27.5229% 57.2549% / 0.2);
     --shadow-md:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
-      0px 2px 4px -3px hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 2px 4px -3px
+      hsl(36 27.5229% 57.2549% / 0.2);
     --shadow-lg:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
-      0px 4px 6px -3px hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 4px 6px -3px
+      hsl(36 27.5229% 57.2549% / 0.2);
     --shadow-xl:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
-      0px 8px 10px -3px hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 8px 10px -3px
+      hsl(36 27.5229% 57.2549% / 0.2);
     --shadow-2xl: 0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.5);
     --radius: 0.75rem;
     --font-serif: var(--font-pt-serif);

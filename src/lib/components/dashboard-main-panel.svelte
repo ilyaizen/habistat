@@ -1,6 +1,6 @@
 <!-- src/lib/components/dashboard-main-panel.svelte -->
 <script lang="ts">
-  import DashboardCalendars from "$lib/components/dashboard-calendars.svelte";
+  import CalendarHabits from "$lib/components/calendar-habits.svelte";
   // Activity calendar is a presentational card that mirrors a calendar group header
   // and must always appear above the DnD calendars list.
   import ActivityCalendar from "$lib/components/activity-calendar.svelte";
@@ -12,5 +12,5 @@
 <div class="flex flex-col gap-8">
   <!-- Activity calendar section (always on top, outside DnD) -->
   <ActivityCalendar />
-  <DashboardCalendars />
+  <CalendarHabits />
 </div>
