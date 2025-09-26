@@ -9,6 +9,35 @@ structure of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Nothing yet.
 
+## [0.0.6] - 2025-09-26
+
+### Added
+- Dashboard: refactored panels and renamed `DashboardCalendars` to `CalendarHabits`, removing the unused `DashboardSidePanel` and improving file structure.
+- Gamification: header badge now shows weekly points delta with color and icon feedback for positive/negative changes.
+- Intro celebration: new Lottie-based confetti intro effect and small confetti/celebration enhancements.
+- Activity calendar: completion counts added to day tooltips for clearer daily feedback.
+- UI: integrated several shadcn-svelte components (Menubar, Navigation Menu, Pagination, Scroll Area) to improve navigation and component consistency.
+
+### Refactored
+- Layout and theme: refined color palette, font stack (switched to Nunito in theme updates), and consolidated CSS variables for improved theming and maintainability.
+- Habit history: replaced the grid with a horizontally scrolling habit history row and introduced a reusable `HabitHistoryDayBar` component.
+- Calendar overlays: refactored calendar UI overlays and unified history-day logic across components to reduce duplication and improve alignment.
+
+### Enhanced
+- Mobile responsiveness: activity calendar and dashboard now use mobile-aware defaults (fewer history days on small screens) and improved spacing/layout for small viewports.
+- History visuals: reversed/normalized color ramp and improved color shading functions for both light and dark themes so intensity maps more intuitively to completion counts.
+- Damage effect: refined shake/texture interactions and updated related CSS to work with the new handmade paper background treatment.
+
+### Changed
+- Sample data: simplified and restructured sample data (fewer categories), added frequency/timer support for habits and updated generator logic.
+- Removed temporary pages/components: deleted `dashboard-new` and the p5-canvas component; commented out or removed temporary navigation links.
+
+### Fixed
+- Activity calendar: corrected week-start handling and chart theme typings; prevented reactive loops and ensured consistent bar heights and tooling across platforms.
+
+### Docs
+- Updated file structure and project docs; removed obsolete/legacy rule files and refreshed implementation plan and sample-data documentation.
+
 ## [0.0.5] - 2025-08-25
 
 ### Added
