@@ -414,7 +414,6 @@
                   <!-- Overlay: emoji drag handle + title with gradient fade above history/controls -->
                   <div
                     class="title-overlay pointer-events-none absolute inset-y-0 left-0 z-40 flex max-w-[60%] items-center gap-0"
-                    style="--title-bg: var(--color-background);"
                   >
                     <!-- TODO: 2025-09-01 - A div is for the RTL fade effect was not what is necessary here -->
                     <!-- RTL fade placed before the title group so it appears on the left in RTL -->
@@ -425,7 +424,7 @@
                     ></div> -->
 
                     <!-- Title group: emoji drag handle + text on solid dashboard background -->
-                    <div class="bg-background flex min-w-0 items-center gap-2">
+                    <div class="flex min-w-0 items-center gap-2">
                       <!-- Emoji drag handle (re-enable events on this element) -->
                       <div
                         class="emoji-uniform pointer-events-auto relative z-20 flex h-10 w-10 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
@@ -479,12 +478,7 @@
                       </button>
                     </div>
 
-                    <!-- LTR fade placed after the title group so it appears on the right in LTR -->
-                    <div
-                      class="ltr-only pointer-events-none z-40 h-full w-10 shrink-0"
-                      aria-hidden="true"
-                      style="background-image: linear-gradient(to right, var(--title-bg), transparent); background-repeat: no-repeat; background-size: 100% 100%;"
-                    ></div>
+                    <!-- Removed gradient fade element (2025-09-26) to allow bars to render fully without truncation/fade next to the title. -->
                   </div>
                 </div>
               </div>

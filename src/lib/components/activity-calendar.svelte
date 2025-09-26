@@ -215,22 +215,14 @@
     <!-- Overlay: logo + title on solid background with LTR/RTL gradient fade hiding bars underneath -->
     <div
       class="title-overlay pointer-events-none absolute inset-y-0 left-0 z-40 flex items-center gap-0"
-      style="--title-bg: var(--color-background);"
     >
       <!-- Title group: logo + text, no truncation -->
-      <div class="bg-background flex items-center gap-2">
+      <div class="flex items-center gap-2">
         <div class="flex h-10 w-10 items-center justify-center">
           <img src="/logo.svg" alt="Habistat Logo" class="h-8 w-8" />
         </div>
         <div class="inline-flex text-xl font-semibold">Activity Calendar</div>
       </div>
-
-      <!-- LTR fade (right edge) -->
-      <div
-        class="ltr-only pointer-events-none z-40 h-full w-10 shrink-0"
-        aria-hidden="true"
-        style="background-image: linear-gradient(to right, var(--title-bg), transparent); background-repeat: no-repeat; background-size: 100% 100%;"
-      ></div>
     </div>
   </div>
 </Tooltip.Provider>

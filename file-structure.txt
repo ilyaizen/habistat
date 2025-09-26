@@ -83,7 +83,6 @@
 │   │   │   ├── calendar-habits.svelte
 │   │   │   ├── confetti-effect.svelte
 │   │   │   ├── damage-effect.svelte
-│   │   │   ├── dashboard-calendars.svelte
 │   │   │   ├── dashboard-main-panel.svelte
 │   │   │   ├── fireworks-effect.svelte
 │   │   │   ├── habit-completion-control.svelte
