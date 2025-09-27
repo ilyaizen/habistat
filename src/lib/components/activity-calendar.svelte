@@ -221,7 +221,7 @@
         <div class="flex h-10 w-10 items-center justify-center">
           <img src="/logo.svg" alt="Habistat Logo" class="h-8 w-8" />
         </div>
-        <div class="inline-flex text-xl font-semibold">Activity Calendar</div>
+        <div class="inline-flex text-xl font-extrabold">Activity Calendar</div>
       </div>
     </div>
   </div>

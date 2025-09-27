@@ -322,7 +322,7 @@
           <!-- TODO: 2025-08-29 - add `style={calendarTitleStyles(cal.colorTheme)}` and calendar-title for older fading highlight for calendar titles plus a themed border -->
           <button
             type="button"
-            class="disabled:text-muted-foreground/60 inline-flex min-w-0 flex-1 cursor-pointer items-center rounded-full text-left font-semibold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
+            class="disabled:text-muted-foreground/60 inline-flex min-w-0 flex-1 cursor-pointer items-center rounded-full text-left font-extrabold transition-opacity hover:opacity-80 disabled:pointer-events-none disabled:opacity-60"
             disabled={isCalendarDisabled}
             onclick={() => openCalendarEditDialog(cal.id)}
           >
@@ -347,7 +347,7 @@
             </div>
 
             <!-- Calendar text -->
-            <div class="ml-2 min-w-0 flex-1 truncate text-xl leading-6">
+            <div class="ml-2 min-w-0 flex-1 truncate text-xl leading-6 font-extrabold">
               {calText}
             </div>
           </button>
@@ -424,10 +424,12 @@
                     ></div> -->
 
                     <!-- Title group: emoji drag handle + text on solid dashboard background -->
-                    <div class="flex min-w-0 items-center gap-2">
+                    <div
+                      class="pointer-events-auto flex min-w-0 items-center gap-2 transition-opacity duration-150 focus-within:opacity-80 hover:opacity-80"
+                    >
                       <!-- Emoji drag handle (re-enable events on this element) -->
                       <div
-                        class="emoji-uniform pointer-events-auto relative z-20 flex h-10 w-10 shrink-0 cursor-grab items-center justify-center text-2xl active:cursor-grabbing"
+                        class="emoji-uniform pointer-events-auto relative z-20 flex h-10 w-10 shrink-0 cursor-grab items-center justify-center text-2xl transition-opacity duration-150 active:cursor-grabbing"
                         data-drag-handle="habit"
                         class:dragging={draggingHabitId === habit.id}
                         onpointerdown={() => {
@@ -458,7 +460,7 @@
                       <!-- Clickable title (re-enable events) -->
                       <button
                         type="button"
-                        class="pointer-events-auto max-w-full min-w-0 flex-1 cursor-pointer truncate text-left text-xl leading-6 transition-opacity hover:opacity-80"
+                        class="pointer-events-auto max-w-full min-w-0 flex-1 cursor-pointer truncate text-left text-xl leading-6 font-bold transition-opacity duration-150"
                         tabindex={isHabitDisabled ? -1 : 0}
                         onclick={() => openEditDialog(habit, cal.id)}
                         onkeydown={(e: KeyboardEvent) => {
@@ -471,7 +473,7 @@
                       >
                         {text}
                         {#if habit.timerEnabled && habit.targetDurationSeconds && habit.targetDurationSeconds > 0}
-                          <span class="text-muted-foreground/80 ml-1"
+                          <span class="text-muted-foreground/80 ml-1 font-normal"
                             >({Math.round(habit.targetDurationSeconds / 60)}m)</span
                           >
                         {/if}

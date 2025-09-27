@@ -2,8 +2,7 @@
 
 /* Emoji font override */
 .emoji-uniform {
-  font-family:
-    "Noto Color Emoji", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Noto Color Emoji";
 }
 
 /* Emoji hover bounce animation */
@@ -149,7 +148,7 @@ h6 {
   font-family: "Nunito", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
-  font-weight: 900;
+  font-weight: 1000;
   color: var(--sidebar-foreground);
 }
 
@@ -157,6 +156,7 @@ h6 {
   font-family: "Nunito", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
+  font-weight: 1000;
 }
 
 /* RTL */

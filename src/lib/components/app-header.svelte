@@ -63,9 +63,9 @@
 
     <!-- Logo on the left -->
     <div class="hidden items-center md:flex rtl:mr-0 rtl:ml-4">
-      <a href="/" class="nunito-header flex items-center space-x-2 rtl:space-x-reverse">
+      <a href="/" class="nunito-header flex items-center space-x-2 font-bold rtl:space-x-reverse">
         <img src="/logo.svg" alt="Habistat Logo" class="h-6 w-6" />
-        <span class="hidden font-bold sm:inline-block">Habistat</span>
+        <span class="hidden sm:inline-block">Habistat</span>
       </a>
     </div>
 

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap");
 @import url("./ui.css");
@@ -14,8 +15,8 @@
     --card-foreground: oklch(0.2497 0.0089 75.1481);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.2497 0.0089 75.1481);
-    --primary: oklch(0.3798 0.0646 142.37);
-    --primary-border: oklch(0.5199 0.0412 81.6967); /* Darker outline for primary buttons */
+    --primary: oklch(0.6 0.1 142.37);
+    --primary-border: oklch(0.4 0.0412 81.6967); /* Darker outline for primary buttons */
     --primary-foreground: oklch(1 0 0);
     --secondary: oklch(0.8879 0.0412 81.6967);
     --secondary-foreground: oklch(0.5159 0.0337 80.4356);
@@ -25,8 +26,8 @@
     --accent-foreground: oklch(0.5159 0.0337 80.4356);
     --destructive: oklch(0.4842 0.1644 25.1489);
     --destructive-foreground: oklch(1 0 0);
-    --border: oklch(0.5199 0.0412 81.6967);
-    --input: oklch(0.5199 0.0412 81.6967);
+    --border: oklch(0.4 0.0412 81.6967);
+    --input: oklch(0.4 0.0412 81.6967);
     --ring: oklch(0.4798 0.0646 142.37);
     --chart-1: oklch(0.6656 0.0802 168.5753);
     --chart-2: oklch(0.7199 0.0787 144.7035);
@@ -41,26 +42,27 @@
     --sidebar-accent-foreground: oklch(0.5159 0.0337 80.4356);
     --sidebar-border: oklch(0.8377 0.0373 82.1571);
     --sidebar-ring: oklch(0.6656 0.0802 168.5753);
-    --font-sans: "Nunito", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif;
+    --font-nunito: "Nunito", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: var(--font-nunito);
     --font-serif: "PT Serif", ui-serif, serif;
     --font-mono: "Fira Code", ui-monospace, monospace;
     --shadow-2xs: 0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.1);
     --shadow-xs: 0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.1);
     --shadow-sm:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 1px 2px -3px
-      hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
+      0px 1px 2px -3px hsl(36 27.5229% 57.2549% / 0.2);
     --shadow:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 1px 2px -3px
-      hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
+      0px 1px 2px -3px hsl(36 27.5229% 57.2549% / 0.2);
     --shadow-md:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 2px 4px -3px
-      hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
+      0px 2px 4px -3px hsl(36 27.5229% 57.2549% / 0.2);
     --shadow-lg:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 4px 6px -3px
-      hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
+      0px 4px 6px -3px hsl(36 27.5229% 57.2549% / 0.2);
     --shadow-xl:
-      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2), 0px 8px 10px -3px
-      hsl(36 27.5229% 57.2549% / 0.2);
+      0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.2),
+      0px 8px 10px -3px hsl(36 27.5229% 57.2549% / 0.2);
     --shadow-2xl: 0px 4px 12px -2px hsl(36 27.5229% 57.2549% / 0.5);
     --radius: 0.75rem;
     --font-serif: var(--font-pt-serif);
@@ -101,6 +103,7 @@
     --sidebar-accent-foreground: oklch(0.8879 0.0412 81.6967);
     --sidebar-border: oklch(0.4569 0.0229 79.9663);
     --sidebar-ring: oklch(0.7308 0.0767 171.584);
+    --font-nunito: "Nunito", "Noto Sans", "Noto Sans Hebrew", ui-sans-serif, system-ui, sans-serif;
     --font-sans: var(--font-nunito);
     --font-serif: "PT Serif", ui-serif, serif;
     --font-mono: "Fira Code", ui-monospace, monospace;
