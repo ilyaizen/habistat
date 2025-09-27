@@ -17,6 +17,7 @@
   import { goto } from "$app/navigation";
   import { Button, buttonVariants } from "$lib/components/ui/button";
   import { triggerIntroConfetti } from "$lib/stores/ui";
+  import ThemeToggle from "$lib/components/theme-toggle.svelte";
 
   import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
 
@@ -31,6 +32,7 @@
   // State management using Svelte 5 runes ($state)
   let showMoreInfoButton = $state(false);
   let sessionStarting = $state(false);
+  let videoElement: HTMLVideoElement;
 
   // When the component mounts, check if a session exists.
   // If not, open the singleton drawer and register this page's `handleStart` function.
@@ -146,33 +148,77 @@
 
   // The logic to hide the button when the drawer is open has been removed for simplification.
   // The drawer will now cover the button, which is the intended behavior.
+
+  // Video loop effect - simple restart when video ends
+  $effect(() => {
+    if (browser && videoElement) {
+      const handleVideoEnd = () => {
+        // Reset to beginning and play again for seamless loop
+        videoElement.currentTime = 0;
+        videoElement.play().catch((error) => {
+          console.error("Video playback failed:", error);
+        });
+      };
+
+      videoElement.addEventListener("ended", handleVideoEnd);
+
+      return () => {
+        videoElement.removeEventListener("ended", handleVideoEnd);
+      };
+    }
+  });
 </script>
 
-<!-- Main landing page layout -->
-<div class="flex min-h-screen flex-col items-center justify-center">
-  <img
-    src="/logo.svg"
-    alt="Habistat Logo"
-    class="mb-8 h-26 w-26 drop-shadow-xs drop-shadow-green-950/80"
-  />
-  <h1 class="mb-4 text-5xl font-bold">Habistat</h1>
-  <!-- Responsive tagline: adjusts font size, alignment, and margin for different screen sizes -->
-  <p
-    class="text-muted-foreground mb-6 text-center text-base sm:text-lg md:mb-8 md:text-left md:text-xl lg:text-2xl"
-  >
-    Build habits. Track progress. Achieve goals.
-  </p>
-  {#if $anonymousUserId}
-    <!-- Show Dashboard button for returning users -->
-    <Button onclick={handleDashboardClick} size="lg" disabled={sessionStarting} class="btn-3d">
-      {sessionStarting ? "Loading..." : "Go to Habits"}
-    </Button>
-  {:else}
-    <!-- Show Start button for new users -->
-    <Button onclick={handleStart} size="lg" disabled={sessionStarting} class="btn-3d">
-      {sessionStarting ? "Starting..." : "Get Started"}
-    </Button>
-  {/if}
+<!-- Main landing page layout - Two pane design -->
+<div class="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+  <!-- Left pane: Intro content -->
+  <div class="relative flex flex-col items-center justify-center px-8 py-12 text-center lg:px-16">
+    <div class="absolute top-2 right-2">
+      <ThemeToggle />
+    </div>
+
+    <img
+      src="/logo.svg"
+      alt="Habistat Logo"
+      class="mb-8 h-24 w-24 drop-shadow-xs drop-shadow-green-950/80 lg:h-32 lg:w-32"
+    />
+    <h1 class="mb-6 text-4xl font-bold lg:text-5xl">Habistat</h1>
+    <p class="text-muted-foreground text-md mb-8 max-w-md leading-relaxed lg:text-lg">
+      Build habits. Track progress. Achieve goals.
+    </p>
+    {#if $anonymousUserId}
+      <!-- Show Dashboard button for returning users -->
+      <Button
+        onclick={handleDashboardClick}
+        size="lg"
+        disabled={sessionStarting}
+        class="p-6 text-xl"
+      >
+        {sessionStarting ? "Loading..." : "Go to Habits"}
+      </Button>
+    {:else}
+      <!-- Show Start button for new users -->
+      <Button onclick={handleStart} size="lg" disabled={sessionStarting} class="p-6 text-xl">
+        {sessionStarting ? "Starting..." : "Get Started"}
+      </Button>
+    {/if}
+  </div>
+
+  <!-- Right pane: Video background -->
+  <div class=" relative z-0 hidden h-full w-full overflow-hidden lg:block">
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="relative h-[98%] w-[98%] overflow-hidden rounded-xl shadow-lg">
+        <video
+          bind:this={videoElement}
+          src="/intro_twilight_xs.mp4"
+          autoplay
+          muted
+          class="pointer-events-none absolute inset-0 -z-10 h-full w-full rounded-2xl object-cover"
+          aria-label="Habistat introduction video background"
+        ></video>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!--
@@ -181,12 +227,12 @@
 -->
 {#if showMoreInfoButton}
   <div
-    class="fixed bottom-0 left-1/2 z-[100] -translate-x-1/2 p-2"
+    class="fixed -bottom-2 left-1/2 z-[100] -translate-x-1/2"
     transition:slide={{ duration: 250 }}
   >
     <Button
       onclick={() => drawerController.open()}
-      class={`${buttonVariants({ variant: "outline" })} text-primary-background`}
+      class={`${buttonVariants({ variant: "secondary" })} text-primary-background p-6 text-xl`}
       aria-label="Show more info"
     >
       More Info
