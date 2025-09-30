@@ -246,12 +246,7 @@
         {#if page.url.pathname !== "/"}
           <AppHeader />
         {/if}
-        <main class="flex-1">
-          {#if page.url.pathname === "/"}
-            <div class="absolute top-4 right-4">
-              <ThemeToggle />
-            </div>
-          {/if}
+        <main class="flex-1 {page.url.pathname === '/' ? 'overflow-y-hidden' : ''}">
           <MotionWrapper>
             {@render children()}
           </MotionWrapper>

@@ -203,7 +203,9 @@
     position: absolute;
     inset: 0;
     background-color: var(--background);
+
     background-image: url("/handmadepaper.png");
+    /* background-image: url("/noisy.png"); */
     background-repeat: repeat;
     background-position: 0 0;
     background-size: auto;

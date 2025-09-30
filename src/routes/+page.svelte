@@ -192,13 +192,13 @@
         onclick={handleDashboardClick}
         size="lg"
         disabled={sessionStarting}
-        class="p-6 text-xl"
+        class="px-10 py-6 text-xl"
       >
         {sessionStarting ? "Loading..." : "Go to Habits"}
       </Button>
     {:else}
       <!-- Show Start button for new users -->
-      <Button onclick={handleStart} size="lg" disabled={sessionStarting} class="p-6 text-xl">
+      <Button onclick={handleStart} size="lg" disabled={sessionStarting} class="px-10 py-6 text-xl">
         {sessionStarting ? "Starting..." : "Get Started"}
       </Button>
     {/if}
@@ -232,7 +232,7 @@
   >
     <Button
       onclick={() => drawerController.open()}
-      class={`${buttonVariants({ variant: "secondary" })} text-primary-background p-6 text-xl`}
+      class={`${buttonVariants({ variant: "secondary" })} text-primary-background px-10 py-6 text-xl`}
       aria-label="Show more info"
     >
       More Info
