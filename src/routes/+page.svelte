@@ -180,7 +180,7 @@
     <img
       src="/logo.svg"
       alt="Habistat Logo"
-      class="mb-8 h-24 w-24 drop-shadow-xs drop-shadow-green-950/80 lg:h-32 lg:w-32"
+      class="mb-8 h-16 w-16 drop-shadow-xs drop-shadow-green-950/80 lg:h-20 lg:w-20"
     />
     <h1 class="mb-6 text-4xl font-bold lg:text-5xl">Habistat</h1>
     <p class="text-muted-foreground text-md mb-8 max-w-md leading-relaxed lg:text-lg">
@@ -207,13 +207,13 @@
   <!-- Right pane: Video background -->
   <div class=" relative z-0 hidden h-full w-full overflow-hidden lg:block">
     <div class="absolute inset-0 flex items-center justify-center">
-      <div class="relative h-[98%] w-[98%] overflow-hidden rounded-xl shadow-lg">
+      <div class="relative h-[98%] w-[98%] overflow-hidden rounded-lg">
         <video
           bind:this={videoElement}
           src="/intro_twilight_xs.mp4"
           autoplay
           muted
-          class="pointer-events-none absolute inset-0 -z-10 h-full w-full rounded-2xl object-cover"
+          class="pointer-events-none -z-10 h-full w-full object-cover opacity-95"
           aria-label="Habistat introduction video background"
         ></video>
       </div>
