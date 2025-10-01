@@ -13,7 +13,7 @@
     "windows": [
       {
         "title": "Habistat",
-        "width": 800,
+        "width": 1100,
         "height": 600,
         "devtools": true,
         "additionalBrowserArgs": "--force-prefers-no-reduced-motion --enable-smooth-scrolling --allow-file-access-from-files --allow-universal-access-from-files --disable-features=VizDisplayCompositor",

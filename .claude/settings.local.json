@@ -1,0 +1,8 @@
+{
+  "enabledMcpjsonServers": [
+    "browser-tools",
+    "convex",
+    "context7"
+  ],
+  "enableAllProjectMcpServers": true
+}

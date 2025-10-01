@@ -33,6 +33,8 @@
   let showMoreInfoButton = $state(false);
   let sessionStarting = $state(false);
   let videoElement: HTMLVideoElement;
+  let videoLoading = $state(true);
+  let videoError = $state(false);
 
   // When the component mounts, check if a session exists.
   // If not, open the singleton drawer and register this page's `handleStart` function.
@@ -149,30 +151,26 @@
   // The logic to hide the button when the drawer is open has been removed for simplification.
   // The drawer will now cover the button, which is the intended behavior.
 
-  // Video loop effect - simple restart when video ends
-  $effect(() => {
-    if (browser && videoElement) {
-      const handleVideoEnd = () => {
-        // Reset to beginning and play again for seamless loop
-        videoElement.currentTime = 0;
-        videoElement.play().catch((error) => {
-          console.error("Video playback failed:", error);
-        });
-      };
+  // Video loading handlers
+  function handleVideoCanPlay() {
+    videoLoading = false;
+    videoError = false;
+  }
 
-      videoElement.addEventListener("ended", handleVideoEnd);
-
-      return () => {
-        videoElement.removeEventListener("ended", handleVideoEnd);
-      };
-    }
-  });
+  function handleVideoError() {
+    videoLoading = false;
+    videoError = true;
+    console.error("Video failed to load");
+  }
 </script>
 
 <!-- Main landing page layout - Two pane design -->
-<div class="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+<div class="grid min-h-screen grid-cols-1" class:lg:grid-cols-2={!videoError}>
   <!-- Left pane: Intro content -->
-  <div class="relative flex flex-col items-center justify-center px-8 py-12 text-center lg:px-16">
+  <div
+    class="relative flex flex-col items-center justify-center px-8 py-12 text-center"
+    class:lg:px-16={!videoError}
+  >
     <div class="absolute top-2 right-2">
       <ThemeToggle />
     </div>
@@ -188,37 +186,50 @@
     </p>
     {#if $anonymousUserId}
       <!-- Show Dashboard button for returning users -->
-      <Button
-        onclick={handleDashboardClick}
-        size="lg"
-        disabled={sessionStarting}
-        class="px-10 py-6 text-xl"
-      >
+      <Button onclick={handleDashboardClick} size="2xl" disabled={sessionStarting}>
         {sessionStarting ? "Loading..." : "Go to Habits"}
       </Button>
     {:else}
       <!-- Show Start button for new users -->
-      <Button onclick={handleStart} size="lg" disabled={sessionStarting} class="px-10 py-6 text-xl">
+      <Button onclick={handleStart} size="2xl" disabled={sessionStarting}>
         {sessionStarting ? "Starting..." : "Get Started"}
       </Button>
     {/if}
   </div>
 
   <!-- Right pane: Video background -->
-  <div class=" relative z-0 hidden h-full w-full overflow-hidden lg:block">
-    <div class="absolute inset-0 flex items-center justify-center">
-      <div class="relative h-[98%] w-[98%] overflow-hidden rounded-lg">
-        <video
-          bind:this={videoElement}
-          src="/intro_twilight_xs.mp4"
-          autoplay
-          muted
-          class="pointer-events-none -z-10 h-full w-full object-cover opacity-95"
-          aria-label="Habistat introduction video background"
-        ></video>
+  {#if !videoError}
+    <div class="relative z-0 h-[50vh] w-full overflow-hidden lg:h-full">
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="relative h-[98%] w-[98%] overflow-hidden rounded-lg">
+          <!-- Loading skeleton -->
+          {#if videoLoading}
+            <div
+              class="bg-muted absolute inset-0 flex animate-pulse items-center justify-center rounded-lg"
+            >
+              <div class="text-muted-foreground text-sm">Loading video...</div>
+            </div>
+          {/if}
+
+          <!-- Video element -->
+          <video
+            bind:this={videoElement}
+            src="/intro_twilight_xs.mp4"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+            oncanplay={handleVideoCanPlay}
+            onerror={handleVideoError}
+            class="pointer-events-none -z-10 h-full w-full object-cover opacity-95 transition-opacity duration-300"
+            class:opacity-0={videoLoading}
+            aria-label="Habistat introduction video background"
+          ></video>
+        </div>
       </div>
     </div>
-  </div>
+  {/if}
 </div>
 
 <!--
@@ -232,7 +243,8 @@
   >
     <Button
       onclick={() => drawerController.open()}
-      class={`${buttonVariants({ variant: "secondary" })} text-primary-background px-10 py-6 text-xl`}
+      variant="secondary"
+      size="xl"
       aria-label="Show more info"
     >
       More Info

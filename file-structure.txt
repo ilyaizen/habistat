@@ -1,4 +1,6 @@
 .
+├── .claude
+│   └── settings.local.json
 ├── .cursor
 │   ├── rules
 │   │   ├── add-comments.mdc
@@ -245,6 +247,7 @@
 │   ├── flag-il.png
 │   ├── flag-us.png
 │   ├── handmadepaper.png
+│   ├── intro_twilight_xs.mp4
 │   ├── logo.png
 │   ├── logo.svg
 │   ├── maskable-icon-512x512.png
@@ -266,6 +269,7 @@
 ├── .qoderignore
 ├── .vercelignore
 ├── CHANGELOG.md
+├── CLAUDE.md
 ├── Dockerfile
 ├── LICENSE
 ├── README.md

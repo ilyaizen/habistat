@@ -111,7 +111,7 @@ export class SyncService {
     // capturing the initial state and only reacting to subsequent changes.
     let primed = false; // set after first ready emission
     let primedInitialUserId: string | null = null;
-    const ignoredFirstAutoSignIn = false;
+
     this.authUnsubscribe = authState.subscribe(async (state) => {
       if (!state.clerkReady) {
         if (DEBUG_VERBOSE) console.log("SyncService: Auth state not ready yet.");
