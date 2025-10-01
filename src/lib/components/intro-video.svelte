@@ -5,10 +5,13 @@
  * - Slower playback rate for reduced CPU usage
  * - 7.5 fps rendering for better performance
  * - Loading states and error handling
+ * - Greeting overlay with time-based message
  */ -->
 
 <script lang="ts">
   import { browser } from "$app/environment";
+  import { settings } from "$lib/stores/settings";
+  import { getTimeOfDay } from "$lib/utils";
 
   interface Props {
     videoError?: boolean;
@@ -18,7 +21,30 @@
 
   // State management using Svelte 5 runes
   let videoElement = $state<HTMLVideoElement>();
-  let videoLoading = $state(true);  // Video loading handlers
+  let videoLoading = $state(true);
+
+  // Get greeting based on time of day
+  let timeOfDay = $state(getTimeOfDay());
+
+  // Update time of day every minute
+  $effect(() => {
+    if (browser) {
+      const interval = setInterval(() => {
+        timeOfDay = getTimeOfDay();
+      }, 60000); // Update every minute
+
+      return () => clearInterval(interval);
+    }
+  });
+
+  // Compose the greeting message
+  let greeting = $derived(() => {
+    const base = `Good ${timeOfDay}`;
+    const name = $settings.displayName?.trim();
+    return name ? `${base}, ${name}` : base;
+  });
+
+  // Video loading handlers
   function handleVideoCanPlay() {
     videoLoading = false;
     videoError = false;
@@ -74,6 +100,20 @@
           class:opacity-0={videoLoading}
           aria-label="Habistat introduction video background"
         ></video>
+
+        <!-- Subtle gradient overlay: black at top fading to transparent -->
+        <div
+          class="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-transparent"
+        ></div>
+
+        <!-- Greeting text overlay -->
+        {#if !videoLoading}
+          <div class="pointer-events-none absolute inset-0 flex items-start justify-center pt-8">
+            <p class="text-2xl text-white opacity-90 drop-shadow-md lg:text-3xl">
+              {greeting()}
+            </p>
+          </div>
+        {/if}
       </div>
     </div>
   </div>
