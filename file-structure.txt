@@ -91,6 +91,7 @@
 │   │   │   ├── habit-edit-dialog.svelte
 │   │   │   ├── habit-history-day-bar.svelte
 │   │   │   ├── habit-history-row.svelte
+│   │   │   ├── intro-video.svelte
 │   │   │   ├── language-switcher.svelte
 │   │   │   ├── lottie-confetti-effect.svelte
 │   │   │   ├── more-info.svelte
@@ -253,6 +254,7 @@
 │   ├── maskable-icon-512x512.png
 │   ├── noisy.png
 │   ├── offline.html
+│   ├── paper_2.png
 │   ├── site.webmanifest
 │   └── sql-wasm.wasm
 ├── tests

@@ -46,7 +46,7 @@
 
   // Font imports: Merriweather (serif), Noto Sans (sans), Noto Sans Hebrew (sans for Hebrew), Fira Code (mono) for global and utility font usage
   import "@fontsource/merriweather"; // Serif font for body text (default weight 400)
-  import ThemeToggle from "$lib/components/theme-toggle.svelte";
+  // import ThemeToggle from "$lib/components/theme-toggle.svelte";
 
   // Use Google Fonts for Noto Sans and Noto Sans Hebrew for better internationalization and Hebrew support
 

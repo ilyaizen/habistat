@@ -18,6 +18,7 @@
   import { Button, buttonVariants } from "$lib/components/ui/button";
   import { triggerIntroConfetti } from "$lib/stores/ui";
   import ThemeToggle from "$lib/components/theme-toggle.svelte";
+  import IntroVideo from "$lib/components/intro-video.svelte";
 
   import { anonymousUserId, sessionStore } from "$lib/utils/tracking";
 
@@ -32,8 +33,6 @@
   // State management using Svelte 5 runes ($state)
   let showMoreInfoButton = $state(false);
   let sessionStarting = $state(false);
-  let videoElement: HTMLVideoElement;
-  let videoLoading = $state(true);
   let videoError = $state(false);
 
   // When the component mounts, check if a session exists.
@@ -150,18 +149,6 @@
 
   // The logic to hide the button when the drawer is open has been removed for simplification.
   // The drawer will now cover the button, which is the intended behavior.
-
-  // Video loading handlers
-  function handleVideoCanPlay() {
-    videoLoading = false;
-    videoError = false;
-  }
-
-  function handleVideoError() {
-    videoLoading = false;
-    videoError = true;
-    console.error("Video failed to load");
-  }
 </script>
 
 <!-- Main landing page layout - Two pane design -->
@@ -171,7 +158,7 @@
     class="relative flex flex-col items-center justify-center px-8 py-12 text-center"
     class:lg:px-16={!videoError}
   >
-    <div class="absolute top-2 right-2">
+    <div class="absolute top-2 right-2 opacity-5">
       <ThemeToggle />
     </div>
 
@@ -198,38 +185,7 @@
   </div>
 
   <!-- Right pane: Video background -->
-  {#if !videoError}
-    <div class="relative z-0 h-[50vh] w-full overflow-hidden lg:h-full">
-      <div class="absolute inset-0 flex items-center justify-center">
-        <div class="relative h-[98%] w-[98%] overflow-hidden rounded-lg">
-          <!-- Loading skeleton -->
-          {#if videoLoading}
-            <div
-              class="bg-muted absolute inset-0 flex animate-pulse items-center justify-center rounded-lg"
-            >
-              <div class="text-muted-foreground text-sm">Loading video...</div>
-            </div>
-          {/if}
-
-          <!-- Video element -->
-          <video
-            bind:this={videoElement}
-            src="/intro_twilight_xs.mp4"
-            autoplay
-            muted
-            loop
-            playsinline
-            preload="auto"
-            oncanplay={handleVideoCanPlay}
-            onerror={handleVideoError}
-            class="pointer-events-none -z-10 h-full w-full object-cover opacity-95 transition-opacity duration-300"
-            class:opacity-0={videoLoading}
-            aria-label="Habistat introduction video background"
-          ></video>
-        </div>
-      </div>
-    </div>
-  {/if}
+  <IntroVideo bind:videoError />
 </div>
 
 <!--
