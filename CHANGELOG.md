@@ -9,6 +9,24 @@ structure of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 Nothing yet.
 
+## [0.0.7] - 2025-10-01
+
+### Added
+- Time-based greeting overlay to the intro video component, displaying personalized messages based on time of day and user name.
+- CLAUDE.md for Claude Code guidance and .claude/settings.local.json.
+- Video background to the landing page with two-pane layout and seamless looping.
+- New button sizes (xl, 2xl) for improved styling.
+
+### Changed
+- Refactored intro video logic into a separate IntroVideo component for better modularity.
+- Updated app.css to use paper_2.png as background image with increased opacity.
+- Improved landing page video UX with loading skeleton, error handling, and responsive layout.
+- Refined font usage by moving Nunito import to app.css, strengthening UI emphasis with bolder styles, and simplifying emoji font stack.
+- Updated button styles with borders and improved dark mode appearance; removed gradient fade overlays from title sections.
+- Increased Tauri window width to 1100px and applied backdrop blur to drawer overlay.
+- Commented out ThemeToggle import in +layout.svelte.
+- Minor updates to +page.svelte, button padding, layout styles, and file-structure.txt.
+
 ## [0.0.6] - 2025-09-26
 
 ### Added

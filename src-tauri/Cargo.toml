@@ -1,6 +1,6 @@
 [package]
 name = "habistat"
-version = "0.0.6"
+version = "0.0.7"
 description = "Habistat Habit Tracker"
 authors = ["Ilya Aizenberg"]
 license = "MIT"
