@@ -133,6 +133,10 @@
   // Event listener management using $effect
   $effect(() => {
     if (browser) {
+      // Prevent scrolling on the home page
+      document.documentElement.classList.add("no-scroll");
+      document.body.classList.add("no-scroll");
+
       window.addEventListener("wheel", handleWheel, { passive: true });
       window.addEventListener("touchstart", handleTouchStart, {
         passive: true
@@ -140,6 +144,10 @@
       window.addEventListener("touchmove", handleTouchMove, { passive: true });
 
       return () => {
+        // Re-enable scrolling when leaving the home page
+        document.documentElement.classList.remove("no-scroll");
+        document.body.classList.remove("no-scroll");
+
         window.removeEventListener("wheel", handleWheel);
         window.removeEventListener("touchstart", handleTouchStart);
         window.removeEventListener("touchmove", handleTouchMove);
@@ -153,9 +161,14 @@
 
 <!-- Main landing page layout - Two pane design -->
 <div class="grid min-h-screen grid-cols-1" class:lg:grid-cols-2={!videoError}>
-  <!-- Left pane: Intro content -->
+  <!-- Right pane: Video background (first on mobile, second on desktop) -->
+  <div class="order-1 lg:order-2">
+    <IntroVideo bind:videoError />
+  </div>
+
+  <!-- Left pane: Intro content (second on mobile, first on desktop) -->
   <div
-    class="relative flex flex-col items-center justify-center px-8 py-12 text-center"
+    class="relative order-2 flex flex-col items-center justify-center px-8 py-12 text-center lg:order-1"
     class:lg:px-16={!videoError}
   >
     <div class="absolute top-2 right-2 opacity-5">
@@ -173,19 +186,16 @@
     </p>
     {#if $anonymousUserId}
       <!-- Show Dashboard button for returning users -->
-      <Button onclick={handleDashboardClick} size="2xl" disabled={sessionStarting}>
+      <Button onclick={handleDashboardClick} size="2xl" class="text-xl" disabled={sessionStarting}>
         {sessionStarting ? "Loading..." : "Go to Habits"}
       </Button>
     {:else}
       <!-- Show Start button for new users -->
-      <Button onclick={handleStart} size="2xl" disabled={sessionStarting}>
+      <Button onclick={handleStart} size="2xl" class="text-xl" disabled={sessionStarting}>
         {sessionStarting ? "Starting..." : "Get Started"}
       </Button>
     {/if}
   </div>
-
-  <!-- Right pane: Video background -->
-  <IntroVideo bind:videoError />
 </div>
 
 <!--
@@ -202,6 +212,7 @@
       variant="secondary"
       size="xl"
       aria-label="Show more info"
+      class="border-border border-2 text-lg"
     >
       More Info
     </Button>

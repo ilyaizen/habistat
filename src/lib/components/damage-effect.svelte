@@ -73,9 +73,9 @@
       if (motionEnabled) {
         shakeRootEl.classList.add("damage-shaking");
       }
-      // Prevent horizontal scrollbars during shake and set single amplitude variable
-      document.documentElement.classList.add("no-x-overflow");
-      document.body.classList.add("no-x-overflow");
+      // Prevent scrollbars during shake and set single amplitude variable
+      document.documentElement.classList.add("no-overflow");
+      document.body.classList.add("no-overflow");
       const root = document.documentElement;
       const amplitudePx = Math.max(6, Math.round(18 * intensity));
       root.style.setProperty("--damage-shake", `${amplitudePx}px`);
@@ -92,8 +92,8 @@
       try {
         const target = shakeRootEl || document.body;
         target.classList.remove("damage-desaturated", "damage-shaking");
-        document.documentElement.classList.remove("no-x-overflow");
-        document.body.classList.remove("no-x-overflow");
+        document.documentElement.classList.remove("no-overflow");
+        document.body.classList.remove("no-overflow");
         document.documentElement.style.removeProperty("--damage-shake");
       } catch {}
       shakeRootEl = null;
@@ -109,8 +109,8 @@
     try {
       const target = shakeRootEl || document.body;
       target.classList.remove("damage-desaturated", "damage-shaking");
-      document.documentElement.classList.remove("no-x-overflow");
-      document.body.classList.remove("no-x-overflow");
+      document.documentElement.classList.remove("no-overflow");
+      document.body.classList.remove("no-overflow");
       document.documentElement.style.removeProperty("--damage-shake");
     } catch {}
     shakeRootEl = null;
@@ -147,18 +147,10 @@
 {#if isActive}
   <div
     bind:this={overlayEl}
-    class="damage-overlay pointer-events-none fixed top-0 left-0 z-[9999] opacity-100"
+    class="damage-overlay pointer-events-none fixed top-0 right-0 bottom-0 left-0 z-[9999]"
     style={`
-      width: 100vw;
-      height: 100vh;
+      background: radial-gradient(circle at center, transparent 0%, rgba(255, 0, 0, 0.4) 70%, rgba(255, 0, 0, 0.8) 100%);
       animation: damage-fade ${overlayFlashMs}ms ease-out both;
-      background: radial-gradient(
-        circle farthest-corner at 50% 50%,
-        rgba(255, 0, 0, 0) 0%,
-        rgba(255, 0, 0, 0.05) 88%,
-        rgba(255, 0, 0, 0.3) 94%,
-        rgba(255, 0, 0, 0.5) 100%
-      );
     `}
     aria-hidden="true"
   ></div>
@@ -261,9 +253,9 @@
     will-change: opacity, transform;
   }
 
-  /* Disable horizontal scrollbars during shake */
-  :global(html.no-x-overflow),
-  :global(body.no-x-overflow) {
-    overflow-x: hidden;
+  /* Disable scrollbars during shake */
+  :global(html.no-overflow),
+  :global(body.no-overflow) {
+    overflow: hidden;
   }
 </style>

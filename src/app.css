@@ -182,6 +182,7 @@
     @apply border-border;
   }
 
+  html,
   body {
     font-family: var(--font-sans);
     font-optical-sizing: auto;
@@ -189,6 +190,14 @@
       "liga" 1,
       "kern" 1;
     @apply bg-background text-foreground font-bold antialiased;
+    overflow-x: hidden;
+  }
+
+  html.no-scroll,
+  body.no-scroll {
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height for mobile */
   }
 
   .border {
