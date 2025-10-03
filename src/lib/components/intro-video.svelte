@@ -74,8 +74,8 @@
 <!-- Video background container -->
 {#if !videoError}
   <div class="relative z-0 h-[50vh] w-full overflow-hidden lg:h-full">
-    <div class="absolute inset-0 flex items-center justify-center">
-      <div class="relative h-[98%] w-[98%] overflow-hidden rounded-lg">
+    <div class="absolute inset-0">
+      <div class="relative h-full w-full overflow-hidden">
         <!-- Loading skeleton -->
         {#if videoLoading}
           <div
@@ -88,18 +88,19 @@
         <!-- Video element with optimized settings -->
         <video
           bind:this={videoElement}
-          src="/intro_twilight_xs.mp4"
           autoplay
           muted
           loop
           playsinline
-          preload="auto"
+          preload="metadata"
           oncanplay={handleVideoCanPlay}
           onerror={handleVideoError}
-          class="pointer-events-none -z-10 h-full w-full object-cover opacity-95 transition-opacity duration-300"
+          class="pointer-events-none -z-10 h-full w-full object-cover opacity-90 transition-opacity duration-300"
           class:opacity-0={videoLoading}
           aria-label="Habistat introduction video background"
-        ></video>
+        >
+          <source src="/intro_twilight_xs.mp4" type="video/mp4" />
+        </video>
 
         <!-- Subtle gradient overlay: black at top fading to transparent -->
         <div
@@ -109,7 +110,7 @@
         <!-- Greeting text overlay -->
         {#if !videoLoading}
           <div class="pointer-events-none absolute inset-0 flex items-start justify-center pt-8">
-            <p class="text-2xl text-white opacity-90 drop-shadow-md lg:text-3xl">
+            <p class="text-2xl text-white opacity-90 drop-shadow-md lg:text-3xl invisible sm:invisible">
               {greeting()}
             </p>
           </div>

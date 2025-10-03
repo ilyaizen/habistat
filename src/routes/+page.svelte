@@ -168,7 +168,7 @@
 
   <!-- Left pane: Intro content (second on mobile, first on desktop) -->
   <div
-    class="relative order-2 flex flex-col items-center justify-center px-8 py-12 text-center lg:order-1"
+    class="relative order-2 flex flex-col items-center justify-center px-8 py-12 pb-24 text-center lg:order-1 lg:pb-12"
     class:lg:px-16={!videoError}
   >
     <div class="absolute top-2 right-2 opacity-5">
